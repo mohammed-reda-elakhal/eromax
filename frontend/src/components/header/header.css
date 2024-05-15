@@ -1,0 +1,222 @@
+.header{
+    width: 100%;
+}
+
+.header-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 90%;
+    margin: auto;
+    border-bottom: var(--gray2) solid 1px;
+    padding: 4px 0;
+}
+.header-top-menu-lang-item{
+    position: absolute;
+    z-index: 2;
+    background: var(--gray1);
+    width: 100px ;
+    border-radius: 4px;
+    text-align: center;
+    transform: translateY(6px);
+    padding: 4px;
+}
+.header-top-icons{
+    display: flex;
+    align-items: center;
+    
+}
+.header-top-icon{
+    font-size: 16px;
+    color: var(--gray2);
+    margin:  0 4px;
+    cursor: pointer;
+    transition-duration: 0.5s;
+}
+.header-top-icon:hover{
+    color: var(--primary1);
+
+}
+.header-top-menu-lang-item li{
+    padding: 6px 0;
+    cursor: pointer;
+}
+.header-top-menu-lang-item li:first-child{
+    border-bottom: 1px solid var(--primary1);
+}
+.header-top-menu-lang-btn{
+    display: flex;
+    align-items: center;
+    width: 100px;
+    justify-content: space-around;
+    text-align: center;
+    padding: 8px 0;
+    cursor: pointer;
+    border: none;
+    border-bottom: 2px solid var(--primary1);
+}
+.header-top-contact{
+    display: flex;
+    align-items: center;
+
+}
+.header-top-contact-item{
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 14px;
+    color: var(--gray3);
+}
+.header-top-contact-item a{
+    margin-left:8px;
+    text-decoration: none;
+    color: var(--gray3);
+}
+/*-------------- header-bottom -----------*/
+.header-bottom{
+    display: flex;
+    margin: auto;
+    padding: 10px 0;
+    justify-content: space-around;
+    align-items: center;
+}
+.navbar{
+    z-index: 100;
+}
+.navbar ul{
+    display: flex;
+    align-items: center;
+}
+.navbar ul li{
+    list-style:none ;
+    margin: 0 10px;
+    cursor: pointer;
+    transition-duration: 0.3s;
+}
+.navbar ul li:hover{
+    color: var(--gray2);
+}
+.navbar ul button{
+    padding: 8px 16px;
+    margin: 0 8px;
+    background: var(--primary1);
+    color: var(--gray1);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition-duration: 0.5s;
+}
+
+.header-bottom-icon-menu{
+    font-size: 26px;
+    cursor: pointer;
+    display: none;
+}
+.header-bottom-icon-close{
+    font-size: 26px;
+    cursor: pointer;
+    display: none;
+}
+.header-navbar{
+    display: none;
+}
+
+/*-----------media query------*/
+
+/* For tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* Your CSS styles for tablets */
+    .header-bottom{
+        width: 100%;
+        margin-top: 12px;
+        z-index: 10;
+    }
+    .header-top{
+        display: none;
+    }
+    .header-bottom-icon-menu{
+        display: block;
+    }
+    .header-bottom-navbar{
+        position: fixed;
+        background: var(--gray1);
+        top: 0px;
+        left: -100%;
+        color: var(--gray3);
+        width: 100vw;
+        height: 100vh;
+        transition: left 0.5s ease;
+        z-index: 10;
+    }
+    .header-bottom-navbar.open{
+        left: 0;
+    }
+    .navbar ul{
+        flex-direction: column;
+        height: 100%;
+        width: 80%;
+        margin: 16px auto;
+        align-items: start;
+        z-index: 10;
+    }
+    .navbar ul li , .navbar ul button{
+        margin: 10px ;
+    }
+    .header-navbar{
+        display: flex;
+        align-items: center;
+        width: 90%;
+        justify-content: space-between;
+        margin: 16px auto;
+        padding-bottom: 10px;
+        border-bottom: 1px solid  var(--gray3);
+    }
+}
+  
+/* For mobile devices */
+@media (max-width: 767px) {
+/* Your CSS styles for mobile */
+.header-bottom{
+    width: 100%;
+    margin-top: 12px;
+}
+.header-top{
+    display: none;
+}
+.header-bottom-icon-menu{
+    display: block;
+}
+.header-bottom-navbar{
+    position: fixed;
+    background: var(--gray1);
+    top: 0px;
+    left: -100%;
+    color: var(--gray3);
+    width: 100vw;
+    height: 100vh;
+    transition: left 0.5s ease;
+    z-index: 10;
+}
+.header-bottom-navbar.open{
+    left: 0;
+}
+.navbar ul{
+    flex-direction: column;
+    height: 100%;
+    width: 80%;
+    margin: 16px auto;
+    align-items: start;
+}
+.navbar ul li , .navbar ul button{
+    margin: 10px ;
+}
+.header-navbar{
+    display: flex;
+    align-items: center;
+    width: 90%;
+    justify-content: space-between;
+    margin: 16px auto;
+    padding-bottom: 10px;
+    border-bottom: 1px solid  var(--gray3);
+}
+}

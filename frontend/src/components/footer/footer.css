@@ -1,0 +1,125 @@
+.footer{
+    display: flex;
+    flex-direction: column;
+}
+.footer-header{
+    width: 80%;
+    margin: 2em auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--limon);
+}
+.footer-header p{
+    font-size: 16px;
+    margin-bottom: 1em;
+}
+.footer-header strong{
+    font-size: 18px;
+    color: var(--limon);
+}
+.footer-traduction{
+    display: flex;
+    flex-direction: column;
+    border-left: 2px solid var(--primary2);
+    margin: 16px 0;
+}
+.footer-traduction button{
+    width: 120px;
+    font-size: 12px;
+    padding: 8px;
+    border: none;
+    cursor: pointer;
+    color: rgb(73, 73, 73);
+}
+.footer-traduction button:hover{
+    background: rgb(206, 205, 205);
+}
+
+
+.footer-main{
+    width: 80%;
+    margin: 2em auto;
+    display: flex;
+    justify-content: space-between;
+}
+.footer-links{
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}
+.footer-link{
+    color: var(--gray2);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 0;
+}
+
+.footer-info{
+    text-align: center;
+}
+.footer-info img{
+    width: 150px;
+}
+.footer-info p{
+    width: 280px; /* Adjust the width until you get the desired word wrap */
+    font-size: 16px; /* Example font size */
+    line-height: 1.6; /* Adjust line height for better readability */
+    word-wrap: break-word;
+    margin: 12px 0;
+}
+
+.footer-icon{
+    color: var(--primary1);
+    font-size: 18px;
+    margin-right: 12px;
+}
+.footer-icon:last-child{
+    margin-right: 0;
+}
+.footer-copyright{
+    text-align: center;
+    border-top: 1px solid black;
+    padding: 8px 0 0 0;
+}
+
+/* For tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* Your CSS styles for tablets */
+    .footer-header{
+        flex-direction: column;
+        align-items: start;
+    }
+    .footer-main{
+        flex-direction: column;
+        align-items: start;
+    }
+    .footer-info{
+        text-align: start;
+        border-top: 1px solid var(--primary1);
+        margin: 12px 0;
+        padding: 16px 0;
+    }
+  }
+
+  
+  /* For mobile devices */
+  @media (max-width: 767px) {
+    /* Your CSS styles for mobile */
+    .footer-header{
+        flex-direction: column;
+        align-items: start;
+    }
+    .footer-info{
+        text-align: start;
+        border-top: 1px solid var(--primary1);
+        margin: 12px 0;
+        padding: 16px 0;
+    }
+    .footer-main{
+        flex-direction: column;
+        align-items: start;
+    }
+  }
+  

@@ -1,0 +1,20 @@
+.cover { 
+    z-index: 0;/* Ensure the cover is above other elements */
+}
+
+.carousel {
+    z-index: 0; /* Lower z-index compared to the sidebar */
+}
+.carousel {
+    font-size: 18px;
+    z-index: 0;
+    opacity: 50;
+}
+
+.carousel-slide img {
+    width: 100%;
+    z-index: 0;
+}
+
+
+
