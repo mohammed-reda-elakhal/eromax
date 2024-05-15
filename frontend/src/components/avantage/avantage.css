@@ -1,0 +1,53 @@
+.avantage-section{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    margin: 2em auto;
+}
+
+.avantage-section-header{
+    text-align: center;
+}
+.avantage-section-header h4{
+    color: var(--primary1);
+    font-size: 18px;
+    margin: 12px 0;
+}
+.avantage-section-header h1{
+    color: var(--gray3);
+    margin-bottom: 16px ;
+}
+.avantage-section-main{
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 4em;
+    text-align: center;
+    margin-top: 2em;
+}
+.avantage-item-icon{
+    color: var(--primary1);
+    font-size: 40px;
+    margin: 12px 0;
+}
+.avantage-item-title{
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+.avantage-item-desc{
+    color: var(--gray2);
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .avantage-section-main{
+        grid-template-columns: repeat(2 , 1fr);
+    }
+}
+
+/* For mobile devices */
+@media (max-width: 767px) {
+    .avantage-section-main{
+        grid-template-columns: repeat(1 , 1fr);
+    }
+}
