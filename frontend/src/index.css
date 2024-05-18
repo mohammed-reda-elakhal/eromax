@@ -95,21 +95,16 @@ body{
 
 /*-------------Register section ------------------*/
 .register-section{
-  width: 100%;
   display: flex;
   flex-direction: column;
 }
-.register-section-logo{
-  position: relative;
-  top: 12px;
-  left: 12px;
-}
+
 .register-section-logo img{
   width: 90px;
 }
 .register-section-main{
   width: 80%;
-  margin:auto;
+  margin: 1em auto;
 }
 .register-main-title{
   display: flex;

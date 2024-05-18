@@ -2,6 +2,7 @@ import React , { useState } from 'react'
 import {UserOutlined , InfoCircleOutlined , PhoneOutlined , MailOutlined} from '@ant-design/icons';
 import { Flex, Input , Tooltip , Button , Radio, Space  } from 'antd';
 import type { RadioChangeEvent } from 'antd';
+import { Link } from 'react-router-dom';
 
 
 
@@ -56,6 +57,7 @@ const NumericInput = (props) => {
 function Register() {
     const [number, setNumber] = useState('');
     const [value, setValue] = useState(1);
+    
 
     const onChange = (e: RadioChangeEvent) => {
       console.log('radio checked', e.target.value);
@@ -63,9 +65,9 @@ function Register() {
     };
   return (
     <div className='register-section'>
-        <div className="register-section-logo">
+        <Link to='/' className="register-section-logo">
             <img src="/image/logo.png" alt="" />
-        </div>
+        </Link>
         <div className="register-section-main">
             <div className="register-main-title">
                 <div className="register-main-title-icon">
