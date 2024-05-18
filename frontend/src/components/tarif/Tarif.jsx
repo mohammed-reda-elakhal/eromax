@@ -8,6 +8,7 @@ function Tarif() {
         <div className="avantage-section-header">
             <h4>Tarif</h4>
             <h1>Les frais de livraison au Maroc</h1>
+            <p>Départ des colis est Marrakech</p>
         </div>
         <div className="tarif-section-main">
             <TarifTable/>

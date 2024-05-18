@@ -10,7 +10,7 @@ function HeaderBottom() {
             <IoClose/>
         </div>
         <div className={`header-bottom-logo`}>
-            <img src="/image/logo.png" alt="" className='header-logo' style={{width:"150px"}}/>
+            <img src="/image/logo.png" alt="" className='header-logo' style={{width:"80px"}}/>
         </div>
         <div className={`header-bottom-navbar ${toggleMenu ? 'open' : ''}`}>
             <NavBar setToggleMenu={setToggleMenu}/>

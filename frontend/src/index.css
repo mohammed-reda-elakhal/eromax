@@ -1,8 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
 body {
   margin: 0;
-  font-family: "Rubik", sans-serif;
+  font-family: "Outfit", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -13,7 +14,7 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Rubik", sans-serif;
+  font-family: "Outfit", sans-serif;
 }
 
 :root{
@@ -28,4 +29,66 @@ body {
 
 body{
   scroll-behavior: smooth;
+}
+
+/*--------- login ------------*/
+.login-section{
+  display: flex;
+  height: 100vh;
+}
+.login-section-cover{
+  width: 50%;
+  height:100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray1);
+}
+.login-section-cover img{
+  width: 400px;
+}
+
+.login-section-main{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40%;
+}
+.login-section-main-header{
+  width: 80%;
+  margin: 0 auto;
+}
+.login-section-main-header h3{
+  color: var(--primary1);
+  font-weight: 600;
+  margin: 8px 0;
+  font-size: 24px;
+}
+.login-section-main-header p {
+  color: var(--gray2);
+  font-size: 12px;
+  margin: 8px 0;
+}
+.login-section-main form{
+  width: 80%;
+  margin: 0 auto;
+}
+.login-section-main form > *{
+  margin: 8px 0;
+}
+.remember-me{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.remember-me >*{
+  font-size: 12px;
+}
+.footer-link-form{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
