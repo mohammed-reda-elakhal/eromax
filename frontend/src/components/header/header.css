@@ -76,8 +76,9 @@
 .header-bottom{
     display: flex;
     margin: auto;
+    width: 90%;
     padding: 10px 0;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
 }
 .navbar{
@@ -96,7 +97,7 @@
 .navbar ul li:hover{
     color: var(--gray2);
 }
-.navbar ul button{
+.navbar ul .button-link{
     padding: 8px 16px;
     margin: 0 8px;
     background: var(--primary1);
@@ -127,7 +128,7 @@
 @media (min-width: 768px) and (max-width: 1024px) {
     /* Your CSS styles for tablets */
     .header-bottom{
-        width: 100%;
+        width: 90%;
         margin-top: 12px;
         z-index: 10;
     }
@@ -177,7 +178,7 @@
 @media (max-width: 767px) {
 /* Your CSS styles for mobile */
 .header-bottom{
-    width: 100%;
+    width: 90%;
     margin-top: 12px;
 }
 .header-top{

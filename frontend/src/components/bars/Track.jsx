@@ -20,7 +20,7 @@ function Track() {
         <Search
             placeholder="Taper votre numéro de suivi"
             allowClear
-            enterButton="Suivre Maintenant"
+            enterButton="Suivre"
             size="large"
             className='track-input'
             onSearch={showDrawer}
