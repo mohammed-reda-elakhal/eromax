@@ -92,3 +92,41 @@ body{
   justify-content: center;
   font-size: 14px;
 }
+
+/*-------------Register section ------------------*/
+.register-section{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.register-section-logo{
+  position: relative;
+  top: 12px;
+  left: 12px;
+}
+.register-section-logo img{
+  width: 90px;
+}
+.register-section-main{
+  width: 80%;
+  margin:auto;
+}
+.register-main-title{
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gray3);
+}
+.register-main-title-icon{
+  font-size: 30px;
+  background: var(--gray1);
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+.register-main-title p {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 12px;
+  color: var(--primary1);
+}

@@ -54,7 +54,7 @@ function NavBar({ setToggleMenu }) {
             Blog
           </Link>
         </li>
-          <Link className='button-link' to="/signup" onClick={() => setToggleMenu(false)} style={{ textDecoration: 'none', color: 'white' }}>
+          <Link className='button-link' to="/register" onClick={() => setToggleMenu(false)} style={{ textDecoration: 'none', color: 'white' }}>
             Devenir Client
           </Link>
           <Link className='button-link' to="/login" onClick={() => setToggleMenu(false)} style={{ textDecoration: 'none', color: 'white' }}>
