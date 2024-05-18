@@ -69,8 +69,13 @@ const ProfileSchema = new mongoose.Schema({
         }
 
     }
-    
-
+    ,info: {
+        type : Object ,
+        default : {
+            date_start:"",
+            number_colis:"",
+        }
+    }
 
 },{
     timestamps:true  //genreate created at and updated up automatically 
