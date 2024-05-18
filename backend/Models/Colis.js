@@ -93,5 +93,7 @@ function validateRegisterColis(obj){
     return schema.validate(obj);
 }
 module.exports={
-    Colis
+    Colis ,
+    
+    validateRegisterColis
 }
