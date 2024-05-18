@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const Joi = require("joi");
+//const Joi = require("joi");
 const mongoose = require ("mongoose");
 
 //User Schema 
@@ -45,6 +45,14 @@ const ProfileSchema = new mongoose.Schema({
         trim:true,
         minlenght:5,
     },
+    Tel:{
+        type:Number,
+        required:true,
+        maxlenght:10,
+        minlenght:10
+
+
+    },
     isAdmin:{
         type:Boolean,
         default:false,
@@ -83,6 +91,7 @@ function validateRegisterProfile(obj){
         ville: Joi.string().required(),
         adresse: Joi.string().required(),
         CIN:Joi.string().required().min(5),
+        Tel:Joi.string().required().min(10).max(10)
     
     });
     return schema.validate(obj);
