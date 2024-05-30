@@ -1,5 +1,6 @@
 const mongoose = require ("mongoose");
 const Joi = require("joi");
+const shortid = require('shortid');
 
 //User Schema 
 const ColisSchema = new mongoose.Schema({
@@ -58,9 +59,7 @@ const ColisSchema = new mongoose.Schema({
         default:"En cours de rammasaage ",
 
     },
-    Date_liv:{
-        type:Date,
-    }
+    
     
 
     
@@ -69,6 +68,15 @@ const ColisSchema = new mongoose.Schema({
 
 },{
     timestamps:true  //genreate created at and updated up automatically 
+});
+
+//generate code suivi 
+ColisSchema.pre('save', function(next) {
+    if (!this.code_suivi) {
+        this.code_suivi = shortid.generate();
+    }
+    next();
+    console.log(this.code_suivi);
 });
 
 
@@ -81,11 +89,15 @@ function validateRegisterColis(obj){
     const schema = Joi.object({
         
         adresse_Resp: Joi.string().required(),
+        id_store:Joi.string().trim(),
         CIN:Joi.string().required().min(5),
         Nom_Resp:Joi.string().required(),
         ville_Resp:Joi.string().required(),
-        Tel_Resp:Joi.number().max(10).required().max(10),
+        Tel_Resp:Joi.string().pattern(/^[0-9]{10}$/).required(),
         Nature_Produit:Joi.string().required(),
+        Price: Joi.number().required(),
+        Commentaire:Joi.string(),
+        etat:Joi.string(),
         
 
     
