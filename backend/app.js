@@ -13,6 +13,7 @@ app.use(express.json());
 
 // Routes 
 app.use("/api/auth", require("./routes/authRoute"));
+app.use("/api/colis", require("./routes/colisRoute"));
 
 //Running server 
 const port =process.env.PORT || 8084;
