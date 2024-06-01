@@ -1,11 +1,12 @@
 import React from 'react'
-import AvantageItem from './AvantageItem';
 import './avantage.css'
 import { TbTruckDelivery } from "react-icons/tb";
 import { MdOutlineTask } from "react-icons/md";
 import { FaHome } from "react-icons/fa";
 import { FaBoxesPacking } from "react-icons/fa6";
 import { AiOutlineControl , AiOutlineFileProtect } from "react-icons/ai";
+import AvantageItem from './AvantageItem';
+import HeaderSection from '../header/HeaderSection';
 
 const avantages = [
     {
@@ -40,15 +41,17 @@ const avantages = [
         desc : "Tous nos services ont une priorité dans la mise en œuvre, et notre objectif principal est de vous servir et d'atteindre votre satisfaction."
     },
 ]
+
 function Avantage() {
   return (
-    <div className='avantage-section' id='avantage'>
-        <div className="avantage-section-header">
-            <h4>Pourquoi nous ?</h4>
-            <h1>Les avantages de choisir Eromax.ma</h1>
-        </div>
-        <div className="avantage-section-main">
-            {
+    <section className='avantage'>
+        <HeaderSection
+            nom={`Avantage`}
+            title={`Pourquoi nous ?`}
+            desc={`Les avantages de choisir Eromax.ma`}
+        />
+        <div className="avantage-main">
+        {
                 avantages.map(avantage=>(
                     <AvantageItem
                         key={avantage.id}
@@ -59,7 +62,7 @@ function Avantage() {
                 ))
             }
         </div>
-    </div>
+    </section>
   )
 }
 

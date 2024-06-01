@@ -4,7 +4,7 @@
   "description": "backend for delivery website eromax",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon app"
+    "start": "nodemon app"
   },
   "author": "mohammed reda",
   "license": "ISC",

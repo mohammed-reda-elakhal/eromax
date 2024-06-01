@@ -1,20 +1,75 @@
-.cover { 
-    z-index: 0;/* Ensure the cover is above other elements */
+.cover{
+    display: flex;
+    width: 90%;
+    margin: 10em auto;
+}
+.cover-info{
+    width: 50%;
+}
+.cover-info p{
+    background: var(--secondary);
+    width: max-content;
+    padding: 8px 26px;
+    border-radius: 50px;
+    font-style: italic;
+    color: var(--white);
+}
+.cover-icon{
+    color: var(--limon);
+    padding-left: 8px;
+}
+.cover-info h1{
+    font-size: 3.6em;
+}
+.cover-info h4{
+    font-size: 24px;
+    color: var(--gray);
+    margin: 16px 0;
+}
+.cover-img{
+    width: 45%;
+    text-align: center;
+}
+.cover-link{
+    background: var(--black);
+    padding: 10px 24px;
+    margin: 16px 0;
+    border-radius: 50px;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    width: max-content;
+    transition-duration: 0.3s;
+    font-weight: 600;
+    font-style: italic;
 }
 
-.carousel {
-    z-index: 0; /* Lower z-index compared to the sidebar */
+.cover-link-icon{
+    margin-right:16px;
+    color: var(--limon);
 }
-.carousel {
-    font-size: 18px;
-    z-index: 0;
-    opacity: 50;
+.cover-link:hover{
+    color: var(--limon);
+    box-shadow: 2px 2px 5px var(--limon);
+}
+.cover-img img{
+    width: 400px;
+    filter: drop-shadow(10px 10px 100px var(--black));
 }
 
-.carousel-slide img {
-    width: 100%;
-    z-index: 0;
+@media only screen and (max-width: 600px){
+    .cover-img{
+        display: none;
+    }
+    .cover-info{
+        width: 100%;
+    }
 }
-
-
-
+@media only screen and (min-width: 601px) and (max-width: 900px) {
+    .cover-img{
+        display: none;
+    }
+    .cover-info{
+        width: 100%;
+    }
+}

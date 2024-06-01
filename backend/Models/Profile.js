@@ -1,110 +1,99 @@
 const Joi = require("joi");
-//const Joi = require("joi");
-const mongoose = require ("mongoose");
+const mongoose = require("mongoose");
 
-//User Schema 
+// User Schema
 const ProfileSchema = new mongoose.Schema({
-    id:{
-        type:String,
+    username: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 100
     },
-    username:{
-        type:String,
-        required:true,
-        trim:true,
-        mainlenght:2,
-        maxlenght:100
+    CIN: {
+        type: String,
+        minlength: 5,
     },
-    CIN:{
-        type:String,
-        required:true,
-        mainlenght:5,
-
-
+    email: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 5,
+        maxlength: 100,
+        unique: true,
     },
-    email:{
-        type:String,
-        required :true,
-        trim:true,
-        minlenght:5,
-        maxlength:100,
-        unique:true,
-
-
+    ville: {
+        type: String,
+        required: true,
     },
-    ville:{
-        type:String,
-        required:true,
+    adresse: {
+        type: String,
     },
-    adresse:{
-        type:String,
-        required:true,
+    password: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 5,
     },
-    password:{
-        type:String,
-        required :true,
-        trim:true,
-        minlenght:5,
+    Tel: {
+        type: String,
+        required: true,
+        maxlength: 10,
+        minlength: 10
     },
-    Tel:{
-        type:Number,
-        required:true,
-        maxlenght:10,
-        minlenght:10
-
-
+    isAdmin: {
+        type: Boolean,
+        default: false,
     },
-    isAdmin:{
-        type:Boolean,
-        default:false,
-    },
-    isAccountVerified:{
-        type:Boolean,
-        default:false,
+    isAccountVerified: {
+        type: Boolean,
+        default: false,
     },
     profilePhoto: {
-        type:Object,
-        default:{
-            url:"https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_1280.png",
-            publicId :null,
+        type: Object,
+        default: {
+            url: "https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_1280.png",
+            publicId: null,
         }
-
-    }
-    ,info: {
-        type : Object ,
-        default : {
-            date_start:"",
-            number_colis:"",
+    },
+    info: {
+        type: Object,
+        default: {
+            date_start: "",
+            number_colis: "",
         }
     }
-
-},{
-    timestamps:true  //genreate created at and updated up automatically 
+}, {
+    timestamps: true // generate createdAt and updatedAt automatically
 });
 
+// Profile Model
+const Profile = mongoose.model("Profile", ProfileSchema);
 
-//Profile Model
-const  Profile = mongoose.model("Profile",ProfileSchema);
-
-
-// Validate  Register Profile
-
-function validateRegisterProfile(obj){
+// Validate Register Profile
+function validateRegisterProfile(obj) {
     const schema = Joi.object({
         username: Joi.string().trim().min(2).max(100).required(),
-        email :Joi.string().trim().min(8).max(100).required().email(),
-        password:Joi.string().trim().min(5).required(),
+        email: Joi.string().trim().min(8).max(100).required().email(),
+        password: Joi.string().trim().min(5).required(),
         ville: Joi.string().required(),
-        adresse: Joi.string().required(),
-        CIN:Joi.string().required().min(5),
-        Tel:Joi.string().required().min(10).max(10)
-    
+        Tel: Joi.string().required().length(10),
+        date_start: Joi.string().allow(""),
+        number_colis: Joi.string().allow("")
+    });
+    return schema.validate(obj);
+}
+// Validate Register Profile
+function validateLoginProfile(obj) {
+    const schema = Joi.object({
+        email: Joi.string().trim().min(8).max(100).required().email(),
+        password: Joi.string().trim().min(5).required(),
     });
     return schema.validate(obj);
 }
 
-
-
-module.exports={
+module.exports = {
     Profile,
-    validateRegisterProfile
-}
+    validateRegisterProfile,
+    validateLoginProfile
+};
