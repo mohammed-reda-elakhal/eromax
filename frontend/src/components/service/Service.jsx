@@ -1,10 +1,11 @@
 import React from 'react'
-import ServiceItem from './ServiceItem'
 import './service.css'
 import { FaBoxes } from "react-icons/fa";
 import { GrDeliver } from "react-icons/gr";
 import { AiOutlineFieldTime } from "react-icons/ai";
 import { FaHandHoldingUsd } from "react-icons/fa";
+import ServiceItem from './ServiceItem';
+import HeaderSection from '../header/HeaderSection';
 
 
 const services = [
@@ -33,21 +34,28 @@ const services = [
         desc : 'Nous assure le retour de fonds dans 48 H, des Virements, des bons de livraison d’une manière régulière sur les services de messagerie de nos clients.'
     },
 ]
+
 function Service() {
   return (
-    <div className='service-section'>
-        
-        {
-            services.map(service =>(
-                <ServiceItem
-                    key={service.id}
-                    icon={service.icon}
-                    title={service.title}
-                    desc = {service.desc}
-                />
-            ))
-        }
-    </div>
+    <section className='service'>
+         <HeaderSection
+            nom={`service`}
+            title={`Que Pouvons-Nous Faire Pour Vous`}
+            desc={`Vous vous concentrez sur la croissance. Nous assurons la logistique du commerce électronique.`}
+         />
+         <div className="service-main">
+            {
+                services.map(service =>(
+                    <ServiceItem
+                        key={service.id}
+                        icon={service.icon}
+                        title={service.title}
+                        desc = {service.desc}
+                    />
+                ))
+            }
+         </div>
+    </section>
   )
 }
 

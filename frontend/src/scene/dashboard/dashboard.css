@@ -1,0 +1,19 @@
+.page-dashboard {
+    display: flex;
+    height: 100vh; /* Ensure the dashboard takes full height */
+}
+
+.page-main {
+    width: 100%; /* Stack the content vertically */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column; /* Stack the content vertically */
+}
+
+.page-content {
+    padding: 12px;
+    flex-grow: 0; /* Allow content to grow and take available space */
+    overflow-y: auto; /* Enable vertical scrolling */
+    display: flex;
+    flex-direction: column;
+}

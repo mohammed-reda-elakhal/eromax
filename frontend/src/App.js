@@ -1,21 +1,21 @@
-import React from "react";
-import { Route , Routes } from "react-router-dom";
-import Home from "./Pages/Home";
-import Login from "./Pages/Login";
-import Register from "./Pages/Register";
-import DashboardHome from "./dashboard/dashboard pages/DashboardHome";
+import { Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from './pages/Login';
+import Register from './pages/Register';
+import HomeDashboard from "./scene/dashboard/HomeDashboard";
+import { ThemeProvider as CustomThemeProvider } from "./scene/ThemeContext";
 
 function App() {
   return (
-    <div className="App">
+    <CustomThemeProvider>
         <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/login" element={<Login/>} />
-          <Route path="/register" element={<Register/>} />
-
-          <Route path="/dashboard" element={<DashboardHome/>} />
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          <Route path="/dashboard/home" element={<HomeDashboard />} />
         </Routes>
-    </div>
+    </CustomThemeProvider>
   );
 }
 

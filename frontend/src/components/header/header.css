@@ -1,223 +1,287 @@
 .header{
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    background: var(--gradien2);
+    transition: top 0.5s ease;
+}
+
+.header.sticky {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Adjust as needed */
+    background: var(--gradien2);
 }
 
 .header-top{
     display: flex;
+    width: 90%;
     align-items: center;
     justify-content: space-between;
-    width: 90%;
-    margin: auto;
-    border-bottom: var(--gray2) solid 1px;
+    margin:auto;
     padding: 4px 0;
+    border-bottom: 1px solid var(--limon);
 }
-.header-top-menu-lang-item{
-    position: absolute;
-    z-index: 2;
-    background: var(--gray1);
-    width: 100px ;
-    border-radius: 4px;
-    text-align: center;
-    transform: translateY(6px);
-    padding: 4px;
-}
-.header-top-icons{
+.header-top-info{
     display: flex;
-    align-items: center;
-    
 }
-.header-top-icon{
-    font-size: 16px;
-    color: var(--gray2);
-    margin:  0 4px;
-    cursor: pointer;
+.header-top-info a {
+    margin: auto 16px;
+    color: var(--white);
+    text-decoration: none;
     transition-duration: 0.5s;
 }
-.header-top-icon:hover{
-    color: var(--primary1);
-
+.header-top-info a:hover , .header-top-sm-link:hover{
+    color: var(--limon);
 }
-.header-top-menu-lang-item li{
-    padding: 6px 0;
-    cursor: pointer;
-}
-.header-top-menu-lang-item li:first-child{
-    border-bottom: 1px solid var(--primary1);
-}
-.header-top-menu-lang-btn{
+.header-top-sm{
     display: flex;
     align-items: center;
-    width: 100px;
-    justify-content: space-around;
-    text-align: center;
-    padding: 8px 0;
-    cursor: pointer;
-    border: none;
-    border-bottom: 2px solid var(--primary1);
 }
-.header-top-contact{
-    display: flex;
-    align-items: center;
-
+.header-top-sm-link{
+    color: var(--white);
+    font-size: 16px;
+    margin: 0 8px;
+    transition-duration: 0.5s;
 }
-.header-top-contact-item{
-    display: flex;
-    align-items: center;
-    padding: 0 8px;
-    font-size: 14px;
-    color: var(--gray3);
-}
-.header-top-contact-item a{
-    margin-left:8px;
-    text-decoration: none;
-    color: var(--gray3);
-}
-/*-------------- header-bottom -----------*/
 .header-bottom{
     display: flex;
-    margin: auto;
+    align-items: center;
     width: 90%;
-    padding: 10px 0;
+    margin: auto;
     justify-content: space-between;
-    align-items: center;
 }
-.navbar{
-    z-index: 100;
-}
-.navbar ul{
+/* Navbar.css */
+.navbar-groupe-link {
     display: flex;
-    align-items: center;
+    gap: 25px;
+  }
+  
+  .navbar-link {
+    position: relative;
+    text-decoration: none;
+    color: var(--white);
+    transition: opacity 0.5s ease;
+  }
+  
+  .navbar-link::before {
+    content: '';
+    position: absolute;
+    left: -10px; /* Adjust based on your desired position */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    background-color: transparent;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+  }
+  
+  .navbar-link:hover::before {
+    background-color: var(--limon); /* Change to desired circle color */
+  }
+  
+  .navbar-link:hover {
+    opacity: 1;
+    color: var(--limon);
+  }
+  
+  .navbar:hover .navbar-link:not(:hover) {
+    opacity: 0.5;
+  }
+
+.header-bottom-logo img{
+    width: 80px;
 }
-.navbar ul li{
-    list-style:none ;
-    margin: 0 10px;
-    cursor: pointer;
-    transition-duration: 0.3s;
+.header-bottom-links{
+    display: flex;
+    gap: 15px;
 }
-.navbar ul li:hover{
-    color: var(--gray2);
-}
-.navbar ul .button-link{
+.header-bottom-link{
+    background: var(--primary);
     padding: 8px 16px;
-    margin: 0 8px;
-    background: var(--primary1);
-    color: var(--gray1);
-    border: none;
     border-radius: 4px;
-    cursor: pointer;
+    color: var(--white);
+    box-shadow: 2px 2px 5px var(--white);
     transition-duration: 0.5s;
 }
-
-.header-bottom-icon-menu{
-    font-size: 26px;
-    cursor: pointer;
+.header-bottom-link:hover{
+    color: var(--limon);
+    box-shadow: 2px 2px 5px var(--limon);
+    transform: translateY(-4px);
+}
+.header-bottom-icon-login-link , .toggle-menu{
+    color: var(--white);
+    font-size: 16px;
+    background-color: var(--primary);
+    padding: 8px;
+    border-radius:4px;
+    box-shadow: 2px 2px 5px var(--white);
+    transition-duration: 0.5s;
     display: none;
 }
-.header-bottom-icon-close{
-    font-size: 26px;
-    cursor: pointer;
+.header-bottom-icon-login-link:hover , .toggle-menu:hover{
+    color: var(--limon);
+    box-shadow: 2px 2px 5px var(--limon);
+    transform: translateY(-4px);
+}
+.close-navbar-icon{
+    color: var(--white);
+    width: max-content;
+    font-size: 16px;
+    background-color: var(--primary);
+    padding: 8px;
+    border-radius:4px;
+    box-shadow: 2px 2px 5px var(--white);
+    transition-duration: 0.5s;
+}
+.close-navbar-icon:hover{
+    color: var(--limon);
+    box-shadow: 2px 2px 5px var(--limon);
+    transform: translateY(-4px);
+}
+.navbar-footer , .navbar-header{
     display: none;
 }
-.header-navbar{
-    display: none;
+.header-section{
+    margin: 2em 0;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
 }
-
-/*-----------media query------*/
-
-/* For tablets */
-@media (min-width: 768px) and (max-width: 1024px) {
-    /* Your CSS styles for tablets */
-    .header-bottom{
-        width: 90%;
-        margin-top: 12px;
-        z-index: 10;
-    }
+.header-section .nom{
+    background: var(--limon);
+    width: max-content;
+    padding: 4px 16px;
+    border-radius: 50px;
+    color: var(--primary);
+    margin: auto;
+    font-style: italic;
+    font-weight: 600;
+}
+.header-section .title{
+    font-size: 24px;
+    font-weight: 700;
+}
+.header-section .desc{
+    color: var(--gray);
+}
+/*--------------header section--------------------*/
+/* CSS for devices with a screen width of up to 600 pixels */
+@media only screen and (max-width: 600px) {
     .header-top{
         display: none;
     }
-    .header-bottom-icon-menu{
+    .header-bottom-icon-login-link , .toggle-menu{
         display: block;
     }
-    .header-bottom-navbar{
-        position: fixed;
-        background: var(--gray1);
-        top: 0px;
-        left: -100%;
-        color: var(--gray3);
-        width: 100vw;
-        height: 100vh;
-        transition: left 0.5s ease;
-        z-index: 10;
+    .header-bottom-links{
+        display: none;
     }
-    .header-bottom-navbar.open{
+    .navbar{
+        position: fixed;
+        left: -100%;
+        top: 0;
+        height: 100vh;
+        width: 70vw;
+        background: var(--gradien3);
+        transition: left 0.5s ease;
+        z-index: 2;
+    }
+    .navbar.open{
         left: 0;
     }
-    .navbar ul{
-        flex-direction: column;
-        height: 100%;
-        width: 80%;
-        margin: 16px auto;
-        align-items: start;
-        z-index: 10;
+    .navbar-footer , .navbar-header{
+        display: block;
     }
-    .navbar ul li , .navbar ul button{
-        margin: 10px ;
-    }
-    .header-navbar{
+    .navbar-header{
         display: flex;
-        align-items: center;
         width: 90%;
+        margin: auto;
+        align-items: center;
         justify-content: space-between;
-        margin: 16px auto;
-        padding-bottom: 10px;
-        border-bottom: 1px solid  var(--gray3);
+        padding: 8px;
+        border-bottom: 1px solid var(--limon);
     }
-}
+    .navbar-groupe-link{
+        flex-direction: column;
+        width: 90%;
+        margin: 15px auto;
+    }
+    .navbar-footer{
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        margin: 15px auto;
+        gap: 15px;
+
+    }
+    .navbar-footer > *{
+        width: 50%;
+    }
+  }
   
-/* For mobile devices */
-@media (max-width: 767px) {
-/* Your CSS styles for mobile */
-.header-bottom{
-    width: 90%;
-    margin-top: 12px;
-}
-.header-top{
-    display: none;
-}
-.header-bottom-icon-menu{
-    display: block;
-}
-.header-bottom-navbar{
-    position: fixed;
-    background: var(--gray1);
-    top: 0px;
-    left: -100%;
-    color: var(--gray3);
-    width: 100vw;
-    height: 100vh;
-    transition: left 0.5s ease;
-    z-index: 10;
-}
-.header-bottom-navbar.open{
-    left: 0;
-}
-.navbar ul{
-    flex-direction: column;
-    height: 100%;
-    width: 80%;
-    margin: 16px auto;
-    align-items: start;
-}
-.navbar ul li , .navbar ul button{
-    margin: 10px ;
-}
-.header-navbar{
-    display: flex;
-    align-items: center;
-    width: 90%;
-    justify-content: space-between;
-    margin: 16px auto;
-    padding-bottom: 10px;
-    border-bottom: 1px solid  var(--gray3);
-}
-}
+  /* CSS for devices with a screen width between 601px and 900px */
+  @media only screen and (min-width: 601px) and (max-width: 900px) {
+    /* CSS rules for screens between 601px and 900px wide */
+    .header-top{
+        display: none;
+    }
+    .header-bottom-icon-login-link , .toggle-menu{
+        display: block;
+    }
+    .header-bottom-links{
+        display: none;
+    }
+    .navbar{
+        position: fixed;
+        left: -100%;
+        top: 0;
+        height: 100vh;
+        width: 50vw;
+        background: var(--gradien1);
+        transition: left 0.5s ease;
+        z-index: 2;
+    }
+    .navbar.open{
+        left: 0;
+    }
+    .navbar-footer , .navbar-header{
+        display: block;
+    }
+    .navbar-header{
+        display: flex;
+        width: 90%;
+        margin: auto;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        border-bottom: 1px solid var(--limon);
+    }
+    .navbar-groupe-link{
+        flex-direction: column;
+        width: 90%;
+        margin: 15px auto;
+    }
+    .navbar-footer{
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        margin: 15px auto;
+        gap: 15px;
+
+    }
+    .navbar-footer > *{
+        width: 50%;
+    }
+  }
+  
+  /* CSS for devices with a screen width of 901px and above */
+  @media only screen and (min-width: 901px) {
+    /* CSS rules for screens 901px wide and above */
+  }
+  
