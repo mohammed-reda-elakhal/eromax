@@ -6,6 +6,15 @@ import './global.css';
 import { ThemeContext } from '../ThemeContext';
 import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
 import StoreDown from './StoreDown';
+import { FaTachometerAlt } from "react-icons/fa";
+import { FcMoneyTransfer } from "react-icons/fc";
+import { LuBox } from "react-icons/lu";
+import { BiTagAlt } from "react-icons/bi";
+import { BsFillInboxesFill } from "react-icons/bs";
+
+
+
+
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -67,26 +76,44 @@ function Menubar() {
         
         <StoreDown theme={theme} collapsed={collapsed} />
 
-        <Menu.Item icon={<PieChartOutlined />}>
+        <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
 
-        <Menu.Item icon={<PieChartOutlined />}>
+        <Menu.Item icon={<FcMoneyTransfer />}>
           <Link to="/dashboard/portfeuille">Portfeuille</Link>
         </Menu.Item>
 
-        <Menu.SubMenu icon={<PieChartOutlined />} title="Colis">
-          <Menu.Item icon={<PieChartOutlined />}>
+        <Menu.SubMenu icon={<LuBox />} title="Colis">
+          <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/list-colis">List Colis</Link>
           </Menu.Item>
-          <Menu.Item icon={<PieChartOutlined />}>
+          <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/ajouter-colis">Ajouter Colis</Link>
           </Menu.Item>
-          <Menu.Item icon={<PieChartOutlined />}>
+          <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
           </Menu.Item>
-          <Menu.Item icon={<PieChartOutlined />}>
+          <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/import-colis">Import Colis</Link> 
+          </Menu.Item>
+        </Menu.SubMenu>
+
+        <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/list-produit">Produit</Link>
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/ajouter-colis">Ajouter Colis</Link>
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/colis-ar">Colis Stock</Link>
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/import-colis">Import Colis (Stock)</Link> 
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/import-colis">Import Produits</Link> 
           </Menu.Item>
         </Menu.SubMenu>
         
