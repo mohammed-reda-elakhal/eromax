@@ -1,0 +1,87 @@
+.colis-form-input{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+/* ColisForm.css */
+
+/* Dark mode styles for the Select component */
+.colis-select-ville.dark-mode .ant-select-selector {
+    background-color: transparent;
+    color: #fff;
+    border-color: gray;
+}
+
+.colis-select-ville.dark-mode .ant-select-selection-placeholder {
+    color: gray;
+}
+
+.colis-select-ville.dark-mode .ant-select-selection-item {
+    color: #fff;
+}
+
+.colis-select-ville.dark-mode .ant-select-dropdown {
+    background-color: #333;
+    color: #fff;
+}
+
+.colis-select-ville.dark-mode .ant-select-item-option {
+    color: #ccc;
+}
+
+.colis-select-ville.dark-mode .ant-select-item-option-selected {
+    background-color: #555;
+    color: #fff;
+}
+
+.colis-select-ville.dark-mode .ant-select-item-option-active {
+    background-color: #444;
+    color: #fff;
+}
+
+.colis-select-ville.dark-mode .ant-select-arrow {
+    color: gray;
+}
+
+.colis-select-ville.dark-mode .ant-select-item-option-content {
+    color: #ccc;
+}
+
+
+.colis-form-header{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+.colis-form-header > *{
+    width: 100%;
+}
+.colis-form-header button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 8px 16px;
+    background: var(--limon);
+    border: none;
+    border-radius: 4px;
+}
+.colis-form-header p{
+    color: var(--gray);
+    font-size: 10px;
+}
+
+
+@media only screen and (max-width: 600px){
+    .colis-form-header{
+       flex-direction: column;
+    }
+}
+@media only screen and (min-width: 601px) and (max-width: 900px) {
+    .colis-form-header{
+        flex-direction: column;
+     }
+}

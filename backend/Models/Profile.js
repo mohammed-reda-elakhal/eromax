@@ -70,20 +70,26 @@ const ProfileSchema = new mongoose.Schema({
 // Profile Model
 const Profile = mongoose.model("Profile", ProfileSchema);
 
-// Validate Register Profile
 function validateRegisterProfile(obj) {
     const schema = Joi.object({
         username: Joi.string().trim().min(2).max(100).required(),
-        email: Joi.string().trim().min(8).max(100).required().email(),
-        password: Joi.string().trim().min(5).required(),
+        CIN: Joi.string().min(5).allow(''),  // Assuming CIN can be optional
+        email: Joi.string().trim().min(5).max(100).required().email(),
         ville: Joi.string().required(),
+        adresse: Joi.string().allow(''),  // Assuming adresse can be optional
+        password: Joi.string().trim().min(5).required(),
         Tel: Joi.string().required().length(10),
-        date_start: Joi.string().allow(""),
-        number_colis: Joi.string().allow("")
+        isAdmin: Joi.boolean().optional(),  // Assuming isAdmin can be optional
+        isAccountVerified: Joi.boolean().optional(),  // Assuming isAccountVerified can be optional
+        profilePhoto: Joi.object().optional(),  // Assuming profilePhoto can be optional
+        info: Joi.object().optional(),  // Assuming info can be optional
+        date_start: Joi.string().allow(''),
+        number_colis: Joi.string().allow('')
     });
     return schema.validate(obj);
 }
-// Validate Register Profile
+
+// Validate Login Profile
 function validateLoginProfile(obj) {
     const schema = Joi.object({
         email: Joi.string().trim().min(8).max(100).required().email(),
