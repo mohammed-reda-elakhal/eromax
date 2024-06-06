@@ -8,7 +8,9 @@
     height: 100%;
     overflow-y: auto;
 }
-
+.etoile{
+  color: red;
+}
 /* Rest of your CSS code */
 .top-bar {
     display: flex;
@@ -63,4 +65,133 @@
     display: flex;
     align-items: center;
     gap: 16px;
+}
+.title{
+    display: flex;
+    flex-direction: column;
+}
+.title h1{
+    font-style: italic;
+}
+
+.colis-filter{
+    display: flex;
+    flex-direction: column;
+}
+.colis-filter form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.colis-filter .filter-inputs{
+    display: grid;
+    grid-template-columns: repeat(4 ,1fr);
+    gap: 15px;
+}
+.submit-btn-dash{
+  display: flex;
+  align-items: center;
+  width: max-content;
+  padding: 8px 16px;
+  background: #4096ff;
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+/*-------------table--------------*/
+.table-dark .ant-table {
+    background-color: transparent;
+    color: #fff;
+    margin-top: 16px;
+  }
+  
+  .table-dark .ant-table-thead > tr > th {
+    background-color: transparent;
+    color: #fff;
+  }
+  
+  .table-dark .ant-table-tbody > tr > td {
+    background-color: transparent;
+    color: #fff;
+  }
+  
+  .table-dark .ant-table-tbody > tr.ant-table-row:hover > td,
+  .table-dark .ant-table-tbody > tr.ant-table-row-selected > td {
+    background-color: #002242;
+    color: var(--white);
+  }
+  
+  .table-dark .ant-pagination {
+    color: #fff;
+  }
+  
+  .table-dark .ant-pagination-item-active {
+    border-color: #666;
+    background-color: #666;
+  }
+  
+  .table-light .ant-table {
+    background-color: transparent;
+    color: #000;
+    margin-top: 16px;
+  }
+  
+  .table-light .ant-table-thead > tr > th {
+    background-color: transparent;
+    color: #000;
+  }
+  
+  .table-light .ant-table-tbody > tr > td {
+    background-color: transparent;
+    color: #000;
+  }
+  
+  .table-light .ant-table-tbody > tr.ant-table-row:hover > td,
+  .table-light .ant-table-tbody > tr.ant-table-row-selected > td {
+    background-color: var(--gray);
+    color: #000;
+  }
+  
+  .table-light .ant-pagination {
+    color: #000;
+  }
+
+
+.table-option , .table-reclamation{
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.table-reclamation{
+  flex-direction: column;
+}
+
+.colis-info-content{
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+}
+.select-reclamation{
+  width: 100%;
+}
+.btn-dashboard{
+  background: var(--limon);
+  color: var(--white);
+  padding: 8px 16px;
+  width: max-content;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+
+@media only screen and (max-width: 600px){
+  .colis-filter .filter-inputs{
+    grid-template-columns: repeat(1,1fr);
+  }
+}
+@media only screen and (min-width: 601px) and (max-width: 900px) {
+  .colis-filter .filter-inputs{
+    grid-template-columns: repeat(2,1fr);
+  }
 }

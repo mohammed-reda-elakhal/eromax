@@ -19,6 +19,7 @@ code {
   --black : #0C0C0C;
   --white : #FFFFFF;
   --gray:#bbbaba;
+  --gray1:#e0e0e0;
   --gradien1 : linear-gradient(90deg, rgba(130,3,0,1) 0%, rgba(184,0,0,1) 76%, rgba(255,152,0,1) 100%);
   --gradien2 : linear-gradient(90deg, rgba(130,3,0,1) 0%, rgba(184,0,0,1) 49%, rgba(12,12,12,1) 100%);
   --gradien3 : linear-gradient(90deg, rgba(130,3,0,1) 0%, rgba(184,0,0,1) 49%,rgba(130,3,0,1)100%);

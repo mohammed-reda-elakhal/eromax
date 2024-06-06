@@ -12,8 +12,29 @@
 
 .page-content {
     padding: 12px;
-    flex-grow: 0; /* Allow content to grow and take available space */
-    overflow-y: auto; /* Enable vertical scrolling */
+    flex-grow: 1; /* Allow content to grow and take available space */
+    overflow: hidden; /* Prevent scrolling on the parent element */
     display: flex;
     flex-direction: column;
+    height: 100%;
+}
+
+.page-content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.content {
+    margin-top: 6px;
+    height: 100%;
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+    flex-grow: 1; /* Allow content to grow and take available space */
+}
+
+.content h4 {
+    color: var(--gray);
 }

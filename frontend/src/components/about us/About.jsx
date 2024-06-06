@@ -24,7 +24,7 @@ function About() {
                 {paragraphs.map((paragraph, index) => (
                     <p key={index}>{paragraph}</p>
                 ))}
-                <Link to='' className='cover-link'>
+                <Link to='/register' className='cover-link'>
                     <FaHandPointRight className='cover-link-icon' />
                     Devenir Client Rapide
                 </Link>

@@ -71,18 +71,21 @@ function StoreDown({theme , collapsed}) {
             />
             {collapsed ? '' : <p>Store name</p>}
         </div>
-        <Dropdown 
-            overlay={stores} 
-            trigger={['click']}
-            className='dropdown-store'
-        >
-            <a onClick={(e) => e.preventDefault()}>
-            <Space>
-                Changer
-                {collapsed ? '' : <DownOutlined />}
-            </Space>
-            </a>
-        </Dropdown>
+        {collapsed ? '' :
+          <Dropdown 
+              overlay={stores} 
+              trigger={['click']}
+              className='dropdown-store'
+          >
+              <a onClick={(e) => e.preventDefault()}>
+              <Space>
+                  Changer
+                  {collapsed ? '' : <DownOutlined />}
+              </Space>
+              </a>
+          </Dropdown>
+        }
+        
     </div>
   )
 }

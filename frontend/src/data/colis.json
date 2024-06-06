@@ -1,0 +1,67 @@
+[
+    {
+        "id": 1,
+        "code_suivi": "MDT06243452JG1840471",
+        "derniere_mise_a_jour": "2024-06-01 17:51",
+        "destinataire": "Aziz ro",
+        "telephone": "0670890103",
+        "etat": false,
+        "statut": "Ramassé",
+        "date_livraison": null,
+        "ville": "Midelt",
+        "prix": 250,
+        "nature_de_produit": "NK42"
+    },
+    {
+        "id": 2,
+        "code_suivi": "BSK06243452CR7740471",
+        "derniere_mise_a_jour": "2024-06-01 17:51",
+        "destinataire": "Said Mo",
+        "telephone": "0702625082",
+        "etat": false,
+        "statut": "Ramassé",
+        "date_livraison": null,
+        "ville": "Bouskoura",
+        "prix": 250,
+        "nature_de_produit": "Nk 41"
+    },
+    {
+        "id": 3,
+        "code_suivi": "BSN06243452NO2530471",
+        "derniere_mise_a_jour": "2024-06-01 17:51",
+        "destinataire": "Abd Samad ro",
+        "telephone": "0698153591",
+        "etat": false,
+        "statut": "Ramassé",
+        "date_livraison": null,
+        "ville": "Benslimane (reg mohamedia)",
+        "prix": 250,
+        "nature_de_produit": "Montre"
+    },
+    {
+        "id": 4,
+        "code_suivi": "N-BR-C-SIMPLE-MRK1-051223-3452-2157",
+        "derniere_mise_a_jour": "2023-12-08 16:19",
+        "destinataire": "Anass",
+        "telephone": "0664201873",
+        "etat": true,
+        "statut": "Ramassé",
+        "date_livraison": null,
+        "ville": "Marrakech",
+        "prix": 150,
+        "nature_de_produit": "Montre"
+    },
+    {
+        "id": 5,
+        "code_suivi": "N-BR-C-SIMPLE-MRK1-091023-3452-9729",
+        "derniere_mise_a_jour": "2023-10-11 18:32",
+        "destinataire": "Anass",
+        "telephone": "0664201873",
+        "etat": false,
+        "statut": "Attend de Ramassé",
+        "date_livraison": null,
+        "ville": "Marrakech",
+        "prix": 150,
+        "nature_de_produit": "Chemise"
+    }
+]

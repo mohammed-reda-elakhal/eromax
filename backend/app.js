@@ -8,7 +8,7 @@ connectToDB();
 // init App
 const app = express();
 
-//Middelwares 
+//Middelwares  
 app.use(express.json());
 
 // Routes 
