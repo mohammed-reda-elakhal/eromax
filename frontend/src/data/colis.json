@@ -10,7 +10,12 @@
         "date_livraison": null,
         "ville": "Midelt",
         "prix": 250,
-        "nature_de_produit": "NK42"
+        "nature_de_produit": "NK42",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": "bool",
+            "ouvrir": "bool"
+        }
     },
     {
         "id": 2,
@@ -23,7 +28,12 @@
         "date_livraison": null,
         "ville": "Bouskoura",
         "prix": 250,
-        "nature_de_produit": "Nk 41"
+        "nature_de_produit": "Nk 41",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": "bool",
+            "ouvrir": "bool"
+        }
     },
     {
         "id": 3,
@@ -36,7 +46,12 @@
         "date_livraison": null,
         "ville": "Benslimane (reg mohamedia)",
         "prix": 250,
-        "nature_de_produit": "Montre"
+        "nature_de_produit": "Montre",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": "bool",
+            "ouvrir": "bool"
+        }
     },
     {
         "id": 4,
@@ -49,7 +64,12 @@
         "date_livraison": null,
         "ville": "Marrakech",
         "prix": 150,
-        "nature_de_produit": "Montre"
+        "nature_de_produit": "Montre",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": "bool",
+            "ouvrir": "bool"
+        }
     },
     {
         "id": 5,
@@ -62,6 +82,623 @@
         "date_livraison": null,
         "ville": "Marrakech",
         "prix": 150,
-        "nature_de_produit": "Chemise"
+        "nature_de_produit": "Chemise",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": "bool",
+            "ouvrir": "bool"
+        }
+    },
+    {
+        "id": 6,
+        "code_suivi": "N-BR-C-LIVRE-061223-1234-1234",
+        "derniere_mise_a_jour": "2024-06-01 12:00",
+        "destinataire": "Ali Ben",
+        "telephone": "0671234567",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-01",
+        "ville": "Casablanca",
+        "prix": 300,
+        "nature_de_produit": "Livre",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 7,
+        "code_suivi": "N-BR-C-LIVRE-071223-2345-2345",
+        "derniere_mise_a_jour": "2024-06-01 13:00",
+        "destinataire": "Zineb Alaoui",
+        "telephone": "0681234568",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-01",
+        "ville": "Rabat",
+        "prix": 500,
+        "nature_de_produit": "Vêtements",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 8,
+        "code_suivi": "N-BR-C-ANNULE-081223-3456-3456",
+        "derniere_mise_a_jour": "2024-06-02 14:00",
+        "destinataire": "Mohamed Saadi",
+        "telephone": "0691234569",
+        "etat": false,
+        "statut": "Annulé",
+        "date_livraison": null,
+        "ville": "Tanger",
+        "prix": 200,
+        "nature_de_produit": "Accessoire",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 9,
+        "code_suivi": "N-BR-C-REFUSE-091223-4567-4567",
+        "derniere_mise_a_jour": "2024-06-03 15:00",
+        "destinataire": "Sara El",
+        "telephone": "0701234570",
+        "etat": false,
+        "statut": "Refusé",
+        "date_livraison": null,
+        "ville": "Fès",
+        "prix": 150,
+        "nature_de_produit": "Bijoux",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 10,
+        "code_suivi": "N-BR-C-LIVRE-101223-5678-5678",
+        "derniere_mise_a_jour": "2024-06-04 16:00",
+        "destinataire": "Karim Amine",
+        "telephone": "0711234571",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-02",
+        "ville": "Agadir",
+        "prix": 400,
+        "nature_de_produit": "Électronique",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 11,
+        "code_suivi": "N-BR-C-LIVRE-111223-6789-6789",
+        "derniere_mise_a_jour": "2024-06-05 17:00",
+        "destinataire": "Fatima Zahra",
+        "telephone": "0721234572",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-03",
+        "ville": "Meknès",
+        "prix": 350,
+        "nature_de_produit": "Chaussures",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 12,
+        "code_suivi": "N-BR-C-LIVRE-121223-7890-7890",
+        "derniere_mise_a_jour": "2024-06-06 18:00",
+        "destinataire": "Rachid Hamid",
+        "telephone": "0731234573",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-04",
+        "ville": "Oujda",
+        "prix": 450,
+        "nature_de_produit": "Cosmétiques",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 13,
+        "code_suivi": "N-BR-C-ANNULE-131223-8901-8901",
+        "derniere_mise_a_jour": "2024-06-07 19:00",
+        "destinataire": "Hassan Yassir",
+        "telephone": "0741234574",
+        "etat": false,
+        "statut": "Annulé",
+        "date_livraison": null,
+        "ville": "Tétouan",
+        "prix": 250,
+        "nature_de_produit": "Accessoire",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 14,
+        "code_suivi": "N-BR-C-REFUSE-141223-9012-9012",
+        "derniere_mise_a_jour": "2024-06-08 20:00",
+        "destinataire": "Imane Khadija",
+        "telephone": "0751234575",
+        "etat": false,
+        "statut": "Refusé",
+        "date_livraison": null,
+        "ville": "Salé",
+        "prix": 300,
+        "nature_de_produit": "Livre",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 15,
+        "code_suivi": "N-BR-C-LIVRE-151223-0123-0123",
+        "derniere_mise_a_jour": "2024-06-09 21:00",
+        "destinataire": "Youssef Ahmed",
+        "telephone": "0761234576",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-05",
+        "ville": "Kenitra",
+        "prix": 300,
+        "nature_de_produit": "Montre",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 16,
+        "code_suivi": "N-BR-C-LIVRE-161223-1234-2345",
+        "derniere_mise_a_jour": "2024-06-10 22:00",
+        "destinataire": "Samira Fikri",
+        "telephone": "0771234577",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-06",
+        "ville": "Essaouira",
+        "prix": 200,
+        "nature_de_produit": "Nk 41",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 17,
+        "code_suivi": "N-BR-C-LIVRE-171223-2345-3456",
+        "derniere_mise_a_jour": "2024-06-11 23:00",
+        "destinataire": "Nabil Jabr",
+        "telephone": "0781234578",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-07",
+        "ville": "Chefchaouen",
+        "prix": 300,
+        "nature_de_produit": "Vêtements",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 18,
+        "code_suivi": "N-BR-C-LIVRE-181223-3456-4567",
+        "derniere_mise_a_jour": "2024-06-12 24:00",
+        "destinataire": "Salim Rachid",
+        "telephone": "0791234579",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-08",
+        "ville": "Casablanca",
+        "prix": 500,
+        "nature_de_produit": "Bijoux",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 19,
+        "code_suivi": "N-BR-C-LIVRE-191223-4567-5678",
+        "derniere_mise_a_jour": "2024-06-13 01:00",
+        "destinataire": "Layla Nour",
+        "telephone": "0801234580",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-09",
+        "ville": "Marrakech",
+        "prix": 400,
+        "nature_de_produit": "Chaussures",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 20,
+        "code_suivi": "N-BR-C-LIVRE-201223-5678-6789",
+        "derniere_mise_a_jour": "2024-06-14 02:00",
+        "destinataire": "Hicham Badr",
+        "telephone": "0811234581",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-10",
+        "ville": "Fès",
+        "prix": 450,
+        "nature_de_produit": "Électronique",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 21,
+        "code_suivi": "N-BR-C-ANNULE-211223-7890-7890",
+        "derniere_mise_a_jour": "2024-06-15 03:00",
+        "destinataire": "Khadija Bakkali",
+        "telephone": "0821234582",
+        "etat": false,
+        "statut": "Annulé",
+        "date_livraison": null,
+        "ville": "Oujda",
+        "prix": 350,
+        "nature_de_produit": "Cosmétiques",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 22,
+        "code_suivi": "N-BR-C-ANNULE-221223-8901-8901",
+        "derniere_mise_a_jour": "2024-06-16 04:00",
+        "destinataire": "Ahmed Saidi",
+        "telephone": "0831234583",
+        "etat": false,
+        "statut": "Annulé",
+        "date_livraison": null,
+        "ville": "Tétouan",
+        "prix": 200,
+        "nature_de_produit": "Accessoire",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 23,
+        "code_suivi": "N-BR-C-REFUSE-231223-9012-9012",
+        "derniere_mise_a_jour": "2024-06-17 05:00",
+        "destinataire": "Rania Mahdi",
+        "telephone": "0841234584",
+        "etat": false,
+        "statut": "Refusé",
+        "date_livraison": null,
+        "ville": "Salé",
+        "prix": 300,
+        "nature_de_produit": "Livre",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 24,
+        "code_suivi": "N-BR-C-ANNULE-241223-0123-0123",
+        "derniere_mise_a_jour": "2024-06-18 06:00",
+        "destinataire": "Omar El",
+        "telephone": "0851234585",
+        "etat": false,
+        "statut": "Annulé",
+        "date_livraison": null,
+        "ville": "Kenitra",
+        "prix": 250,
+        "nature_de_produit": "Montre",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 25,
+        "code_suivi": "N-BR-C-REFUSE-251223-1234-2345",
+        "derniere_mise_a_jour": "2024-06-19 07:00",
+        "destinataire": "Nada Othman",
+        "telephone": "0861234586",
+        "etat": false,
+        "statut": "Refusé",
+        "date_livraison": null,
+        "ville": "Essaouira",
+        "prix": 200,
+        "nature_de_produit": "Nk 41",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 26,
+        "code_suivi": "N-BR-C-ANNULE-261223-2345-3456",
+        "derniere_mise_a_jour": "2024-06-20 08:00",
+        "destinataire": "Nawal Sami",
+        "telephone": "0871234587",
+        "etat": false,
+        "statut": "Annulé",
+        "date_livraison": null,
+        "ville": "Chefchaouen",
+        "prix": 300,
+        "nature_de_produit": "Vêtements",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 27,
+        "code_suivi": "N-BR-C-LIVRE-271223-3456-4567",
+        "derniere_mise_a_jour": "2024-06-21 09:00",
+        "destinataire": "Wafaa Lahcen",
+        "telephone": "0881234588",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-11",
+        "ville": "Casablanca",
+        "prix": 500,
+        "nature_de_produit": "Bijoux",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 28,
+        "code_suivi": "N-BR-C-LIVRE-281223-4567-5678",
+        "derniere_mise_a_jour": "2024-06-22 10:00",
+        "destinataire": "Amina Tarik",
+        "telephone": "0891234589",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-12",
+        "ville": "Marrakech",
+        "prix": 400,
+        "nature_de_produit": "Chaussures",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": false,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 29,
+        "code_suivi": "N-BR-C-LIVRE-291223-5678-6789",
+        "derniere_mise_a_jour": "2024-06-23 11:00",
+        "destinataire": "Mustapha Idrissi",
+        "telephone": "0901234590",
+        "etat": true,
+        "statut": "Livré",
+        "date_livraison": "2024-06-13",
+        "ville": "Fès",
+        "prix": 450,
+        "nature_de_produit": "Électronique",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 30,
+        "code_suivi": "N-BR-C-REFUSE-301223-6789-7890",
+        "derniere_mise_a_jour": "2024-06-24 12:00",
+        "destinataire": "Khadija Amrani",
+        "telephone": "0911234591",
+        "etat": false,
+        "statut": "Refusé",
+        "date_livraison": null,
+        "ville": "Oujda",
+        "prix": 350,
+        "nature_de_produit": "Cosmétiques",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": false
+        }
+    },
+    {
+        "id": 31,
+        "code_suivi": "RST06243452JG1840471",
+        "derniere_mise_a_jour": "2024-06-01 17:51",
+        "destinataire": "Ali Mo",
+        "telephone": "0670890103",
+        "etat": false,
+        "statut": "Ramassé",
+        "date_livraison": null,
+        "ville": "Rabat",
+        "prix": 300,
+        "nature_de_produit": "NK42",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 32,
+        "code_suivi": "BSK06243452CR7740472",
+        "derniere_mise_a_jour": "2024-06-01 17:52",
+        "destinataire": "Sara An",
+        "telephone": "0702625083",
+        "etat": false,
+        "statut": "Ramassé",
+        "date_livraison": null,
+        "ville": "Casablanca",
+        "prix": 350,
+        "nature_de_produit": "NK43",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 33,
+        "code_suivi": "BSN06243452NO2530473",
+        "derniere_mise_a_jour": "2024-06-01 17:53",
+        "destinataire": "Youssef Ka",
+        "telephone": "0698153592",
+        "etat": false,
+        "statut": "Ramassé",
+        "date_livraison": null,
+        "ville": "Fès",
+        "prix": 400,
+        "nature_de_produit": "NK44",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 34,
+        "code_suivi": "BRK06243452NO2530474",
+        "derniere_mise_a_jour": "2024-06-01 17:54",
+        "destinataire": "Khalid Be",
+        "telephone": "0657853593",
+        "etat": false,
+        "statut": "Attend de Ramassé",
+        "date_livraison": null,
+        "ville": "Tangier",
+        "prix": 500,
+        "nature_de_produit": "NK45",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 35,
+        "code_suivi": "BRS06243452NO2530475",
+        "derniere_mise_a_jour": "2024-06-01 17:55",
+        "destinataire": "Mohammed Ra",
+        "telephone": "0674853594",
+        "etat": false,
+        "statut": "Attend de Ramassé",
+        "date_livraison": null,
+        "ville": "Agadir",
+        "prix": 550,
+        "nature_de_produit": "NK46",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 36,
+        "code_suivi": "BRN06243452NO2530476",
+        "derniere_mise_a_jour": "2024-06-01 17:56",
+        "destinataire": "Laila Ta",
+        "telephone": "0674853595",
+        "etat": false,
+        "statut": "Attend de Ramassé",
+        "date_livraison": null,
+        "ville": "Meknes",
+        "prix": 600,
+        "nature_de_produit": "NK47",
+        "info": {
+            "type_colis": "simple",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 37,
+        "code_suivi": "SKT06243452NO2530477",
+        "derniere_mise_a_jour": "2024-06-01 17:57",
+        "destinataire": "Amine Lo",
+        "telephone": "0674853596",
+        "etat": false,
+        "statut": "Prêt pour la Préparation",
+        "date_livraison": null,
+        "ville": "Sale",
+        "prix": 650,
+        "nature_de_produit": "NK48",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 38,
+        "code_suivi": "SKT06243452NO2530478",
+        "derniere_mise_a_jour": "2024-06-01 17:58",
+        "destinataire": "Noura Sa",
+        "telephone": "0674853597",
+        "etat": false,
+        "statut": "Prêt pour la Préparation",
+        "date_livraison": null,
+        "ville": "Kenitra",
+        "prix": 700,
+        "nature_de_produit": "NK49",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": true
+        }
+    },
+    {
+        "id": 39,
+        "code_suivi": "SKT06243452NO2530479",
+        "derniere_mise_a_jour": "2024-06-01 17:59",
+        "destinataire": "Hanae Ma",
+        "telephone": "0674853598",
+        "etat": false,
+        "statut": "Prêt pour la Préparation",
+        "date_livraison": null,
+        "ville": "Oujda",
+        "prix": 750,
+        "nature_de_produit": "NK50",
+        "info": {
+            "type_colis": "stock",
+            "remplacer": true,
+            "ouvrir": true
+        }
     }
 ]

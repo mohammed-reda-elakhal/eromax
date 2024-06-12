@@ -4,9 +4,11 @@ import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import ColisForm from '../components/ColisForm';
+import { useParams } from 'react-router-dom';
 
 function AjouterColis() {
     const { theme } = useContext(ThemeContext);
+    const {type} = useParams()
     const darkStyle = {
         control: (styles) => ({
             ...styles,
@@ -57,7 +59,6 @@ function AjouterColis() {
             color: '#fff',
         }),
     };
-    
 
   return (
     <div className='page-dashboard'>
@@ -81,7 +82,7 @@ function AjouterColis() {
                 }}
             >
                 <h4>Nouveau Colis</h4>
-                <ColisForm theme={theme} darkStyle={darkStyle} />
+                <ColisForm theme={theme} darkStyle={darkStyle} type={type}/>
             </div>
         </div>
     </main>

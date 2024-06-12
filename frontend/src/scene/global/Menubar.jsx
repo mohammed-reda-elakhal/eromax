@@ -11,6 +11,7 @@ import { FcMoneyTransfer } from "react-icons/fc";
 import { LuBox } from "react-icons/lu";
 import { BiTagAlt } from "react-icons/bi";
 import { BsFillInboxesFill } from "react-icons/bs";
+import { IoWalletSharp } from "react-icons/io5";
 
 
 
@@ -80,7 +81,7 @@ function Menubar() {
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
 
-        <Menu.Item icon={<FcMoneyTransfer />}>
+        <Menu.Item icon={<IoWalletSharp />}>
           <Link to="/dashboard/portfeuille">Portfeuille</Link>
         </Menu.Item>
 
@@ -89,7 +90,7 @@ function Menubar() {
             <Link to="/dashboard/list-colis">List Colis</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/ajouter-colis">Ajouter Colis</Link>
+            <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
@@ -104,16 +105,13 @@ function Menubar() {
             <Link to="/dashboard/list-produit">Produit</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/ajouter-colis">Ajouter Colis</Link>
+            <Link to="/dashboard/ajouter-colis/stock">Ajouter Colis</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-ar">Colis Stock</Link>
+            <Link to="/dashboard/colis-stock">Colis Stock</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/import-colis">Import Colis (Stock)</Link> 
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/import-colis">Import Produits</Link> 
           </Menu.Item>
         </Menu.SubMenu>
         

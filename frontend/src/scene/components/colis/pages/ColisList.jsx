@@ -8,6 +8,7 @@ import { PlusCircleFilled } from '@ant-design/icons';
 import ColisFilterBar from '../components/ColisFilterBar';
 import ColisTable from '../components/ColisTable';
 import '../colis.css'
+import { Link } from 'react-router-dom';
 
 
 function ColisList() {
@@ -77,10 +78,10 @@ function ColisList() {
                 >
                     <div className="page-content-header">
                         <Title nom='List Colis' />
-                        <button className='btn-dashboard'>
+                        <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
                             <PlusCircleFilled style={{marginRight:"8px"}} />
                             Ajouter Colis
-                        </button>
+                        </Link>
                     </div>
                     <div
                         className="content"

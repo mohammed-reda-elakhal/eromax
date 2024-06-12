@@ -11,6 +11,47 @@
 .etoile{
   color: red;
 }
+
+.page-dashboard {
+  display: flex;
+  height: 100vh; /* Ensure the dashboard takes full height */
+}
+
+.page-main {
+  width: 100%; /* Stack the content vertically */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column; /* Stack the content vertically */
+}
+
+.page-content {
+  padding: 12px;
+  flex-grow: 1; /* Allow content to grow and take available space */
+  overflow: hidden; /* Prevent scrolling on the parent element */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.content {
+  margin-top: 6px;
+  height: 100%;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-grow: 1; /* Allow content to grow and take available space */
+}
+
+.content h4 {
+  color: var(--gray);
+}
 /* Rest of your CSS code */
 .top-bar {
     display: flex;
@@ -182,6 +223,9 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+.btn-dashboard:hover{
+  color: var(--white);
 }
 
 
