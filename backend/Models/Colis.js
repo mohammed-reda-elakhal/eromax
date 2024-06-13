@@ -56,9 +56,19 @@ const ColisSchema = new mongoose.Schema({
     },
     statut:{
         type:String,
-        default:"En cours de rammasaage ",
+        default:"En attente de ramassage ",
 
     },
+    etat_payement:{ type: Boolean},
+
+    ouvrir: {  type: Boolean},
+
+    is_simple: {  type: Boolean},
+
+    a_remplace:{  type: Boolean},
+    
+    id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
+    id_livreur: { type: mongoose.Schema.Types.ObjectId, ref: 'Livreur' }
     
     
 
