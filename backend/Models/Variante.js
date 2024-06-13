@@ -15,4 +15,11 @@ const VarianteSchema = new moongose.Schema({
     }
 
 
-})
+});
+
+const Variante = moongose.model("Variante",VarianteSchema);
+
+
+module.exports={
+    Variante
+}

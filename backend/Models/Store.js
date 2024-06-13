@@ -22,4 +22,9 @@ const StroreSchema = new moongose.Schema({
     },
 },{timestamps:true});
 
-module.exports= moongose.model("Store",StroreSchema);
+
+const Store = moongose.model("Store",StroreSchema);
+
+module.exports= {
+    Store
+}
