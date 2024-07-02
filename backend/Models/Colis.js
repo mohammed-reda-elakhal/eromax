@@ -4,23 +4,22 @@ const shortid = require('shortid');
 
 //User Schema 
 const ColisSchema = new mongoose.Schema({
-    id_Colis:{
-        type:String,
-        unique:true,
+    id_Colis: {
+        type: String,
+        unique: true,
+        default: shortid.generate
     },
     code_suivi:{
         type:String,
         unique:true,
     },
-    id_store:{
-        type:String,
-    },
-    Nom_Resp:{
+
+    Nom_des:{
         type:String,
         required:true,
 
     },
-    Tel_Resp:{
+    Tel_des:{
         type:Number,
         required :true,
         trim:true,
@@ -30,11 +29,15 @@ const ColisSchema = new mongoose.Schema({
 
 
     },
-    ville_Resp:{
+    ville_des:{
         type:String,
         required:true,
     },
-    adresse_Resp:{
+    code_ville:{
+       type: mongoose.Schema.Types.ObjectId, ref: 'Ville' 
+
+    },
+    adresse_des:{
         type:String,
         required:true,
     },
@@ -42,7 +45,7 @@ const ColisSchema = new mongoose.Schema({
         type:String,
 
     },
-    Price:{
+    Price_total:{
         type:Number,
         required:true,
     },
@@ -56,10 +59,20 @@ const ColisSchema = new mongoose.Schema({
     },
     statut:{
         type:String,
-        default:"En cours de rammasaage ",
+        default:"En attente de ramassage ",
 
     },
-    
+    etat_payement:{ type: Boolean},
+
+    ouvrir: {  type: Boolean},
+
+    is_simple: {  type: Boolean},
+
+    a_remplace:{  type: Boolean},
+
+    id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },// a verifier 
+    id_livreur: { type: mongoose.Schema.Types.ObjectId, ref: 'Livreur' },
+    id_store:{type: mongoose.Schema.Types.ObjectId, ref: 'Store'}
     
 
     
@@ -88,16 +101,24 @@ const  Colis = mongoose.model("Colis",ColisSchema);
 function validateRegisterColis(obj){
     const schema = Joi.object({
         
-        adresse_Resp: Joi.string().required(),
-        id_store:Joi.string().trim(),
-        CIN:Joi.string().required().min(5),
-        Nom_Resp:Joi.string().required(),
-        ville_Resp:Joi.string().required(),
-        Tel_Resp:Joi.string().pattern(/^[0-9]{10}$/).required(),
-        Nature_Produit:Joi.string().required(),
-        Price: Joi.number().required(),
+        adresse_des: Joi.string().required(),
+        //CIN:Joi.string().required().min(5),
+        Nom_des:Joi.string().required(),
+        ville_des:Joi.string().required(),
+        Tel_des:Joi.string().pattern(/^[0-9]{10}$/).required(),
+        Price_total: Joi.number().required(),
         Commentaire:Joi.string(),
         etat:Joi.string(),
+        Nature_Produit:Joi.string(),
+        statut: Joi.string(),
+        etat_payement:Joi.boolean(),
+        ouvrir:Joi.boolean(),
+        is_simple:Joi.boolean(),
+        a_remplace:Joi.boolean(),
+        id_client:Joi.string(),
+        id_livreur:Joi.string(),
+        id_store:Joi.string(),
+        code_ville:Joi.string(),
         
 
     
