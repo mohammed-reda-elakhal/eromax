@@ -83,7 +83,7 @@ ColisSchema.pre('save', function(next) {
 //Colis Model
 const  Colis = mongoose.model("Colis",ColisSchema);
 
-// validate Colis 
+// validate Colis  
 
 function validateRegisterColis(obj){
     const schema = Joi.object({

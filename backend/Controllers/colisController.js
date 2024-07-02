@@ -16,7 +16,7 @@ module.exports.CreateColisCtrl= asyncHandler(async(req,res)=>{
     
     const newColis = new Colis(req.body);
     const saveColis = await newColis.save();
-    res.status(201).json(saveColis);
+    res.status(201).json(saveColis); 
 
     });
 //--------------------------------------------------------------------------
