@@ -9,15 +9,13 @@ const UserSchema = new mongoose.Schema({
         type:String,
         required:true,
         trim:true,
-        minlenght:2,
+        minlength: 2,
         maxlenght:100
     },
     Prenom:{
         type:String,
         required:true,
-        mainlenght:5,
-
-
+        minlength: 2,
     },
     ville:{
         type:String,
@@ -29,7 +27,7 @@ const UserSchema = new mongoose.Schema({
     },
   
     Tel:{
-        type:Number,
+        type:String,
         required:true,
         maxlenght:10,
         minlenght:10
@@ -75,7 +73,7 @@ options,
 
 
 //Joi validation 
-function userValidation(ibj){
+function userValidation(obj){
 
     const userJoiSchema = Joi.object({
         Nom: Joi.string().trim().min(2).max(100).required(),
@@ -94,6 +92,8 @@ function userValidation(ibj){
         }),
         isAccountVerified: Joi.boolean().default(false)
     });
+    return userJoiSchema.validate(obj);
+    
 
 }
 
