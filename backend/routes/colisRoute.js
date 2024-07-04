@@ -3,23 +3,29 @@ const router = express.Router();
 const colisController = require("../Controllers/colisController");
 
 
-//Router Add Colis
-router.post('/addcolis',colisController.CreateColisCtrl);
+//Router api/colis
+router.route('/')
+        .post(colisController.CreateColisCtrl)
+        .get(colisController.getAllColisCtrl)
 
-
-//Router get All colis
-
-router.get('/getAllColis',colisController.getAllColisCtrl);
+// Router api/colis/:id
+router.route('/:id')
+        .get(colisController.getColisByIdCtrl)
+        .delete(colisController.deleteColis)
+        .put(colisController.updateColis)
  
-//Router getColisByCode suivi
+// Router api/colis/:code_suivi
+router.route('/:code_suivi')
+        .get(colisController.getColisByCodeSuiviCtrl)
 
-router.get('/tracking/:code_suivi', colisController.getColisByCodeSuiviCtrl);
-// Route pour obtenir un Colis par son ID
+// router api/colis/statu/:id
+router.route('/statu/:id')
+        .put(colisController.UpdateStatusCtrl)
 
-router.get('/colis/:id', colisController.getColisByIdCtrl);
+// router api/colis/truck/:code_suivi
+router.route('/truck/:code_suivi')
+        .get(colisController.getSuiviColis)
 
-
-router.delete('/colis/:id', colisController.deleteColis);
 
 
 module.exports= router;

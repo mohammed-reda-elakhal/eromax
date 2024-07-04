@@ -54,30 +54,24 @@ const ColisSchema = new mongoose.Schema({
         required:true,
 
     },
+    // etat de payement
     etat:{
-
+        type : Boolean ,
+        default : false,
     },
     statut:{
         type:String,
-        default:"En attente de ramassage ",
-
+        default:"attente de ramassage",
     },
-    etat_payement:{ type: Boolean},
-
-    ouvrir: {  type: Boolean},
-
+    ouvrir: {  
+        type: Boolean,
+        default : true ,
+    },
     is_simple: {  type: Boolean},
-
     a_remplace:{  type: Boolean},
-
     id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },// a verifier 
     id_livreur: { type: mongoose.Schema.Types.ObjectId, ref: 'Livreur' },
     id_store:{type: mongoose.Schema.Types.ObjectId, ref: 'Store'}
-    
-
-    
-    
-
 
 },{
     timestamps:true  //genreate created at and updated up automatically 
@@ -92,15 +86,12 @@ ColisSchema.pre('save', function(next) {
     console.log(this.code_suivi);
 });
 
-
 //Colis Model
 const  Colis = mongoose.model("Colis",ColisSchema);
 
 // validate Colis  
-
 function validateRegisterColis(obj){
     const schema = Joi.object({
-        
         adresse_des: Joi.string().required(),
         //CIN:Joi.string().required().min(5),
         Nom_des:Joi.string().required(),
@@ -111,7 +102,6 @@ function validateRegisterColis(obj){
         etat:Joi.string(),
         Nature_Produit:Joi.string(),
         statut: Joi.string(),
-        etat_payement:Joi.boolean(),
         ouvrir:Joi.boolean(),
         is_simple:Joi.boolean(),
         a_remplace:Joi.boolean(),
@@ -119,7 +109,7 @@ function validateRegisterColis(obj){
         id_livreur:Joi.string(),
         id_store:Joi.string(),
         code_ville:Joi.string(),
-        
+        code_suivi:Joi.string(),
 
     
     });
