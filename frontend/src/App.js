@@ -2,12 +2,16 @@ import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from './pages/Login';
 import Register from './pages/Register';
-import HomeDashboard from "./scene/dashboard/HomeDashboard";
+import HomeDashboard from "./scene/components/home/pages/HomeDashboard";
 import { ThemeProvider as CustomThemeProvider } from "./scene/ThemeContext";
 import ColisList from "./scene/components/colis/pages/ColisList";
 import ColisPourRamassage from "./scene/components/colis/pages/ColisPourRamassage";
 import AjouterColis from "./scene/components/colis/pages/AjouterColis";
 import ColisImport from "./scene/components/colis/pages/ColisImport";
+import ProduitList from "./scene/components/stock/pages/ProduitList";
+import AjouterProduit from "./scene/components/stock/pages/AjouterProduit";
+import ProduitColis from "./scene/components/stock/pages/ProduitColis";
+import ColisStock from "./scene/components/stock/pages/ColisStock";
 
 function App() {
   return (
@@ -22,8 +26,14 @@ function App() {
             <Route path="home" element={<HomeDashboard />} />
             <Route path="list-colis" element={<ColisList />} />
             <Route path="colis-ar" element={<ColisPourRamassage />} />
-            <Route path="ajouter-colis" element={<AjouterColis />} />
+            <Route path="ajouter-colis/:type" element={<AjouterColis />} />
             <Route path="import-colis" element={<ColisImport />} />
+
+            <Route path="list-produit" element={<ProduitList />} />
+            <Route path="ajouter-produit" element={<AjouterProduit />} />
+            <Route path="ajouter-produit-colis" element={<ProduitColis />} />
+            <Route path="colis-stock" element={<ColisStock />} />
+            
           </Route>
         </Routes>
     </CustomThemeProvider>

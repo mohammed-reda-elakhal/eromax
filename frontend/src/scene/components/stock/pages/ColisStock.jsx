@@ -8,13 +8,13 @@ import { Table } from 'antd';
 import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 
-function ColisPourRamassage() {
+function ColisStock() {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
     
 
     useEffect(() => {
-        const colis = ColisData.filter(item => item.statut === 'Attend de Ramassé');
+        const colis = ColisData.filter(item => item.info.type_colis === 'stock');
         setData(colis);
     }, []);
 
@@ -110,8 +110,8 @@ function ColisPourRamassage() {
                     }}
                 >
                     <div className="page-content-header">
-                        <Title nom='Colis attend de ramassage' />
-                        <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
+                        <Title nom='Colis de Stock' />
+                        <Link to={`/dashboard/ajouter-colis/stock`} className='btn-dashboard'>
                             <PlusCircleFilled style={{marginRight:"8px"}} />
                             Ajouter Colis
                         </Link>
@@ -136,4 +136,4 @@ function ColisPourRamassage() {
     );
 }
 
-export default ColisPourRamassage;
+export default ColisStock;

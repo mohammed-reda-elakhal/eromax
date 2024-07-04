@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Modal, Divider , Select ,  Drawer, Steps } from 'antd';
+import { Table, Modal, Divider, Select, Drawer, Steps } from 'antd';
 import ColisData from '../../../../data/colis.json';
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Si1001Tracklists } from "react-icons/si";
@@ -8,22 +8,22 @@ import { TbPhoneCall } from "react-icons/tb";
 
 const options = [
   {
-      id: 1,
-      name: 'Annulée'
+    id: 1,
+    name: 'Annulée'
   },
   {
-      id: 2,
-      name: 'Chnager Prix'
+    id: 2,
+    name: 'Changer Prix'
   }
 ];
 
-const ColisTable = ({ theme , darkStyle }) => {
+const ColisTable = ({ theme, darkStyle }) => {
   const [data, setData] = useState([]);
   const [reclamation, setReclamation] = useState('Type de reclamation');
   const [isModalReclamationOpen, setIsModalReclamationOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [selectedColis, setSelectedColis] = useState(null);
-  const [openDrawer , setOpenDrawer] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false);
 
   const showDrawer = () => {
     setOpenDrawer(true);
@@ -48,6 +48,20 @@ const ColisTable = ({ theme , darkStyle }) => {
   useEffect(() => {
     setData(ColisData);
   }, []);
+
+  const handleInfo = (id) => {
+    const colis = data.find(item => item.id === id);
+    setSelectedColis(colis);
+    setIsInfoModalOpen(true);
+  };
+
+  const handleSuivi = (id) => {
+    console.log('More options for record with id:', id);
+  };
+
+  const handleChangeReclamation = (selectedOption) => {
+    setReclamation(selectedOption);
+  };
 
   const columns = [
     {
@@ -75,13 +89,13 @@ const ColisTable = ({ theme , darkStyle }) => {
       dataIndex: 'etat',
       key: 'etat',
       render: (text, record) => (
-        <span style={{ 
-          backgroundColor: record.etat ? 'green' : '#4096ff', 
-          color: 'white', 
-          padding: '5px', 
-          borderRadius: '3px', 
-          display: 'inline-block', 
-          whiteSpace: 'pre-wrap', 
+        <span style={{
+          backgroundColor: record.etat ? 'green' : '#4096ff',
+          color: 'white',
+          padding: '5px',
+          borderRadius: '3px',
+          display: 'inline-block',
+          whiteSpace: 'pre-wrap',
           textAlign: 'center'
         }}>
           {record.etat ? 'Payée' : 'Non\nPayée'}
@@ -93,14 +107,16 @@ const ColisTable = ({ theme , darkStyle }) => {
       dataIndex: 'statut',
       key: 'statut',
       render: (text, record) => (
-        <span style={{ 
-          backgroundColor: record.statut.trim() === 'Livrée' ? 'green' : '#4096ff', 
-          color: 'white', 
-          padding: '5px', 
+        <span style={{
+          backgroundColor: record.statut.trim() === 'Livrée' ? 'green' :
+                          record.statut.trim() === 'Annulée' || record.statut.trim() === 'Refusée' ? 'red' : 
+                          record.statut.trim() === 'En attente de ramassage' || record.statut.trim() === 'Ramassé' ? 'yellow' : '#4096ff',
+          color: 'white',
+          padding: '5px',
           borderRadius: '3px',
-          display: 'inline-block', 
-          whiteSpace: 'pre-wrap', 
-          textAlign: 'center' 
+          display: 'inline-block',
+          whiteSpace: 'pre-wrap',
+          textAlign: 'center'
         }}>
           {record.statut}
         </span>
@@ -161,25 +177,13 @@ const ColisTable = ({ theme , darkStyle }) => {
     },
   ];
 
-  const handleInfo = (id) => {
-    const colis = data.find(item => item.id === id);
-    setSelectedColis(colis);
-    setIsInfoModalOpen(true);
-  };
-
-  const handleSuivi = (id) => {
-    console.log('More options for record with id:', id);
-  };
-  const handleChangeReclamation = (selectedOption) => {
-    setReclamation(selectedOption);
-};
-
   return (
     <>
       <Table
         columns={columns}
         dataSource={data}
         rowKey="id"
+        pagination={{ pageSize: 10 }}
         className={theme === 'dark' ? 'table-dark' : 'table-light'}
       />
       <Modal
@@ -191,14 +195,14 @@ const ColisTable = ({ theme , darkStyle }) => {
         <p>Nature de Reclamation ...</p>
         <Select
           className='select-reclamation'
-            options={options.map(option => ({
-                value: option.id,
-                label: option.name
-            }))}
-            value={reclamation}
-            onChange={handleChangeReclamation}
-            placeholder="Reclamation"
-            styles={theme === 'dark' ? darkStyle : {}}
+          options={options.map(option => ({
+            value: option.id,
+            label: option.name
+          }))}
+          value={reclamation}
+          onChange={handleChangeReclamation}
+          placeholder="Reclamation"
+          styles={theme === 'dark' ? darkStyle : {}}
         />
       </Modal>
       <Modal
@@ -226,37 +230,37 @@ const ColisTable = ({ theme , darkStyle }) => {
         )}
       </Modal>
       <Drawer title="Les données de colis suivre" onClose={onClose} open={openDrawer}>
-            <h4>
-                Code de votre colis :
-                <span></span>
-            </h4>
-            <Steps
-                progressDot
-                current={1}
-                direction="vertical"
-                items={[
-                    {
-                        title: 'Finished',
-                        description: 'This is a description. This is a description.',
-                    },
-                    {
-                        title: 'Finished',
-                        description: 'This is a description. This is a description.',
-                    },
-                    {
-                        title: 'In Progress',
-                        description: 'This is a description. This is a description.',
-                    },
-                    {
-                        title: 'Waiting',
-                        description: 'This is a description.',
-                    },
-                    {
-                        title: 'Waiting',
-                        description: 'This is a description.',
-                    },
-                ]}
-            />
+        <h4>
+          Code de votre colis :
+          <span></span>
+        </h4>
+        <Steps
+          progressDot
+          current={1}
+          direction="vertical"
+          items={[
+            {
+              title: 'Finished',
+              description: 'This is a description. This is a description.',
+            },
+            {
+              title: 'Finished',
+              description: 'This is a description. This is a description.',
+            },
+            {
+              title: 'In Progress',
+              description: 'This is a description. This is a description.',
+            },
+            {
+              title: 'Waiting',
+              description: 'This is a description.',
+            },
+            {
+              title: 'Waiting',
+              description: 'This is a description.',
+            },
+          ]}
+        />
       </Drawer>
     </>
   );

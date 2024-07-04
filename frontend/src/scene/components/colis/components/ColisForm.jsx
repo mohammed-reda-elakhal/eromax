@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { InfoCircleOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
 import { Input, Tooltip, Select, Col, Row , Checkbox } from 'antd';
 import { MdOutlineWidgets } from "react-icons/md";
-
+import { useNavigate } from 'react-router-dom';
 const { TextArea } = Input;
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
@@ -73,7 +73,7 @@ const ColisOuvrir = [
 ];
 
 
-function ColisForm({ theme }) {
+function ColisForm({ theme , type}) {
     const [nom, setNom] = useState('');
     const [tele, setTele] = useState('');
     const [ville, setVille] = useState('');
@@ -85,11 +85,26 @@ function ColisForm({ theme }) {
     const [remplaceColis , setRemplaceColis] = useState(true)
     const [ouvrirColis , setOuvrirColis] = useState(true)
 
+    const navigate = useNavigate();
+
+    useEffect(()=>{
+        if(type === 'simple'){
+            setColisType(ColisTypes[0].name)
+        }else if(type === 'stock'){
+            setColisType(ColisTypes[1].name)
+        }
+    },[type])
+
     const handleChangeVille = (value) => {
         setVille(value);
     };
     const handleChangeColisType = (value) => {
         setColisType(value);
+        if (value === ColisTypes[0].name) {
+            navigate('/dashboard/ajouter-colis/simple');
+        } else if (value === ColisTypes[1].name) {
+            navigate('/dashboard/ajouter-colis/stock');
+        }
     };
 
     const handeleRemplace = (e) => {
@@ -134,6 +149,12 @@ function ColisForm({ theme }) {
 
         console.log(data)
         handleCleanData()
+        
+        if(colisType === ColisTypes[0].name || type === 'simple'){
+            navigate('/dashboard/list-colis')
+        }else if(colisType === ColisTypes[1].name || type === 'stock' ){
+            navigate('/dashboard/ajouter-produit-colis')
+        }
     };
 
 
@@ -322,7 +343,12 @@ function ColisForm({ theme }) {
                     }}
                     type='submit'
                 >
-                    Ajouter Colis
+                    {
+                        type === 'simple' ?
+                        'Confirmer & Demande Ramassage' 
+                        :
+                        'Confirmer & Choisir Produit'
+                    }
                 </button>
             </div>
         </form>
