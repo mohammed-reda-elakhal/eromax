@@ -1,12 +1,14 @@
 const router = require("express").Router();
-const { registerProfileCtrl, loginProfileCtrl } = require("../Controllers/authController");
+const { loginProfileCtrl , registerAdmin , registerClient, registerLivreur } = require("../Controllers/authController");
 
 
-// api/auth/register
-router.post("/register",registerProfileCtrl);
+// api/auth/register/role
+router.post("/register/admin",registerAdmin);
+router.post("/register/client",registerClient);
+router.post("/register/livreur",registerLivreur);
 
-// api/auth/register
-router.get("/login",loginProfileCtrl);
+// api/auth/login/:role
+router.get("/login/:role",loginProfileCtrl);
 
 
 

@@ -69,7 +69,7 @@ const ColisSchema = new mongoose.Schema({
     },
     is_simple: {  type: Boolean},
     a_remplace:{  type: Boolean},
-    id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },// a verifier 
+    id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' , required : true },// a verifier 
     id_livreur: { type: mongoose.Schema.Types.ObjectId, ref: 'Livreur' },
     id_store:{type: mongoose.Schema.Types.ObjectId, ref: 'Store'}
 
@@ -106,8 +106,6 @@ function validateRegisterColis(obj){
         is_simple:Joi.boolean(),
         a_remplace:Joi.boolean(),
         id_client:Joi.string(),
-        id_livreur:Joi.string(),
-        id_store:Joi.string(),
         code_ville:Joi.string(),
         code_suivi:Joi.string(),
 
