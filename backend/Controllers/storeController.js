@@ -1,14 +1,44 @@
 const asyncHandler = require('express-async-handler');
-const Store = require('../models/Store');
-//---------------------------------------------------------------------------------------------------
-// Get all stores
+const {Store} = require('../models/Store');
+
+
+
+
+/** -------------------------------------------
+ *@desc create new store    
+ * @router /api/store
+ * @method POST
+ * @access private  only user hem self
+ -------------------------------------------
+*/
+const createStores = asyncHandler(async (req, res) => {
+  let store = await Store.create({
+    id_client : req.user.id,
+    storeName : req.body.storeName
+  })
+  res.json(store);
+});
+
+
+/** -------------------------------------------
+ *@desc get list store    
+ * @router /api/store
+ * @method GET
+ * @access private  only admin
+ -------------------------------------------
+*/
 const getAllStores = asyncHandler(async (req, res) => {
-  const stores = await Store.find().populate('id_client');
+  const stores = await Store.find().populate('id_client')
   res.json(stores);
 });
 
-//---------------------------------------------------------------------------------------------------
-// Get a store by ID
+/** -------------------------------------------
+ *@desc get store by id    
+ * @router /api/store/:id
+ * @method GET
+ * @access private  admin and client hem self
+ -------------------------------------------
+*/
 const getStoreById = asyncHandler(async (req, res) => {
   const store = await Store.findById(req.params.id).populate('id_client');
   if (!store) {
@@ -18,16 +48,14 @@ const getStoreById = asyncHandler(async (req, res) => {
   res.json(store);
 });
 
-//---------------------------------------------------------------------------------------------------
-// Create a new store
-const createStore = asyncHandler(async (req, res) => {
-  const store = new Store(req.body);
-  const newStore = await store.save();
-  res.status(201).json(newStore);
-});
 
-//---------------------------------------------------------------------------------------------------
-// Update a store
+/** -------------------------------------------
+ *@desc update store    
+ * @router /api/store/:id
+ * @method PUT
+ * @access private  only client hem self
+ -------------------------------------------
+*/
 const updateStore = asyncHandler(async (req, res) => {
   const store = await Store.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!store) {
@@ -37,8 +65,15 @@ const updateStore = asyncHandler(async (req, res) => {
   res.json(store);
 });
 
-//---------------------------------------------------------------------------------------------------
-// Delete a store
+
+/** -------------------------------------------
+ *@desc delete store    
+ * @router /api/store/:id
+ * @method DELETE
+ * @access private  only client hem self
+ -------------------------------------------
+*/
+
 const deleteStore = asyncHandler(async (req, res) => {
   const store = await Store.findByIdAndDelete(req.params.id);
   if (!store) {
@@ -51,7 +86,7 @@ const deleteStore = asyncHandler(async (req, res) => {
 module.exports = {
   getAllStores,
   getStoreById,
-  createStore,
   updateStore,
-  deleteStore
+  deleteStore,
+  createStores
 };

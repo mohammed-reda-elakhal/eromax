@@ -57,7 +57,7 @@ const clientValidation = (obj) => {
         isAccountVerified: Joi.boolean().default(false),
         role: Joi.string().required(),
         start:Joi.string(),
-        colis_num:Joi.string()
+        colis_num:Joi.string(),
     });
     return clientJoiSchema.validate(obj);
 }
