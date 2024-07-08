@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Joi = require("joi")
 
 const LivreurSchema = new mongoose.Schema({
     //add additional attributes
@@ -35,7 +36,7 @@ const livreurValidation = (obj) => {
         Prenom: Joi.string().trim().min(2).required(),
         ville: Joi.string().required(),
         adresse: Joi.string().required(),
-        Tel: Joi.string().length(10).required(),
+        Tel: Joi.string().required(),
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
         profilePhoto: Joi.object({

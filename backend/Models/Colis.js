@@ -69,9 +69,11 @@ const ColisSchema = new mongoose.Schema({
     },
     is_simple: {  type: Boolean},
     a_remplace:{  type: Boolean},
-    id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' , required : true },// a verifier 
+    
+    id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client'  },// a verifier 
+    id_store:{type: mongoose.Schema.Types.ObjectId, ref: 'Store' },
+
     id_livreur: { type: mongoose.Schema.Types.ObjectId, ref: 'Livreur' },
-    id_store:{type: mongoose.Schema.Types.ObjectId, ref: 'Store'}
 
 },{
     timestamps:true  //genreate created at and updated up automatically 

@@ -4,11 +4,16 @@ const jwt = require("jsonwebtoken");
 const { Admin , adminValidation , validateLogin } = require("../Models/Admin");
 const { Client , clientValidation } = require("../Models/Client");
 const { Livreur, livreurValidation } = require("../Models/Livreur");
+const { Store } = require("../models/Store");
 
 
 // Generate JWT token
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '1y' });
+};
+
+const generateTokenClient = (id, role , store) => {
+    return jwt.sign({ id, role , store }, process.env.JWT_SECRET, { expiresIn: '1y' });
 };
 
 
@@ -50,7 +55,8 @@ module.exports.registerAdmin = asyncHandler(async (req, res) => {
 });
 
 module.exports.registerClient = asyncHandler(async (req, res) => {
-    const { error } = clientValidation(req.body);
+    const {storeName , ...clientData} = req.body
+    const { error } = clientValidation(clientData);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
@@ -70,10 +76,19 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
 
     await client.save();
 
+    // create store of client
+    let store = await Store.create({
+        id_client : client._id,
+        storeName : req.body.storeName
+    })
+
+    // Populate the client data in store
+    store = await store.populate('id_client',  ["-password"]);
+
     res.status(201).json({
-        _id: client._id,
-        email: client.email,
+        message : `Welcom ${client.Prenom} to your account EROMAX`,
         role: client.role,
+        store
     });
 });
 
@@ -120,21 +135,28 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
 
     const {role} = req.params
     let user;
+    let token;
     if(role =="admin"){
         user = await Admin.findOne({ email: req.body.email });
         if (!user) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
+        token = generateToken(user._id, user.role); 
     }else if(role =="client"){
         user = await Client.findOne({ email: req.body.email });
         if (!user) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
+        const store = await Store.findOne({id_client : user._id})
+        if(!store)
+            return res.status(400).json({ message: "Invalid Store" });
+        token = generateTokenClient(user._id, user.role , store._id ); 
     }else if(role =="livreur"){
         user = await Livreur.findOne({ email: req.body.email });
         if (!user) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
+        token = generateToken(user._id, user.role); 
    }
     const isPasswordMatch = await bcrypt.compare(req.body.password, user.password);
     if (!isPasswordMatch) {
@@ -142,7 +164,7 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
     }
 
     // Generate token (assuming you have a token generation logic)
-    const token = generateToken(user._id, user.role);  // Replace with your token generation logic
+    token = generateToken(user._id, user.role);  // Replace with your token generation logic
 
     res.status(200).json({
         message: "Login successful",

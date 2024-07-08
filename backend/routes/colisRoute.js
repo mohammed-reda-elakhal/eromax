@@ -1,13 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
-const { verifyToken , verifyTokenAndAdmin } = require("../Middlewares/VerifyToken")
+const { 
+        verifyToken , 
+        verifyTokenAndAdmin  , 
+        verifyTokenAndClientOrAdmin, 
+        verifyTokenAndClient, 
+        verifyTokenAndLivreur,
+        verifyTokenAndStore
+        } = require("../Middlewares/VerifyToken")
 
 
 //Router api/colis
 router.route('/')
-        .post(colisController.CreateColisCtrl)
-        .get( verifyTokenAndAdmin , colisController.getAllColisCtrl)
+        .post( verifyTokenAndClient , colisController.CreateColisCtrl)
+        .get( verifyTokenAndStore , colisController.getAllColisCtrl)
 
 // Router api/colis/:id
 router.route('/:id')

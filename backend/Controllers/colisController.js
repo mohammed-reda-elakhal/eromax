@@ -22,7 +22,16 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   }
 
   // Create and save the new Colis
-  const newColis = new Colis(req.body);
+  // Add id_client and id_store from the token
+  const id_client = req.user.id;
+  const id_store = req.user.store;
+
+  // Create and save the new Colis
+  const newColis = new Colis({
+      ...req.body,
+      id_client,
+      id_store
+  });
   const saveColis = await newColis.save();
 
   // Create and save the new Suivi_Colis
@@ -139,7 +148,7 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
     "nouveau colis",
     "attend de ramassage",
     "ramasser",
-    "expidie",
+    "expidie", // affectation livreur and get data  ( nom , tele ) , autorisation
     "reçu",
     "mise en distribution",
     "livrée",
@@ -151,6 +160,8 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
   if (!validStatuses.includes(new_status)) {
     return res.status(400).json({ message: "Invalid status value" });
   }
+
+  // verify statu === expidie ( to work )
 
   // Find the Colis by id
   const colis = await Colis.findById(id);
