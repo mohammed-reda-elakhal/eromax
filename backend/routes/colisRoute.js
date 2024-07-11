@@ -7,14 +7,21 @@ const {
         verifyTokenAndClientOrAdmin, 
         verifyTokenAndClient, 
         verifyTokenAndLivreur,
-        verifyTokenAndStore
-        } = require("../Middlewares/VerifyToken")
+        verifyTokenAndStore,
+        verifyTokenStoreTeamAdmin,
+        verifyTokenAdminTeam
+        } = require("../Middlewares/VerifyToken") 
 
 
 //Router api/colis
 router.route('/')
-        .post( verifyTokenAndClient , colisController.CreateColisCtrl)
-        .get( verifyTokenAndStore , colisController.getAllColisCtrl)
+        .get( verifyTokenAdminTeam , colisController.getAllColisCtrl)
+
+// Router api/colis/:id_user or :id_store
+router.route('/:id_user')
+        .post( verifyTokenStoreTeamAdmin , colisController.CreateColisCtrl)
+        .get( verifyTokenStoreTeamAdmin , colisController.getColisByUserOrStore)
+
 
 // Router api/colis/:id
 router.route('/:id')

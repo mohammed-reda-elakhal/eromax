@@ -2,12 +2,13 @@ const asyncHandler = require("express-async-handler");
 const { Colis, validateRegisterColis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
 
+
 /**
  * -------------------------------------------------------------------
  * @desc     Create new colis
  * @route    /api/colis/
  * @method   POST
- * @access   private (only logger in user )
+ * @access   private (only logged in user)
  * -------------------------------------------------------------------
  **/
 module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
@@ -21,18 +22,28 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  // Create and save the new Colis
-  // Add id_client and id_store from the token
-  const id_client = req.user.id;
-  const id_store = req.user.store;
+  // Validate that req.user.store is a valid ObjectId if it's present
+  let store = req.user.store;
+  let team = null;
+
+  if (!store) {
+    store = null;
+    team = req.user.id;
+  }
 
   // Create and save the new Colis
   const newColis = new Colis({
-      ...req.body,
-      id_client,
-      id_store
+    ...req.body,
+    store,
+    team
   });
+  
   const saveColis = await newColis.save();
+
+   // Populate store and team data
+   await saveColis.populate('store');
+   await saveColis.populate('team');
+ 
 
   // Create and save the new Suivi_Colis
   const suivi_colis = new Suivi_Colis({
@@ -40,12 +51,15 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     code_suivi: newColis.code_suivi,
     date_create: newColis.createdAt,
   });
+  
   const save_suivi = await suivi_colis.save();
 
   // Respond with both the saved Colis and Suivi_Colis
-  res.status(201).json({ colis: saveColis, suiviColis: save_suivi });
+  res.status(201).json({ 
+    colis: saveColis, 
+    suiviColis: save_suivi 
+  });
 });
-
 
 /**
  * -------------------------------------------------------------------
@@ -91,6 +105,30 @@ exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: "Colis not found" });
     }
     res.status(200).json(colis);
+});
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     get colis by user or store
+ * @route    /api/colis/:id_user
+ * @method   GET
+ * @access   private (only logger in user )
+ * -------------------------------------------------------------------
+**/
+exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
+  let colis 
+  let team = req.user.id
+  let store = req.user.store
+  if(req.user.role === "team" || req.user.role === "admin"){
+    colis = await Colis.find({ team }).populate('team');
+  }else{
+    colis = await Colis.find({ store }).populate("store");
+  }
+  if (!colis) {
+      return res.status(404).json({ message: "Colis not found" });
+  }
+
+  res.status(200).json(colis);
 });
 
 /**
@@ -147,6 +185,7 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
   const validStatuses = [
     "nouveau colis",
     "attend de ramassage",
+         //   || admin changer statu => team replacer admin 
     "ramasser",
     "expidie", // affectation livreur and get data  ( nom , tele ) , autorisation
     "reçu",

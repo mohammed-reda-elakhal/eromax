@@ -1,0 +1,13 @@
+
+ -- list statu
+
+   nouveau colis
+   attend de ramassage || ou || attend de preparer
+   ramassa || preparer
+   expidie
+   reçu
+   mise en distribution
+   livrée
+   annulée
+   refusée
+   programmée

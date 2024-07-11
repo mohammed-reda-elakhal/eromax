@@ -34,23 +34,28 @@ function verifyTokenAndAdmin(req , res , next ){
     })
 }
 
-// verify token and client or admin
-function verifyTokenAndClientOrAdmin(req , res , next){
+// verify token admin team
+function verifyTokenAdminTeam(req , res , next ){
     verifyToken(req , res , ()=>{
-        if(req.user.role === "admin" || req.user.id === req.params.id){
+        if(req.user.role === "admin" || req.user.role === "team" ){
             next();
         } else {
-            return res.status(401).json({ message: "You don't have permession to this operation" });
+            return res.status(401).json({ message: "not allowed only admin or team" });
         }
     })
 }
 
-function verifyTokenAndClientOrAdminRole(req , res , next){
+// verify token client store or team or admin
+function verifyTokenStoreTeamAdmin(req , res , next ){
     verifyToken(req , res , ()=>{
-        if(req.user.role === "admin" || req.user.role === "client"){
+        if(
+            req.user.store != "" && req.user.store === req.params.id_user || 
+            req.user.role === "team" && req.user.id === req.params.id_user || 
+            req.user.role === "admin" && req.user.id === req.params.id_user
+        ){
             next();
         } else {
-            return res.status(401).json({ message: "You don't have permession to this operation" });
+            return res.status(401).json({ message: "You are not allow to this operation" });
         }
     })
 }
@@ -58,7 +63,7 @@ function verifyTokenAndClientOrAdminRole(req , res , next){
 // verify tokent and client 
 function verifyTokenAndClient(req , res , next ){
     verifyToken(req , res , ()=>{
-        if(req.user.role === "client" && req.user.id === req.params.id){
+        if(req.user.role === "client" && req.user.id === req.params.id_user){
             next();
         } else {
             return res.status(401).json({ message: "not allowed to this operation" });
@@ -67,20 +72,11 @@ function verifyTokenAndClient(req , res , next ){
 }
 
 
-// verify token and livreur Role
-function verifyTokenAndLivreurRole(req , res , next){
-    verifyToken(req , res , ()=>{
-        if(req.user.role === "livreur"){
-            next();
-        } else {
-            return res.status(401).json({ message: "not allowed to access" });
-        }
-    })
-}
+// verify token and livreur
 
 function verifyTokenAndLivreur(req , res , next){
     verifyToken(req , res , ()=>{
-        if(req.user.role === "livreur" && req.user.id === req.params.id){
+        if(req.user.role === "livreur" && req.user.id === req.params.id_user){ // if the id get by params also can get in req.body
             next();
         } else {
             return res.status(401).json({ message: "not allowed to access" });
@@ -101,14 +97,8 @@ function verifyTokenAndLivreurOrAdmin(req , res , next){
 // verify token and store
 const verifyTokenAndStore = async (req, res, next) => {
     verifyToken(req, res, async () => {
-        if (req.user.role === "client") {
-            const store = await Store.findOne({ id_client: req.user.id });
-            if (store) {
-                req.user.store = store; // Attach store to the req.user
-                next();
-            } else {
-                return res.status(401).json({ message: "You don't have a store" });
-            }
+        if (req.user.role === "client" && req.user.store === req.params.id_user) {
+           
         } else {
             return res.status(401).json({ message: "Not allowed to access" });
         }
@@ -120,11 +110,10 @@ const verifyTokenAndStore = async (req, res, next) => {
 module.exports = {
     verifyToken , 
     verifyTokenAndAdmin ,
-    verifyTokenAndClientOrAdmin,
-    verifyTokenAndClient,
+    verifyTokenStoreTeamAdmin ,
+    verifyTokenAdminTeam , 
+    verifyTokenAndClient ,
     verifyTokenAndLivreur,
-    verifyTokenAndStore,
-    verifyTokenAndLivreurRole,
-    verifyTokenAndLivreurOrAdmin,
-    verifyTokenAndClientOrAdminRole
+    verifyTokenAndLivreurOrAdmin , 
+    verifyTokenAndStore
 }

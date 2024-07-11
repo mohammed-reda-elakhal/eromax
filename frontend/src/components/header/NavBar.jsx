@@ -39,17 +39,6 @@ function Navbar({languageOptions , languageSelected , handleLanguageChange , set
             <Link to={`/login`} className="header-bottom-link">
                 Espace Client
             </Link>
-            <Dropdown
-                button
-                className='icon'
-                floating
-                labeled
-                icon='world'
-                options={languageOptions}
-                search
-                text={languageSelected}
-                onChange={handleLanguageChange}
-            />
         </div>
     </div>
   )

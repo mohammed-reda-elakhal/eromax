@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Dropdown } from 'semantic-ui-react'
 import { TikTokOutlined ,  YoutubeOutlined  , FacebookOutlined , InstagramOutlined , PhoneFilled , MailFilled , UserOutlined , MenuOutlined} from '@ant-design/icons';
-import Navbar from './Navbar';
+import Navbar from './NavBar';
 import './header.css'
 
 const languageOptions = [
@@ -70,19 +70,6 @@ function Header() {
                     <Link className="header-top-sm-link">
                         <YoutubeOutlined />
                     </Link>
-                </div>
-                <div className="header-top-traduction">
-                    <Dropdown
-                        button
-                        className='icon'
-                        floating
-                        labeled
-                        icon='world'
-                        options={languageOptions}
-                        search
-                        text={languageSelected}
-                        onChange={handleLanguageChange}
-                    />
                 </div>
             </div>
             <div className="header-bottom">

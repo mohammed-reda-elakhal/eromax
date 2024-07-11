@@ -1,5 +1,8 @@
 const asyncHandler = require('express-async-handler');
 const {Store} = require('../models/Store');
+const path = require("path")
+const fs = require("fs")
+const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary")
 
 
 
@@ -66,6 +69,7 @@ const updateStore = asyncHandler(async (req, res) => {
 });
 
 
+
 /** -------------------------------------------
  *@desc delete store    
  * @router /api/store/:id
@@ -88,5 +92,5 @@ module.exports = {
   getStoreById,
   updateStore,
   deleteStore,
-  createStores
+  createStores,
 };

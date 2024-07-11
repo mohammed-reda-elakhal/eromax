@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
-import Home from "./pages/Home";
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Home from "./Vitrine page/Home";
+import Login from './Vitrine page/Login';
+import Register from './Vitrine page/Register';
 import HomeDashboard from "./scene/components/home/pages/HomeDashboard";
 import { ThemeProvider as CustomThemeProvider } from "./scene/ThemeContext";
 import ColisList from "./scene/components/colis/pages/ColisList";
