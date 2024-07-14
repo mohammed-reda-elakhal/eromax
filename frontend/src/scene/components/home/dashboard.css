@@ -57,6 +57,14 @@
 .statistic-chart .chart-circl-colis{
     width: 30%;
 }
+.rotate_phone_dashboard{
+    display: none;
+}
+
+
+
+
+
 @media only screen and (max-width: 600px){
     .statistic-colis{
         flex-direction: column;
@@ -79,6 +87,15 @@
         margin: 1em auto;
     }
   }
+  @media only screen and (max-width: 500px){
+    .rotate_phone_dashboard{
+        display: block;
+    }
+    .statistic-chart{
+        display: none;
+     }
+}
+
   @media only screen and (min-width: 601px) and (max-width: 900px) {
     .statistic-colis{
         flex-direction: column;

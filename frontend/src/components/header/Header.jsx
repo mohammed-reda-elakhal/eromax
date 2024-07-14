@@ -90,8 +90,11 @@ function Header() {
                     <Link to={`/register`} className="header-bottom-link">
                         Devenir Client
                     </Link>
+                    <Link to={`/register`} className="header-bottom-link">
+                        Devenir Livreur
+                    </Link>
                     <Link to={`/login`} className="header-bottom-link">
-                        Espace Client
+                        Connexion
                     </Link>
                 </div>
                 <Link to="/login" className='header-bottom-icon-login-link'>

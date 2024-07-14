@@ -11,6 +11,7 @@ function Statistic({theme}) {
         <Divider />
         <StatsColis theme={theme} />
         <Divider />
+        <img className='rotate_phone_dashboard' src="/image/rotate_phone.gif" alt="" />
         <StatsChart theme={theme} data={ColisData} />
     </div>
   )

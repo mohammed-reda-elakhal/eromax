@@ -36,8 +36,11 @@ function Navbar({languageOptions , languageSelected , handleLanguageChange , set
             <Link to={`/register`} className="header-bottom-link">
                 Devenir Client
             </Link>
+            <Link to={`/register`} className="header-bottom-link">
+                Devenir Livreur
+            </Link>
             <Link to={`/login`} className="header-bottom-link">
-                Espace Client
+                Connexion
             </Link>
         </div>
     </div>

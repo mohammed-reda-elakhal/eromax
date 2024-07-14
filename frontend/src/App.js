@@ -12,6 +12,8 @@ import ProduitList from "./scene/components/stock/pages/ProduitList";
 import AjouterProduit from "./scene/components/stock/pages/AjouterProduit";
 import ProduitColis from "./scene/components/stock/pages/ProduitColis";
 import ColisStock from "./scene/components/stock/pages/ColisStock";
+import Portfeuille from "./scene/components/portfeuille/page/Portfeuille";
+
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
           
           <Route path='dashboard'>
             <Route path="home" element={<HomeDashboard />} />
+            <Route path="portfeuille" element={<Portfeuille />} />
+
             <Route path="list-colis" element={<ColisList />} />
             <Route path="colis-ar" element={<ColisPourRamassage />} />
             <Route path="ajouter-colis/:type" element={<AjouterColis />} />
