@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Modal, Divider, Select, Drawer, Steps } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Modal, Divider, Select, Drawer, Steps, Button } from 'antd';
 import ColisData from '../../../../data/colis.json';
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Si1001Tracklists } from "react-icons/si";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaPrint } from "react-icons/fa";
 import { TbPhoneCall } from "react-icons/tb";
+import TicketColis from '../../tickets/TicketColis';
+import { useReactToPrint } from 'react-to-print';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const options = [
-  {
-    id: 1,
-    name: 'Annulée'
-  },
-  {
-    id: 2,
-    name: 'Changer Prix'
-  }
+  { id: 1, name: 'Annulée' },
+  { id: 2, name: 'Changer Prix' },
 ];
 
 const ColisTable = ({ theme, darkStyle }) => {
@@ -22,29 +20,16 @@ const ColisTable = ({ theme, darkStyle }) => {
   const [reclamation, setReclamation] = useState('Type de reclamation');
   const [isModalReclamationOpen, setIsModalReclamationOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [selectedColis, setSelectedColis] = useState(null);
   const [openDrawer, setOpenDrawer] = useState(false);
 
-  const showDrawer = () => {
-    setOpenDrawer(true);
-  };
-
-  const onClose = () => {
-    setOpenDrawer(false);
-  };
-
-  const showModalReclamation = () => {
-    setIsModalReclamationOpen(true);
-  };
-
-  const handleReclamationOk = () => {
-    setIsModalReclamationOpen(false);
-  };
-
-  const handleReclamationCancel = () => {
-    setIsModalReclamationOpen(false);
-  };
-
+  const showDrawer = () => setOpenDrawer(true);
+  const onClose = () => setOpenDrawer(false);
+  const showModalReclamation = () => setIsModalReclamationOpen(true);
+  const handleReclamationOk = () => setIsModalReclamationOpen(false);
+  const handleReclamationCancel = () => setIsModalReclamationOpen(false);
+  
   useEffect(() => {
     setData(ColisData);
   }, []);
@@ -53,6 +38,12 @@ const ColisTable = ({ theme, darkStyle }) => {
     const colis = data.find(item => item.id === id);
     setSelectedColis(colis);
     setIsInfoModalOpen(true);
+  };
+
+  const handleTicket = (id) => {
+    const colis = data.find(item => item.id === id);
+    setSelectedColis(colis);
+    setIsTicketModalOpen(true);
   };
 
   const handleSuivi = (id) => {
@@ -64,30 +55,12 @@ const ColisTable = ({ theme, darkStyle }) => {
   };
 
   const columns = [
+    { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi' },
+    { title: 'Dernière Mise à Jour', dataIndex: 'derniere_mise_a_jour', key: 'derniere_mise_a_jour' },
+    { title: 'Destinataire', dataIndex: 'destinataire', key: 'destinataire' },
+    { title: 'Téléphone', dataIndex: 'telephone', key: 'telephone' },
     {
-      title: 'Code Suivi',
-      dataIndex: 'code_suivi',
-      key: 'code_suivi',
-    },
-    {
-      title: 'Dernière Mise à Jour',
-      dataIndex: 'derniere_mise_a_jour',
-      key: 'derniere_mise_a_jour',
-    },
-    {
-      title: 'Destinataire',
-      dataIndex: 'destinataire',
-      key: 'destinataire',
-    },
-    {
-      title: 'Téléphone',
-      dataIndex: 'telephone',
-      key: 'telephone',
-    },
-    {
-      title: 'État',
-      dataIndex: 'etat',
-      key: 'etat',
+      title: 'État', dataIndex: 'etat', key: 'etat',
       render: (text, record) => (
         <span style={{
           backgroundColor: record.etat ? 'green' : '#4096ff',
@@ -103,14 +76,12 @@ const ColisTable = ({ theme, darkStyle }) => {
       ),
     },
     {
-      title: 'Statut',
-      dataIndex: 'statut',
-      key: 'statut',
+      title: 'Statut', dataIndex: 'statut', key: 'statut',
       render: (text, record) => (
         <span style={{
           backgroundColor: record.statut.trim() === 'Livrée' ? 'green' :
-                          record.statut.trim() === 'Annulée' || record.statut.trim() === 'Refusée' ? 'red' : 
-                          record.statut.trim() === 'En attente de ramassage' || record.statut.trim() === 'Ramassé' ? 'yellow' : '#4096ff',
+            record.statut.trim() === 'Annulée' || record.statut.trim() === 'Refusée' ? 'red' :
+              record.statut.trim() === 'En attente de ramassage' || record.statut.trim() === 'Ramassé' ? 'yellow' : '#4096ff',
           color: 'white',
           padding: '5px',
           borderRadius: '3px',
@@ -122,60 +93,56 @@ const ColisTable = ({ theme, darkStyle }) => {
         </span>
       ),
     },
+    { title: 'Date de Livraison', dataIndex: 'date_livraison', key: 'date_livraison' },
+    { title: 'Ville', dataIndex: 'ville', key: 'ville' },
+    { title: 'Prix', dataIndex: 'prix', key: 'prix' },
+    { title: 'Nature de Produit', dataIndex: 'nature_de_produit', key: 'nature_de_produit' },
     {
-      title: 'Date de Livraison',
-      dataIndex: 'date_livraison',
-      key: 'date_livraison',
-    },
-    {
-      title: 'Ville',
-      dataIndex: 'ville',
-      key: 'ville',
-    },
-    {
-      title: 'Prix',
-      dataIndex: 'prix',
-      key: 'prix',
-    },
-    {
-      title: 'Nature de Produit',
-      dataIndex: 'nature_de_produit',
-      key: 'nature_de_produit',
-    },
-    {
-      title: 'Reclamations',
-      key: 'reclamations',
+      title: 'Reclamations', key: 'reclamations',
       render: (text, record) => (
         <div className='table-reclamation'>
-          <button className='btn-dashboard' onClick={showModalReclamation}>
-            Reclamation
-          </button>
+          <button className='btn-dashboard' onClick={showModalReclamation}>Reclamation</button>
           <div className='table-option'>
-            <button className='btn-dashboard' onClick={() => handleInfo(record.id)}>
-              <FaWhatsapp />
-            </button>
-            <button className='btn-dashboard' onClick={() => handleSuivi(record.id)}>
-              <TbPhoneCall />
-            </button>
+            <button className='btn-dashboard' onClick={() => handleInfo(record.id)}><FaWhatsapp /></button>
+            <button className='btn-dashboard' onClick={() => handleSuivi(record.id)}><TbPhoneCall /></button>
           </div>
         </div>
       ),
     },
     {
-      title: 'ACTIONS',
-      key: 'action',
+      title: 'ACTIONS', key: 'action',
       render: (text, record) => (
         <div className='table-option'>
-          <button className='btn-dashboard' onClick={() => handleInfo(record.id)}>
-            <IoMdInformationCircleOutline />
-          </button>
-          <button className='btn-dashboard' onClick={showDrawer}>
-            <Si1001Tracklists />
-          </button>
+          <button className='btn-dashboard' onClick={() => handleInfo(record.id)}><IoMdInformationCircleOutline /></button>
+          <button className='btn-dashboard' onClick={showDrawer}><Si1001Tracklists /></button>
+          <button className='btn-dashboard' onClick={() => handleTicket(record.id)}><FaPrint /></button>
         </div>
       ),
     },
   ];
+
+  const componentRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
+
+  const handleDownloadPdf = () => {
+    const input = componentRef.current;
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [500, 460] // Set the page size to 500px x 460px
+      });
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, 500, 460); // Add the image with the specified width and height
+      pdf.save('ticket.pdf');
+    });
+  };
+  
+  
 
   return (
     <>
@@ -229,36 +196,37 @@ const ColisTable = ({ theme, darkStyle }) => {
           </>
         )}
       </Modal>
+      <Modal
+        title="Ticket Colis"
+        open={isTicketModalOpen}
+        onCancel={() => setIsTicketModalOpen(false)}
+        footer={null}
+      >
+        {selectedColis && (
+          <>
+            <Divider />
+            <div
+              ref={componentRef}
+            >
+              <TicketColis  />
+            </div>
+            <Button onClick={handlePrint}>Imprimer</Button>
+            <Button onClick={handleDownloadPdf}>Télécharger Ticket PDF</Button>
+          </>
+        )}
+      </Modal>
       <Drawer title="Les données de colis suivre" onClose={onClose} open={openDrawer}>
-        <h4>
-          Code de votre colis :
-          <span></span>
-        </h4>
+        <h4>Code de votre colis :<span></span></h4>
         <Steps
           progressDot
           current={1}
           direction="vertical"
           items={[
-            {
-              title: 'Finished',
-              description: 'This is a description. This is a description.',
-            },
-            {
-              title: 'Finished',
-              description: 'This is a description. This is a description.',
-            },
-            {
-              title: 'In Progress',
-              description: 'This is a description. This is a description.',
-            },
-            {
-              title: 'Waiting',
-              description: 'This is a description.',
-            },
-            {
-              title: 'Waiting',
-              description: 'This is a description.',
-            },
+            { title: 'Finished', description: 'This is a description. This is a description.' },
+            { title: 'Finished', description: 'This is a description. This is a description.' },
+            { title: 'In Progress', description: 'This is a description. This is a description.' },
+            { title: 'Waiting', description: 'This is a description.' },
+            { title: 'Waiting', description: 'This is a description.' },
           ]}
         />
       </Drawer>
