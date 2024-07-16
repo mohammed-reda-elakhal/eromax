@@ -2,6 +2,7 @@
     width: 100%;
     display: flex;
     gap: 2em;
+    align-items: start;
 }
 .carte-solde{
     width: 30%;
@@ -38,4 +39,11 @@
     display: flex;
     gap: 16px;
     font-size: 1.5rem;
+}
+
+.message_retrait{
+    border-radius: 4px;
+    border-left: 5px solid var(--limon);
+    padding: 8px 8px 8px 12px;
+    box-shadow: 2px 2px 5px var(--gray);
 }

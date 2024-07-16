@@ -12,6 +12,8 @@ function verifyToken(req , res , next){
             /*
                 decodedPayload = {
                     id , role  , store ( if exist ), secret_key
+                    req.user.id === id user 
+                    req.user.role === " role"
                 }
             */
             next()
@@ -97,8 +99,8 @@ function verifyTokenAndLivreurOrAdmin(req , res , next){
 // verify token and store
 const verifyTokenAndStore = async (req, res, next) => {
     verifyToken(req, res, async () => {
-        if (req.user.role === "client" && req.user.store === req.params.id_user) {
-           
+        if (req.user.role === "client" && req.user.store === req.params.id) {
+           next()
         } else {
             return res.status(401).json({ message: "Not allowed to access" });
         }

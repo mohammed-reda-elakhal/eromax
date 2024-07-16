@@ -1,4 +1,4 @@
-import { Input, Select, Tooltip } from 'antd';
+import { Divider, Input, Select, Tooltip } from 'antd';
 import React from 'react'
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { MdBorderColor } from "react-icons/md";
@@ -51,6 +51,16 @@ function DemandeRetrait({theme}) {
                     placeholder="type de colis"
                 />
             </div>
+            <Divider/>
+            <div className="message_retrait">
+                <h3>Les frais de chaque demande de retrait (virement bancaire) sont:5.00MAD</h3>
+                <p>
+                    À partir du 1er janvier 2022, la banque a commencé à déduire des frais de 5dh pour chaque virement bancaire et même pour les comptes de la même banque.
+                    C'est pour cela nous avons commencé à réduire ces frais pour chaque virement bancaire.
+                    Merci pour votre compréhension.
+                </p>
+            </div>
+            <Divider/>
             <button 
                 className='btn-dashboard'
                 style={{
