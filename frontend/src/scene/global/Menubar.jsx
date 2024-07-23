@@ -12,6 +12,7 @@ import { LuBox } from "react-icons/lu";
 import { BiTagAlt } from "react-icons/bi";
 import { BsFillInboxesFill } from "react-icons/bs";
 import { IoWalletSharp } from "react-icons/io5";
+import { LuScanLine } from "react-icons/lu";
 
 
 
@@ -85,6 +86,10 @@ function Menubar() {
           <Link to="/dashboard/portfeuille">Portfeuille</Link>
         </Menu.Item>
 
+        <Menu.Item icon={<LuScanLine />}>
+          <Link to="/dashboard/scan">Scan</Link>
+        </Menu.Item>
+
         <Menu.SubMenu icon={<LuBox />} title="Colis">
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/list-colis">List Colis</Link>
@@ -96,8 +101,24 @@ function Menubar() {
             <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/colis-r">Colis Ramasse</Link> 
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/colis-ex">Colis Expidie</Link> 
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/colis-rc">Colis Reçu</Link> 
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/colis-md">Colis Mise en Distribution</Link> 
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
+            <Link to="/dashboard/colis-l">Colis Livrée</Link> 
+          </Menu.Item>
+          <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/import-colis">Import Colis</Link> 
           </Menu.Item>
+
         </Menu.SubMenu>
 
         <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">

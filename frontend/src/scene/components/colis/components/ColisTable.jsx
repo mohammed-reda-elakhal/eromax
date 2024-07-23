@@ -9,13 +9,17 @@ import TicketColis from '../../tickets/TicketColis';
 import { useReactToPrint } from 'react-to-print';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import TableDashboard from '../../../global/TableDashboard';
+import { SearchOutlined } from '@ant-design/icons';
+import { Input, Space } from 'antd';
+import Highlighter from 'react-highlight-words';
 
 const options = [
   { id: 1, name: 'Annulée' },
   { id: 2, name: 'Changer Prix' },
 ];
 
-const ColisTable = ({ theme, darkStyle }) => {
+const ColisTable = ({ theme, darkStyle , search }) => {
   const [data, setData] = useState([]);
   const [reclamation, setReclamation] = useState('Type de reclamation');
   const [isModalReclamationOpen, setIsModalReclamationOpen] = useState(false);
@@ -54,11 +58,29 @@ const ColisTable = ({ theme, darkStyle }) => {
     setReclamation(selectedOption);
   };
 
-  const columns = [
-    { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi' },
-    { title: 'Dernière Mise à Jour', dataIndex: 'derniere_mise_a_jour', key: 'derniere_mise_a_jour' },
-    { title: 'Destinataire', dataIndex: 'destinataire', key: 'destinataire' },
-    { title: 'Téléphone', dataIndex: 'telephone', key: 'telephone' },
+  const columnsColis = [
+    { 
+      title: 'Code Suivi', 
+      dataIndex: 'code_suivi', 
+      key: 'code_suivi' ,
+      ...search('code_suivi'),
+    },
+    { 
+      title: 'Dernière Mise à Jour', 
+      dataIndex: 'updated_at', 
+      key: 'updated_at' 
+    },
+    { 
+      title: 'Destinataire', 
+      dataIndex: 'nom', 
+      key: 'nom' ,
+      ...search('nom'),
+    },
+    { 
+      title: 'Téléphone', 
+      dataIndex: 'tele', 
+      key: 'tele' 
+    },
     {
       title: 'État', dataIndex: 'etat', key: 'etat',
       render: (text, record) => (
@@ -93,10 +115,28 @@ const ColisTable = ({ theme, darkStyle }) => {
         </span>
       ),
     },
-    { title: 'Date de Livraison', dataIndex: 'date_livraison', key: 'date_livraison' },
-    { title: 'Ville', dataIndex: 'ville', key: 'ville' },
-    { title: 'Prix', dataIndex: 'prix', key: 'prix' },
-    { title: 'Nature de Produit', dataIndex: 'nature_de_produit', key: 'nature_de_produit' },
+    { 
+      title: 'Date de Livraison', 
+      dataIndex: 'date_livraison', 
+      key: 'date_livraison' 
+    },
+    { 
+      title: 'Ville', 
+      dataIndex: 'ville', 
+      key: 'ville' ,
+      ...search('ville'),
+    },
+    { 
+      title: 'Prix', 
+      dataIndex: 'prix', 
+      key: 'prix' ,
+      ...search('prix'),
+    },
+    { 
+      title: 'Nature de Produit', 
+      dataIndex: 'nature_produit', 
+      key: 'nature_produit' 
+    },
     {
       title: 'Reclamations', key: 'reclamations',
       render: (text, record) => (
@@ -128,30 +168,26 @@ const ColisTable = ({ theme, darkStyle }) => {
   });
 
   const handleDownloadPdf = () => {
-    const input = componentRef.current;
+    const input = componentRef.current; // Assuming componentRef is a ref to the single ticket component
     html2canvas(input, { scale: 2 }).then((canvas) => {
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
-        format: [500, 460] // Set the page size to 500px x 460px
+        format: [450, 460] // Set the page size to 460px x 460px
       });
       
-      pdf.addImage(imgData, 'PNG', 0, 0, 500, 460); // Add the image with the specified width and height
+      pdf.addImage(imgData, 'PNG', 0, 0, 450, 460); // Add the image with the specified width and height
       pdf.save('ticket.pdf');
     });
   };
-  
-  
 
   return (
     <>
-      <Table
-        columns={columns}
-        dataSource={data}
-        rowKey="id"
-        pagination={{ pageSize: 10 }}
-        className={theme === 'dark' ? 'table-dark' : 'table-light'}
+      <TableDashboard
+        column={columnsColis}
+        data={data}
+        id="id"
       />
       <Modal
         title="Reclamation"
@@ -182,16 +218,16 @@ const ColisTable = ({ theme, darkStyle }) => {
           <>
             <Divider />
             <div className='colis-info-content'>
-              <p><strong>Code Suivi:</strong> {selectedColis.code_suivi}</p>
-              <p><strong>Dernière Mise à Jour:</strong> {selectedColis.derniere_mise_a_jour}</p>
-              <p><strong>Destinataire:</strong> {selectedColis.destinataire}</p>
-              <p><strong>Téléphone:</strong> {selectedColis.telephone}</p>
+              <p><strong>Code Suivi:</strong> {selectedColis['code-suivi']}</p>
+              <p><strong>Dernière Mise à Jour:</strong> {selectedColis['updated-at']}</p>
+              <p><strong>Destinataire:</strong> {selectedColis.nom}</p>
+              <p><strong>Téléphone:</strong> {selectedColis.tele}</p>
               <p><strong>État:</strong> {selectedColis.etat ? 'Payée' : 'Non Payée'}</p>
               <p><strong>Statut:</strong> {selectedColis.statut}</p>
-              <p><strong>Date de Livraison:</strong> {selectedColis.date_livraison}</p>
+              <p><strong>Date de Livraison:</strong> {selectedColis['date_livraison']}</p>
               <p><strong>Ville:</strong> {selectedColis.ville}</p>
               <p><strong>Prix:</strong> {selectedColis.prix}</p>
-              <p><strong>Nature de Produit:</strong> {selectedColis.nature_de_produit}</p>
+              <p><strong>Nature de Produit:</strong> {selectedColis['nature_produit']}</p>
             </div>
           </>
         )}
@@ -208,7 +244,7 @@ const ColisTable = ({ theme, darkStyle }) => {
             <div
               ref={componentRef}
             >
-              <TicketColis  />
+              <TicketColis colis={selectedColis} />
             </div>
             <Button onClick={handlePrint}>Imprimer</Button>
             <Button onClick={handleDownloadPdf}>Télécharger Ticket PDF</Button>

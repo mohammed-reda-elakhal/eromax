@@ -155,7 +155,7 @@ function Tarif() {
           columns={columns} 
           dataSource={data} 
           pagination={{ 
-            pageSizeOptions: ['5', '10', '20', '50'], // Options for page size
+            pageSizeOptions: ['5', '10', '20', '50' , '100 '], // Options for page size
             showSizeChanger: true, // Enable the page size changer
             defaultPageSize: 10, // Default page size
           }} 

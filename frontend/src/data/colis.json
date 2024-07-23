@@ -1,704 +1,1187 @@
 [
     {
         "id": 1,
-        "code_suivi": "MDT06243452JG1840471",
-        "derniere_mise_a_jour": "2024-06-01 17:51",
-        "destinataire": "Aziz ro",
-        "telephone": "0670890103",
+        "code_suivi":"KN1256213512",
+        "nom": "store client",
+        "tele": "0690137708",
+        "ville": "kenitra",
+        "adresse": "123 promenade des Anglais",
+        "commentaire": "Perishable items",
+        "prix": 100.3,
+        "nature_produit": "vetement",
         "etat": false,
-        "statut": "Ramassé",
-        "date_livraison": null,
-        "ville": "Midelt",
-        "prix": 250,
-        "nature_de_produit": "NK42",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": "bool",
-            "ouvrir": "bool"
+        "statut": "Attente de Ramassage",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at":"2024-2-16 15:52",
+        "updated_at":"2024-2-17 10:31",
+        "livreur": {
+            "id": 451,
+            "nom": "reda",
+            "tele": "0698855774"
+        },
+        "team": {
+            "id": 123,
+            "nom": "saad"
+        },
+        "store": {
+            "id": 541,
+            "nom": "store name"
         }
     },
     {
         "id": 2,
-        "code_suivi": "BSK06243452CR7740471",
-        "derniere_mise_a_jour": "2024-06-01 17:51",
-        "destinataire": "Said Mo",
-        "telephone": "0702625082",
+        "code_suivi": "KN1256213513",
+        "nom": "client store",
+        "tele": "0690137709",
+        "ville": "rabat",
+        "adresse": "456 avenue Mohammed V",
+        "commentaire": "Handle with care",
+        "prix": 150.5,
+        "nature_produit": "electronic",
         "etat": false,
-        "statut": "Ramassé",
-        "date_livraison": null,
-        "ville": "Bouskoura",
-        "prix": 250,
-        "nature_de_produit": "Nk 41",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": "bool",
-            "ouvrir": "bool"
+        "statut": "Attente de Ramassage",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-3-16 11:00",
+        "updated_at": "2024-3-17 09:45",
+        "livreur": {
+            "id": 452,
+            "nom": "ahmed",
+            "tele": "0698855775"
+        },
+        "team": {
+            "id": 124,
+            "nom": "mohamed"
+        },
+        "store": {
+            "id": 542,
+            "nom": "second store"
         }
     },
     {
         "id": 3,
-        "code_suivi": "BSN06243452NO2530471",
-        "derniere_mise_a_jour": "2024-06-01 17:51",
-        "destinataire": "Abd Samad ro",
-        "telephone": "0698153591",
+        "code_suivi": "KN1256213514",
+        "nom": "other client",
+        "tele": "0690137710",
+        "ville": "casablanca",
+        "adresse": "789 boulevard Hassan II",
+        "commentaire": "Urgent delivery",
+        "prix": 200.7,
+        "nature_produit": "books",
         "etat": false,
-        "statut": "Ramassé",
-        "date_livraison": null,
-        "ville": "Benslimane (reg mohamedia)",
-        "prix": 250,
-        "nature_de_produit": "Montre",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": "bool",
-            "ouvrir": "bool"
+        "statut": "Attente de Ramassage",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-4-20 12:30",
+        "updated_at": "2024-4-21 14:15",
+        "livreur": {
+            "id": 453,
+            "nom": "youssef",
+            "tele": "0698855776"
+        },
+        "team": {
+            "id": 125,
+            "nom": "fatima"
+        },
+        "store": {
+            "id": 543,
+            "nom": "third store"
         }
     },
     {
         "id": 4,
-        "code_suivi": "N-BR-C-SIMPLE-MRK1-051223-3452-2157",
-        "derniere_mise_a_jour": "2023-12-08 16:19",
-        "destinataire": "Anass",
-        "telephone": "0664201873",
-        "etat": true,
-        "statut": "Ramassé",
-        "date_livraison": null,
-        "ville": "Marrakech",
-        "prix": 150,
-        "nature_de_produit": "Montre",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": "bool",
-            "ouvrir": "bool"
+        "code_suivi": "KN1256213515",
+        "nom": "another client",
+        "tele": "0690137711",
+        "ville": "marrakech",
+        "adresse": "123 rue de la Kasbah",
+        "commentaire": "Keep refrigerated",
+        "prix": 250.2,
+        "nature_produit": "food",
+        "etat": false,
+        "statut": "Attente de Ramassage",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-5-10 08:15",
+        "updated_at": "2024-5-11 10:00",
+        "livreur": {
+            "id": 454,
+            "nom": "noureddine",
+            "tele": "0698855777"
+        },
+        "team": {
+            "id": 126,
+            "nom": "sara"
+        },
+        "store": {
+            "id": 544,
+            "nom": "fourth store"
         }
     },
     {
         "id": 5,
-        "code_suivi": "N-BR-C-SIMPLE-MRK1-091023-3452-9729",
-        "derniere_mise_a_jour": "2023-10-11 18:32",
-        "destinataire": "Anass",
-        "telephone": "0664201873",
+        "code_suivi": "KN1256213516",
+        "nom": "new client",
+        "tele": "0690137712",
+        "ville": "fes",
+        "adresse": "456 rue de Fès",
+        "commentaire": "Fragile items",
+        "prix": 300.0,
+        "nature_produit": "glassware",
         "etat": false,
-        "statut": "Attend de Ramassé",
-        "date_livraison": null,
-        "ville": "Marrakech",
-        "prix": 150,
-        "nature_de_produit": "Chemise",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": "bool",
-            "ouvrir": "bool"
+        "statut": "Attente de Ramassage",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-6-14 13:25",
+        "updated_at": "2024-6-15 16:30",
+        "livreur": {
+            "id": 455,
+            "nom": "mohamed",
+            "tele": "0698855778"
+        },
+        "team": {
+            "id": 127,
+            "nom": "iman"
+        },
+        "store": {
+            "id": 545,
+            "nom": "fifth store"
         }
     },
     {
         "id": 6,
-        "code_suivi": "N-BR-C-LIVRE-061223-1234-1234",
-        "derniere_mise_a_jour": "2024-06-01 12:00",
-        "destinataire": "Ali Ben",
-        "telephone": "0671234567",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-01",
-        "ville": "Casablanca",
-        "prix": 300,
-        "nature_de_produit": "Livre",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": false
+        "code_suivi": "KN1256213517",
+        "nom": "premium client",
+        "tele": "0690137713",
+        "ville": "tangier",
+        "adresse": "789 boulevard de Paris",
+        "commentaire": "Handle with extra care",
+        "prix": 350.4,
+        "nature_produit": "jewelry",
+        "etat": false,
+        "statut": "Attente de Ramassage",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-7-18 09:00",
+        "updated_at": "2024-7-19 11:45",
+        "livreur": {
+            "id": 456,
+            "nom": "amina",
+            "tele": "0698855779"
+        },
+        "team": {
+            "id": 128,
+            "nom": "karim"
+        },
+        "store": {
+            "id": 546,
+            "nom": "sixth store"
         }
     },
     {
         "id": 7,
-        "code_suivi": "N-BR-C-LIVRE-071223-2345-2345",
-        "derniere_mise_a_jour": "2024-06-01 13:00",
-        "destinataire": "Zineb Alaoui",
-        "telephone": "0681234568",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-01",
-        "ville": "Rabat",
-        "prix": 500,
-        "nature_de_produit": "Vêtements",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": false,
-            "ouvrir": true
+        "code_suivi": "KN1256213518",
+        "nom": "client one",
+        "tele": "0690137714",
+        "ville": "agadir",
+        "adresse": "12 boulevard des F.A.R",
+        "commentaire": "Contains electronics",
+        "prix": 400.1,
+        "nature_produit": "electronic",
+        "etat": false,
+        "statut": "Ramassé",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-6-20 14:00",
+        "updated_at": "2024-6-21 10:00",
+        "livreur": {
+            "id": 457,
+            "nom": "kamal",
+            "tele": "0698855780"
+        },
+        "team": {
+            "id": 129,
+            "nom": "nawal"
+        },
+        "store": {
+            "id": 547,
+            "nom": "seventh store"
         }
     },
     {
         "id": 8,
-        "code_suivi": "N-BR-C-ANNULE-081223-3456-3456",
-        "derniere_mise_a_jour": "2024-06-02 14:00",
-        "destinataire": "Mohamed Saadi",
-        "telephone": "0691234569",
+        "code_suivi": "KN1256213519",
+        "nom": "client two",
+        "tele": "0690137715",
+        "ville": "meknes",
+        "adresse": "34 avenue des Nations Unies",
+        "commentaire": "Keep dry",
+        "prix": 450.6,
+        "nature_produit": "textiles",
         "etat": false,
-        "statut": "Annulé",
-        "date_livraison": null,
-        "ville": "Tanger",
-        "prix": 200,
-        "nature_de_produit": "Accessoire",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": false
+        "statut": "Ramassé",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-6-25 15:00",
+        "updated_at": "2024-6-26 12:00",
+        "livreur": {
+            "id": 458,
+            "nom": "omar",
+            "tele": "0698855781"
+        },
+        "team": {
+            "id": 130,
+            "nom": "hassan"
+        },
+        "store": {
+            "id": 548,
+            "nom": "eighth store"
         }
     },
     {
         "id": 9,
-        "code_suivi": "N-BR-C-REFUSE-091223-4567-4567",
-        "derniere_mise_a_jour": "2024-06-03 15:00",
-        "destinataire": "Sara El",
-        "telephone": "0701234570",
+        "code_suivi": "KN1256213520",
+        "nom": "client three",
+        "tele": "0690137716",
+        "ville": "oujda",
+        "adresse": "56 rue d'Oujda",
+        "commentaire": "Handle with care",
+        "prix": 500.3,
+        "nature_produit": "home appliances",
         "etat": false,
-        "statut": "Refusé",
-        "date_livraison": null,
-        "ville": "Fès",
-        "prix": 150,
-        "nature_de_produit": "Bijoux",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": false,
-            "ouvrir": true
+        "statut": "Ramassé",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-7-01 09:30",
+        "updated_at": "2024-7-02 11:00",
+        "livreur": {
+            "id": 459,
+            "nom": "ismail",
+            "tele": "0698855782"
+        },
+        "team": {
+            "id": 131,
+            "nom": "laila"
+        },
+        "store": {
+            "id": 549,
+            "nom": "ninth store"
         }
     },
     {
         "id": 10,
-        "code_suivi": "N-BR-C-LIVRE-101223-5678-5678",
-        "derniere_mise_a_jour": "2024-06-04 16:00",
-        "destinataire": "Karim Amine",
-        "telephone": "0711234571",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-02",
-        "ville": "Agadir",
-        "prix": 400,
-        "nature_de_produit": "Électronique",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": false
+        "code_suivi": "KN1256213521",
+        "nom": "client four",
+        "tele": "0690137717",
+        "ville": "tetouan",
+        "adresse": "78 rue de Tetouan",
+        "commentaire": "Non-perishable items",
+        "prix": 550.9,
+        "nature_produit": "furniture",
+        "etat": false,
+        "statut": "Ramassé",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-7-10 10:15",
+        "updated_at": "2024-7-11 13:00",
+        "livreur": {
+            "id": 460,
+            "nom": "rachid",
+            "tele": "0698855783"
+        },
+        "team": {
+            "id": 132,
+            "nom": "khadija"
+        },
+        "store": {
+            "id": 550,
+            "nom": "tenth store"
         }
     },
     {
         "id": 11,
-        "code_suivi": "N-BR-C-LIVRE-111223-6789-6789",
-        "derniere_mise_a_jour": "2024-06-05 17:00",
-        "destinataire": "Fatima Zahra",
-        "telephone": "0721234572",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-03",
-        "ville": "Meknès",
-        "prix": 350,
-        "nature_de_produit": "Chaussures",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": false,
-            "ouvrir": true
+        "code_suivi": "KN1256213522",
+        "nom": "client five",
+        "tele": "0690137718",
+        "ville": "nador",
+        "adresse": "90 rue de Nador",
+        "commentaire": "Sensitive equipment",
+        "prix": 600.2,
+        "nature_produit": "machinery",
+        "etat": false,
+        "statut": "Ramassé",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-7-15 11:45",
+        "updated_at": "2024-7-16 14:30",
+        "livreur": {
+            "id": 461,
+            "nom": "hanane",
+            "tele": "0698855784"
+        },
+        "team": {
+            "id": 133,
+            "nom": "nizar"
+        },
+        "store": {
+            "id": 551,
+            "nom": "eleventh store"
         }
-    },
-    {
+    },{
         "id": 12,
-        "code_suivi": "N-BR-C-LIVRE-121223-7890-7890",
-        "derniere_mise_a_jour": "2024-06-06 18:00",
-        "destinataire": "Rachid Hamid",
-        "telephone": "0731234573",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-04",
-        "ville": "Oujda",
-        "prix": 450,
-        "nature_de_produit": "Cosmétiques",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": false
+        "code_suivi": "KN1256213523",
+        "nom": "client alpha",
+        "tele": "0690137719",
+        "ville": "essaouira",
+        "adresse": "12 avenue Moulay El Hassan",
+        "commentaire": "Express delivery",
+        "prix": 650.8,
+        "nature_produit": "documents",
+        "etat": false,
+        "statut": "Expédié",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-7-20 12:30",
+        "updated_at": "2024-7-21 09:00",
+        "livreur": {
+            "id": 462,
+            "nom": "salah",
+            "tele": "0698855785"
+        },
+        "team": {
+            "id": 134,
+            "nom": "amine"
+        },
+        "store": {
+            "id": 552,
+            "nom": "twelfth store"
         }
     },
     {
         "id": 13,
-        "code_suivi": "N-BR-C-ANNULE-131223-8901-8901",
-        "derniere_mise_a_jour": "2024-06-07 19:00",
-        "destinataire": "Hassan Yassir",
-        "telephone": "0741234574",
+        "code_suivi": "KN1256213524",
+        "nom": "client beta",
+        "tele": "0690137720",
+        "ville": "el jadida",
+        "adresse": "34 boulevard de la Corniche",
+        "commentaire": "Handle with care",
+        "prix": 700.4,
+        "nature_produit": "glassware",
         "etat": false,
-        "statut": "Annulé",
-        "date_livraison": null,
-        "ville": "Tétouan",
-        "prix": 250,
-        "nature_de_produit": "Accessoire",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "statut": "Expédié",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-7-22 14:45",
+        "updated_at": "2024-7-23 11:15",
+        "livreur": {
+            "id": 463,
+            "nom": "hicham",
+            "tele": "0698855786"
+        },
+        "team": {
+            "id": 135,
+            "nom": "karima"
+        },
+        "store": {
+            "id": 553,
+            "nom": "thirteenth store"
         }
     },
     {
         "id": 14,
-        "code_suivi": "N-BR-C-REFUSE-141223-9012-9012",
-        "derniere_mise_a_jour": "2024-06-08 20:00",
-        "destinataire": "Imane Khadija",
-        "telephone": "0751234575",
+        "code_suivi": "KN1256213525",
+        "nom": "client gamma",
+        "tele": "0690137721",
+        "ville": "larache",
+        "adresse": "56 avenue de la Résistance",
+        "commentaire": "Keep upright",
+        "prix": 750.0,
+        "nature_produit": "paintings",
         "etat": false,
-        "statut": "Refusé",
-        "date_livraison": null,
-        "ville": "Salé",
-        "prix": 300,
-        "nature_de_produit": "Livre",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": false
+        "statut": "Expédié",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-7-24 16:00",
+        "updated_at": "2024-7-25 13:30",
+        "livreur": {
+            "id": 464,
+            "nom": "yassine",
+            "tele": "0698855787"
+        },
+        "team": {
+            "id": 136,
+            "nom": "hiba"
+        },
+        "store": {
+            "id": 554,
+            "nom": "fourteenth store"
         }
     },
     {
         "id": 15,
-        "code_suivi": "N-BR-C-LIVRE-151223-0123-0123",
-        "derniere_mise_a_jour": "2024-06-09 21:00",
-        "destinataire": "Youssef Ahmed",
-        "telephone": "0761234576",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-05",
-        "ville": "Kenitra",
-        "prix": 300,
-        "nature_de_produit": "Montre",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "code_suivi": "KN1256213526",
+        "nom": "client delta",
+        "tele": "0690137722",
+        "ville": "taza",
+        "adresse": "78 boulevard de Taza",
+        "commentaire": "Fragile items",
+        "prix": 800.6,
+        "nature_produit": "ceramics",
+        "etat": false,
+        "statut": "Expédié",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-7-26 08:15",
+        "updated_at": "2024-7-27 10:45",
+        "livreur": {
+            "id": 465,
+            "nom": "soufiane",
+            "tele": "0698855788"
+        },
+        "team": {
+            "id": 137,
+            "nom": "samira"
+        },
+        "store": {
+            "id": 555,
+            "nom": "fifteenth store"
         }
     },
     {
         "id": 16,
-        "code_suivi": "N-BR-C-LIVRE-161223-1234-2345",
-        "derniere_mise_a_jour": "2024-06-10 22:00",
-        "destinataire": "Samira Fikri",
-        "telephone": "0771234577",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-06",
-        "ville": "Essaouira",
-        "prix": 200,
-        "nature_de_produit": "Nk 41",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": false
+        "code_suivi": "KN1256213527",
+        "nom": "client epsilon",
+        "tele": "0690137723",
+        "ville": "khemisset",
+        "adresse": "90 avenue Mohammed V",
+        "commentaire": "Do not bend",
+        "prix": 850.9,
+        "nature_produit": "artwork",
+        "etat": false,
+        "statut": "Expédié",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-7-28 17:30",
+        "updated_at": "2024-7-29 12:00",
+        "livreur": {
+            "id": 466,
+            "nom": "abdel",
+            "tele": "0698855789"
+        },
+        "team": {
+            "id": 138,
+            "nom": "meryem"
+        },
+        "store": {
+            "id": 556,
+            "nom": "sixteenth store"
         }
-    },
-    {
+    }, {
         "id": 17,
-        "code_suivi": "N-BR-C-LIVRE-171223-2345-3456",
-        "derniere_mise_a_jour": "2024-06-11 23:00",
-        "destinataire": "Nabil Jabr",
-        "telephone": "0781234578",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-07",
-        "ville": "Chefchaouen",
-        "prix": 300,
-        "nature_de_produit": "Vêtements",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "code_suivi": "KN1256213528",
+        "nom": "client zeta",
+        "tele": "0690137724",
+        "ville": "safi",
+        "adresse": "12 boulevard de l'Océan",
+        "commentaire": "Fragile contents",
+        "prix": 900.3,
+        "nature_produit": "antiques",
+        "etat": false,
+        "statut": "Reçu",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-7-30 14:00",
+        "updated_at": "2024-7-31 10:00",
+        "livreur": {
+            "id": 467,
+            "nom": "tariq",
+            "tele": "0698855790"
+        },
+        "team": {
+            "id": 139,
+            "nom": "ines"
+        },
+        "store": {
+            "id": 557,
+            "nom": "seventeenth store"
         }
     },
     {
         "id": 18,
-        "code_suivi": "N-BR-C-LIVRE-181223-3456-4567",
-        "derniere_mise_a_jour": "2024-06-12 24:00",
-        "destinataire": "Salim Rachid",
-        "telephone": "0791234579",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-08",
-        "ville": "Casablanca",
-        "prix": 500,
-        "nature_de_produit": "Bijoux",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": false
+        "code_suivi": "KN1256213529",
+        "nom": "client eta",
+        "tele": "0690137725",
+        "ville": "beni mellal",
+        "adresse": "34 avenue des Forces Armées Royales",
+        "commentaire": "Perishable items",
+        "prix": 950.8,
+        "nature_produit": "food",
+        "etat": false,
+        "statut": "Reçu",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-8-01 16:45",
+        "updated_at": "2024-8-02 11:15",
+        "livreur": {
+            "id": 468,
+            "nom": "rachid",
+            "tele": "0698855791"
+        },
+        "team": {
+            "id": 140,
+            "nom": "yasmine"
+        },
+        "store": {
+            "id": 558,
+            "nom": "eighteenth store"
         }
     },
     {
         "id": 19,
-        "code_suivi": "N-BR-C-LIVRE-191223-4567-5678",
-        "derniere_mise_a_jour": "2024-06-13 01:00",
-        "destinataire": "Layla Nour",
-        "telephone": "0801234580",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-09",
-        "ville": "Marrakech",
-        "prix": 400,
-        "nature_de_produit": "Chaussures",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "code_suivi": "KN1256213530",
+        "nom": "client theta",
+        "tele": "0690137726",
+        "ville": "ouarzazate",
+        "adresse": "56 rue de la Kasbah",
+        "commentaire": "Keep dry",
+        "prix": 1000.5,
+        "nature_produit": "clothing",
+        "etat": false,
+        "statut": "Reçu",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-8-03 08:30",
+        "updated_at": "2024-8-04 09:45",
+        "livreur": {
+            "id": 469,
+            "nom": "mehdi",
+            "tele": "0698855792"
+        },
+        "team": {
+            "id": 141,
+            "nom": "hakim"
+        },
+        "store": {
+            "id": 559,
+            "nom": "nineteenth store"
         }
     },
     {
         "id": 20,
-        "code_suivi": "N-BR-C-LIVRE-201223-5678-6789",
-        "derniere_mise_a_jour": "2024-06-14 02:00",
-        "destinataire": "Hicham Badr",
-        "telephone": "0811234581",
-        "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-10",
-        "ville": "Fès",
-        "prix": 450,
-        "nature_de_produit": "Électronique",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": false
+        "code_suivi": "KN1256213531",
+        "nom": "client iota",
+        "tele": "0690137727",
+        "ville": "midelt",
+        "adresse": "78 avenue Hassan II",
+        "commentaire": "Handle with care",
+        "prix": 1050.2,
+        "nature_produit": "tools",
+        "etat": false,
+        "statut": "Reçu",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-8-05 10:15",
+        "updated_at": "2024-8-06 13:00",
+        "livreur": {
+            "id": 470,
+            "nom": "nabil",
+            "tele": "0698855793"
+        },
+        "team": {
+            "id": 142,
+            "nom": "zineb"
+        },
+        "store": {
+            "id": 560,
+            "nom": "twentieth store"
         }
     },
     {
         "id": 21,
-        "code_suivi": "N-BR-C-ANNULE-211223-7890-7890",
-        "derniere_mise_a_jour": "2024-06-15 03:00",
-        "destinataire": "Khadija Bakkali",
-        "telephone": "0821234582",
+        "code_suivi": "KN1256213532",
+        "nom": "client kappa",
+        "tele": "0690137728",
+        "ville": "tangier",
+        "adresse": "90 rue de Paris",
+        "commentaire": "Sensitive equipment",
+        "prix": 1100.6,
+        "nature_produit": "electronics",
         "etat": false,
-        "statut": "Annulé",
-        "date_livraison": null,
-        "ville": "Oujda",
-        "prix": 350,
-        "nature_de_produit": "Cosmétiques",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "statut": "Reçu",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-8-07 11:45",
+        "updated_at": "2024-8-08 12:30",
+        "livreur": {
+            "id": 471,
+            "nom": "khalid",
+            "tele": "0698855794"
+        },
+        "team": {
+            "id": 143,
+            "nom": "ayoub"
+        },
+        "store": {
+            "id": 561,
+            "nom": "twenty-first store"
         }
     },
     {
         "id": 22,
-        "code_suivi": "N-BR-C-ANNULE-221223-8901-8901",
-        "derniere_mise_a_jour": "2024-06-16 04:00",
-        "destinataire": "Ahmed Saidi",
-        "telephone": "0831234583",
+        "code_suivi": "KN1256213533",
+        "nom": "client lambda",
+        "tele": "0690137729",
+        "ville": "casablanca",
+        "adresse": "12 rue Mohammed V",
+        "commentaire": "Handle with care",
+        "prix": 1150.8,
+        "nature_produit": "glass",
         "etat": false,
-        "statut": "Annulé",
-        "date_livraison": null,
-        "ville": "Tétouan",
-        "prix": 200,
-        "nature_de_produit": "Accessoire",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": false
+        "statut": "Mise en Distribution",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-8-09 14:30",
+        "updated_at": "2024-8-10 10:00",
+        "livreur": {
+            "id": 472,
+            "nom": "sara",
+            "tele": "0698855795"
+        },
+        "team": {
+            "id": 144,
+            "nom": "said"
+        },
+        "store": {
+            "id": 562,
+            "nom": "twenty-second store"
         }
     },
     {
         "id": 23,
-        "code_suivi": "N-BR-C-REFUSE-231223-9012-9012",
-        "derniere_mise_a_jour": "2024-06-17 05:00",
-        "destinataire": "Rania Mahdi",
-        "telephone": "0841234584",
+        "code_suivi": "KN1256213534",
+        "nom": "client mu",
+        "tele": "0690137730",
+        "ville": "rabat",
+        "adresse": "34 avenue Mohammed VI",
+        "commentaire": "Fragile items",
+        "prix": 1200.4,
+        "nature_produit": "ceramics",
         "etat": false,
-        "statut": "Refusé",
-        "date_livraison": null,
-        "ville": "Salé",
-        "prix": 300,
-        "nature_de_produit": "Livre",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": false,
-            "ouvrir": true
+        "statut": "Mise en Distribution",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-8-11 16:45",
+        "updated_at": "2024-8-12 11:15",
+        "livreur": {
+            "id": 473,
+            "nom": "nadine",
+            "tele": "0698855796"
+        },
+        "team": {
+            "id": 145,
+            "nom": "mohammed"
+        },
+        "store": {
+            "id": 563,
+            "nom": "twenty-third store"
         }
     },
     {
         "id": 24,
-        "code_suivi": "N-BR-C-ANNULE-241223-0123-0123",
-        "derniere_mise_a_jour": "2024-06-18 06:00",
-        "destinataire": "Omar El",
-        "telephone": "0851234585",
+        "code_suivi": "KN1256213535",
+        "nom": "client nu",
+        "tele": "0690137731",
+        "ville": "fes",
+        "adresse": "56 avenue Hassan II",
+        "commentaire": "Non-perishable items",
+        "prix": 1250.5,
+        "nature_produit": "toys",
         "etat": false,
-        "statut": "Annulé",
-        "date_livraison": null,
-        "ville": "Kenitra",
-        "prix": 250,
-        "nature_de_produit": "Montre",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "statut": "Mise en Distribution",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "",
+        "create_at": "2024-8-13 08:30",
+        "updated_at": "2024-8-14 09:45",
+        "livreur": {
+            "id": 474,
+            "nom": "hajar",
+            "tele": "0698855797"
+        },
+        "team": {
+            "id": 146,
+            "nom": "fatima"
+        },
+        "store": {
+            "id": 564,
+            "nom": "twenty-fourth store"
         }
     },
     {
         "id": 25,
-        "code_suivi": "N-BR-C-REFUSE-251223-1234-2345",
-        "derniere_mise_a_jour": "2024-06-19 07:00",
-        "destinataire": "Nada Othman",
-        "telephone": "0861234586",
+        "code_suivi": "KN1256213536",
+        "nom": "client xi",
+        "tele": "0690137732",
+        "ville": "agadir",
+        "adresse": "78 avenue du 29 Février",
+        "commentaire": "Handle with care",
+        "prix": 1300.2,
+        "nature_produit": "jewelry",
         "etat": false,
-        "statut": "Refusé",
-        "date_livraison": null,
-        "ville": "Essaouira",
-        "prix": 200,
-        "nature_de_produit": "Nk 41",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": false
+        "statut": "Mise en Distribution",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-8-15 10:15",
+        "updated_at": "2024-8-16 13:00",
+        "livreur": {
+            "id": 475,
+            "nom": "kawtar",
+            "tele": "0698855798"
+        },
+        "team": {
+            "id": 147,
+            "nom": "mouad"
+        },
+        "store": {
+            "id": 565,
+            "nom": "twenty-fifth store"
         }
     },
     {
         "id": 26,
-        "code_suivi": "N-BR-C-ANNULE-261223-2345-3456",
-        "derniere_mise_a_jour": "2024-06-20 08:00",
-        "destinataire": "Nawal Sami",
-        "telephone": "0871234587",
+        "code_suivi": "KN1256213537",
+        "nom": "client omicron",
+        "tele": "0690137733",
+        "ville": "meknes",
+        "adresse": "90 avenue Hassan II",
+        "commentaire": "Sensitive equipment",
+        "prix": 1350.6,
+        "nature_produit": "electronics",
         "etat": false,
-        "statut": "Annulé",
-        "date_livraison": null,
-        "ville": "Chefchaouen",
-        "prix": 300,
-        "nature_de_produit": "Vêtements",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "statut": "Mise en Distribution",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "",
+        "create_at": "2024-8-17 11:45",
+        "updated_at": "2024-8-18 12:30",
+        "livreur": {
+            "id": 476,
+            "nom": "amina",
+            "tele": "0698855799"
+        },
+        "team": {
+            "id": 148,
+            "nom": "nadia"
+        },
+        "store": {
+            "id": 566,
+            "nom": "twenty-sixth store"
         }
     },
     {
         "id": 27,
-        "code_suivi": "N-BR-C-LIVRE-271223-3456-4567",
-        "derniere_mise_a_jour": "2024-06-21 09:00",
-        "destinataire": "Wafaa Lahcen",
-        "telephone": "0881234588",
+        "code_suivi": "KN1256213538",
+        "nom": "client pi",
+        "tele": "0690137734",
+        "ville": "oujda",
+        "adresse": "12 avenue Mohammed V",
+        "commentaire": "Handle with care",
+        "prix": 1400.8,
+        "nature_produit": "glassware",
         "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-11",
-        "ville": "Casablanca",
-        "prix": 500,
-        "nature_de_produit": "Bijoux",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": false
+        "statut": "Livrée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Delivered to the reception desk",
+        "create_at": "2024-8-19 14:30",
+        "updated_at": "2024-8-20 10:00",
+        "livreur": {
+            "id": 477,
+            "nom": "karima",
+            "tele": "0698855800"
+        },
+        "team": {
+            "id": 149,
+            "nom": "amal"
+        },
+        "store": {
+            "id": 567,
+            "nom": "twenty-seventh store"
         }
     },
     {
         "id": 28,
-        "code_suivi": "N-BR-C-LIVRE-281223-4567-5678",
-        "derniere_mise_a_jour": "2024-06-22 10:00",
-        "destinataire": "Amina Tarik",
-        "telephone": "0891234589",
+        "code_suivi": "KN1256213539",
+        "nom": "client rho",
+        "tele": "0690137735",
+        "ville": "tetouan",
+        "adresse": "34 avenue Hassan II",
+        "commentaire": "Fragile items",
+        "prix": 1450.4,
+        "nature_produit": "ceramics",
         "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-12",
-        "ville": "Marrakech",
-        "prix": 400,
-        "nature_de_produit": "Chaussures",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": false,
-            "ouvrir": true
+        "statut": "Livrée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Delivered to the front door",
+        "create_at": "2024-8-21 16:45",
+        "updated_at": "2024-8-22 11:15",
+        "livreur": {
+            "id": 478,
+            "nom": "omar",
+            "tele": "0698855801"
+        },
+        "team": {
+            "id": 150,
+            "nom": "ali"
+        },
+        "store": {
+            "id": 568,
+            "nom": "twenty-eighth store"
         }
     },
     {
         "id": 29,
-        "code_suivi": "N-BR-C-LIVRE-291223-5678-6789",
-        "derniere_mise_a_jour": "2024-06-23 11:00",
-        "destinataire": "Mustapha Idrissi",
-        "telephone": "0901234590",
+        "code_suivi": "KN1256213540",
+        "nom": "client sigma",
+        "tele": "0690137736",
+        "ville": "el hajeb",
+        "adresse": "56 avenue de la Liberté",
+        "commentaire": "Non-perishable items",
+        "prix": 1500.5,
+        "nature_produit": "books",
         "etat": true,
-        "statut": "Livré",
-        "date_livraison": "2024-06-13",
-        "ville": "Fès",
-        "prix": 450,
-        "nature_de_produit": "Électronique",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": false
+        "statut": "Livrée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "Delivered to the back entrance",
+        "create_at": "2024-8-23 08:30",
+        "updated_at": "2024-8-24 09:45",
+        "livreur": {
+            "id": 479,
+            "nom": "zakaria",
+            "tele": "0698855802"
+        },
+        "team": {
+            "id": 151,
+            "nom": "sanaa"
+        },
+        "store": {
+            "id": 569,
+            "nom": "twenty-ninth store"
         }
     },
     {
         "id": 30,
-        "code_suivi": "N-BR-C-REFUSE-301223-6789-7890",
-        "derniere_mise_a_jour": "2024-06-24 12:00",
-        "destinataire": "Khadija Amrani",
-        "telephone": "0911234591",
-        "etat": false,
-        "statut": "Refusé",
-        "date_livraison": null,
-        "ville": "Oujda",
-        "prix": 350,
-        "nature_de_produit": "Cosmétiques",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": false
+        "code_suivi": "KN1256213541",
+        "nom": "client tau",
+        "tele": "0690137737",
+        "ville": "casablanca",
+        "adresse": "78 avenue Mohammed V",
+        "commentaire": "Handle with care",
+        "prix": 1550.2,
+        "nature_produit": "electronics",
+        "etat": true,
+        "statut": "Livrée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Delivered to the side entrance",
+        "create_at": "2024-8-25 10:15",
+        "updated_at": "2024-8-26 13:00",
+        "livreur": {
+            "id": 480,
+            "nom": "laila",
+            "tele": "0698855803"
+        },
+        "team": {
+            "id": 152,
+            "nom": "fouad"
+        },
+        "store": {
+            "id": 570,
+            "nom": "thirtieth store"
         }
     },
     {
         "id": 31,
-        "code_suivi": "RST06243452JG1840471",
-        "derniere_mise_a_jour": "2024-06-01 17:51",
-        "destinataire": "Ali Mo",
-        "telephone": "0670890103",
-        "etat": false,
-        "statut": "Ramassé",
-        "date_livraison": null,
-        "ville": "Rabat",
-        "prix": 300,
-        "nature_de_produit": "NK42",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": true
+        "code_suivi": "KN1256213542",
+        "nom": "client upsilon",
+        "tele": "0690137738",
+        "ville": "marrakech",
+        "adresse": "90 avenue Mohammed VI",
+        "commentaire": "Fragile items",
+        "prix": 1600.6,
+        "nature_produit": "glass",
+        "etat": true,
+        "statut": "Livrée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Delivered to the office",
+        "create_at": "2024-8-27 11:45",
+        "updated_at": "2024-8-28 12:30",
+        "livreur": {
+            "id": 481,
+            "nom": "hiba",
+            "tele": "0698855804"
+        },
+        "team": {
+            "id": 153,
+            "nom": "hassan"
+        },
+        "store": {
+            "id": 571,
+            "nom": "thirty-first store"
         }
     },
     {
         "id": 32,
-        "code_suivi": "BSK06243452CR7740472",
-        "derniere_mise_a_jour": "2024-06-01 17:52",
-        "destinataire": "Sara An",
-        "telephone": "0702625083",
+        "code_suivi": "KN1256213543",
+        "nom": "client phi",
+        "tele": "0690137739",
+        "ville": "tanger",
+        "adresse": "12 rue de la Liberté",
+        "commentaire": "Handle with care",
+        "prix": 1650.8,
+        "nature_produit": "glassware",
         "etat": false,
-        "statut": "Ramassé",
-        "date_livraison": null,
-        "ville": "Casablanca",
-        "prix": 350,
-        "nature_de_produit": "NK43",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": true
+        "statut": "Annulée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Cancelled due to incorrect address",
+        "create_at": "2024-8-29 14:30",
+        "updated_at": "2024-8-30 10:00",
+        "livreur": {
+            "id": 482,
+            "nom": "imane",
+            "tele": "0698855805"
+        },
+        "team": {
+            "id": 154,
+            "nom": "karim"
+        },
+        "store": {
+            "id": 572,
+            "nom": "thirty-second store"
         }
     },
     {
         "id": 33,
-        "code_suivi": "BSN06243452NO2530473",
-        "derniere_mise_a_jour": "2024-06-01 17:53",
-        "destinataire": "Youssef Ka",
-        "telephone": "0698153592",
+        "code_suivi": "KN1256213544",
+        "nom": "client chi",
+        "tele": "0690137740",
+        "ville": "rabat",
+        "adresse": "34 avenue Mohammed VI",
+        "commentaire": "Fragile items",
+        "prix": 1700.4,
+        "nature_produit": "ceramics",
         "etat": false,
-        "statut": "Ramassé",
-        "date_livraison": null,
-        "ville": "Fès",
-        "prix": 400,
-        "nature_de_produit": "NK44",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": true
+        "statut": "Annulée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Cancelled by customer request",
+        "create_at": "2024-8-31 16:45",
+        "updated_at": "2024-9-01 11:15",
+        "livreur": {
+            "id": 483,
+            "nom": "adil",
+            "tele": "0698855806"
+        },
+        "team": {
+            "id": 155,
+            "nom": "salma"
+        },
+        "store": {
+            "id": 573,
+            "nom": "thirty-third store"
         }
     },
     {
         "id": 34,
-        "code_suivi": "BRK06243452NO2530474",
-        "derniere_mise_a_jour": "2024-06-01 17:54",
-        "destinataire": "Khalid Be",
-        "telephone": "0657853593",
+        "code_suivi": "KN1256213545",
+        "nom": "client psi",
+        "tele": "0690137741",
+        "ville": "casablanca",
+        "adresse": "56 avenue Mohammed V",
+        "commentaire": "Non-perishable items",
+        "prix": 1750.5,
+        "nature_produit": "books",
         "etat": false,
-        "statut": "Attend de Ramassé",
-        "date_livraison": null,
-        "ville": "Tangier",
-        "prix": 500,
-        "nature_de_produit": "NK45",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": true
+        "statut": "Annulée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": false,
+        "remarque_livreur": "Cancelled due to out of stock",
+        "create_at": "2024-9-02 08:30",
+        "updated_at": "2024-9-03 09:45",
+        "livreur": {
+            "id": 484,
+            "nom": "soukaina",
+            "tele": "0698855807"
+        },
+        "team": {
+            "id": 156,
+            "nom": "amine"
+        },
+        "store": {
+            "id": 574,
+            "nom": "thirty-fourth store"
         }
-    },
-    {
+    }, {
         "id": 35,
-        "code_suivi": "BRS06243452NO2530475",
-        "derniere_mise_a_jour": "2024-06-01 17:55",
-        "destinataire": "Mohammed Ra",
-        "telephone": "0674853594",
+        "code_suivi": "KN1256213546",
+        "nom": "client omega",
+        "tele": "0690137742",
+        "ville": "marrakech",
+        "adresse": "12 rue de la Kasbah",
+        "commentaire": "Handle with care",
+        "prix": 1800.8,
+        "nature_produit": "glassware",
         "etat": false,
-        "statut": "Attend de Ramassé",
-        "date_livraison": null,
-        "ville": "Agadir",
-        "prix": 550,
-        "nature_de_produit": "NK46",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": true
+        "statut": "Refusée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Refused due to damaged packaging",
+        "create_at": "2024-9-04 14:30",
+        "updated_at": "2024-9-05 10:00",
+        "livreur": {
+            "id": 485,
+            "nom": "aymane",
+            "tele": "0698855808"
+        },
+        "team": {
+            "id": 157,
+            "nom": "sarah"
+        },
+        "store": {
+            "id": 575,
+            "nom": "thirty-fifth store"
         }
     },
     {
         "id": 36,
-        "code_suivi": "BRN06243452NO2530476",
-        "derniere_mise_a_jour": "2024-06-01 17:56",
-        "destinataire": "Laila Ta",
-        "telephone": "0674853595",
+        "code_suivi": "KN1256213547",
+        "nom": "client chi",
+        "tele": "0690137743",
+        "ville": "rabat",
+        "adresse": "34 avenue Mohammed VI",
+        "commentaire": "Fragile items",
+        "prix": 1850.4,
+        "nature_produit": "ceramics",
         "etat": false,
-        "statut": "Attend de Ramassé",
-        "date_livraison": null,
-        "ville": "Meknes",
-        "prix": 600,
-        "nature_de_produit": "NK47",
-        "info": {
-            "type_colis": "simple",
-            "remplacer": true,
-            "ouvrir": true
-        }
-    },
-    {
-        "id": 37,
-        "code_suivi": "SKT06243452NO2530477",
-        "derniere_mise_a_jour": "2024-06-01 17:57",
-        "destinataire": "Amine Lo",
-        "telephone": "0674853596",
-        "etat": false,
-        "statut": "Prêt pour la Préparation",
-        "date_livraison": null,
-        "ville": "Sale",
-        "prix": 650,
-        "nature_de_produit": "NK48",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": true
-        }
-    },
-    {
-        "id": 38,
-        "code_suivi": "SKT06243452NO2530478",
-        "derniere_mise_a_jour": "2024-06-01 17:58",
-        "destinataire": "Noura Sa",
-        "telephone": "0674853597",
-        "etat": false,
-        "statut": "Prêt pour la Préparation",
-        "date_livraison": null,
-        "ville": "Kenitra",
-        "prix": 700,
-        "nature_de_produit": "NK49",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": true
-        }
-    },
-    {
-        "id": 39,
-        "code_suivi": "SKT06243452NO2530479",
-        "derniere_mise_a_jour": "2024-06-01 17:59",
-        "destinataire": "Hanae Ma",
-        "telephone": "0674853598",
-        "etat": false,
-        "statut": "Prêt pour la Préparation",
-        "date_livraison": null,
-        "ville": "Oujda",
-        "prix": 750,
-        "nature_de_produit": "NK50",
-        "info": {
-            "type_colis": "stock",
-            "remplacer": true,
-            "ouvrir": true
+        "statut": "Refusée",
+        "ouvrir": true,
+        "is_simple": true,
+        "is_remplace": false,
+        "is_fragile": true,
+        "remarque_livreur": "Refused due to wrong item delivered",
+        "create_at": "2024-9-06 16:45",
+        "updated_at": "2024-9-07 11:15",
+        "livreur": {
+            "id": 486,
+            "nom": "nour",
+            "tele": "0698855809"
+        },
+        "team": {
+            "id": 158,
+            "nom": "yassine"
+        },
+        "store": {
+            "id": 576,
+            "nom": "thirty-sixth store"
         }
     }
 ]
