@@ -52,6 +52,8 @@ function verifyTokenStoreTeamAdmin(req , res , next ){
     verifyToken(req , res , ()=>{
         if(
             req.user.store != "" && req.user.store === req.params.id_user || 
+
+            
             req.user.role === "team" && req.user.id === req.params.id_user || 
             req.user.role === "admin" && req.user.id === req.params.id_user
         ){

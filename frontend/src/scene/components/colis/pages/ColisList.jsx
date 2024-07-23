@@ -11,7 +11,7 @@ import '../colis.css'
 import { Link } from 'react-router-dom';
 
 
-function ColisList() {
+function ColisList({search}) {
     const { theme } = useContext(ThemeContext);
     const darkStyle = {
         control: (styles) => ({
@@ -91,7 +91,7 @@ function ColisList() {
                     >
                         <h4>List Colis</h4>
                         <ColisFilterBar theme={theme} darkStyle={darkStyle}/>
-                        <ColisTable theme={theme} darkStyle={darkStyle}/>
+                        <ColisTable theme={theme} darkStyle={darkStyle} search={search}/>
                     </div>
                 </div>
             </main>
