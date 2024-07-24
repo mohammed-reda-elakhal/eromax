@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema({
         type:String,
         required:true,
         trim:true,
-        minlength: 2,
+        minlength: 3,
         maxlenght:100
     },
     Prenom:{
