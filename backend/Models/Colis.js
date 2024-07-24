@@ -1,90 +1,104 @@
-const mongoose = require ("mongoose");
+const mongoose = require("mongoose");
 const Joi = require("joi");
 const shortid = require('shortid');
 
-//User Schema 
+// Colis Schema
 const ColisSchema = new mongoose.Schema({
     id_Colis: {
         type: String,
         unique: true,
         default: shortid.generate
     },
-    code_suivi:{
-        type:String,
-        unique:true,
+    code_suivi: {
+        type: String,
+        unique: true,
     },
-
-    Nom_des:{
-        type:String,
-        required:true,
-
+    nom: {
+        type: String,
+        required: true,
     },
-    Tel_des:{
-        type:Number,
-        required :true,
-        trim:true,
-        minlenght:10,
-        maxlength:10,
-        //unique:true,
-
-
+    tele: {
+        type: Number,
+        required: true,
+        trim: true,
+        minlength: 10,
+        maxlength: 10,
     },
-    ville_des:{
-        type:String,
-        required:true,
+    ville: {
+        type: String,
+        required: true,
     },
-    code_ville:{
-       type: mongoose.Schema.Types.ObjectId, ref: 'Ville' 
-
+    code_ville: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Ville'
     },
-    adresse_des:{
-        type:String,
-        required:true,
+    adresse: {
+        type: String,
+        required: true,
     },
-    Commentaire:{
-        type:String,
-
+    commentaire: {
+        type: String,
     },
-    Price_total:{
-        type:Number,
-        required:true,
+    prix: {
+        type: Number,
+        required: true,
     },
-    Nature_Produit:{
-        type:String,
-        required:true,
-
+    nature_produit: {
+        type: String,
+        required: true,
     },
-    etat:{
-
+    etat: {
+        type: Boolean,
+        default: false,
     },
-    statut:{
-        type:String,
-        default:"En attente de ramassage ",
-
+    statut: {
+        type: String,
+        default: "attente de ramassage",
     },
-    etat_payement:{ type: Boolean},
-
-    ouvrir: {  type: Boolean},
-
-    is_simple: {  type: Boolean},
-
-    a_remplace:{  type: Boolean},
-
-    id_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },// a verifier 
-    id_livreur: { type: mongoose.Schema.Types.ObjectId, ref: 'Livreur' },
-    id_store:{type: mongoose.Schema.Types.ObjectId, ref: 'Store'}
-    
-
-    
-    
-
-
-},{
-    timestamps:true  //genreate created at and updated up automatically 
+    ouvrir: {
+        type: Boolean,
+        default: true,
+    },
+    is_simple: {
+        type: Boolean,
+        default : true,
+    },
+    is_remplace: {
+        type: Boolean,
+        default : false,
+    },
+    is_fragile: {
+        type: Boolean,
+        default : false,
+    },
+    produits: [{ // array
+        produit: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'Produit' 
+        },
+        variants: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Variant'
+        }]
+    }],
+    store: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Store'
+    },
+    team: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Team'
+    },
+    livreur: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Livreur'
+    },
+}, {
+    timestamps: true
 });
 
-//generate code suivi 
-ColisSchema.pre('save', function(next) {
+// Generate code suivi
+ColisSchema.pre('save', function (next) {
     if (!this.code_suivi) {
         this.code_suivi = shortid.generate();
     }
@@ -92,41 +106,36 @@ ColisSchema.pre('save', function(next) {
     console.log(this.code_suivi);
 });
 
+// Colis Model
+const Colis = mongoose.model("Colis", ColisSchema);
 
-//Colis Model
-const  Colis = mongoose.model("Colis",ColisSchema);
-
-// validate Colis 
-
-function validateRegisterColis(obj){
+// Joi Validation for Colis
+function validateRegisterColis(obj) {
     const schema = Joi.object({
-        
-        adresse_des: Joi.string().required(),
-        //CIN:Joi.string().required().min(5),
-        Nom_des:Joi.string().required(),
-        ville_des:Joi.string().required(),
-        Tel_des:Joi.string().pattern(/^[0-9]{10}$/).required(),
-        Price_total: Joi.number().required(),
-        Commentaire:Joi.string(),
-        etat:Joi.string(),
-        Nature_Produit:Joi.string(),
+        adresse: Joi.string().required(),
+        nom: Joi.string().required(),
+        ville: Joi.string().required(),
+        tele: Joi.string().pattern(/^[0-9]{10}$/).required(),
+        prix: Joi.number().required(),
+        commentaire: Joi.string(),
+        etat: Joi.boolean(),
+        nature_produit: Joi.string().required(),
         statut: Joi.string(),
-        etat_payement:Joi.boolean(),
-        ouvrir:Joi.boolean(),
-        is_simple:Joi.boolean(),
-        a_remplace:Joi.boolean(),
-        id_client:Joi.string(),
-        id_livreur:Joi.string(),
-        id_store:Joi.string(),
-        code_ville:Joi.string(),
-        
-
-    
+        ouvrir: Joi.boolean(),
+        is_simple: Joi.boolean(),
+        is_remplace: Joi.boolean(),
+        is_fragile: Joi.boolean(),
+        code_ville: Joi.string(),
+        code_suivi: Joi.string(),
+        produits: Joi.array().items(Joi.object({
+            produit: Joi.string().required(),
+            variants: Joi.array().items(Joi.string())
+        }))
     });
     return schema.validate(obj);
 }
-module.exports={
-    Colis ,
-    
+
+module.exports = {
+    Colis,
     validateRegisterColis
-}
+};

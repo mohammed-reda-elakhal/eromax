@@ -1,21 +1,17 @@
 const express = require("express");
+const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur  } = require("../Controllers/livreurController");
 const router = express.Router();
-const livreurController = require("../Controllers/livreurController");
 
 
-//Router Add Colis
-router.post('/addLivreur',livreurController.createLivreurCtrl);
+// api/livreur
+router.route("/")
+        .get(getAllLivreur)
+        .post(createLivreur)
 
-
-//Router get All Livreurs
-
-router.get('/getAllLivreur',livreurController.deleteLivreurCtrl);
- 
-//Router get livreur by id 
-router.get('/livreur/:id', livreurController.getLivreurByIdCtrl);
-
-//Router delete livreur
-router.delete('/livreur/:id', livreurController.deleteLivreurCtrl);
-
+// api/livreur/:id
+router.route("/:id")
+        .get(getLivreurById)
+        .put(updateLivreur)
+        .delete(deleteLivreur)
 
 module.exports= router;

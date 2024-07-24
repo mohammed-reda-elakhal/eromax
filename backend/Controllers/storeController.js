@@ -1,14 +1,48 @@
 const asyncHandler = require('express-async-handler');
-const Store = require('../models/Store');
-//---------------------------------------------------------------------------------------------------
-// Get all stores
+const {Store} = require('../models/Store');
+const path = require("path")
+const fs = require("fs")
+const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary");
+
+
+
+
+
+/** -------------------------------------------
+ *@desc create new store    
+ * @router /api/store
+ * @method POST
+ * @access private  only user hem self
+ -------------------------------------------
+*/
+const createStores = asyncHandler(async (req, res) => {
+  let store = await Store.create({
+    id_client : req.user.id,
+    storeName : req.body.storeName
+  })
+  res.json(store);
+});
+
+
+/** -------------------------------------------
+ *@desc get list store    
+ * @router /api/store
+ * @method GET
+ * @access private  only admin
+ -------------------------------------------
+*/
 const getAllStores = asyncHandler(async (req, res) => {
-  const stores = await Store.find().populate('id_client');
+  const stores = await Store.find().populate('id_client')
   res.json(stores);
 });
 
-//---------------------------------------------------------------------------------------------------
-// Get a store by ID
+/** -------------------------------------------
+ *@desc get store by id    
+ * @router /api/store/:id
+ * @method GET
+ * @access private  admin and client hem self
+ -------------------------------------------
+*/
 const getStoreById = asyncHandler(async (req, res) => {
   const store = await Store.findById(req.params.id).populate('id_client');
   if (!store) {
@@ -18,16 +52,14 @@ const getStoreById = asyncHandler(async (req, res) => {
   res.json(store);
 });
 
-//---------------------------------------------------------------------------------------------------
-// Create a new store
-const createStore = asyncHandler(async (req, res) => {
-  const store = new Store(req.body);
-  const newStore = await store.save();
-  res.status(201).json(newStore);
-});
 
-//---------------------------------------------------------------------------------------------------
-// Update a store
+/** -------------------------------------------
+ *@desc update store    
+ * @router /api/store/:id
+ * @method PUT
+ * @access private  only client hem self
+ -------------------------------------------
+*/
 const updateStore = asyncHandler(async (req, res) => {
   const store = await Store.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!store) {
@@ -37,8 +69,16 @@ const updateStore = asyncHandler(async (req, res) => {
   res.json(store);
 });
 
-//---------------------------------------------------------------------------------------------------
-// Delete a store
+
+
+/** -------------------------------------------
+ *@desc delete store    
+ * @router /api/store/:id
+ * @method DELETE
+ * @access private  only client hem self
+ -------------------------------------------
+*/
+
 const deleteStore = asyncHandler(async (req, res) => {
   const store = await Store.findByIdAndDelete(req.params.id);
   if (!store) {
@@ -48,10 +88,53 @@ const deleteStore = asyncHandler(async (req, res) => {
   res.json({ message: 'Store deleted' });
 });
 
+/**
+ * @desc Update-photo-Controller
+ * @router /api/store/:id/photo
+ * @method POST
+ * @access private client
+ */
+ 
+ const storePhotoController= asyncHandler(async(req,res)=>{
+
+  console.log('Inside storePhotoController controller');
+  //Validation 
+  if(!req.file){
+    return req.status(400).json({message:"no file provided"});
+  }
+  //2. get image path 
+  const imagePath = path.join(__dirname,`../images/${req.file.filename}`);
+  //3. Upload to cloudinary
+  const result= await cloudinaryUploadImage(imagePath)
+  console.log(result);
+  //4. Get the store from db
+  const store= await Store.findById(req.params.id);
+  //5. Delete the old profile photo if exists 
+  if(store.image.publicId !== null){
+    await cloudinaryRemoveImage(store.image.publicId);
+
+  }
+  //6. change image url in DB
+  store.image={
+    url:result.secure_url,
+    publicId : result.public_id
+  }
+  await store.save();
+  //7. send response to client 
+  res.status(200).json({ message: 'Photo successfully uploaded', image: store.image });
+
+
+  //8. Remove Image from the server 
+  fs.unlinkSync(imagePath);
+
+
+ });
+
 module.exports = {
   getAllStores,
   getStoreById,
-  createStore,
   updateStore,
-  deleteStore
+  deleteStore,
+  createStores,
+  storePhotoController
 };

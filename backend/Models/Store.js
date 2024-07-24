@@ -1,5 +1,4 @@
 const moongose = require("mongoose");
-const {Client} = require("./Client");
 
 
 const StroreSchema = new moongose.Schema({
@@ -10,8 +9,11 @@ const StroreSchema = new moongose.Schema({
         required:true
     },
     image:{
-        type:String,
-        default:'https://www.creativefabrica.com/wp-content/uploads/2019/02/Online-shop-shopping-shop-logo-by-DEEMKA-STUDIO-3-580x406.jpg'
+        type : Object,
+        default : {
+            url : "https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_640.png",
+            publicId : null
+        }
     },
     storeName:{
         type: String,

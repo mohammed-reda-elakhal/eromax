@@ -14,11 +14,13 @@ app.use(express.json());
 // Routes 
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));
+app.use("/api/client", require("./routes/clientRoute"));
+app.use("/api/store", require("./routes/storeRoute"));
 
 //Running server 
 const port =process.env.PORT || 8084;
 app.listen(port,()=>
 console.log(
-    `Server is running in ${process.env.MODE_ENV} modde on port ${port}}`    
+    `Server is running in ${process.env.MODE_ENV} modde on port ${port}`    
 )
 )
