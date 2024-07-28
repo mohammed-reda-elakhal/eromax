@@ -21,14 +21,14 @@ function ColisLivrée({search}) {
     const columns = [
         {
             title: 'Code Suivi',
-            dataIndex: 'code-suivi',
-            key: 'code-suivi',
-            ...search('code-suivi')
+            dataIndex: 'code_suivi',
+            key: 'code_suivi',
+            ...search('code_suivi')
         },
         {
             title: 'Dernière Mise à Jour',
-            dataIndex: 'updated-at',
-            key: 'updated-at',
+            dataIndex: 'updated_at',
+            key: 'updated_at',
         },
         {
             title: 'Livreur',

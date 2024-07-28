@@ -13,6 +13,7 @@ import { BiTagAlt } from "react-icons/bi";
 import { BsFillInboxesFill } from "react-icons/bs";
 import { IoWalletSharp } from "react-icons/io5";
 import { LuScanLine } from "react-icons/lu";
+import { FaUser } from "react-icons/fa";
 
 
 
@@ -80,6 +81,10 @@ function Menubar() {
 
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
+        </Menu.Item>
+
+        <Menu.Item icon={<FaUser />}>
+          <Link to="/dashboard/compte">Comptes</Link>
         </Menu.Item>
 
         <Menu.Item icon={<IoWalletSharp />}>

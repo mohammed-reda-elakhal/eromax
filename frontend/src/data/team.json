@@ -1,0 +1,73 @@
+[
+    {
+      "id": 1,
+      "nom": "Lefevre",
+      "prenom": "Paul",
+      "username": "plefevre",
+      "email": "paul.lefevre@example.com",
+      "password": "password123",
+      "role": "team",
+      "tele": "0712345670",
+      "profile": null,
+      "ville": "Grenoble",
+      "adress": "12 Rue de Grenoble",
+      "active_acount": true
+    },
+    {
+      "id": 2,
+      "nom": "Dupuis",
+      "prenom": "Elise",
+      "username": "edupuis",
+      "email": "elise.dupuis@example.com",
+      "password": "password123",
+      "role": "team",
+      "tele": "0787654320",
+      "profile": null,
+      "ville": "Metz",
+      "adress": "34 Avenue de Metz",
+      "active_acount": true
+    },
+    {
+      "id": 3,
+      "nom": "Fabre",
+      "prenom": "Lucas",
+      "username": "lfabre",
+      "email": "lucas.fabre@example.com",
+      "password": "password123",
+      "role": "team",
+      "tele": "0765432100",
+      "profile": null,
+      "ville": "Orléans",
+      "adress": "56 Boulevard de Orléans",
+      "active_acount": true
+    },
+    {
+      "id": 4,
+      "nom": "Bonnet",
+      "prenom": "Julie",
+      "username": "jbonnet",
+      "email": "julie.bonnet@example.com",
+      "password": "password123",
+      "role": "team",
+      "tele": "0743210980",
+      "profile": null,
+      "ville": "Clermont-Ferrand",
+      "adress": "78 Rue de Clermont-Ferrand",
+      "active_acount": true
+    },
+    {
+      "id": 5,
+      "nom": "Dupont",
+      "prenom": "Alice",
+      "username": "adupont",
+      "email": "alice.dupont@example.com",
+      "password": "password123",
+      "role": "team",
+      "tele": "0723456780",
+      "profile": null,
+      "ville": "Toulon",
+      "adress": "90 Avenue de Toulon",
+      "active_acount": true
+    }
+  ]
+  
