@@ -1,7 +1,13 @@
 const asyncHandler = require("express-async-handler");
 const { Colis, validateRegisterColis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
+const crypto = require("crypto")
 
+
+// Utility function to generate a unique code_suivi
+function generateCodeSuivi() {
+  return crypto.randomBytes(8).toString('hex'); // Generates a 16-character hexadecimal string
+}
 
 /**
  * -------------------------------------------------------------------
@@ -11,7 +17,7 @@ const { Suivi_Colis } = require("../Models/Suivi_Colis");
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
  **/
-module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
+module.exports.CreateColisCtrl = asyncHandler(async (req, res) =>{
   if (!req.body) {
     return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
   }
@@ -31,19 +37,40 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     team = req.user.id;
   }
 
+  
+    // Generate a unique code_suivi
+  let code_suivi;
+  let isUnique = false;
+    while (!isUnique) {
+      code_suivi = generateCodeSuivi();
+      const existingColis = await Colis.findOne({ code_suivi });
+      if (!existingColis) {
+        isUnique = true;
+      }
+    }
+  
+    console.log("code_suivi",code_suivi);
+
   // Create and save the new Colis
   const newColis = new Colis({
     ...req.body,
     store,
-    team
+    team,
+    code_suivi,
   });
+
   
   const saveColis = await newColis.save();
 
    // Populate store and team data
    await saveColis.populate('store');
    await saveColis.populate('team');
- 
+
+   // Verify that code_suivi is not null before proceeding
+   if (!newColis.code_suivi) {
+    console.log("Error: code_suivi is null after saving Colis");
+    return res.status(500).json({ message: "Internal server error: code_suivi is null" });
+  }
 
   // Create and save the new Suivi_Colis
   const suivi_colis = new Suivi_Colis({
@@ -196,9 +223,9 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
     "refusée",
   ];
 
-  if (!validStatuses.includes(new_status)) {
+ /*  if (!validStatuses.includes(new_status)) {
     return res.status(400).json({ message: "Invalid status value" });
-  }
+  } */
 
   // verify statu === expidie ( to work )
 
@@ -214,7 +241,7 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
   await colis.save();
 
   // Update the corresponding date in Suivi_Colis
-  const suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+  const suivi_colis = await Suivi_Colis.findOne({ id_colis:colis._id });
 
   if (!suivi_colis) {
     return res.status(404).json({ message: "Suivi_Colis not found" });
