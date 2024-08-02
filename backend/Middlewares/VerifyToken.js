@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { Store } = require("../models/Store");
+const { Store } = require("../Models/Store");
 
 // verify token
 //genearate token only
@@ -51,6 +51,20 @@ function verifyTokenAdminTeam(req , res , next ){
 
 // verify token client store or team or admin
 // les traitement de client admin team 
+function verifyTokenStoreTeamAdminClient(req , res , next ){
+    verifyToken(req , res , ()=>{
+        if(
+            req.user.store != "" && req.user.store === req.params.id_user || 
+            req.user.role === "team" && req.user.id === req.params.id_user || 
+            req.user.role === "admin" && req.user.id === req.params.id_user||
+            req.user.role=== "client" && req.user.id === req.params.id_user
+        ){
+            next();
+        } else {
+            return res.status(401).json({ message: "You are not allow to this operation" });
+        }
+    })
+}
 function verifyTokenStoreTeamAdmin(req , res , next ){
     verifyToken(req , res , ()=>{
         if(
@@ -64,7 +78,6 @@ function verifyTokenStoreTeamAdmin(req , res , next ){
         }
     })
 }
-
 // verify tokent and client 
 function verifyTokenAndClient(req , res , next ){
     verifyToken(req , res , ()=>{
@@ -121,5 +134,6 @@ module.exports = {
     verifyTokenAndClient ,
     verifyTokenAndLivreur,
     verifyTokenAndLivreurOrAdmin , 
-    verifyTokenAndStore
+    verifyTokenAndStore,
+    verifyTokenStoreTeamAdminClient
 }

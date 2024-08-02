@@ -16,6 +16,7 @@ app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));
 app.use("/api/client", require("./routes/clientRoute"));
 app.use("/api/store", require("./routes/storeRoute"));
+app.use("/api/livreur",require("./routes/livreurRoute"));
 
 //Running server 
 const port =process.env.PORT || 8084;

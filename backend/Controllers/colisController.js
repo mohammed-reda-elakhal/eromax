@@ -1,7 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const { Colis, validateRegisterColis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
-const crypto = require("crypto")
+const crypto = require("crypto");
+const { Client } = require("../Models/Client");
+const {Store} =require("../Models/Store");
+const { default: mongoose } = require("mongoose");
 
 
 // Utility function to generate a unique code_suivi
@@ -86,6 +89,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) =>{
     colis: saveColis, 
     suiviColis: save_suivi 
   });
+  console.log("created");
 });
 
 /**
@@ -157,6 +161,42 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
 
   res.status(200).json(colis);
 });
+
+
+/**
+ * 
+ */
+exports.getColisByClient=asyncHandler(async(req,res)=>{
+   
+  try{
+    const clientId= req.params.id;
+  const client = await Client.findById(clientId);
+
+  if(!client){
+    return res.status(404).json({message:"Cleint not Found"});
+
+  }
+
+  const colisList= await Colis.find({clientId:clientId});
+  res.status(200).json({message:"Cleint fetched successfully",colis:colisList});
+
+  }catch(err){
+    console.error("Error fetching colis",err);
+    res.status(500).json({message:"Internal Server error",error:err.message})
+  }
+
+
+});
+
+
+
+
+
+
+
+
+
+
 
 /**
  * -------------------------------------------------------------------
@@ -284,4 +324,48 @@ module.exports.getSuiviColis= asyncHandler(async(req,res)=>{
         return res.status(404).json({ message: "S'il vous pliz vérifier code de suivi" });
     }
     res.status(200).json(suivi_colis);
+});
+
+
+/**
+ * get colis by Store 
+ */
+
+
+exports.getColisByStore= asyncHandler(async(req,res)=>{
+
+  try {
+    console.log("Received request:", req.params);
+
+    const storeId = req.params.id;
+    
+    if (!mongoose.Types.ObjectId.isValid(storeId)) {
+      console.error("Invalid Store ID format:", storeId);
+      return res.status(400).json({ message: "Invalid Store ID format" });
+    }
+
+    console.log("Finding store with ID:", storeId);
+    const store = await Store.findById(storeId);
+
+    if (!store) {
+      console.error("Store not found with ID:", storeId);
+      return res.status(404).json({ message: "Store not found" });
+    }
+
+    console.log("Store found:", store);
+
+    const colisList = await Colis.find({ store: storeId });
+
+    console.log("Colis list fetched:", colisList);
+
+    res.status(200).json({
+      message: "Colis fetched successfully",
+      colis: colisList
+    });
+  } catch (err) {
+    console.error("Error fetching colis", err);
+    res.status(500).json({ message: "Internal server error", error: err.message });
+  }
+
 })
+

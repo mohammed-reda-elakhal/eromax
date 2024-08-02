@@ -115,6 +115,29 @@ const deleteLivreur = asyncHandler(async (req, res) => {
   res.json({ message: 'Client and all associated stores deleted' });
 });
 
+
+
+
+const getLivreurbyVille= asyncHandler(async(req,res)=>{
+
+  const {ville}= req.body;
+  if(!ville){
+    return res.status(400).json({message:"Ville is required"})
+  }
+  console.log("Receiving request");
+
+  const livreurs = await Livreur.find({ville:ville});
+
+  if(livreurs.length===0){
+    return res.status(404).json({message:'No livreurs Found in this ville'});
+
+  }
+  res.status(200).json({message:'Livreurs fetched Successfully',livreurs:livreurs});
+
+
+
+
+})
 module.exports = {
-  getAllLivreur,getLivreurById , createLivreur , updateLivreur , deleteLivreur
+  getAllLivreur,getLivreurById , createLivreur , updateLivreur , deleteLivreur,getLivreurbyVille
 };

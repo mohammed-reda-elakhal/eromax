@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const {Store} = require('../models/Store');
+const {Store} = require('../Models/Store');
 const path = require("path")
 const fs = require("fs")
 const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary");

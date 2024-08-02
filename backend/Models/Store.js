@@ -1,7 +1,8 @@
+const { default: mongoose } = require("mongoose");
 const moongose = require("mongoose");
 
 
-const StroreSchema = new moongose.Schema({
+const StoreSchema = new moongose.Schema({
 
     id_client:{
         type:moongose.Schema.Types.ObjectId,
@@ -25,7 +26,7 @@ const StroreSchema = new moongose.Schema({
 },{timestamps:true});
 
 
-const Store = moongose.model("Store",StroreSchema);
+const Store = mongoose.models.Store || mongoose.model('Store', StoreSchema);
 
 module.exports= {
     Store
