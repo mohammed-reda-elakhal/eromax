@@ -4,9 +4,20 @@
     flex-direction: column;
 
 }
+.profile_image_user{
+  width: 60px;
+  height: 60px;
+  border-radius: 50px;
+}
 .menu {
     height: 100%;
     overflow-y: auto;
+}
+.link_topbar{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 .etoile{
   color: red;
@@ -226,6 +237,35 @@
 }
 .btn-dashboard:hover{
   color: var(--white);
+}
+
+/*-------------notification--------------------------*/
+.notification_container{
+  display: flex;
+  flex-direction: column;
+}
+.notification_container h4{
+  font-size: 16px;
+  color: var(--primary);
+}
+.content_notification{
+  display: flex;
+  flex-direction: column;
+}
+.content_notification p{
+  text-align: start;
+}
+.content_notification span{
+  text-align: end;
+  color: var(--gray);
+  font-size: 10px;
+}
+.notification_icon_close{
+  color: var(--limon);
+  position: fixed;
+  font-size: 30px;
+  right: 16px;
+  cursor: pointer;
 }
 
 

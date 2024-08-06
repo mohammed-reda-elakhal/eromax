@@ -50,7 +50,17 @@ function ColisPourRamassage({ search }) {
     console.log('Selected row keys: ', selectedRowKeys);
   }, [selectedRowKeys]);
 
-  const handleRamasse = () => {
+  const handleRamasse = (id = null) => {
+    if (id) {
+      const newData = data.map(item => {
+        if (item.id === id) {
+          item.statut = 'Ramassé';
+        }
+        return item;
+      });
+      setData(newData);
+      success(`Colis ramassé, veuillez vérifier sur la table de statut Ramassé`);
+    } else if (selectedRowKeys.length > 0) {
       const newData = data.map(item => {
         if (selectedRowKeys.includes(item.id)) {
           item.statut = 'Ramassé';
@@ -59,8 +69,10 @@ function ColisPourRamassage({ search }) {
       });
       setData(newData);
       setSelectedRowKeys([]);
-      success(`${selectedRowKeys.length} colis ramassés, veuillez vérifier sur la table de statut Ramasse`);
-   
+      success(`${selectedRowKeys.length} colis ramassés, veuillez vérifier sur la table de statut Ramassé`);
+    } else {
+      warning("Veuillez sélectionner une colonne");
+    }
   };
 
   const showModal = (record) => {
@@ -78,12 +90,22 @@ function ColisPourRamassage({ search }) {
     }
   };
 
+  const confirmSuppression = () => {
+    const newData = data.filter(item => !selectedRowKeys.includes(item.id));
+    setData(newData);
+    setSelectedRowKeys([]);
+    success(`${selectedRowKeys.length} colis supprimés.`);
+  };
+
   const handleSuppremer = () => {
     if (selectedRowKeys.length > 0) {
-      const newData = data.filter(item => !selectedRowKeys.includes(item.id));
-      setData(newData);
-      setSelectedRowKeys([]);
-      success(`${selectedRowKeys.length} colis supprimés.`);
+      Modal.confirm({
+        title: 'Confirmation de suppression',
+        content: `Êtes-vous sûr de vouloir supprimer ${selectedRowKeys.length} colis ?`,
+        okText: 'Oui',
+        cancelText: 'Non',
+        onOk: confirmSuppression,
+      });
     } else {
       warning("Veuillez sélectionner une colonne");
     }
@@ -111,7 +133,7 @@ function ColisPourRamassage({ search }) {
 
   const menu = (
     <Menu>
-      <Menu.Item key="ramasse" onClick={handleRamasse}>
+      <Menu.Item key="ramasse" onClick={() => handleRamasse()}>
         Ramasse
       </Menu.Item>
       <Menu.Item key="modifier" onClick={handleModifier}>
@@ -330,7 +352,7 @@ function ColisPourRamassage({ search }) {
           <Form.Item
             name="date_livraison"
             label="Date de Livraison"
-            rules={[{ required: true, message: 'Veuillez entrer la date de livraison!' }]}
+            rules={[{ required: false, message: 'Veuillez entrer la date de livraison!' }]}
           >
             <Input />
           </Form.Item>

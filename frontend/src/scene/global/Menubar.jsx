@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { PieChartOutlined } from '@ant-design/icons';
-import { Menu } from 'antd';
+import { Drawer, Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -13,6 +13,7 @@ import { BiTagAlt } from "react-icons/bi";
 import { BsFillInboxesFill } from "react-icons/bs";
 import { IoWalletSharp } from "react-icons/io5";
 import { LuScanLine } from "react-icons/lu";
+import { FaUser } from "react-icons/fa";
 
 
 
@@ -82,6 +83,10 @@ function Menubar() {
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
 
+        <Menu.Item icon={<FaUser />}>
+          <Link to="/dashboard/compte">Comptes</Link>
+        </Menu.Item>
+
         <Menu.Item icon={<IoWalletSharp />}>
           <Link to="/dashboard/portfeuille">Portfeuille</Link>
         </Menu.Item>
@@ -95,7 +100,11 @@ function Menubar() {
             <Link to="/dashboard/list-colis">List Colis</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
+            <Link 
+              to="/dashboard/ajouter-colis/simple"
+            >
+              Ajouter Colis
+            </Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>

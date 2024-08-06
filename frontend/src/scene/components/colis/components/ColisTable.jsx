@@ -3,7 +3,7 @@ import { Table, Modal, Divider, Select, Drawer, Steps, Button } from 'antd';
 import ColisData from '../../../../data/colis.json';
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Si1001Tracklists } from "react-icons/si";
-import { FaWhatsapp, FaPrint } from "react-icons/fa";
+import { FaWhatsapp, FaPrint , FaPenFancy } from "react-icons/fa";
 import { TbPhoneCall } from "react-icons/tb";
 import TicketColis from '../../tickets/TicketColis';
 import { useReactToPrint } from 'react-to-print';
@@ -13,6 +13,7 @@ import TableDashboard from '../../../global/TableDashboard';
 import { SearchOutlined } from '@ant-design/icons';
 import { Input, Space } from 'antd';
 import Highlighter from 'react-highlight-words';
+import UpdateColis from './UpdateColis';
 
 const options = [
   { id: 1, name: 'Annulée' },
@@ -21,12 +22,14 @@ const options = [
 
 const ColisTable = ({ theme, darkStyle , search }) => {
   const [data, setData] = useState([]);
+  const [selectedId , setSelectedId] = useState('')
   const [reclamation, setReclamation] = useState('Type de reclamation');
   const [isModalReclamationOpen, setIsModalReclamationOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [selectedColis, setSelectedColis] = useState(null);
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [drawerColisupdate , setDrawerColisupdate] = useState(false)
 
   const showDrawer = () => setOpenDrawer(true);
   const onClose = () => setOpenDrawer(false);
@@ -156,10 +159,25 @@ const ColisTable = ({ theme, darkStyle , search }) => {
           <button className='btn-dashboard' onClick={() => handleInfo(record.id)}><IoMdInformationCircleOutline /></button>
           <button className='btn-dashboard' onClick={showDrawer}><Si1001Tracklists /></button>
           <button className='btn-dashboard' onClick={() => handleTicket(record.id)}><FaPrint /></button>
+          <button className='btn-dashboard' onClick={()=>showUpdateColis(record.id)}><FaPenFancy /></button>
         </div>
       ),
     },
   ];
+  const showUpdateColis = (id) => {
+    const colis = data.find(item => item.id === id);
+    setSelectedColis(colis);
+    setDrawerColisupdate(true);
+  };
+  
+  const CloseUpdateColis = () => {
+    setDrawerColisupdate(false);
+    setTimeout(() => {
+      setSelectedColis(null);
+    }, 200); // Reset selectedColis after closing drawer
+  };
+  
+
 
   const componentRef = useRef();
 
@@ -265,6 +283,16 @@ const ColisTable = ({ theme, darkStyle , search }) => {
             { title: 'Waiting', description: 'This is a description.' },
           ]}
         />
+      </Drawer>
+
+      <Drawer 
+        title="Modifier données de Colis" 
+        onClose={()=>CloseUpdateColis()} 
+        open={drawerColisupdate}
+        width={720}
+      >
+        <h4>Code de votre colis :<span></span></h4>
+        <UpdateColis colis={selectedColis} />
       </Drawer>
     </>
   );
