@@ -1,0 +1,49 @@
+.solde-section{
+    width: 100%;
+    display: flex;
+    gap: 2em;
+    align-items: start;
+}
+.carte-solde{
+    width: 30%;
+    border: 1px solid var(--limon);
+    border-radius: 8px;
+    text-align: center;
+    padding-bottom: 12px;
+}
+.carte-solde .logo img{
+    width: 70px;
+}
+.carte-solde h2{
+    font-size: 2.3em;
+}
+.carte-solde .solde{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: -10px;
+}
+.carte-solde .solde-value{
+    font-size: 2.5rem;
+    color: var(--limon);
+}
+.carte-solde p{
+    color: var(--gray);
+    font-weight: 600;
+}
+
+.demande-retrait{
+    width: 60%;
+}
+.demande-retrait h1{
+    display: flex;
+    gap: 16px;
+    font-size: 1.5rem;
+}
+
+.message_retrait{
+    border-radius: 4px;
+    border-left: 5px solid var(--limon);
+    padding: 8px 8px 8px 12px;
+    box-shadow: 2px 2px 5px var(--gray);
+}

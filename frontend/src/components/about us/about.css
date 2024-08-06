@@ -1,0 +1,31 @@
+.about-main{
+    display: flex;
+    align-items: center;
+}
+.about{
+    width: 90%;
+    margin: auto;
+    padding: 2em 0;
+}
+.about-info p{
+    font-size: 18px;
+
+}
+.about-img img{
+    width: 500px;
+}
+.about-img{
+    width: 50%;
+}
+
+
+@media only screen and (max-width: 600px){
+    .about-img{
+        display: none;
+    }
+}
+@media only screen and (min-width: 601px) and (max-width: 900px) {
+    .about-img{
+        display: none;
+    }
+}

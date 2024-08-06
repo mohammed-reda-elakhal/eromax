@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const {Client, clientValidation} = require("../Models/Client");
 const bcrypt = require("bcryptjs");
+<<<<<<< HEAD
 const { Store } = require("../Models/Store");
 //const {File}= require("../Models/File");
 const path = require("path");
@@ -11,6 +12,18 @@ const { error } = require("console");
 
 
 
+=======
+const { Store } = require("../models/Store");
+
+
+/** -------------------------------------------
+ *@desc get list client   
+ * @router /api/client
+ * @method GET
+ * @access private Only admin 
+ -------------------------------------------
+*/
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
 const getAllClients = asyncHandler(async (req, res) => {
    
@@ -55,6 +68,57 @@ const createClient = asyncHandler(async (req, res) => {
   const {error} = clientValidation(clientData)
   if(error){
     return res.status(400).json({ message: error.details[0].message });
+<<<<<<< HEAD
+=======
+  }
+
+
+  const { email, password, role , ...rest } = req.body;
+  if(role != "client"){
+      return res.status(400).json({ message: "the role of user is wrong" });
+  }
+
+  const userExists = await Client.findOne({ email });
+  if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const client = new Client({ email, password: hashedPassword, ...rest });
+  const newClient = await client.save();
+  
+
+  // create store of client
+  let store = await Store.create({
+    id_client : client._id,
+    storeName : req.body.storeName
+  })
+
+  // Populate the client data in store
+  store = await store.populate('id_client',  ["-password"]);
+
+  res.status(201).json({
+    message : `Welcom ${client.Prenom} to your account EROMAX`,
+    role: client.role,
+    store
+  });
+});
+
+
+/** -------------------------------------------
+ *@desc update client    
+ * @router /api/client/:id
+ * @method PUT
+ * @access private  only client hem self
+ -------------------------------------------
+*/
+
+
+const updateClient = asyncHandler(async (req, res) => {
+  const client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!client) {
+    res.status(404).json({ message: 'Client not found' });
+    return;
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
   }
 
 
@@ -87,6 +151,7 @@ const createClient = asyncHandler(async (req, res) => {
     store
   });
 });
+<<<<<<< HEAD
 
 
 
@@ -119,6 +184,8 @@ const updateClient = asyncHandler(async (req, res) => {
   }
   res.status(200).json({message:"Client updated Successfully",clients:client})
 })
+=======
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 /** -------------------------------------------
  *@desc Delete client    
  * @router /api/client/:id
@@ -141,6 +208,7 @@ const deleteClient = asyncHandler(async (req, res) => {
   await client.deleteOne();
 
   res.json({ message: 'Client and all associated stores deleted' });
+<<<<<<< HEAD
 });
 
 
@@ -234,6 +302,8 @@ const UploadClientFiles = asyncHandler(async (req, res) => {
     console.error("Error uploading file", err);
     res.status(500).json({ message: "Internal server error", error: err.message });
   }
+=======
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 });
 
 module.exports = {

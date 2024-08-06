@@ -1,9 +1,16 @@
 const asyncHandler = require('express-async-handler');
+<<<<<<< HEAD
 const {Store} = require('../Models/Store');
 const path = require("path")
 const fs = require("fs")
 const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary");
 
+=======
+const {Store} = require('../models/Store');
+const path = require("path")
+const fs = require("fs")
+const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary")
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
 
 
@@ -136,5 +143,8 @@ module.exports = {
   updateStore,
   deleteStore,
   createStores,
+<<<<<<< HEAD
   storePhotoController
+=======
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 };

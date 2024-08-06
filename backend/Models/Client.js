@@ -29,11 +29,21 @@ const ClientSchema= new mongoose.Schema({
     start_date:{
         type:String,
     },
+<<<<<<< HEAD
     number_colis:{
         type:String,
     },
     files: [{ type: mongoose.Schema.Types.ObjectId, ref: 'File' }] //Array of fiels 
     
+=======
+    nomber_colis:{
+        type:String,
+    },
+    file:{
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'file' 
+    },
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 },{
     timestamps: true
 })
@@ -61,7 +71,11 @@ const clientValidation = (obj) => {
         active: Joi.boolean().default(true),
         role: Joi.string().default("client"),
         start_date:Joi.string(),
+<<<<<<< HEAD
         number_colis:Joi.string(),
+=======
+        nomber_colis:Joi.string(),
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
     });
     return clientJoiSchema.validate(obj);
 }

@@ -1,0 +1,36 @@
+import React from 'react';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+export const data = {
+  labels: ['Liverée', 'Encours', 'Echouée'],
+  datasets: [
+    {
+      label: '# of Votes',
+      data: [106 , 36 , 90],
+      backgroundColor: [
+        'green',
+        'yellow',
+        'red',
+      ],
+      borderColor: [
+        'green',
+        'yellow',
+        'red',
+      ],
+      borderWidth: 1,
+    },
+  ],
+};
+
+function ColisCirclChart() {
+  return (
+    <div className='chart-circl-colis'>
+      <Doughnut data={data} />
+    </div>
+  )
+}
+
+export default ColisCirclChart

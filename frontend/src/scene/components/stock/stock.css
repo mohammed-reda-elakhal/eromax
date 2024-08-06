@@ -1,0 +1,122 @@
+.produit-forms{
+    display:flex;
+    gap: 20px;
+    width: 100%;
+    margin-top: 2em;
+}
+.form-image{
+    width: 20%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-produit{
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+}
+.variante-inputs{
+    width: 100%;
+    display: flex;
+    align-items: end;
+    gap: 15px;
+}
+.variante-list {
+    padding: 2em 0;
+}
+.variante-list ul{
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 100%;
+    gap: 15px;
+}
+.variante-list ul li{
+    list-style: none;
+    width: 80%;
+    margin: auto;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid var(--gray);
+}
+.variante-list ul li button{
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.tables-produits{
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    margin: 2em auto;
+}
+.produit-table{
+    width: 40%;
+}
+.produit-table h2{
+    color: var(--limon);
+    border-bottom: 1px solid var(--limon);
+}
+.btn-add-produit{
+    background: rgb(4, 187, 59);
+    border: none;
+    border-radius: 50px;
+    transform: translateX(15px);
+}
+.btn-add-produit:hover{
+    background: rgb(4, 187, 59);
+    color: var(--limon);
+}
+.btn-delete{
+    color: red;
+    font-size: 24px;
+
+}
+@media only screen and (max-width: 600px){
+    .produit-forms{
+       flex-direction: column;
+    }
+    .form-image{
+        width: 90%;
+        margin: auto;
+        text-align: center;
+    }
+    .form-produit{
+        width: 90%;
+        margin: auto;
+    }
+    
+    .tables-produits{
+        flex-direction: column;
+    }
+    .produit-table{
+        width: 90%;
+        margin: 1em auto;
+    }
+}
+@media only screen and (min-width: 601px) and (max-width: 900px) {
+    .produit-forms{
+        flex-direction: column;
+     }
+     .form-image{
+        width: 90%;
+        margin: auto;
+        text-align: center;
+    }
+    .form-produit{
+        width: 90%;
+        margin: auto;
+    }
+    .tables-produits{
+        flex-direction: column;
+    }
+    .produit-table{
+        width: 90%;
+        margin: 1em auto;
+    }
+}

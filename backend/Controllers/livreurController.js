@@ -115,6 +115,7 @@ const deleteLivreur = asyncHandler(async (req, res) => {
   res.json({ message: 'Client and all associated stores deleted' });
 });
 
+<<<<<<< HEAD
 
 
 
@@ -140,4 +141,8 @@ const getLivreurbyVille= asyncHandler(async(req,res)=>{
 })
 module.exports = {
   getAllLivreur,getLivreurById , createLivreur , updateLivreur , deleteLivreur,getLivreurbyVille
+=======
+module.exports = {
+  getAllLivreur,getLivreurById , createLivreur , updateLivreur , deleteLivreur
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 };

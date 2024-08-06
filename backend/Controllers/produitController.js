@@ -1,7 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const { Produit, validateProduit } = require("../Models/Produit");
+<<<<<<< HEAD
 const { default: mongoose } = require("mongoose");
 const { Variante } = require("../Models/Variante");
+=======
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
 /** -------------------------------------------
  *@desc create produit  
@@ -115,6 +118,7 @@ const updateProduit = asyncHandler(async (req, res) => {
 
     res.status(200).json(produit);
 });
+<<<<<<< HEAD
  
 const createProduitVariantes = asyncHandler(async (req, res) => {
     const { error } = validateProduit(req.body);
@@ -169,6 +173,8 @@ const createProduitVariantes = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "An error occurred while creating the product and its variants", error: error.message });
     }
 });
+=======
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
 
 /** -------------------------------------------
@@ -253,6 +259,10 @@ module.exports = {
     updateProduit , 
     updateProduitQuantity,
     deleteProduit, 
+<<<<<<< HEAD
     getProduitById,
     createProduitVariantes
+=======
+    getProduitById
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 };
