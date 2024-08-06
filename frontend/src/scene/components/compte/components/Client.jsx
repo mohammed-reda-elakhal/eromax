@@ -3,29 +3,54 @@ import TableDashboard from '../../../global/TableDashboard';
 import clientData from '../../../../data/client.json';
 import { FaPenFancy, FaInfoCircle } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { Avatar, Button, Modal } from 'antd';
+import { Avatar, Button, Modal, Drawer } from 'antd';
+import ClientForm from './ClientForm'; // Import the ClientForm component
 
 function Client({ theme }) {
     const [data, setData] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalStoreOpen, setIsModalStoreOpen] = useState(false);
     const [selectedStores, setSelectedStores] = useState([]);
+    const [drawerVisible, setDrawerVisible] = useState(false); // For Drawer visibility
+    const [currentClient, setCurrentClient] = useState(null); // Current client being edited or added
 
     const showModal = () => {
-        setIsModalOpen(true);
+        setIsModalStoreOpen(true);
     };
-    const selectStores = (store)=>{
-        setSelectedStores(store)
-        showModal()
+    
+    const selectStores = (store) => {
+        setSelectedStores(store);
+        showModal();
     }
 
     const handleOk = () => {
-        setIsModalOpen(false);
+        setIsModalStoreOpen(false);
+    };
+
+    const openDrawer = (client) => {
+        setCurrentClient(client || {}); // If no client is passed, assume it's an 'Add' operation
+        setDrawerVisible(true);
+    };
+
+    const closeDrawer = () => {
+        setDrawerVisible(false);
+        setCurrentClient(null);
+    };
+
+    const handleFormSubmit = (client) => {
+        if (currentClient && currentClient.id) {
+            // Update existing client
+            const updatedData = data.map(item => item.id === client.id ? client : item);
+            setData(updatedData);
+        } else {
+            // Add new client
+            setData([...data, { ...client, id: data.length + 1 }]); // Assuming id is auto-incremented
+        }
+        closeDrawer();
     };
 
     useEffect(() => {
         setData(clientData);
     }, []);
-
     const columns = [
         {
             title: 'Profile',
@@ -106,9 +131,21 @@ function Client({ theme }) {
             dataIndex: 'action',
             render: (text, record) => (
                 <div className='action_user'>
-                    <Button style={{color: 'var(--limon)' , borderColor:"var(--limon)" }} icon={<FaPenFancy size={20} />}></Button>
-                    <Button style={{color: 'red' , borderColor:"red" }} icon={<MdDelete size={20} />}></Button>
-                    <Button style={{color: 'blue' , borderColor:"blue   "}} icon={<FaInfoCircle size={20} />}></Button>
+                    <Button 
+                        style={{color: 'var(--limon)' , borderColor:"var(--limon)" }} 
+                        icon={<FaPenFancy size={20} />}
+                        onClick={() => openDrawer(record)}
+                    ></Button>
+                    <Button 
+                        style={{color: 'red' , borderColor:"red" }} 
+                        icon={<MdDelete size={20} />}
+                        // Add delete logic here
+                    ></Button>
+                    <Button 
+                        style={{color: 'blue' , borderColor:"blue   "}} 
+                        icon={<FaInfoCircle size={20} />}
+                        // Add more info logic here
+                    ></Button>
                 </div>
             )
         },
@@ -116,20 +153,37 @@ function Client({ theme }) {
 
     return (
         <div>
+            <Button 
+                type="primary" 
+                style={{ marginBottom: 16 }} 
+                onClick={() => openDrawer(null)}>
+                Add Client
+            </Button>
             <TableDashboard theme={theme} column={columns} id="id" data={data} />
-            <Modal title="Stores" open={isModalOpen} onOk={handleOk} onCancel={handleOk}>
+            <Modal title="Stores" open={isModalStoreOpen} onOk={handleOk} onCancel={handleOk}>
                 <div className="store_card">
-                {
-                    selectedStores.map((store)=>(
+                    {selectedStores.map((store) => (
                         <ul key={store.id}>                 
                             <Avatar size={50}>Store</Avatar>   
                             <h4>{store.nom}</h4>
                             <p>Solde <span>{store.wallet.solde} DH</span></p>
                         </ul>
-                    ))
-                }
+                    ))}
                 </div>
             </Modal>
+            <Drawer
+                title={currentClient && currentClient.id ? "Update Client" : "Add Client"}
+                placement="right"
+                onClose={closeDrawer}
+                open={drawerVisible}
+                width={400}
+            >
+                <ClientForm 
+                    initialValues={currentClient} 
+                    onSubmit={handleFormSubmit} 
+                    onClose={closeDrawer} 
+                />
+            </Drawer>
         </div>
     );
 }

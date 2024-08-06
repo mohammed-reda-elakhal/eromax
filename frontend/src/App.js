@@ -32,7 +32,7 @@ function App() {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
-
+  
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -152,7 +152,7 @@ function App() {
             <Route path="compte" element={<Compte />} />
             <Route path="profile" element={<Profile />} />
             <Route path="portfeuille" element={<Portfeuille />} />
-            <Route path="scan" element={<Scan />} />
+            <Route path="scan" element={<Scan />} /> 
 
             <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
             <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />

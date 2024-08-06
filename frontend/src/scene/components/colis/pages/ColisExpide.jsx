@@ -163,6 +163,15 @@ function ColisExpide({search}) {
       key: 'nom',
     },
     {
+      title: 'Livreur',
+      dataIndex: 'livreur',
+      render: (text, record) => (
+        <span>
+          {record.livreur.nom}
+        </span>
+      ),
+    },
+    {
       title: 'Téléphone',
       dataIndex: 'tele',
       key: 'tele',

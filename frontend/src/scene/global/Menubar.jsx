@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { PieChartOutlined } from '@ant-design/icons';
-import { Menu } from 'antd';
+import { Drawer, Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -100,7 +100,11 @@ function Menubar() {
             <Link to="/dashboard/list-colis">List Colis</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
+            <Link 
+              to="/dashboard/ajouter-colis/simple"
+            >
+              Ajouter Colis
+            </Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
