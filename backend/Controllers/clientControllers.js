@@ -10,13 +10,7 @@ const File = require("../Models/File");
 const { error } = require("console");
 
 
-/** -------------------------------------------
- *@desc get list client   
- * @router /api/client
- * @method GET
- * @access private Only admin 
- -------------------------------------------
-*/
+
 
 const getAllClients = asyncHandler(async (req, res) => {
    
@@ -109,13 +103,22 @@ const createClient = asyncHandler(async (req, res) => {
 
 
 const updateClient = asyncHandler(async (req, res) => {
-  const client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  if (!client) {
-    res.status(404).json({ message: 'Client not found' });
-    return;
+
+  const updateData = req.body;
+  const clientId=req.params.id
+
+  const { error } = clientValidation(updateData);
+  if (error) {
+      return res.status(400).json({ message: error.details[0].message });
   }
-  res.json(client);
-});
+  const client = await Client.findByIdAndUpdate(clientId,updateData,{ new: true });
+  if (!client) {
+
+    return res.status(404).json({ message: 'Client not found' });
+   
+  }
+  res.status(200).json({message:"Client updated Successfully",clients:client})
+})
 /** -------------------------------------------
  *@desc Delete client    
  * @router /api/client/:id

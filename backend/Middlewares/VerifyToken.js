@@ -81,7 +81,7 @@ function verifyTokenStoreTeamAdmin(req , res , next ){
 // verify tokent and client 
 function verifyTokenAndClient(req , res , next ){
     verifyToken(req , res , ()=>{
-        if(req.user.role === "client" && req.user.id === req.params.id){
+        if(req.user.role ==="client" && req.user.id === req.params.id_client){
             next();
         } else {
             return res.status(401).json({ message: "not allowed to this operation" });

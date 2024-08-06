@@ -1,5 +1,5 @@
 const express = require("express");
-const { createProduit, getAllProduit, getProduitByClient, updateProduit, updateProduitQuantity, getProduitById, deleteProduit } = require("../Controllers/produitController");
+const { createProduit, getAllProduit, getProduitByClient, updateProduit, updateProduitQuantity, getProduitById, deleteProduit, createProduitVariantes } = require("../Controllers/produitController");
 const {verifyTokenAndClient} = require("../Middlewares/VerifyToken")
 const router = express.Router();
 
@@ -17,7 +17,7 @@ router.route("/:id")
         .put( updateProduit)
         .get(getProduitById)
         .delete(deleteProduit)
-
+router.route("/variant/:id").post(createProduitVariantes)
 
 // api/produit/stock/:id
 router.route("/stock/:id")
