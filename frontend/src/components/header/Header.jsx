@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Dropdown } from 'semantic-ui-react'
 import { TikTokOutlined ,  YoutubeOutlined  , FacebookOutlined , InstagramOutlined , PhoneFilled , MailFilled , UserOutlined , MenuOutlined} from '@ant-design/icons';
 import Navbar from './NavBar';
 import './header.css'
