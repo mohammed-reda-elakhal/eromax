@@ -1,68 +1,50 @@
-import React, { useEffect } from 'react';
-import { IoClose } from 'react-icons/io5';
-import { Link } from 'react-router-dom';
+import React from 'react'
+import { Link } from 'react-router-dom'
+import {CloseOutlined} from '@ant-design/icons';
 
-function NavBar({ setToggleMenu }) {
 
-  // Function to handle smooth scrolling
-  const handleSmoothScroll = (event, targetId) => {
-    event.preventDefault();
-    const targetElement = document.getElementById(targetId);
-    if (targetElement) {
-      window.scrollTo({
-        top: targetElement.offsetTop,
-        behavior: 'smooth' // Smooth scrolling behavior
-      });
-      setToggleMenu(false); // Close the menu after clicking
+function Navbar({languageOptions , languageSelected , handleLanguageChange , setToggleMenu , toogleMenu}) {
+    const Menu = ()=>{
+        setToggleMenu(prev => !prev)
     }
-  };
-
   return (
-    <div className="navbar">
-      <div className="header-navbar">
-        <img src="/image/logo.png" alt="" className="header-logo" style={{ width: '80px' }} />
-        <IoClose size={30} onClick={() => setToggleMenu(false)} />
-      </div>
-      <ul>
-        <li>
-          <Link to="/" onClick={() => setToggleMenu(false)} style={{ textDecoration: 'none', color: 'black' }}>
-            Accueil
-          </Link>
-        </li>
-        <li>
-          <a href="#about" onClick={(e) => handleSmoothScroll(e, 'about')} style={{ textDecoration: 'none', color: 'black' }}>
-            Propos de Nous
-          </a>
-        </li>
-        <li>
-          <a href="#avantage" onClick={(e) => handleSmoothScroll(e, 'avantage')} style={{ textDecoration: 'none', color: 'black' }}>
-            Pourquoi Nous
-          </a>
-        </li>
-        <li>
-          <a href="#contact" onClick={(e) => handleSmoothScroll(e, 'contact')} style={{ textDecoration: 'none', color: 'black' }}>
-            Contacts
-          </a>
-        </li>
-        <li>
-          <a href="#tarif" onClick={(e) => handleSmoothScroll(e, 'tarif')} style={{ textDecoration: 'none', color: 'black' }}>
-            Tarif
-          </a>
-        </li>
-        <li>
-          <Link to="/blog" onClick={() => setToggleMenu(false)} style={{ textDecoration: 'none', color: 'black' }}>
-            Blog
-          </Link>
-        </li>
-          <Link className='button-link' to="/register" onClick={() => setToggleMenu(false)} style={{ textDecoration: 'none', color: 'white' }}>
-            Devenir Client
-          </Link>
-          <Link className='button-link' to="/login" onClick={() => setToggleMenu(false)} style={{ textDecoration: 'none', color: 'white' }}>
-            Espace Client
-          </Link>
-      </ul>
+    <div className={`navbar ${toogleMenu ? 'open' : ''}`}>
+        <div className={`navbar-header`}>
+            <img src="/image/logo.png" alt=""  style={{width:"50px"}}/>
+            <div className="close-navbar-icon" onClick={Menu}>
+                <CloseOutlined/>
+            </div>
+        </div>
+        <div className="navbar-groupe-link">
+            <Link className="navbar-link">
+                Accueil
+            </Link>
+            <Link className="navbar-link">
+                A propos
+            </Link>
+            <Link className="navbar-link">
+                Service
+            </Link>
+            <Link className="navbar-link">
+                Contact
+            </Link>
+            <Link className="navbar-link">
+                Tarif
+            </Link>
+        </div>
+        <div className="navbar-footer">
+            <Link to={`/register`} className="header-bottom-link">
+                Devenir Client
+            </Link>
+            <Link to={`/register`} className="header-bottom-link">
+                Devenir Livreur
+            </Link>
+            <Link to={`/login`} className="header-bottom-link">
+                Connexion
+            </Link>
+        </div>
     </div>
-  );
+  )
 }
 
-export default NavBar;
+export default Navbar

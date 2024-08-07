@@ -10,16 +10,14 @@ function Footer({handleChangeTheme , mode}) {
     const [lang , setLang] = useState('Language')
     const [toggleLang , setToggleLang] = useState(false)
   return (
-    <footer className='footer'
-        style={mode === 'dark' ?   {background:'rgb(36, 36, 36)' } : {background:"whitesmoke"}}
-    >
+    <footer className='footer'>
         <div className="footer-header">
             <p>It is the right time to start your partnership <br/> with EROMAX.MA and grow your business</p>
             <strong>0808599663</strong>
         </div>
         <div className="footer-main">
             <div className="footer-links">
-                    <h2 className='footer-title-section'>Links</h2>
+                    <h2 className='footer-title-section'>Liens Rapide</h2>
                     <Link className='footer-link' to="">
                         Home
                     </Link>
@@ -33,37 +31,8 @@ function Footer({handleChangeTheme , mode}) {
                         Tarif
                     </Link>
             </div>
-            <div className="footer-lang">
-                <h2 className='footer-title-section'>CHANGE LANGUAGE</h2>
-                <div className="footer-traduction">
-                    <button className='btn-select-lang' onClick={()=>setToggleLang(prev => !prev)}>
-                        <span>{lang}</span>
-                        <IoIosArrowDown />
-                    </button>
-                    {
-                    toggleLang && (
-                        <>
-                            <button className='btn-lang' onClick={()=>{
-                                i18n.changeLanguage("ar")
-                                setToggleLang(prev => !prev)
-                                setLang('العربية')
-                            }}>
-                                العربية
-                            </button>
-                            <button className='btn-lang' onClick={()=>{
-                                i18n.changeLanguage("en")
-                                setToggleLang(prev => !prev)
-                                setLang('English')
-                            }}>
-                                English
-                            </button>
-                        </>
-                        )
-                    }
-                </div>
-            </div>
             <div className="footer-links">
-                <h2 className='footer-title-section'>Links</h2>
+                <h2 className='footer-title-section'>Liens Rapide</h2>
                 <Link className='footer-link' to="">
                     Devenir Client
                 </Link>
@@ -75,15 +44,22 @@ function Footer({handleChangeTheme , mode}) {
                     <img src="/image/logo.png" className='footer-logo' alt="" />
                     <p 
                         className="footer-info-text"
-                        style={mode === 'dark' ?   {color:'whitesmoke' } : {color:"black"}}
                     >
                         EROMAX.MA works with speed and agility and ensures seamless end-to-end distribution with passion and commitment.
                     </p>
                     <div className="footer-icons">
-                        <FaWhatsapp className='footer-icon' />
-                        <FaFacebook className='footer-icon'/>
-                        <FaInstagram className='footer-icon'/>
-                        <FaTiktok className='footer-icon'/>
+                        <Link  className='footer-icon'>
+                            <FaWhatsapp />
+                        </Link>
+                        <Link  className='footer-icon'>
+                            <FaFacebook/>
+                        </Link>
+                        <Link  className='footer-icon'>
+                            <FaInstagram />
+                        </Link>
+                        <Link  className='footer-icon'>
+                            <FaTiktok/>
+                        </Link>
                     </div>
             </div>
         </div>

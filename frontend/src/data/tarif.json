@@ -1,0 +1,2444 @@
+[
+    {
+     "key": "375",
+     "ref": "YADIN",
+     "nom": "Ait Yadine",
+     "tarif": 45
+    },
+    {
+     "key": "401",
+     "ref": "ADOZ",
+     "nom": "Adouz",
+     "tarif": 45
+    },
+    {
+     "key": "149",
+     "ref": "AOR",
+     "nom": "Afourer",
+     "tarif": 45
+    },
+    {
+     "key": "63",
+     "ref": "AGA",
+     "nom": "Agadir",
+     "tarif": 35
+    },
+    {
+     "key": "218",
+     "ref": "AGZ",
+     "nom": "Agdz",
+     "tarif": 45
+    },
+    {
+     "key": "395",
+     "ref": "AGUEL",
+     "nom": "Aguelmous",
+     "tarif": 45
+    },
+    {
+     "key": "113",
+     "ref": "AFR",
+     "nom": "Ahfir",
+     "tarif": 45
+    },
+    {
+     "key": "199",
+     "ref": "ACA",
+     "nom": "Ain Aicha",
+     "tarif": 45
+    },
+    {
+     "key": "72",
+     "ref": "ALH",
+     "nom": "Ain Allah",
+     "tarif": 45
+    },
+    {
+     "key": "152",
+     "ref": "AUD",
+     "nom": "Ain Aouda",
+     "tarif": 45
+    },
+    {
+     "key": "329",
+     "ref": "ATQ",
+     "nom": "AIN ATIQ",
+     "tarif": 45
+    },
+    {
+     "key": "325",
+     "ref": "AIB",
+     "nom": "Ain Beida",
+     "tarif": 45
+    },
+    {
+     "key": "70",
+     "ref": "ABD",
+     "nom": "Ain Bida",
+     "tarif": 45
+    },
+    {
+     "key": "434",
+     "ref": "AINM",
+     "nom": "AIN BNI MATHAR",
+     "tarif": 45
+    },
+    {
+     "key": "304",
+     "ref": "ANCG",
+     "nom": "AIN CHGAG",
+     "tarif": 45
+    },
+    {
+     "key": "334",
+     "ref": "AINT",
+     "nom": "Ain Dfali-Ouazzane",
+     "tarif": 45
+    },
+    {
+     "key": "175",
+     "ref": "ADJ",
+     "nom": "Ain Dorij",
+     "tarif": 45
+    },
+    {
+     "key": "31",
+     "ref": "AHD",
+     "nom": "Ain Harrouda",
+     "tarif": 40
+    },
+    {
+     "key": "373",
+     "ref": "AINJA",
+     "nom": "Ain Johra",
+     "tarif": 45
+    },
+    {
+     "key": "428",
+     "ref": "AINL",
+     "nom": "AIN LEUH",
+     "tarif": 45
+    },
+    {
+     "key": "4",
+     "ref": "ATJ",
+     "nom": "Ain Taoujdate",
+     "tarif": 45
+    },
+    {
+     "key": "423",
+     "ref": "TEKKI",
+     "nom": "Ain Tekki",
+     "tarif": 45
+    },
+    {
+     "key": "386",
+     "ref": "ALI",
+     "nom": "Ait Ali",
+     "tarif": 45
+    },
+    {
+     "key": "202",
+     "ref": "AMR",
+     "nom": "Ait amira",
+     "tarif": 45
+    },
+    {
+     "key": "393",
+     "ref": "ISHAQ",
+     "nom": "Ait ishaK",
+     "tarif": 45
+    },
+    {
+     "key": "392",
+     "ref": "ISHAK",
+     "nom": "Ait ishaq",
+     "tarif": 45
+    },
+    {
+     "key": "83",
+     "ref": "AKR",
+     "nom": "Ait Kamra",
+     "tarif": 45
+    },
+    {
+     "key": "104",
+     "ref": "ALZ",
+     "nom": "Ait Laaza",
+     "tarif": 45
+    },
+    {
+     "key": "66",
+     "ref": "AML",
+     "nom": "Ait Meloul",
+     "tarif": 40
+    },
+    {
+     "key": "162",
+     "ref": "ATR",
+     "nom": "Ait Ourir",
+     "tarif": 45
+    },
+    {
+     "key": "56",
+     "ref": "AZB",
+     "nom": "Ait Zineb",
+     "tarif": 45
+    },
+    {
+     "key": "81",
+     "ref": "AJRH",
+     "nom": "Ajdir (Région Hociema)",
+     "tarif": 45
+    },
+    {
+     "key": "207",
+     "ref": "AKC",
+     "nom": "AKCHOUR",
+     "tarif": 45
+    },
+    {
+     "key": "92",
+     "ref": "AMD",
+     "nom": "Akermoud",
+     "tarif": 45
+    },
+    {
+     "key": "357",
+     "ref": "AKA",
+     "nom": "Akka-tata",
+     "tarif": 45
+    },
+    {
+     "key": "114",
+     "ref": "AKM",
+     "nom": "Aklim",
+     "tarif": 45
+    },
+    {
+     "key": "369",
+     "ref": "AKNOUL",
+     "nom": "Aknoul-taza",
+     "tarif": 45
+    },
+    {
+     "key": "20",
+     "ref": "AOI",
+     "nom": "Al Aaroui",
+     "tarif": 45
+    },
+    {
+     "key": "80",
+     "ref": "AHC",
+     "nom": "Al Hoceima",
+     "tarif": 45
+    },
+    {
+     "key": "406",
+     "ref": "KAMOUN",
+     "nom": "Al kamoun",
+     "tarif": 45
+    },
+    {
+     "key": "194",
+     "ref": "ANF",
+     "nom": "Alnif",
+     "tarif": 45
+    },
+    {
+     "key": "295",
+     "ref": "AMZA",
+     "nom": "Amezzaourou",
+     "tarif": 45
+    },
+    {
+     "key": "355",
+     "ref": "ZMIZ",
+     "nom": "Amizmiz",
+     "tarif": 45
+    },
+    {
+     "key": "250",
+     "ref": "AMZ",
+     "nom": "Amzmiz",
+     "tarif": 40
+    },
+    {
+     "key": "294",
+     "ref": "ANO",
+     "nom": "Annual",
+     "tarif": 45
+    },
+    {
+     "key": "253",
+     "ref": "ANZA",
+     "nom": "Anza",
+     "tarif": 40
+    },
+    {
+     "key": "105",
+     "ref": "ALO",
+     "nom": "Aoulouz",
+     "tarif": 45
+    },
+    {
+     "key": "433",
+     "ref": "ARBA",
+     "nom": "Arba Aounate",
+     "tarif": 45
+    },
+    {
+     "key": "439",
+     "ref": "ARB",
+     "nom": "Arbaoua",
+     "tarif": 45
+    },
+    {
+     "key": "290",
+     "ref": "ARK",
+     "nom": "Arekmane",
+     "tarif": 45
+    },
+    {
+     "key": "184",
+     "ref": "AFD",
+     "nom": "Arfoud",
+     "tarif": 45
+    },
+    {
+     "key": "246",
+     "ref": "ASN",
+     "nom": "Asni",
+     "tarif": 45
+    },
+    {
+     "key": "238",
+     "ref": "ASS",
+     "nom": "Assa",
+     "tarif": 45
+    },
+    {
+     "key": "239",
+     "ref": "ASA",
+     "nom": "Assa",
+     "tarif": 45
+    },
+    {
+     "key": "166",
+     "ref": "ASL",
+     "nom": "Assilah",
+     "tarif": 45
+    },
+    {
+     "key": "201",
+     "ref": "AWR",
+     "nom": "Awrir",
+     "tarif": 45
+    },
+    {
+     "key": "411",
+     "ref": "AZEM",
+     "nom": "Azemmour",
+     "tarif": 45
+    },
+    {
+     "key": "188",
+     "ref": "AZL",
+     "nom": "Azilal",
+     "tarif": 45
+    },
+    {
+     "key": "308",
+     "ref": "ROU",
+     "nom": "azrou ait melloul",
+     "tarif": 45
+    },
+    {
+     "key": "62",
+     "ref": "AZR",
+     "nom": "Azrou(reg meknes)",
+     "tarif": 45
+    },
+    {
+     "key": "208",
+     "ref": "BBD",
+     "nom": "Bab berred",
+     "tarif": 45
+    },
+    {
+     "key": "368",
+     "ref": "BABM",
+     "nom": "Bab Marzouka-Taza",
+     "tarif": 45
+    },
+    {
+     "key": "206",
+     "ref": "BTZ",
+     "nom": "Bab Taza",
+     "tarif": 45
+    },
+    {
+     "key": "190",
+     "ref": "BAD",
+     "nom": "Bejaad",
+     "tarif": 45
+    },
+    {
+     "key": "203",
+     "ref": "BLF",
+     "nom": "Belfaa",
+     "tarif": 45
+    },
+    {
+     "key": "244",
+     "ref": "BHD",
+     "nom": "Ben Ahmed - BERRCHID -",
+     "tarif": 45
+    },
+    {
+     "key": "302",
+     "ref": "BHMD",
+     "nom": "Ben Ahmed - CHEFCHAOUEN -",
+     "tarif": 45
+    },
+    {
+     "key": "101",
+     "ref": "BGR",
+     "nom": "Ben Guerir",
+     "tarif": 45
+    },
+    {
+     "key": "284",
+     "ref": "BET",
+     "nom": "Ben Taieb",
+     "tarif": 45
+    },
+    {
+     "key": "309",
+     "ref": "BNY",
+     "nom": "Ben Yakhlef",
+     "tarif": 45
+    },
+    {
+     "key": "142",
+     "ref": "BAR",
+     "nom": "Beni Ansar",
+     "tarif": 45
+    },
+    {
+     "key": "296",
+     "ref": "BNC",
+     "nom": "BENI CHIKER",
+     "tarif": 45
+    },
+    {
+     "key": "146",
+     "ref": "BML",
+     "nom": "Beni Mellal",
+     "tarif": 40
+    },
+    {
+     "key": "266",
+     "ref": "BTJ",
+     "nom": "Beni Tajjite",
+     "tarif": 45
+    },
+    {
+     "key": "154",
+     "ref": "BSN",
+     "nom": "Benslimane ( reg mohamedia)",
+     "tarif": 40
+    },
+    {
+     "key": "109",
+     "ref": "BKN",
+     "nom": "Berkane",
+     "tarif": 45
+    },
+    {
+     "key": "75",
+     "ref": "BRH",
+     "nom": "Berrchid",
+     "tarif": 40
+    },
+    {
+     "key": "442",
+     "ref": "BOUI",
+     "nom": "Bin El Ouidane",
+     "tarif": 45
+    },
+    {
+     "key": "260",
+     "ref": "BG",
+     "nom": "Biogra",
+     "tarif": 40
+    },
+    {
+     "key": "412",
+     "ref": "BIRJ",
+     "nom": "Bir Jdid",
+     "tarif": 45
+    },
+    {
+     "key": "27",
+     "ref": "BMZ",
+     "nom": "Bir Mezoui",
+     "tarif": 45
+    },
+    {
+     "key": "187",
+     "ref": "BBY",
+     "nom": "Bni Bouayach",
+     "tarif": 45
+    },
+    {
+     "key": "112",
+     "ref": "BDR",
+     "nom": "Bni Drar",
+     "tarif": 45
+    },
+    {
+     "key": "367",
+     "ref": "HDIFA",
+     "nom": "Bni hdifa,region d'Alhoceima,",
+     "tarif": 45
+    },
+    {
+     "key": "195",
+     "ref": "BDL",
+     "nom": "Bou Adel",
+     "tarif": 45
+    },
+    {
+     "key": "267",
+     "ref": "BNN",
+     "nom": "Bouanane",
+     "tarif": 45
+    },
+    {
+     "key": "212",
+     "ref": "BAF",
+     "nom": "Bouarfa",
+     "tarif": 45
+    },
+    {
+     "key": "289",
+     "ref": "BOG",
+     "nom": "Bouarg",
+     "tarif": 45
+    },
+    {
+     "key": "8",
+     "ref": "BRL",
+     "nom": "Bouderbala",
+     "tarif": 45
+    },
+    {
+     "key": "292",
+     "ref": "BDN",
+     "nom": "Boudinar",
+     "tarif": 45
+    },
+    {
+     "key": "243",
+     "ref": "BDB",
+     "nom": "Boudnib",
+     "tarif": 45
+    },
+    {
+     "key": "6",
+     "ref": "BKR",
+     "nom": "Boufakrane",
+     "tarif": 45
+    },
+    {
+     "key": "43",
+     "ref": "BZK",
+     "nom": "Bouizakarne",
+     "tarif": 45
+    },
+    {
+     "key": "10",
+     "ref": "BJD",
+     "nom": "Boujdour",
+     "tarif": 45
+    },
+    {
+     "key": "26",
+     "ref": "BJB",
+     "nom": "Boujniba",
+     "tarif": 45
+    },
+    {
+     "key": "399",
+     "ref": "BJNB",
+     "nom": "Boujniba",
+     "tarif": 45
+    },
+    {
+     "key": "82",
+     "ref": "BKD",
+     "nom": "Boukidaren",
+     "tarif": 45
+    },
+    {
+     "key": "25",
+     "ref": "BLN",
+     "nom": "Boulanouar",
+     "tarif": 45
+    },
+    {
+     "key": "431",
+     "ref": "BOUL",
+     "nom": "Boulemane",
+     "tarif": 45
+    },
+    {
+     "key": "192",
+     "ref": "BLD",
+     "nom": "Boumalne Dades",
+     "tarif": 45
+    },
+    {
+     "key": "224",
+     "ref": "MBA",
+     "nom": "Boumia",
+     "tarif": 45
+    },
+    {
+     "key": "397",
+     "ref": "BOUN",
+     "nom": "Bounouar",
+     "tarif": 45
+    },
+    {
+     "key": "131",
+     "ref": "BSK",
+     "nom": "Bouskoura",
+     "tarif": 40
+    },
+    {
+     "key": "167",
+     "ref": "BNK",
+     "nom": "Bouznika",
+     "tarif": 40
+    },
+    {
+     "key": "231",
+     "ref": "CPN",
+     "nom": "Cabo Negro",
+     "tarif": 45
+    },
+    {
+     "key": "312",
+     "ref": "CBD",
+     "nom": "cap beddouza",
+     "tarif": 45
+    },
+    {
+     "key": "129",
+     "ref": "CSA",
+     "nom": "Casablanca",
+     "tarif": 35
+    },
+    {
+     "key": "127",
+     "ref": "CFN",
+     "nom": "Chefchaouen",
+     "tarif": 45
+    },
+    {
+     "key": "437",
+     "ref": "CHELA",
+     "nom": "Chellalat Mohammedia",
+     "tarif": 45
+    },
+    {
+     "key": "157",
+     "ref": "CMA",
+     "nom": "Chemaia",
+     "tarif": 45
+    },
+    {
+     "key": "165",
+     "ref": "CHA",
+     "nom": "Chichaoua",
+     "tarif": 45
+    },
+    {
+     "key": "170",
+     "ref": "CTR",
+     "nom": "Chouiter",
+     "tarif": 45
+    },
+    {
+     "key": "32",
+     "ref": "DKL",
+     "nom": "Dakhla",
+     "tarif": 45
+    },
+    {
+     "key": "132",
+     "ref": "DBZ",
+     "nom": "Dar Bouaza",
+     "tarif": 40
+    },
+    {
+     "key": "319",
+     "ref": "DCH",
+     "nom": "dar chaffai(settat)",
+     "tarif": 45
+    },
+    {
+     "key": "287",
+     "ref": "DEK",
+     "nom": "Dar El Kebdani",
+     "tarif": 45
+    },
+    {
+     "key": "443",
+     "ref": "DG",
+     "nom": "DAR GUEDDARI",
+     "tarif": 45
+    },
+    {
+     "key": "65",
+     "ref": "DHR",
+     "nom": "Dcheira",
+     "tarif": 40
+    },
+    {
+     "key": "229",
+     "ref": "DMT",
+     "nom": "Demnate",
+     "tarif": 40
+    },
+    {
+     "key": "205",
+     "ref": "DRD",
+     "nom": "DERDARA",
+     "tarif": 45
+    },
+    {
+     "key": "77",
+     "ref": "DRO",
+     "nom": "Deroua",
+     "tarif": 45
+    },
+    {
+     "key": "351",
+     "ref": "DLAL",
+     "nom": "Dlalha",
+     "tarif": 45
+    },
+    {
+     "key": "251",
+     "ref": "DRG",
+     "nom": "Drarga",
+     "tarif": 40
+    },
+    {
+     "key": "22",
+     "ref": "DRC",
+     "nom": "Driouch",
+     "tarif": 45
+    },
+    {
+     "key": "415",
+     "ref": "AOUM",
+     "nom": "El Aouamra",
+     "tarif": 45
+    },
+    {
+     "key": "389",
+     "ref": "BORJ",
+     "nom": "El Borj-KHENIFRA",
+     "tarif": 45
+    },
+    {
+     "key": "314",
+     "ref": "ERJ",
+     "nom": "El Borouj",
+     "tarif": 45
+    },
+    {
+     "key": "273",
+     "ref": "ELG",
+     "nom": "El Gara",
+     "tarif": 40
+    },
+    {
+     "key": "430",
+     "ref": "HAJK",
+     "nom": "El Haj Kaddour",
+     "tarif": 45
+    },
+    {
+     "key": "7",
+     "ref": "HJB",
+     "nom": "El Hajeb",
+     "tarif": 45
+    },
+    {
+     "key": "356",
+     "ref": "HAN",
+     "nom": "El Hanchane",
+     "tarif": 45
+    },
+    {
+     "key": "136",
+     "ref": "EJD",
+     "nom": "El Jadida",
+     "tarif": 40
+    },
+    {
+     "key": "209",
+     "ref": "EJH",
+     "nom": "El Jebeha",
+     "tarif": 45
+    },
+    {
+     "key": "413",
+     "ref": "LASFAR",
+     "nom": "El Jorf Lasfar",
+     "tarif": 45
+    },
+    {
+     "key": "388",
+     "ref": "KEBAB",
+     "nom": "El Kebab-KHENIFRA",
+     "tarif": 45
+    },
+    {
+     "key": "135",
+     "ref": "KDS",
+     "nom": "El Kelaa Des Sraghna",
+     "tarif": 45
+    },
+    {
+     "key": "151",
+     "ref": "EKB",
+     "nom": "El Ksiba",
+     "tarif": 45
+    },
+    {
+     "key": "310",
+     "ref": "MNS",
+     "nom": "El Mansouria",
+     "tarif": 45
+    },
+    {
+     "key": "145",
+     "ref": "EMS",
+     "nom": "El Marsa",
+     "tarif": 45
+    },
+    {
+     "key": "347",
+     "ref": "ATIA",
+     "nom": "El Ouatia",
+     "tarif": 45
+    },
+    {
+     "key": "15",
+     "ref": "ERC",
+     "nom": "Errachidia",
+     "tarif": 45
+    },
+    {
+     "key": "307",
+     "ref": "ERH",
+     "nom": "ERRAHMA VILLE",
+     "tarif": 40
+    },
+    {
+     "key": "222",
+     "ref": "RRC",
+     "nom": "Errich",
+     "tarif": 45
+    },
+    {
+     "key": "86",
+     "ref": "ESR",
+     "nom": "Essaouira",
+     "tarif": 45
+    },
+    {
+     "key": "74",
+     "ref": "ESM",
+     "nom": "Essmara",
+     "tarif": 45
+    },
+    {
+     "key": "360",
+     "ref": "FOME",
+     "nom": "Fam El Hisn-tata",
+     "tarif": 45
+    },
+    {
+     "key": "116",
+     "ref": "FHN",
+     "nom": "Farkhana",
+     "tarif": 45
+    },
+    {
+     "key": "403",
+     "ref": "FERY",
+     "nom": "FERYATA",
+     "tarif": 45
+    },
+    {
+     "key": "69",
+     "ref": "FES",
+     "nom": "Fes",
+     "tarif": 40
+    },
+    {
+     "key": "263",
+     "ref": "FGG",
+     "nom": "Figuig",
+     "tarif": 45
+    },
+    {
+     "key": "14",
+     "ref": "FDQ",
+     "nom": "Fnideq",
+     "tarif": 45
+    },
+    {
+     "key": "402",
+     "ref": "FANCE",
+     "nom": "Foum El Anceur",
+     "tarif": 45
+    },
+    {
+     "key": "344",
+     "ref": "FOM",
+     "nom": "Foum Oudi",
+     "tarif": 45
+    },
+    {
+     "key": "404",
+     "ref": "FZAOU",
+     "nom": "Foum Zaouia",
+     "tarif": 45
+    },
+    {
+     "key": "147",
+     "ref": "FBS",
+     "nom": "Fquih Ben Salah",
+     "tarif": 45
+    },
+    {
+     "key": "420",
+     "ref": "GHAF",
+     "nom": "Ghafsai",
+     "tarif": 45
+    },
+    {
+     "key": "94",
+     "ref": "GZO",
+     "nom": "Ghazoua",
+     "tarif": 45
+    },
+    {
+     "key": "42",
+     "ref": "GLM",
+     "nom": "Guelmim",
+     "tarif": 45
+    },
+    {
+     "key": "118",
+     "ref": "GCF",
+     "nom": "Guercif",
+     "tarif": 45
+    },
+    {
+     "key": "318",
+     "ref": "GSS",
+     "nom": "Guisser (settat)",
+     "tarif": 45
+    },
+    {
+     "key": "226",
+     "ref": "GMA",
+     "nom": "Gulmima(reg errachidia)",
+     "tarif": 45
+    },
+    {
+     "key": "339",
+     "ref": "HADB",
+     "nom": "Had bouhssoussen",
+     "tarif": 45
+    },
+    {
+     "key": "89",
+     "ref": "HDR",
+     "nom": "Had Draa",
+     "tarif": 45
+    },
+    {
+     "key": "121",
+     "ref": "HHR",
+     "nom": "Had Hrara",
+     "tarif": 45
+    },
+    {
+     "key": "364",
+     "ref": "HADH",
+     "nom": "Had Hrara-SAFI",
+     "tarif": 45
+    },
+    {
+     "key": "79",
+     "ref": "HSL",
+     "nom": "Had Soualem",
+     "tarif": 45
+    },
+    {
+     "key": "181",
+     "ref": "HRR",
+     "nom": "Harhoura",
+     "tarif": 40
+    },
+    {
+     "key": "398",
+     "ref": "HATTA",
+     "nom": "HATTANE",
+     "tarif": 45
+    },
+    {
+     "key": "370",
+     "ref": "HATAN",
+     "nom": "Hattane-Khouribga",
+     "tarif": 45
+    },
+    {
+     "key": "306",
+     "ref": "HOR",
+     "nom": "Houara",
+     "tarif": 45
+    },
+    {
+     "key": "61",
+     "ref": "IFN",
+     "nom": "Ifran",
+     "tarif": 45
+    },
+    {
+     "key": "383",
+     "ref": "IGHRAM",
+     "nom": "ighram laalam-beni mellal",
+     "tarif": 45
+    },
+    {
+     "key": "345",
+     "ref": "IKHO",
+     "nom": "Ikhourbane",
+     "tarif": 45
+    },
+    {
+     "key": "228",
+     "ref": "ITN",
+     "nom": "Imintanoute",
+     "tarif": 45
+    },
+    {
+     "key": "258",
+     "ref": "IK",
+     "nom": "Imouzzer Kandar",
+     "tarif": 45
+    },
+    {
+     "key": "84",
+     "ref": "IZM",
+     "nom": "Imzouren",
+     "tarif": 45
+    },
+    {
+     "key": "64",
+     "ref": "IZG",
+     "nom": "Inzegane",
+     "tarif": 40
+    },
+    {
+     "key": "359",
+     "ref": "ISSA",
+     "nom": "Issafen-tata",
+     "tarif": 45
+    },
+    {
+     "key": "280",
+     "ref": "ISG",
+     "nom": "issaguen",
+     "tarif": 45
+    },
+    {
+     "key": "143",
+     "ref": "IMR",
+     "nom": "Izemmouren",
+     "tarif": 45
+    },
+    {
+     "key": "282",
+     "ref": "JAD",
+     "nom": "Jaadar",
+     "tarif": 45
+    },
+    {
+     "key": "313",
+     "ref": "JMS",
+     "nom": "Jemâa-Shaim",
+     "tarif": 45
+    },
+    {
+     "key": "211",
+     "ref": "JRD",
+     "nom": "Jerada",
+     "tarif": 45
+    },
+    {
+     "key": "407",
+     "ref": "JMILHA",
+     "nom": "Jerf El Melha",
+     "tarif": 45
+    },
+    {
+     "key": "324",
+     "ref": "JEM",
+     "nom": "Jorf El Melha",
+     "tarif": 45
+    },
+    {
+     "key": "390",
+     "ref": "KAFNS",
+     "nom": "Kaf Nsour",
+     "tarif": 45
+    },
+    {
+     "key": "193",
+     "ref": "KMG",
+     "nom": "Kalaat MGouna",
+     "tarif": 45
+    },
+    {
+     "key": "300",
+     "ref": "KBM",
+     "nom": "Karia Be Mohammed",
+     "tarif": 45
+    },
+    {
+     "key": "363",
+     "ref": "ARKMAN",
+     "nom": "Kariat Arkman‎-Nador",
+     "tarif": 45
+    },
+    {
+     "key": "156",
+     "ref": "KTL",
+     "nom": "Kasbah Tadla",
+     "tarif": 45
+    },
+    {
+     "key": "285",
+     "ref": "KST",
+     "nom": "Kassita",
+     "tarif": 45
+    },
+    {
+     "key": "33",
+     "ref": "KTR",
+     "nom": "Kenitra",
+     "tarif": 35
+    },
+    {
+     "key": "378",
+     "ref": "SAHEL",
+     "nom": "Khemis Sahel",
+     "tarif": 45
+    },
+    {
+     "key": "28",
+     "ref": "KMS",
+     "nom": "Khemisset",
+     "tarif": 45
+    },
+    {
+     "key": "331",
+     "ref": "KHNT",
+     "nom": "Khenichet",
+     "tarif": 45
+    },
+    {
+     "key": "100",
+     "ref": "KNF",
+     "nom": "Khenifra",
+     "tarif": 45
+    },
+    {
+     "key": "232",
+     "ref": "KZM",
+     "nom": "Khmiss Zemamera",
+     "tarif": 45
+    },
+    {
+     "key": "23",
+     "ref": "KBG",
+     "nom": "Khouribga",
+     "tarif": 40
+    },
+    {
+     "key": "379",
+     "ref": "KRIMDA",
+     "nom": "Krimda",
+     "tarif": 40
+    },
+    {
+     "key": "291",
+     "ref": "KRN",
+     "nom": "Krona",
+     "tarif": 45
+    },
+    {
+     "key": "126",
+     "ref": "KEK",
+     "nom": "Ksar El Kebir",
+     "tarif": 45
+    },
+    {
+     "key": "271",
+     "ref": "KRSR",
+     "nom": "Ksar Sghir",
+     "tarif": 45
+    },
+    {
+     "key": "416",
+     "ref": "LARH",
+     "nom": "Laarache",
+     "tarif": 40
+    },
+    {
+     "key": "182",
+     "ref": "LTA",
+     "nom": "Laattaouia",
+     "tarif": 45
+    },
+    {
+     "key": "213",
+     "ref": "LYC",
+     "nom": "Laayoun Cherqia",
+     "tarif": 45
+    },
+    {
+     "key": "144",
+     "ref": "LYN",
+     "nom": "Laayoune",
+     "tarif": 45
+    },
+    {
+     "key": "241",
+     "ref": "LKS",
+     "nom": "Lakhssas",
+     "tarif": 45
+    },
+    {
+     "key": "320",
+     "ref": "LKT",
+     "nom": "Lakhyayeta",
+     "tarif": 45
+    },
+    {
+     "key": "350",
+     "ref": "MIMO",
+     "nom": "Lalla Mimouna",
+     "tarif": 45
+    },
+    {
+     "key": "377",
+     "ref": "LAARM",
+     "nom": "Laouamra- ksar el kebir",
+     "tarif": 45
+    },
+    {
+     "key": "125",
+     "ref": "LRC",
+     "nom": "Larache",
+     "tarif": 40
+    },
+    {
+     "key": "387",
+     "ref": "LEHRI",
+     "nom": "Lehri-KHENIFRA",
+     "tarif": 45
+    },
+    {
+     "key": "275",
+     "ref": "LQA",
+     "nom": "lqliaa",
+     "tarif": 45
+    },
+    {
+     "key": "13",
+     "ref": "MDQ",
+     "nom": "M Diq",
+     "tarif": 45
+    },
+    {
+     "key": "374",
+     "ref": "MAAZIZ",
+     "nom": "Maâziz",
+     "tarif": 45
+    },
+    {
+     "key": "297",
+     "ref": "MRI",
+     "nom": "Mariouari",
+     "tarif": 45
+    },
+    {
+     "key": "1",
+     "ref": "MRK",
+     "nom": "Marrakech",
+     "tarif": 19
+    },
+    {
+     "key": "12",
+     "ref": "MTL",
+     "nom": "Martil",
+     "tarif": 45
+    },
+    {
+     "key": "335",
+     "ref": "MASD",
+     "nom": "Masmouda - Ouazzane",
+     "tarif": 45
+    },
+    {
+     "key": "362",
+     "ref": "MASSA",
+     "nom": "MASSA",
+     "tarif": 45
+    },
+    {
+     "key": "37",
+     "ref": "MBK",
+     "nom": "Mechra Bel Ksiri",
+     "tarif": 45
+    },
+    {
+     "key": "133",
+     "ref": "MDA",
+     "nom": "Mediouna",
+     "tarif": 45
+    },
+    {
+     "key": "40",
+     "ref": "MDY",
+     "nom": "Mehdya",
+     "tarif": 45
+    },
+    {
+     "key": "422",
+     "ref": "MEJJ",
+     "nom": "Mejjat-chichaoua",
+     "tarif": 45
+    },
+    {
+     "key": "90",
+     "ref": "MJI",
+     "nom": "Mejji",
+     "tarif": 45
+    },
+    {
+     "key": "2",
+     "ref": "MKS",
+     "nom": "Meknes",
+     "tarif": 40
+    },
+    {
+     "key": "236",
+     "ref": "MLN",
+     "nom": "Mellalyène",
+     "tarif": 45
+    },
+    {
+     "key": "352",
+     "ref": "MERS",
+     "nom": "Mers El Kheir",
+     "tarif": 45
+    },
+    {
+     "key": "185",
+     "ref": "MZG",
+     "nom": "Merzouga",
+     "tarif": 45
+    },
+    {
+     "key": "217",
+     "ref": "MHG",
+     "nom": "Mhamid Lghezlane",
+     "tarif": 45
+    },
+    {
+     "key": "3",
+     "ref": "MHY",
+     "nom": "Mhaya",
+     "tarif": 45
+    },
+    {
+     "key": "283",
+     "ref": "MDR",
+     "nom": "Midar",
+     "tarif": 45
+    },
+    {
+     "key": "210",
+     "ref": "MDT",
+     "nom": "Midelt",
+     "tarif": 45
+    },
+    {
+     "key": "274",
+     "ref": "MLF",
+     "nom": "Mirleft",
+     "tarif": 45
+    },
+    {
+     "key": "223",
+     "ref": "MSR",
+     "nom": "Missour",
+     "tarif": 45
+    },
+    {
+     "key": "30",
+     "ref": "MHD",
+     "nom": "Mohammedia",
+     "tarif": 40
+    },
+    {
+     "key": "326",
+     "ref": "MKR",
+     "nom": "Mokrisset",
+     "tarif": 45
+    },
+    {
+     "key": "179",
+     "ref": "MST",
+     "nom": "Moqrisset",
+     "tarif": 45
+    },
+    {
+     "key": "414",
+     "ref": "AMGHA",
+     "nom": "Moulay Abdallah Amghar",
+     "tarif": 45
+    },
+    {
+     "key": "340",
+     "ref": "MOLB",
+     "nom": "Moulay bouazza khenifra",
+     "tarif": 45
+    },
+    {
+     "key": "330",
+     "ref": "MBM",
+     "nom": "Moulay Bousselham",
+     "tarif": 45
+    },
+    {
+     "key": "99",
+     "ref": "MRT",
+     "nom": "Mrirt",
+     "tarif": 45
+    },
+    {
+     "key": "270",
+     "ref": "MZD",
+     "nom": "Mzoudia",
+     "tarif": 40
+    },
+    {
+     "key": "17",
+     "ref": "NDR",
+     "nom": "Nador",
+     "tarif": 45
+    },
+    {
+     "key": "219",
+     "ref": "NKB",
+     "nom": "Nkob",
+     "tarif": 45
+    },
+    {
+     "key": "78",
+     "ref": "NCR",
+     "nom": "Nouaceur",
+     "tarif": 45
+    },
+    {
+     "key": "321",
+     "ref": "NZL",
+     "nom": "Nzalat Laadam",
+     "tarif": 45
+    },
+    {
+     "key": "230",
+     "ref": "ODL",
+     "nom": "Ouad Laou",
+     "tarif": 45
+    },
+    {
+     "key": "140",
+     "ref": "OLD",
+     "nom": "Oualidia",
+     "tarif": 40
+    },
+    {
+     "key": "400",
+     "ref": "OUAOZ",
+     "nom": "Ouaouizeght",
+     "tarif": 45
+    },
+    {
+     "key": "189",
+     "ref": "OZG",
+     "nom": "Ouaouizeght",
+     "tarif": 45
+    },
+    {
+     "key": "391",
+     "ref": "OUAO",
+     "nom": "Ouaoumana",
+     "tarif": 45
+    },
+    {
+     "key": "55",
+     "ref": "ORZ",
+     "nom": "Ouarzazat",
+     "tarif": 45
+    },
+    {
+     "key": "174",
+     "ref": "OZN",
+     "nom": "Ouazzane",
+     "tarif": 45
+    },
+    {
+     "key": "164",
+     "ref": "ODY",
+     "nom": "Oudaya",
+     "tarif": 40
+    },
+    {
+     "key": "257",
+     "ref": "ODA",
+     "nom": "Oued Amlil",
+     "tarif": 45
+    },
+    {
+     "key": "427",
+     "ref": "OUED",
+     "nom": "OUED LAOU",
+     "tarif": 45
+    },
+    {
+     "key": "24",
+     "ref": "OZM",
+     "nom": "Oued Zem",
+     "tarif": 45
+    },
+    {
+     "key": "16",
+     "ref": "OJD",
+     "nom": "Oujda",
+     "tarif": 45
+    },
+    {
+     "key": "426",
+     "ref": "ABBOU",
+     "nom": "OULAD ABBOU",
+     "tarif": 45
+    },
+    {
+     "key": "327",
+     "ref": "OAY",
+     "nom": "Oulad Ayad",
+     "tarif": 45
+    },
+    {
+     "key": "276",
+     "ref": "OLB",
+     "nom": "oulad berhil",
+     "tarif": 45
+    },
+    {
+     "key": "417",
+     "ref": "OBR",
+     "nom": "Oulad Bourahma",
+     "tarif": 40
+    },
+    {
+     "key": "71",
+     "ref": "OET",
+     "nom": "Oulad Ettayeb",
+     "tarif": 45
+    },
+    {
+     "key": "235",
+     "ref": "ODF",
+     "nom": "Oulad Fraj",
+     "tarif": 45
+    },
+    {
+     "key": "342",
+     "ref": "OUMB",
+     "nom": "Oulad M barek-Beni Mellal",
+     "tarif": 45
+    },
+    {
+     "key": "349",
+     "ref": "OUOJ",
+     "nom": "oulad oujih",
+     "tarif": 45
+    },
+    {
+     "key": "315",
+     "ref": "OSS",
+     "nom": "oulad said settat",
+     "tarif": 45
+    },
+    {
+     "key": "382",
+     "ref": "OSAID",
+     "nom": "Oulad Said-Beni Mellal",
+     "tarif": 45
+    },
+    {
+     "key": "288",
+     "ref": "OST",
+     "nom": "Oulad Settout",
+     "tarif": 45
+    },
+    {
+     "key": "103",
+     "ref": "OTM",
+     "nom": "Oulad Teima",
+     "tarif": 45
+    },
+    {
+     "key": "322",
+     "ref": "OZDH",
+     "nom": "Oulad Zidoh",
+     "tarif": 45
+    },
+    {
+     "key": "381",
+     "ref": "MOUSSA",
+     "nom": "Ouled Moussa-Beni Mellal",
+     "tarif": 45
+    },
+    {
+     "key": "150",
+     "ref": "OYC",
+     "nom": "Ouled Yaiche",
+     "tarif": 45
+    },
+    {
+     "key": "173",
+     "ref": "OLS",
+     "nom": "Oulmas",
+     "tarif": 45
+    },
+    {
+     "key": "87",
+     "ref": "OGA",
+     "nom": "Ounagha",
+     "tarif": 45
+    },
+    {
+     "key": "160",
+     "ref": "ORK",
+     "nom": "Ourika",
+     "tarif": 45
+    },
+    {
+     "key": "255",
+     "ref": "OEH",
+     "nom": "Outat El Haj",
+     "tarif": 45
+    },
+    {
+     "key": "348",
+     "ref": "PORT",
+     "nom": "Port of Tan-Tan",
+     "tarif": 45
+    },
+    {
+     "key": "49",
+     "ref": "RBT",
+     "nom": "Rabat",
+     "tarif": 35
+    },
+    {
+     "key": "317",
+     "ref": "REA",
+     "nom": "Ras El Ain (settat)",
+     "tarif": 45
+    },
+    {
+     "key": "111",
+     "ref": "REM",
+     "nom": "Ras El Ma (REG NADOR)",
+     "tarif": 45
+    },
+    {
+     "key": "240",
+     "ref": "RMN",
+     "nom": "Rehamna",
+     "tarif": 45
+    },
+    {
+     "key": "183",
+     "ref": "RSN",
+     "nom": "Rissani",
+     "tarif": 45
+    },
+    {
+     "key": "5",
+     "ref": "SBY",
+     "nom": "Sabaa Aiyoun",
+     "tarif": 45
+    },
+    {
+     "key": "120",
+     "ref": "SFI",
+     "nom": "Safi",
+     "tarif": 40
+    },
+    {
+     "key": "110",
+     "ref": "SDA",
+     "nom": "Saidia",
+     "tarif": 45
+    },
+    {
+     "key": "50",
+     "ref": "SLE",
+     "nom": "Sale",
+     "tarif": 35
+    },
+    {
+     "key": "51",
+     "ref": "SEJ",
+     "nom": "Sale Al Jadida-سلا",
+     "tarif": 40
+    },
+    {
+     "key": "108",
+     "ref": "SEG",
+     "nom": "Sebt El Guerdane",
+     "tarif": 45
+    },
+    {
+     "key": "122",
+     "ref": "SGL",
+     "nom": "Sebt Gzoula",
+     "tarif": 45
+    },
+    {
+     "key": "148",
+     "ref": "SON",
+     "nom": "Sebt Oulad Nemma",
+     "tarif": 45
+    },
+    {
+     "key": "168",
+     "ref": "SFR",
+     "nom": "Sefrou",
+     "tarif": 45
+    },
+    {
+     "key": "18",
+     "ref": "SLN",
+     "nom": "Selouane",
+     "tarif": 45
+    },
+    {
+     "key": "76",
+     "ref": "STT",
+     "nom": "Settat",
+     "tarif": 40
+    },
+    {
+     "key": "421",
+     "ref": "SAADI",
+     "nom": "sidi aadi",
+     "tarif": 45
+    },
+    {
+     "key": "380",
+     "ref": "AISSA",
+     "nom": "Sidi Aissa-Beni-Mellal",
+     "tarif": 45
+    },
+    {
+     "key": "444",
+     "ref": "SDK",
+     "nom": "Sidi Al Kamel",
+     "tarif": 45
+    },
+    {
+     "key": "171",
+     "ref": "SAB",
+     "nom": "Sidi Allal el Bahraoui",
+     "tarif": 45
+    },
+    {
+     "key": "371",
+     "ref": "SIALL",
+     "nom": "sidi allal tazi",
+     "tarif": 45
+    },
+    {
+     "key": "141",
+     "ref": "SBR",
+     "nom": "Sidi Bennour",
+     "tarif": 45
+    },
+    {
+     "key": "128",
+     "ref": "SBN",
+     "nom": "Sidi Bernoussi",
+     "tarif": 40
+    },
+    {
+     "key": "67",
+     "ref": "SBB",
+     "nom": "Sidi Bibi - Agadir",
+     "tarif": 45
+    },
+    {
+     "key": "245",
+     "ref": "SBT",
+     "nom": "Sidi Bou Othmane",
+     "tarif": 45
+    },
+    {
+     "key": "227",
+     "ref": "SBD",
+     "nom": "Sidi Bouknadel",
+     "tarif": 40
+    },
+    {
+     "key": "138",
+     "ref": "SBZ",
+     "nom": "Sidi Bouzid",
+     "tarif": 40
+    },
+    {
+     "key": "440",
+     "ref": "SDAI",
+     "nom": "Sidi el Aidi",
+     "tarif": 45
+    },
+    {
+     "key": "316",
+     "ref": "SHJ",
+     "nom": "sidi hajjaj (settat)",
+     "tarif": 45
+    },
+    {
+     "key": "73",
+     "ref": "SHZ",
+     "nom": "Sidi Harazem",
+     "tarif": 45
+    },
+    {
+     "key": "48",
+     "ref": "SIF",
+     "nom": "Sidi Ifni",
+     "tarif": 45
+    },
+    {
+     "key": "39",
+     "ref": "SKM",
+     "nom": "Sidi Kacem",
+     "tarif": 45
+    },
+    {
+     "key": "97",
+     "ref": "SKK",
+     "nom": "Sidi Kaouki",
+     "tarif": 45
+    },
+    {
+     "key": "130",
+     "ref": "SMD",
+     "nom": "Sidi Messaoud",
+     "tarif": 40
+    },
+    {
+     "key": "177",
+     "ref": "SRN",
+     "nom": "Sidi Redouane",
+     "tarif": 45
+    },
+    {
+     "key": "237",
+     "ref": "SRL",
+     "nom": "Sidi Rehal",
+     "tarif": 45
+    },
+    {
+     "key": "38",
+     "ref": "SSM",
+     "nom": "Sidi Sliman (reg meknes)",
+     "tarif": 45
+    },
+    {
+     "key": "410",
+     "ref": "SMAIL",
+     "nom": "Sidi Smail",
+     "tarif": 45
+    },
+    {
+     "key": "234",
+     "ref": "SIM",
+     "nom": "Sidi Smail",
+     "tarif": 45
+    },
+    {
+     "key": "34",
+     "ref": "STB",
+     "nom": "Sidi Taibi",
+     "tarif": 45
+    },
+    {
+     "key": "35",
+     "ref": "SYG",
+     "nom": "Sidi Yahya El Gharb",
+     "tarif": 45
+    },
+    {
+     "key": "353",
+     "ref": "ZAER",
+     "nom": "Sidi Yahya Zaer",
+     "tarif": 45
+    },
+    {
+     "key": "365",
+     "ref": "ZOUIN",
+     "nom": "SidI Zouine",
+     "tarif": 45
+    },
+    {
+     "key": "54",
+     "ref": "SKT",
+     "nom": "Skhirat",
+     "tarif": 45
+    },
+    {
+     "key": "354",
+     "ref": "SKHOR",
+     "nom": "Skhour Rehamna",
+     "tarif": 45
+    },
+    {
+     "key": "366",
+     "ref": "SKOURA",
+     "nom": "Skoura-Ouarzazate",
+     "tarif": 45
+    },
+    {
+     "key": "95",
+     "ref": "SMM",
+     "nom": "Smimou",
+     "tarif": 45
+    },
+    {
+     "key": "429",
+     "ref": "SOUH",
+     "nom": "Souihla",
+     "tarif": 45
+    },
+    {
+     "key": "323",
+     "ref": "SGD",
+     "nom": "souiria Guedima (REG SAFI)",
+     "tarif": 45
+    },
+    {
+     "key": "247",
+     "ref": "SQL",
+     "nom": "Souk Elarbaa Du Gharb",
+     "tarif": 45
+    },
+    {
+     "key": "336",
+     "ref": "STH",
+     "nom": "Stehat-Chefchaouen",
+     "tarif": 45
+    },
+    {
+     "key": "57",
+     "ref": "TBN",
+     "nom": "Tabounte",
+     "tarif": 45
+    },
+    {
+     "key": "396",
+     "ref": "TACHR",
+     "nom": "Tachrafat",
+     "tarif": 45
+    },
+    {
+     "key": "301",
+     "ref": "TDRT",
+     "nom": "Taddart - AGADIR-",
+     "tarif": 45
+    },
+    {
+     "key": "186",
+     "ref": "TDR",
+     "nom": "Taddart - TAZA -",
+     "tarif": 45
+    },
+    {
+     "key": "446",
+     "ref": "TAD-AGA",
+     "nom": "Tadouaret-Agadir",
+     "tarif": 45
+    },
+    {
+     "key": "286",
+     "ref": "TFS",
+     "nom": "Tafersit",
+     "tarif": 45
+    },
+    {
+     "key": "305",
+     "ref": "TFR",
+     "nom": "Tafraoute",
+     "tarif": 45
+    },
+    {
+     "key": "88",
+     "ref": "TFC",
+     "nom": "Taftecht",
+     "tarif": 45
+    },
+    {
+     "key": "445",
+     "ref": "TAG-AGA",
+     "nom": "Tagadirt-Agadir",
+     "tarif": 45
+    },
+    {
+     "key": "68",
+     "ref": "TGZ",
+     "nom": "Taghazoute",
+     "tarif": 45
+    },
+    {
+     "key": "358",
+     "ref": "TAGM",
+     "nom": "Tagmout-tata",
+     "tarif": 45
+    },
+    {
+     "key": "216",
+     "ref": "TGM",
+     "nom": "Tagomite",
+     "tarif": 45
+    },
+    {
+     "key": "341",
+     "ref": "TAG",
+     "nom": "Tagzert",
+     "tarif": 45
+    },
+    {
+     "key": "161",
+     "ref": "THN",
+     "nom": "Tahannaout",
+     "tarif": 40
+    },
+    {
+     "key": "256",
+     "ref": "THL",
+     "nom": "Tahla",
+     "tarif": 45
+    },
+    {
+     "key": "58",
+     "ref": "TJD",
+     "nom": "Tajda",
+     "tarif": 45
+    },
+    {
+     "key": "281",
+     "ref": "TLYS",
+     "nom": "tala youssef",
+     "tarif": 45
+    },
+    {
+     "key": "107",
+     "ref": "TLN",
+     "nom": "Taliouine",
+     "tarif": 45
+    },
+    {
+     "key": "91",
+     "ref": "TMS",
+     "nom": "Talmest",
+     "tarif": 45
+    },
+    {
+     "key": "96",
+     "ref": "TNR",
+     "nom": "Tamanar",
+     "tarif": 45
+    },
+    {
+     "key": "153",
+     "ref": "TRT",
+     "nom": "Tamansourt",
+     "tarif": 35
+    },
+    {
+     "key": "299",
+     "ref": "TAS",
+     "nom": "Tamaris",
+     "tarif": 40
+    },
+    {
+     "key": "215",
+     "ref": "TMG",
+     "nom": "Tamegroute",
+     "tarif": 45
+    },
+    {
+     "key": "272",
+     "ref": "TMLT",
+     "nom": "Tamelelt",
+     "tarif": 45
+    },
+    {
+     "key": "53",
+     "ref": "TSN",
+     "nom": "Tamesna",
+     "tarif": 45
+    },
+    {
+     "key": "338",
+     "ref": "TAMR",
+     "nom": "Tamraght",
+     "tarif": 45
+    },
+    {
+     "key": "361",
+     "ref": "TAMRI",
+     "nom": "TAMRI",
+     "tarif": 45
+    },
+    {
+     "key": "293",
+     "ref": "TMSN",
+     "nom": "Tamsamane",
+     "tarif": 45
+    },
+    {
+     "key": "41",
+     "ref": "TNT",
+     "nom": "Tan Tan",
+     "tarif": 45
+    },
+    {
+     "key": "98",
+     "ref": "TGR",
+     "nom": "Tanger",
+     "tarif": 40
+    },
+    {
+     "key": "405",
+     "ref": "TANOUG",
+     "nom": "Tanougha-Beni Mellal",
+     "tarif": 45
+    },
+    {
+     "key": "343",
+     "ref": "TANO",
+     "nom": "Tanougha-Beni Mellal",
+     "tarif": 45
+    },
+    {
+     "key": "384",
+     "ref": "TANG",
+     "nom": "Tanougha-Beni Mellal",
+     "tarif": 45
+    },
+    {
+     "key": "200",
+     "ref": "TAT",
+     "nom": "Taounate",
+     "tarif": 45
+    },
+    {
+     "key": "169",
+     "ref": "TRI",
+     "nom": "Taourirt",
+     "tarif": 45
+    },
+    {
+     "key": "279",
+     "ref": "TRG",
+     "nom": "targuist",
+     "tarif": 45
+    },
+    {
+     "key": "102",
+     "ref": "TRN",
+     "nom": "Taroudannt",
+     "tarif": 45
+    },
+    {
+     "key": "268",
+     "ref": "TT",
+     "nom": "Tata",
+     "tarif": 45
+    },
+    {
+     "key": "117",
+     "ref": "TZA",
+     "nom": "Taza",
+     "tarif": 45
+    },
+    {
+     "key": "262",
+     "ref": "TNK",
+     "nom": "Tazenakht",
+     "tarif": 45
+    },
+    {
+     "key": "220",
+     "ref": "TZR",
+     "nom": "Tazzarine",
+     "tarif": 45
+    },
+    {
+     "key": "376",
+     "ref": "TIDAS",
+     "nom": "Tīdās-Khemisset",
+     "tarif": 45
+    },
+    {
+     "key": "52",
+     "ref": "TMR",
+     "nom": "Temara",
+     "tarif": 40
+    },
+    {
+     "key": "337",
+     "ref": "TEM",
+     "nom": "Temsia-agadir",
+     "tarif": 45
+    },
+    {
+     "key": "264",
+     "ref": "TND",
+     "nom": "Tendrara",
+     "tarif": 45
+    },
+    {
+     "key": "261",
+     "ref": "TRF",
+     "nom": "Terfaya",
+     "tarif": 45
+    },
+    {
+     "key": "333",
+     "ref": "TERL",
+     "nom": "Teroual - Ouazzane",
+     "tarif": 45
+    },
+    {
+     "key": "11",
+     "ref": "TTN",
+     "nom": "Tetouan",
+     "tarif": 45
+    },
+    {
+     "key": "372",
+     "ref": "TIDDAS",
+     "nom": "Tiddas",
+     "tarif": 45
+    },
+    {
+     "key": "29",
+     "ref": "TFT",
+     "nom": "Tiflet",
+     "tarif": 45
+    },
+    {
+     "key": "60",
+     "ref": "TLT",
+     "nom": "Tifoultoute",
+     "tarif": 45
+    },
+    {
+     "key": "394",
+     "ref": "TIGHS",
+     "nom": "Tighassaline ville",
+     "tarif": 45
+    },
+    {
+     "key": "435",
+     "ref": "TIKI",
+     "nom": "Tikiouine",
+     "tarif": 45
+    },
+    {
+     "key": "59",
+     "ref": "TDN",
+     "nom": "Timdline",
+     "tarif": 45
+    },
+    {
+     "key": "47",
+     "ref": "TLY",
+     "nom": "Timoulay",
+     "tarif": 45
+    },
+    {
+     "key": "432",
+     "ref": "TIN",
+     "nom": "Tin Mansour",
+     "tarif": 45
+    },
+    {
+     "key": "191",
+     "ref": "THR",
+     "nom": "Tinghir",
+     "tarif": 45
+    },
+    {
+     "key": "225",
+     "ref": "TNJ",
+     "nom": "Tinjdad",
+     "tarif": 45
+    },
+    {
+     "key": "134",
+     "ref": "TML",
+     "nom": "Tit Melil",
+     "tarif": 40
+    },
+    {
+     "key": "119",
+     "ref": "TZN",
+     "nom": "Tiznit",
+     "tarif": 45
+    },
+    {
+     "key": "298",
+     "ref": "TZT",
+     "nom": "Tiztoutine",
+     "tarif": 45
+    },
+    {
+     "key": "441",
+     "ref": "TLOF",
+     "nom": "Tlata Ouled Faress",
+     "tarif": 45
+    },
+    {
+     "key": "303",
+     "ref": "TNC",
+     "nom": "Tnine Chtouka (el jadida)",
+     "tarif": 45
+    },
+    {
+     "key": "85",
+     "ref": "YSF",
+     "nom": "Youssoufia",
+     "tarif": 45
+    },
+    {
+     "key": "346",
+     "ref": "ZAG",
+     "nom": "Zag-VILLE",
+     "tarif": 45
+    },
+    {
+     "key": "214",
+     "ref": "ZGR",
+     "nom": "Zagora",
+     "tarif": 45
+    },
+    {
+     "key": "277",
+     "ref": "ZAD",
+     "nom": "zaida",
+     "tarif": 45
+    },
+    {
+     "key": "21",
+     "ref": "ZIO",
+     "nom": "Zaio",
+     "tarif": 45
+    },
+    {
+     "key": "385",
+     "ref": "CHEIKH",
+     "nom": "Zaouiat Cheikh",
+     "tarif": 45
+    },
+    {
+     "key": "93",
+     "ref": "ZBT",
+     "nom": "Zaouiet Bouzarktoune",
+     "tarif": 45
+    },
+    {
+     "key": "115",
+     "ref": "ZGN",
+     "nom": "Zeghanghane",
+     "tarif": 45
+    },
+    {
+     "key": "408",
+     "ref": "ZMAM",
+     "nom": "Zemamra",
+     "tarif": 45
+    },
+    {
+     "key": "418",
+     "ref": "ZFK",
+     "nom": "Zone Franche (kenitra)",
+     "tarif": 40
+    },
+    {
+     "key": "438",
+     "ref": "ZOUA",
+     "nom": "Zouada",
+     "tarif": 45
+    },
+    {
+     "key": "180",
+     "ref": "ZMI",
+     "nom": "Zoumi",
+     "tarif": 45
+    },
+    {
+     "key": "332",
+     "ref": "ZOM",
+     "nom": "Zoumi-Ouazzane",
+     "tarif": 45
+    },
+    {
+     "key": "196",
+     "ref": "ZZR",
+     "nom": "Zrizer",
+     "tarif": 45
+    }
+   ]

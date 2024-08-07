@@ -1,0 +1,160 @@
+[
+    {
+      "id": 1,
+      "nom": "Bernard",
+      "prenom": "Alice",
+      "username": "abernard",
+      "email": "alice.bernard@example.com",
+      "password": "password123",
+      "role": "client",
+      "tele": "0712345678",
+      "profile": null,
+      "ville": "Bordeaux",
+      "adress": "12 Rue de Bordeaux",
+      "active_acount": true,
+      "store":[
+        {
+            "id":"1",
+            "nom":"Store 1",
+            "wallet":{
+                "id":"1",
+                "solde":"150"
+            }
+        },{
+            "id":"2",
+            "nom":"Store 2",
+            "wallet":{
+                "id":"1",
+                "solde":"45"
+            }
+        },
+        {
+            "id":"3",
+            "nom":"Store 3",
+            "wallet":{
+                "id":"1",
+                "solde":"0"
+            }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "nom": "Morel",
+      "prenom": "Louis",
+      "username": "lmorel",
+      "email": "louis.morel@example.com",
+      "password": "password123",
+      "role": "client",
+      "tele": "0787654321",
+      "profile": null,
+      "ville": "Lille",
+      "adress": "34 Avenue de Lille",
+      "active_acount": true,
+      "store":[
+        {
+            "id":"1",
+            "nom":"Store 1",
+            "wallet":{
+                "id":"1",
+                "solde":"2500"
+            }
+        },{
+            "id":"2",
+            "nom":"Store 2",
+            "wallet":{
+                "id":"1",
+                "solde":"0"
+            }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "nom": "Roux",
+      "prenom": "Camille",
+      "username": "croux",
+      "email": "camille.roux@example.com",
+      "password": "password123",
+      "role": "client",
+      "tele": "0765432109",
+      "profile": null,
+      "ville": "Rennes",
+      "adress": "56 Boulevard de Rennes",
+      "active_acount": true,
+      "store":[
+        {
+            "id":"1",
+            "nom":"Store 1",
+            "wallet":{
+                "id":"1",
+                "solde":"8400"
+            }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "nom": "Fournier",
+      "prenom": "Hugo",
+      "username": "hfournier",
+      "email": "hugo.fournier@example.com",
+      "password": "password123",
+      "role": "client",
+      "tele": "0743210987",
+      "profile": null,
+      "ville": "Strasbourg",
+      "adress": "78 Rue de Strasbourg",
+      "active_acount": true,
+      "store":[
+        {
+            "id":"1",
+            "nom":"Store 1",
+            "wallet":{
+                "id":"1",
+                "solde":"2000"
+            }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "nom": "Girard",
+      "prenom": "Chloe",
+      "username": "cgirard",
+      "email": "chloe.girard@example.com",
+      "password": "password123",
+      "role": "client",
+      "tele": "0723456789",
+      "profile": null,
+      "ville": "Montpellier",
+      "adress": "90 Avenue de Montpellier",
+      "active_acount": true,
+      "store":[
+        {
+            "id":"1",
+            "nom":"Store 1",
+            "wallet":{
+                "id":"1",
+                "solde":"2000"
+            }
+        },{
+            "id":"2",
+            "nom":"Store 2",
+            "wallet":{
+                "id":"1",
+                "solde":"0"
+            }
+        },
+        {
+            "id":"3",
+            "nom":"Store 3",
+            "wallet":{
+                "id":"1",
+                "solde":"0"
+            }
+        }
+      ]
+    }
+  ]
+  

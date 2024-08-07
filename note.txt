@@ -1,2 +1,50 @@
+<<<<<<< HEAD
 create file Models and controller 
 photoupload mdelleware  
+=======
+
+ -- list statu
+
+   nouveau colis
+   attend de ramassage || ou || attend de preparer
+   ramassa || preparer
+   expidie
+   reçu
+   mise en distribution
+   livrée
+   annulée
+   refusée
+   programmée
+
+
+
+nom : "store client"
+tele : 0690137708
+ville : "kenitra"
+adresse : "123 promenade des Anglais"
+commentaire : "Perishable items"
+prix : 100.3
+nature_produit : "vetement"
+etat : false
+statut : "attente de ramassage"
+ouvrir : true
+is_simple : true
+is_remplace : false
+is_fragile : false
+remarque_livreur : "Boite vocale"
+livreur : {
+  id : 451,
+  nom : "reda"
+  tele : 0698855774
+}
+team : {
+  id : 123
+  nom : "saad"
+  post .... more data
+}
+store : {
+  id : 541
+  nom : "store name"
+  .... more data
+}
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada

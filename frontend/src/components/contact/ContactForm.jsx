@@ -59,14 +59,24 @@ const NumericInput = (props) => {
 
 function ContactForm() {
     const [number, setNumber] = useState('');
+    const [nom , setNom] = useState('');
+    const [email , setEmail] = useState('');
+    const [message , setMessage] = useState('');
+
+    const handleSubmit = () =>{
+      console.log(nom , email , number , message);
+    }
+
   return (
     <div className='contact-form'>
         <p>Veauillez remplir tous les champs ...!</p>
-        <form action="">
+        <form>
             <div className="contact-form-inputs">
                 <Input
                     placeholder="Nom et Prénom"
                     size='large'
+                    value={nom}
+                    onChange={(e)=>setNom(e.target.value)}
                     prefix={
                         <UserOutlined
                         style={{
@@ -87,6 +97,8 @@ function ContactForm() {
                 <Input 
                     size="large" 
                     placeholder="Email" 
+                    value={email}
+                    onChange={(e)=>setEmail(e.target.value)}
                     prefix={
                         <MailOutlined
                         style={{
@@ -112,15 +124,17 @@ function ContactForm() {
                     size='large'
                     showCount
                     maxLength={300}
+                    value={message}
+                    onChange={(e)=>setMessage(e.target.value)}
                     placeholder="Votre message"
                     style={{
                         height: 120,
                         resize: 'none',
                     }}
                 />
-                <Button type="primary" block>
+                <button onClick={handleSubmit}  className='submit-btn'>
                     Envoyer
-                </Button>
+                </button>
 
             </div>
         </form>

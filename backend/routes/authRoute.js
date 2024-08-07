@@ -14,7 +14,7 @@ router.post("/register/team",registerTeam);
 
 
 // api/auth/login/:role
-router.get("/login/:role",loginProfileCtrl);
+//router.get("/login/:role",loginProfileCtrl);
 // api/auth/login/client/file
 
 

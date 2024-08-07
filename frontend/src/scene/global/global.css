@@ -1,0 +1,281 @@
+.menu-bar {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+}
+.profile_image_user{
+  width: 60px;
+  height: 60px;
+  border-radius: 50px;
+}
+.menu {
+    height: 100%;
+    overflow-y: auto;
+}
+.link_topbar{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.etoile{
+  color: red;
+}
+
+.page-dashboard {
+  display: flex;
+  height: 100vh; /* Ensure the dashboard takes full height */
+}
+
+.page-main {
+  width: 100%; /* Stack the content vertically */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column; /* Stack the content vertically */
+}
+
+.page-content {
+  padding: 12px;
+  flex-grow: 1; /* Allow content to grow and take available space */
+  overflow: hidden; /* Prevent scrolling on the parent element */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.content {
+  margin-top: 6px;
+  height: 100%;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-grow: 1; /* Allow content to grow and take available space */
+}
+
+.content h4 {
+  color: var(--gray);
+}
+/* Rest of your CSS code */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--gray);
+    padding: 12px 8px;
+}
+.topbar-logo {
+    padding-top: 16px;
+}
+.header-menu {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: space-around;
+    padding: 8px 0;
+}
+.header-menu h1 {
+    color: var(--primary);
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 800;
+}
+.header-menu button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+.store-menu {
+    width: 100%;
+    text-align: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+}
+.dropdown-store {
+    width: 80%;
+    border: 1px solid var(--gray);
+    padding: 16px;
+    border-radius: 4px;
+    margin: 8px 0;
+    text-align: center;
+}
+
+.control-topbar{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.title{
+    display: flex;
+    flex-direction: column;
+}
+.title h1{
+    font-style: italic;
+}
+
+.colis-filter{
+    display: flex;
+    flex-direction: column;
+}
+.colis-filter form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.colis-filter .filter-inputs{
+    display: grid;
+    grid-template-columns: repeat(4 ,1fr);
+    gap: 15px;
+}
+.submit-btn-dash{
+  display: flex;
+  align-items: center;
+  width: max-content;
+  padding: 8px 16px;
+  background: #4096ff;
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+/*-------------table--------------*/
+.table-dark .ant-table {
+    background-color: transparent;
+    color: #fff;
+    margin-top: 16px;
+  }
+  
+  .table-dark .ant-table-thead > tr > th {
+    background-color: transparent;
+    color: #fff;
+  }
+  
+  .table-dark .ant-table-tbody > tr > td {
+    background-color: transparent;
+    color: #fff;
+  }
+  
+  .table-dark .ant-table-tbody > tr.ant-table-row:hover > td,
+  .table-dark .ant-table-tbody > tr.ant-table-row-selected > td {
+    background-color: #002242;
+    color: var(--white);
+  }
+  
+  .table-dark .ant-pagination {
+    color: #fff;
+  }
+  
+  .table-dark .ant-pagination-item-active {
+    border-color: #666;
+    background-color: #666;
+  }
+  
+  .table-light .ant-table {
+    background-color: transparent;
+    color: #000;
+    margin-top: 16px;
+  }
+  
+  .table-light .ant-table-thead > tr > th {
+    background-color: transparent;
+    color: #000;
+  }
+  
+  .table-light .ant-table-tbody > tr > td {
+    background-color: transparent;
+    color: #000;
+  }
+  
+  .table-light .ant-table-tbody > tr.ant-table-row:hover > td,
+  .table-light .ant-table-tbody > tr.ant-table-row-selected > td {
+    background-color: var(--gray);
+    color: #000;
+  }
+  
+  .table-light .ant-pagination {
+    color: #000;
+  }
+
+
+.table-option , .table-reclamation{
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.table-reclamation{
+  flex-direction: column;
+}
+
+.colis-info-content{
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+}
+.select-reclamation{
+  width: 100%;
+}
+.btn-dashboard{
+  background: var(--limon);
+  color: var(--white);
+  padding: 8px 16px;
+  width: max-content;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-dashboard:hover{
+  color: var(--white);
+}
+
+/*-------------notification--------------------------*/
+.notification_container{
+  display: flex;
+  flex-direction: column;
+}
+.notification_container h4{
+  font-size: 16px;
+  color: var(--primary);
+}
+.content_notification{
+  display: flex;
+  flex-direction: column;
+}
+.content_notification p{
+  text-align: start;
+}
+.content_notification span{
+  text-align: end;
+  color: var(--gray);
+  font-size: 10px;
+}
+.notification_icon_close{
+  color: var(--limon);
+  position: fixed;
+  font-size: 30px;
+  right: 16px;
+  cursor: pointer;
+}
+
+
+@media only screen and (max-width: 600px){
+  .colis-filter .filter-inputs{
+    grid-template-columns: repeat(1,1fr);
+  }
+}
+@media only screen and (min-width: 601px) and (max-width: 900px) {
+  .colis-filter .filter-inputs{
+    grid-template-columns: repeat(2,1fr);
+  }
+}

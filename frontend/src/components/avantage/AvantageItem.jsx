@@ -1,5 +1,4 @@
 import React from 'react'
-import { GrDeliver } from "react-icons/gr";
 
 function AvantageItem({icon , title , desc}) {
   return (
@@ -7,12 +6,10 @@ function AvantageItem({icon , title , desc}) {
         <div className="avantage-item-icon">
             {icon}
         </div>
-        <h1 className="avantage-item-title">
-            {title}
-        </h1>
-        <p className="avantage-item-desc">
-            {desc}
-        </p>
+        <div className="avantage-item-info">
+            <h2>{title}</h2>
+            <p>{desc}</p>
+        </div>
     </div>
   )
 }

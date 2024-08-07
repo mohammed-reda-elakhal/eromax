@@ -1,6 +1,7 @@
 .footer{
     display: flex;
     flex-direction: column;
+    background: var(--gradien2);
 }
 .footer-header{
     width: 80%;
@@ -13,10 +14,11 @@
 .footer-header p{
     font-size: 16px;
     margin-bottom: 1em;
+    color: var(--gray);
 }
 .footer-header strong{
     font-size: 18px;
-    color: var(--limon);
+    color: var(--white);
 }
 .footer-traduction{
     display: flex;
@@ -24,6 +26,7 @@
     border-left: 2px solid var(--primary2);
     margin: 16px 0;
 }
+
 .footer-traduction button{
     width: 120px;
     font-size: 12px;
@@ -49,11 +52,15 @@
     align-items: start;
 }
 .footer-link{
-    color: var(--gray2);
+    color: var(--gray);
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
     padding: 8px 0;
+    transition-duration: 0.3s;
+}
+.footer-link:hover{
+    color: var(--limon);
 }
 
 .footer-info{
@@ -62,18 +69,26 @@
 .footer-info img{
     width: 150px;
 }
+.footer-title-section{
+    color: var(--white);
+}
 .footer-info p{
     width: 280px; /* Adjust the width until you get the desired word wrap */
     font-size: 16px; /* Example font size */
     line-height: 1.6; /* Adjust line height for better readability */
     word-wrap: break-word;
     margin: 12px 0;
+    color: var(--gray);
 }
 
 .footer-icon{
-    color: var(--primary1);
+    color: var(--white);
     font-size: 18px;
     margin-right: 12px;
+    transition-duration: 0.3s;
+}
+.footer-icon:hover{
+    color: var(--limon);
 }
 .footer-icon:last-child{
     margin-right: 0;

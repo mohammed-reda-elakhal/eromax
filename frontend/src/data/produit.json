@@ -1,0 +1,57 @@
+
+[
+    {
+        "id": 1,
+        "nom": "Produit A",
+        "image":"",
+        "qte": 40,
+        "categorie": "Catégorie 1",
+        "etat": true,
+        "is_variant":true,
+        "variant": [
+          {
+            "id": 1,
+            "nom": "Variante A1",
+            "qte": 10
+          },
+          {
+            "id": 2,
+            "nom": "Variante A2",
+            "qte": 30
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "nom": "Produit B",
+        "image":"",
+        "qte":40,
+        "categorie": "Catégorie 2",
+        "etat": false,
+        "is_variant":true,
+        "variant": [
+          {
+            "id": 3,
+            "nom": "Variante B1",
+            "qte": 15
+          },
+          {
+            "id": 4,
+            "nom": "Variante B2",
+            "qte": 25
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "nom": "Produit C",
+        "image":"",
+        "qte":12,
+        "categorie": "Catégorie 3",
+        "etat": true,
+        "is_variant":false,
+        "variant": [
+          
+        ]
+      }
+]

@@ -11,6 +11,8 @@ const app = express();
 //Middelwares 
 app.use(express.json());
 
+
+
 // Routes 
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));
