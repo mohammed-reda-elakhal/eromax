@@ -8,25 +8,18 @@ connectToDB();
 // init App
 const app = express();
 
-//Middelwares  
+//Middelwares 
 app.use(express.json());
 
 // Routes 
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));
-<<<<<<< HEAD
 app.use("/api/client", require("./routes/clientRoute"));
 app.use("/api/store", require("./routes/storeRoute"));
 app.use("/api/livreur",require("./routes/livreurRoute"));
 app.use("/api/produit",require("./routes/produitRoute"));
 app.use("/api/variante",require("./routes/varianteRoute"));
 app.use("/api/team",require("./routes/teamRoute"))
-=======
-app.use("/api/store", require("./routes/storeRoute"));
-app.use("/api/client", require("./routes/clientRoute"));
-app.use("/api/livreur", require("./routes/livreurRoute"));
-app.use("/api/produit", require("./routes/produitRoute"));
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
 //Running server 
 const port =process.env.PORT || 8084;

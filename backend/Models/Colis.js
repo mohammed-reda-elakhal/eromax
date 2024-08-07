@@ -9,7 +9,6 @@ const ColisSchema = new mongoose.Schema({
         unique: true,
         default: shortid.generate
     },
-<<<<<<< HEAD
     clientId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Client',
@@ -60,54 +59,6 @@ const ColisSchema = new mongoose.Schema({
         type: String,
         default: "attente de ramassage",
     },
-=======
-    code_suivi: {
-        type: String,
-        unique: true,
-    },
-    nom: {
-        type: String,
-        required: true,
-    },
-    tele: {
-        type: Number,
-        required: true,
-        trim: true,
-        minlength: 10,
-        maxlength: 10,
-    },
-    ville: {
-        type: String,
-        required: true,
-    },
-    code_ville: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Ville'
-    },
-    adresse: {
-        type: String,
-        required: true,
-    },
-    commentaire: {
-        type: String,
-    },
-    prix: {
-        type: Number,
-        required: true,
-    },
-    nature_produit: {
-        type: String,
-        required: true,
-    },
-    etat: {
-        type: Boolean,
-        default: false,
-    },
-    statut: {
-        type: String,
-        default: "attente de ramassage",
-    },
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
     ouvrir: {
         type: Boolean,
         default: true,

@@ -1,7 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const { Colis, validateRegisterColis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
-<<<<<<< HEAD
 const crypto = require("crypto");
 const { Client } = require("../Models/Client");
 const {Store} =require("../Models/Store");
@@ -26,29 +25,11 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) =>{
     return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
   }
 
-=======
-
-
-/**
- * -------------------------------------------------------------------
- * @desc     Create new colis
- * @route    /api/colis/
- * @method   POST
- * @access   private (only logged in user)
- * -------------------------------------------------------------------
- **/
-module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
-  if (!req.body) {
-    return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
-  }
-
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
   // Input validation
   const { error } = validateRegisterColis(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
-<<<<<<< HEAD
 
   // Validate that req.user.store is a valid ObjectId if it's present
   let store = req.user.store;
@@ -73,47 +54,26 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   
     console.log("code_suivi",code_suivi);
 
-=======
-
-  // Validate that req.user.store is a valid ObjectId if it's present
-  let store = req.user.store;
-  let team = null;
-
-  if (!store) {
-    store = null;
-    team = req.user.id;
-  }
-
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
   // Create and save the new Colis
   const newColis = new Colis({
     ...req.body,
     store,
-<<<<<<< HEAD
     team,
     code_suivi,
   });
 
-=======
-    team
-  });
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
   
   const saveColis = await newColis.save();
 
    // Populate store and team data
    await saveColis.populate('store');
    await saveColis.populate('team');
-<<<<<<< HEAD
 
    // Verify that code_suivi is not null before proceeding
    if (!newColis.code_suivi) {
     console.log("Error: code_suivi is null after saving Colis");
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
-=======
- 
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
   // Create and save the new Suivi_Colis
   const suivi_colis = new Suivi_Colis({
@@ -129,10 +89,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     colis: saveColis, 
     suiviColis: save_suivi 
   });
-<<<<<<< HEAD
   console.log("created");
-=======
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 });
 
 /**
@@ -205,7 +162,6 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
   res.status(200).json(colis);
 });
 
-<<<<<<< HEAD
 
 /**
  * 
@@ -242,8 +198,6 @@ exports.getColisByClient=asyncHandler(async(req,res)=>{
 
 
 
-=======
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 /**
  * -------------------------------------------------------------------
  * @desc     delete colis
@@ -309,15 +263,9 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
     "refusée",
   ];
 
-<<<<<<< HEAD
  /*  if (!validStatuses.includes(new_status)) {
     return res.status(400).json({ message: "Invalid status value" });
   } */
-=======
-  if (!validStatuses.includes(new_status)) {
-    return res.status(400).json({ message: "Invalid status value" });
-  }
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
   // verify statu === expidie ( to work )
 
@@ -333,11 +281,7 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
   await colis.save();
 
   // Update the corresponding date in Suivi_Colis
-<<<<<<< HEAD
   const suivi_colis = await Suivi_Colis.findOne({ id_colis:colis._id });
-=======
-  const suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
 
   if (!suivi_colis) {
     return res.status(404).json({ message: "Suivi_Colis not found" });
@@ -380,7 +324,6 @@ module.exports.getSuiviColis= asyncHandler(async(req,res)=>{
         return res.status(404).json({ message: "S'il vous pliz vérifier code de suivi" });
     }
     res.status(200).json(suivi_colis);
-<<<<<<< HEAD
 });
 
 
@@ -426,6 +369,3 @@ exports.getColisByStore= asyncHandler(async(req,res)=>{
 
 })
 
-=======
-})
->>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
