@@ -6,6 +6,7 @@ const path = require("path");
 const { cloudinaryUploadImage, cloudinaryRemoveImage } = require("../utils/cloudinary");
 const fs = require("fs");
 const File = require("../Models/File");
+const { Colis } = require("../Models/Colis");
 
 /** -------------------------------------------
  * @desc get list of clients
@@ -222,6 +223,57 @@ const UploadClientFiles = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: err.message });
     }
 });
+const generateInvoice = async (req, res) => {
+    const { colisId } = req.params; // Assuming colisId is passed as a URL parameter
+
+    try {
+        // Fetch Colis data and populate related fields
+        const colis = await Colis.findById(colisId)
+            //.populate('produits.produit') // Ensure these fields are correctly defined in the schema
+            .populate('livreur'); // Ensure these fields are correctly defined in the schema
+
+        if (!colis) {
+            return res.status(404).json({ error: "Colis not found" });
+        }
+        console.log(colis);
+
+        // Fetch Store to get the Client ID
+        const storeId= colis.store
+         const store = await Store.findById(storeId); // Assuming `id_store` is the reference in Colis
+
+       if (!store) {
+            return res.status(404).json({ error: "Store not found" });
+        }
+
+        // Fetch Client using the ID from Store
+        const client = await Client.findById(store.id_client);
+
+        if (!client) {
+            return res.status(404).json({ error: "Client not found" });
+        }
+
+        // Extract necessary data for the invoice
+        const invoiceData = {
+            code_suivi: colis.code_suivi,
+            date_livraison: new Date(colis.createdAt).toLocaleDateString(),
+            telephone: client.tele,
+            ville: colis.ville,
+            produit: colis.nature_produit,
+            etat: colis.statut === "livré" ? "Livré" : "En cours",
+            crbt: colis.prix,
+            frais: 40, // Assuming this is a fixed fee
+            total_brut: colis.prix,
+            total_net: colis.prix - 40, // Subtract fixed fee from total price
+        };
+
+        // Return the invoice data
+        res.json(invoiceData);
+
+    } catch (err) {
+         console.error("Error generating invoice:", err);
+    res.status(500).json({  message: "Internal server error", error: err.message });
+ }
+};
 
 module.exports = {
     getAllClients,
@@ -230,5 +282,6 @@ module.exports = {
     updateClient,
     deleteClient,
     clientPhotoController,
-    UploadClientFiles
+    UploadClientFiles,
+    generateInvoice
 };

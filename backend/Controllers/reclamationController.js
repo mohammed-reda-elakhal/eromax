@@ -8,7 +8,7 @@ const { Reclamation } = require('../Models/Reclamation');
  */
 const getReclamations = async (req, res) => {
     try {
-        const reclamations = await Reclamation.find({ userId: req.user._id });
+        const reclamations = await Reclamation.find()
         res.status(200).json(reclamations);
     } catch (error) {
         res.status(500).json({ message: 'Failed to retrieve reclamations', error: error.message });
@@ -21,7 +21,7 @@ const getReclamationById = async (req, res) => {
     try {
         const reclamation = await Reclamation.findById(req.params.id);
 
-        if (!reclamation || reclamation.userId.toString() !== req.user._id.toString()) {
+        if (!reclamation) {
             return res.status(404).json({ message: 'Reclamation not found' });
         }
 
@@ -36,9 +36,9 @@ const getReclamationById = async (req, res) => {
 const createReclamation = asyncHandler(async(req,res)=>{
 
     try{
-        const {subject,description}=req.body;
+        const {clientId,subject,description}=req.body;
         const reclamation =new Reclamation({
-            clientId:req.client._id,
+            clientId,
             subject,
             description
         });
@@ -58,17 +58,15 @@ const createReclamation = asyncHandler(async(req,res)=>{
  * 
 */
 
-const getReclamationByClient= asyncHandler(async(req,res)=>{
-    try{
-        const reclamation = await Reclamation.find({clientId:req.user._id});
+const getReclamationByClient = asyncHandler(async (req, res) => {
+    try {
+        const { id_user } = req.params; 
+        const reclamation = await Reclamation.find({ clientId: id_user }); 
         res.status(200).json(reclamation);
-
-    }catch(e){
-        res.status(500).json({message:'Failed to get reclamation',error:e.message});
-
+    } catch (e) {
+        res.status(500).json({ message: 'Failed to get reclamation', error: e.message });
     }
 });
-
 /**
  * 
 */
@@ -114,7 +112,7 @@ const updateReclamation= asyncHandler(async(req,res)=>{
 const updateReclamationStatus = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { resolu } = req.body;
+        //const { resolu } = req.body;
 
         // Find the reclamation by ID
         const reclamation = await Reclamation.findById(id);
@@ -139,12 +137,17 @@ const deleteReclamtion = asyncHandler(async(req,res)=>{
     try{
 
         const reclamation = await Reclamation.findById(req.params.id)
+        console.log(reclamation);
         if(!reclamation){
             return res.status(404).json({message:'Reclamtion not found'});
         }
         if(reclamation.resolu){  
+            console.log('before deleting');
+            const result = await reclamation.deleteOne();
+            console.log('Deletion result:', result);
             reclamation.deleteOne();
-            res.status(200).json({message: "Reclamgion deleted succcessfully"});
+            console.log(reclamation._id);
+            res.status(200).json({message: "Reclamation deleted succcessfully"});
         }else{
             return res.status(400).json({ message: 'Cannot delete a reclamation that is not resolved' });
         }

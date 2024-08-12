@@ -24,7 +24,7 @@ const createNotification = asyncHandler(async (req, res) => {
  */
 const getNotifications = asyncHandler(async(req,res) => {
     try {
-        const notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 });
+        const notifications = await Notification.find().sort({ createdAt: -1 });
         res.status(200).json(notifications);
     } catch (error) {
         res.status(500).json({ message: 'Failed to retrieve notifications', error: error.message });
@@ -64,7 +64,7 @@ const deleteNotification = async (req, res) => {
 
         const notif = await Notification.findById(id);
 
-        if (!notif || notif.userId.toString() !== req.user._id.toString()) {
+        if (!notif) {
             return res.status(404).json({ message: 'Notification not found' });
         }
 

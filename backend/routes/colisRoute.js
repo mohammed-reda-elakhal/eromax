@@ -13,6 +13,8 @@ const {
         verifyTokenStoreTeamAdminClient
         } = require("../Middlewares/VerifyToken"); 
 const { updateSuiviColis } = require("../Controllers/suivi_colisController");
+const { isValidObjectId } = require("mongoose");
+const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
 //Router api/colis
@@ -48,5 +50,8 @@ router.route('/truck/:code_suivi')
 
 // router api/colis/colisStore/:id_store get colis by store 
 router.route("/colisStore/:id").get(colisController.getColisByStore);
+
+
+
 
 module.exports= router;

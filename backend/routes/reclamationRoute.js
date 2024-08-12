@@ -11,6 +11,9 @@ router.route("/:id")
         .get(getReclamationById)
         .put(updateReclamation)
         .delete(deleteReclamtion)
+
 router.route("/statut/:id").put(updateReclamationStatus);
 // api/reclamation/:id_user
-router.route("/:id_user").get(getReclamationByClient)
+router.route("/client/:id_user").get(getReclamationByClient)
+
+module.exports=router;
