@@ -1,8 +1,9 @@
 const asyncHandler = require('express-async-handler');
-const {Store} = require('../models/Store');
+const {Store} = require('../Models/Store');
 const path = require("path")
 const fs = require("fs")
-const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary")
+const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary");
+
 
 
 
@@ -87,10 +88,53 @@ const deleteStore = asyncHandler(async (req, res) => {
   res.json({ message: 'Store deleted' });
 });
 
+/**
+ * @desc Update-photo-Controller
+ * @router /api/store/:id/photo
+ * @method POST
+ * @access private client
+ */
+ 
+ const storePhotoController= asyncHandler(async(req,res)=>{
+
+  console.log('Inside storePhotoController controller');
+  //Validation 
+  if(!req.file){
+    return req.status(400).json({message:"no file provided"});
+  }
+  //2. get image path 
+  const imagePath = path.join(__dirname,`../images/${req.file.filename}`);
+  //3. Upload to cloudinary
+  const result= await cloudinaryUploadImage(imagePath)
+  console.log(result);
+  //4. Get the store from db
+  const store= await Store.findById(req.params.id);
+  //5. Delete the old profile photo if exists 
+  if(store.image.publicId !== null){
+    await cloudinaryRemoveImage(store.image.publicId);
+
+  }
+  //6. change image url in DB
+  store.image={
+    url:result.secure_url,
+    publicId : result.public_id
+  }
+  await store.save();
+  //7. send response to client 
+  res.status(200).json({ message: 'Photo successfully uploaded', image: store.image });
+
+
+  //8. Remove Image from the server 
+  fs.unlinkSync(imagePath);
+
+
+ });
+
 module.exports = {
   getAllStores,
   getStoreById,
   updateStore,
   deleteStore,
   createStores,
+  storePhotoController
 };

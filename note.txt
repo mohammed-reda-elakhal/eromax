@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+create file Models and controller 
+photoupload mdelleware  
+=======
 
  -- list statu
 
@@ -43,3 +47,4 @@ store : {
   nom : "store name"
   .... more data
 }
+>>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada

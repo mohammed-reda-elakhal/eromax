@@ -9,8 +9,12 @@ const {
         verifyTokenAndLivreur,
         verifyTokenAndStore,
         verifyTokenStoreTeamAdmin,
-        verifyTokenAdminTeam
-        } = require("../Middlewares/VerifyToken") 
+        verifyTokenAdminTeam,
+        verifyTokenStoreTeamAdminClient
+        } = require("../Middlewares/VerifyToken"); 
+const { updateSuiviColis } = require("../Controllers/suivi_colisController");
+const { isValidObjectId } = require("mongoose");
+const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
 //Router api/colis
@@ -19,7 +23,7 @@ router.route('/')
 
 // Router api/colis/:id_user or :id_store
 router.route('/:id_user')
-        .post( verifyTokenStoreTeamAdmin , colisController.CreateColisCtrl)
+        .post(verifyTokenStoreTeamAdminClient,colisController.CreateColisCtrl)
         .get( verifyTokenStoreTeamAdmin , colisController.getColisByUserOrStore)
 
 
@@ -37,9 +41,16 @@ router.route('/:code_suivi')
 router.route('/statu/:id')
         .put(colisController.UpdateStatusCtrl)
 
+//router api/colis/St
+router.route("/St/:id").put(updateSuiviColis)
+
 // router api/colis/truck/:code_suivi
 router.route('/truck/:code_suivi')
         .get(colisController.getSuiviColis)
+
+// router api/colis/colisStore/:id_store get colis by store 
+router.route("/colisStore/:id").get(colisController.getColisByStore);
+
 
 
 

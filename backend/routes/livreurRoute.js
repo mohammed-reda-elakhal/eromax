@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur  } = require("../Controllers/livreurController");
+const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur, getLivreurbyVille  } = require("../Controllers/livreurController");
 const router = express.Router();
 
 
@@ -14,4 +14,6 @@ router.route("/:id")
         .put(updateLivreur)
         .delete(deleteLivreur)
 
+//  api/livreur/ville  ---- get Livreurs by Ville
+router.route("/ville").post(getLivreurbyVille)
 module.exports= router;

@@ -4,12 +4,10 @@ const jwt = require("jsonwebtoken");
 const { Admin, validateLogin, adminValidation } = require("../Models/Admin");
 const { Client , clientValidation } = require("../Models/Client");
 const { Livreur, livreurValidation } = require("../Models/Livreur");
-const { Store } = require("../models/Store");
+const { Store } = require("../Models/Store");
 const { teamValidation, Team } = require("../Models/Team");
-
-
 const generateToken = (id, role, store) => {
-    return jwt.sign({ id, role, store }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    return jwt.sign({ id, role, store }, process.env.JWT_SECRET, { expiresIn: '1y' });
 };
 
 /**

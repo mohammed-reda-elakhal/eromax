@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 
 const VilleSchema = new mongoose.Schema({
-  ref_ville: String,
-  nom_ville: String
+  key:String,
+  ref: String,
+  nom: String,
+  tarif:{
+    type:Number
+  }
 });
 
 const Ville = mongoose.model('Ville', VilleSchema);

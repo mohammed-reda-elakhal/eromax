@@ -1,5 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const { Produit, validateProduit } = require("../Models/Produit");
+const { default: mongoose } = require("mongoose");
+const { Variante } = require("../Models/Variante");
 
 /** -------------------------------------------
  *@desc create produit  
@@ -113,6 +115,60 @@ const updateProduit = asyncHandler(async (req, res) => {
 
     res.status(200).json(produit);
 });
+ 
+const createProduitVariantes = asyncHandler(async (req, res) => {
+    const { error } = validateProduit(req.body);
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { nom, image, categorie, quantite, variants, etat } = req.body;
+    const id_client = req.body.id_client;
+
+    try {
+        // Create the product
+        const produit = new Produit({
+            id_client,
+            nom,
+            image,
+            categorie,
+            quantite:Number(quantite),
+            etat,
+            variants
+        });
+        
+        
+        // If variants are provided, calculate the quantite as the sum of all variant stocks
+        if (produit.variants && produit.variants.length > 0) {
+            produit.quantite = variants.reduce((total, variant) => total + variant.stock, 0);
+        }
+
+        // Save the product
+        const savedProduit = await produit.save();
+
+        // Create and save the variants
+        if (variants && variants.length > 0) {
+            const variantDocuments = variants.map(variant => ({
+                id_produit: savedProduit._id,
+                nom_variante: variant.name,
+                quantite: variant.stock
+            }));
+            
+            const savedVariants = await Variante.insertMany(variantDocuments);
+
+            // Update the product with the created variants
+            savedProduit.variants = savedVariants.map(variant => variant._id);
+            await savedProduit.save();
+        }
+
+       
+
+        res.status(201).json(savedProduit);
+    } catch (error) {
+     
+        res.status(500).json({ message: "An error occurred while creating the product and its variants", error: error.message });
+    }
+});
 
 
 /** -------------------------------------------
@@ -197,5 +253,6 @@ module.exports = {
     updateProduit , 
     updateProduitQuantity,
     deleteProduit, 
-    getProduitById
+    getProduitById,
+    createProduitVariantes
 };
