@@ -1,12 +1,19 @@
 const  express = require("express");
 const connectToDB= require("./config/connectToDb");
 require('dotenv').config;
+const cors = require('cors')
 
 // Connection To DB
 connectToDB();
 
 // init App
 const app = express();
+
+// cors
+app.use(cors({
+    origin:"http://localhost:3000"
+}))
+
 
 //Middelwares  
 app.use(express.json());
@@ -18,6 +25,8 @@ app.use("/api/store", require("./routes/storeRoute"));
 app.use("/api/client", require("./routes/clientRoute"));
 app.use("/api/livreur", require("./routes/livreurRoute"));
 app.use("/api/produit", require("./routes/produitRoute"));
+
+
 
 //Running server 
 const port =process.env.PORT || 8084;

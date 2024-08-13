@@ -84,13 +84,13 @@ function Header() {
                     handleLanguageChange={handleLanguageChange} 
                 />
                 <Link to='/' className="header-bottom-logo">
-                    <img src="/image/logo.png" alt="" />
+                    <img src="/image/logo_2.png" alt="" />
                 </Link>
                 <div className="header-bottom-links">
                     <Link to={`/register`} className="header-bottom-link">
                         Devenir Client
                     </Link>
-                    <Link to={`/register`} className="header-bottom-link">
+                    <Link to={`/register/livreur`} className="header-bottom-link">
                         Devenir Livreur
                     </Link>
                     <Link to={`/login`} className="header-bottom-link">

@@ -279,3 +279,13 @@
     grid-template-columns: repeat(2,1fr);
   }
 }
+
+@keyframes changeColor {
+  0% { color: yellow; }
+  50% { color: red; }
+  100% { color: black; }
+}
+
+.change-color-animation {
+  animation: changeColor 2s infinite;
+}

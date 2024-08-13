@@ -9,7 +9,7 @@ router.post("/register/livreur",registerLivreur);
 router.post("/register/team",registerTeam);
 
 // api/auth/login/:role
-router.get("/login/:role",loginProfileCtrl);
+router.post("/login/:role",loginProfileCtrl);
 
 // api/auth/selectStore
 router.get("/selectStore",selectStoreCtrl);

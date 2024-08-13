@@ -33,7 +33,7 @@ function HomeDashboard() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        <Notification/>
+                        <Notification theme={theme}/>
                         <Statistic theme={theme}/>
                     </div>
                 </div>

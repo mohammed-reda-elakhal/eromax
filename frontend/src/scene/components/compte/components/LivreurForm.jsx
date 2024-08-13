@@ -3,14 +3,17 @@ import { Form, Input, Button, Select } from 'antd';
 
 const { Option } = Select;
 
-function LivreurForm({ onClose, initialValues, onSubmit }) {
+function LivreurForm({ onClose, initialValues, onSubmit , formLivreur }) {
   const [form] = Form.useForm();
 
   useEffect(() => {
+    // check id 
     if (initialValues) {
       form.setFieldsValue(initialValues);
+    }else{
+      form.setFieldsValue('')
     }
-  }, [initialValues, form]);
+  }, [formLivreur]);
 
   const onFinish = (values) => {
     onSubmit(values);
@@ -28,7 +31,7 @@ function LivreurForm({ onClose, initialValues, onSubmit }) {
       <Form.Item
         name="nom"
         label="Nom"
-        rules={[{ required: true, message: 'Veuillez entrer le nom' }]}
+        rules={[{ required: false, message: 'Veuillez entrer le nom' }]}
       >
         <Input placeholder="Nom" />
       </Form.Item>

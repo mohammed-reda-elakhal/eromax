@@ -5,7 +5,7 @@ import { FaRegPenToSquare } from "react-icons/fa6";
 import { Descriptions } from 'antd';
 
 function ProfileInfo() {
-    const [verify , setVerify] = useState(true)
+    const [verify , setVerify] = useState(false)
     const items = [
         {
           key: '1',
