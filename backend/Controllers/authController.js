@@ -76,7 +76,7 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
             return res.status(200).json({
                 message: "Login successful. Please select a store.",
                 user,
-                stores: stores.map(store => ({ id: store._id, name: store.name }))
+                stores: stores.map(store => ({ id: store._id, name: store.storeName }))
             });
         }
     } else {

@@ -1,0 +1,22 @@
+[
+    {
+        "id" : "1",
+        "desc" : "Vous n'avez pas complété le téléchargement de vos documents. Veuillez télécharger le(s) document(s) suivant(s) pour assurer un accès ininterrompu à toutes les fonctionnalités de l'application",
+        "visible":false
+    },
+    {
+        "id" : "2",
+        "desc" : "Vous devrez faire une demande à chaque fois que vous souhaitez retirer de l'argent et vous le recevrez dans les 24 heures.",
+        "visible":true
+    },
+    {
+        "id" : "3",
+        "desc" : "بناءا على الظهير الشريف الصادر بتاريخ 27 ربيع الثاني 1343 – 25 نونبر 1924. نعلمكم بزنائنا الكرام انه يمنع منع كليا إرسال الطرود التي تقل عن 1 كيلوغرام. ونشكركم على تفهمكم وتعاونكم المستمر",
+        "visible":true
+    },
+    {
+        "id" : "4",
+        "desc" : "تنويه هام: نلفت انتباه جميع زبائننا إلى أننا غير مسؤولين عن فقدان اي روتور بعد مرور فترة شهر من تاريخ روجوعه ولم يتم اخده او طلبه عبر منصتنا . يرجى ملاحظة أننا نبذل قصارى جهدنا لضمان تسليم الروتور بشكل سليم وفي الوقت المحدد، ولكن لا يمكننا ضمان الأحداث الخارجة عن إرادتنا. نشكركم على تفهمكم وتعاونكم",
+        "visible":true
+    }
+]

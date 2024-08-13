@@ -22,7 +22,7 @@ function ClientForm({ initialValues, onSubmit, onClose }) {
             <Form.Item label="Prénom" name="prenom" rules={[{ required: true, message: 'Please input the first name!' }]}>
                 <Input />
             </Form.Item>
-            <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please input the username!' }]}>
+            <Form.Item label="Username" name="username" rules={[{ required: false, message: 'Please input the username!' }]}>
                 <Input />
             </Form.Item>
             <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Please input the email!' }]}>

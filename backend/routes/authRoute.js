@@ -15,7 +15,7 @@ router.post("/register/team",registerTeam);
 
 // api/auth/login/:role
 router.post("/login/:role",loginProfileCtrl);
-// api/auth/login/client/file
+
 
 router.post("/login",loginProfileCtrl);
 // api/auth/selectStore

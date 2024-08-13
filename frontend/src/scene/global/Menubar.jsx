@@ -1,30 +1,22 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { PieChartOutlined } from '@ant-design/icons';
-import { Drawer, Menu } from 'antd';
+import { Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
-import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
-import StoreDown from './StoreDown';
-import { FaTachometerAlt } from "react-icons/fa";
-import { FcMoneyTransfer } from "react-icons/fc";
-import { LuBox } from "react-icons/lu";
+import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt } from "react-icons/fa";
+import { IoWalletSharp } from "react-icons/io5";
+import { LuBox, LuScanLine } from "react-icons/lu";
 import { BiTagAlt } from "react-icons/bi";
 import { BsFillInboxesFill } from "react-icons/bs";
-import { IoWalletSharp } from "react-icons/io5";
-import { LuScanLine } from "react-icons/lu";
-import { FaUser } from "react-icons/fa";
-
-
-
+import { CgDanger } from "react-icons/cg";
+import StoreDown from './StoreDown';
+import { MdEditNotifications } from "react-icons/md";
 
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
-  
-  // Get initial collapsed state from localStorage or default to false
-  const initialCollapsed = JSON.parse(localStorage.getItem('menuCollapsed')) || false;
-  const [collapsed, setCollapsed] = useState(initialCollapsed);
+  const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
+  const [isNewReclamation, setIsNewReclamation] = useState(false);
 
   const toggleCollapsed = () => {
     const newCollapsedState = !collapsed;
@@ -59,7 +51,7 @@ function Menubar() {
         inlineCollapsed={collapsed}
         className='menu'
       >
-        <div className="header-menu">
+        <div className={`header-menu reclamation-item`}>
           {collapsed ? '' : (
             <img
               src={theme === 'dark' ? '/image/logo.png' : '/image/logo-light.png'}
@@ -82,9 +74,22 @@ function Menubar() {
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
+        
+        <Menu.Item icon={<CgDanger />} className= {isNewReclamation ? "change-color-animation" : ""}>
+          <Link to="/dashboard/reclamation" >Reclamation</Link>
+        </Menu.Item>
+
 
         <Menu.Item icon={<FaUser />}>
           <Link to="/dashboard/compte">Comptes</Link>
+        </Menu.Item>
+
+        <Menu.Item icon={<MdEditNotifications />}>
+          <Link to="/dashboard/notification">Notification</Link>
+        </Menu.Item>
+
+        <Menu.Item icon={<FaCity />}>
+          <Link to="/dashboard/ville">Villes</Link>
         </Menu.Item>
 
         <Menu.Item icon={<IoWalletSharp />}>

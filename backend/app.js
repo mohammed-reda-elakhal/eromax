@@ -1,6 +1,7 @@
 const  express = require("express");
 const connectToDB= require("./config/connectToDb");
 require('dotenv').config;
+
 const cors = require("cors")
 
 
@@ -10,7 +11,6 @@ connectToDB();
 // init App
 const app = express();
 
-//Middelwares 
 app.use(express.json());
 
 //Cors Policy 
@@ -33,6 +33,8 @@ app.use('/api/notification',require('./routes/notificationRoute'));
 app.use('/api/meth',require('./routes/methRoute'));
 app.use('/api/payement',require('./routes/payementRoute'));
 app.use('/api/ville',require('./routes/villeRoute'));
+
+
 
 //Running server 
 const port =process.env.PORT || 8084;

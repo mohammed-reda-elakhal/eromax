@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { EyeInvisibleOutlined, EyeTwoTone, MailFilled } from '@ant-design/icons';
 import { Input, Checkbox, Button } from 'antd';
-import type { CheckboxProps } from 'antd';
 import { Link } from 'react-router-dom';
+import {useDispatch} from 'react-redux'
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../redux/apiCalls/authApiCall';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [role , setRole] = useState('client')
 
-  const handleCheckboxChange: CheckboxProps['onChange'] = (e) => {
-    setRememberMe(e.target.checked);
-  };
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = {
-      email,
-      password,
-      rememberMe,
-    };
-    console.log('Form Data:', formData);
+      email , password 
+    }
+    dispatch(loginUser(formData, role , navigate )) // admin => username
     clearData();
   };
 
@@ -57,12 +57,6 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
             iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
           />
-          <div className="remember-me">
-            <Checkbox checked={rememberMe} onChange={handleCheckboxChange}>Remember me</Checkbox>
-            <Link style={{ textDecoration: "none" }}>
-              Oublié mots de passe
-            </Link>
-          </div>
           <Button type="primary" block htmlType="submit">
             Log in
           </Button>

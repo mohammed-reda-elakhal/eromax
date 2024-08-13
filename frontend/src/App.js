@@ -25,6 +25,14 @@ import ColisLivrée from "./scene/components/colis/pages/ColisLivrée";
 import Scan from "./scene/components/scan/page/Scan";
 import Compte from "./scene/components/compte/page/Compte";
 import Profile from "./scene/components/profile/page/Profile";
+import Ville from "./scene/components/ville/page/Ville";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import RegisterLivreur from "./Vitrine page/RegisterLivreur";
+import ProtectedRoute from "./utils/ProtectedRoute";
+import SelectStore from "./Vitrine page/SelectStore";
+import Reclamation from "./scene/components/reclamation/page/Reclamation";
+import Notification from "./scene/components/notification/page/Notification";
 
 
 function App() {
@@ -141,18 +149,24 @@ function App() {
 
   return (
     <CustomThemeProvider>
+        <ToastContainer/>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/register/livreur" element={<RegisterLivreur />} />
 
           
-          <Route path='dashboard'>
+          <Route path='dashboard' element={<ProtectedRoute/>}>
+            <Route path="select-store" element= {<SelectStore/>} />
             <Route path="home" element={<HomeDashboard />} />
             <Route path="compte" element={<Compte />} />
             <Route path="profile" element={<Profile />} />
             <Route path="portfeuille" element={<Portfeuille />} />
             <Route path="scan" element={<Scan />} /> 
+            <Route path="ville" element={<Ville />} /> 
+            <Route path="reclamation" element={<Reclamation />} /> 
+            <Route path="notification" element={<Notification />} /> 
 
             <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
             <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
