@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Menu } from 'antd';
+import { Drawer, Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -11,12 +11,15 @@ import { BsFillInboxesFill } from "react-icons/bs";
 import { CgDanger } from "react-icons/cg";
 import StoreDown from './StoreDown';
 import { MdEditNotifications } from "react-icons/md";
+import Solde from '../components/portfeuille/components/SoldeCart'
+import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
   const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
   const [isNewReclamation, setIsNewReclamation] = useState(false);
+  const [openWallet, setOpenWallet] = useState(false);
 
   const toggleCollapsed = () => {
     const newCollapsedState = !collapsed;
@@ -93,8 +96,17 @@ function Menubar() {
         </Menu.Item>
 
         <Menu.Item icon={<IoWalletSharp />}>
-          <Link to="/dashboard/portfeuille">Portfeuille</Link>
+          <Link onClick={()=>setOpenWallet(true)}>Portfeuille</Link>
         </Menu.Item>
+        <Drawer
+          title="Portfeuille"
+          open={openWallet}
+          onClose={()=>setOpenWallet(prev=>!prev)}
+        >
+            <Solde/>
+            <DemandeRetrait theme={theme} />
+        </Drawer>
+
 
         <Menu.Item icon={<LuScanLine />}>
           <Link to="/dashboard/scan">Scan</Link>

@@ -74,7 +74,7 @@ function StoreDown({theme , collapsed}) {
                 }}
                 icon={<UserOutlined />}
             />
-            {collapsed ? '' : <p>{selectedStore.name}</p>}
+            {collapsed ? '' : <p>{selectedStore ? selectedStore.name : ""}</p>}
         </div>
         {collapsed ? '' :
           <Dropdown 

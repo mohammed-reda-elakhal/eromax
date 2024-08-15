@@ -7,6 +7,9 @@ import { Link } from 'react-router-dom';
 import { ImProfile , ImExit } from "react-icons/im";
 import { IoIosNotifications } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
+import { IoWallet } from "react-icons/io5";
+import { FaRegEyeSlash } from "react-icons/fa";
+import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 
 const { Header } = Layout;
 
@@ -19,7 +22,7 @@ const menu = (
       </Link>
     </Menu.Item>
     <Menu.Item style={{width:"150px"}} key="exit">
-      <Link className='link_topbar' to="/dashboard/home ">
+      <Link className='link_topbar' to="/login ">
         <ImExit/>
         Deconnecter
       </Link>
@@ -50,6 +53,10 @@ const styleIcon = {
 function Topbar() {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [open, setOpen] = useState(false);
+  const [showSolde, setShowSolde] = useState(false);
+  const [openRetrait, setOpenRetrait] = useState(false);
+
+  
   const showDrawer = () => {
     setOpen(true);
   };
@@ -64,7 +71,19 @@ function Topbar() {
         }}
         className='top-bar'
       >
-        <div className="topbar-logo"> 
+        <div 
+          className="topbar-walet"
+          style={{
+            backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
+            color: theme === 'dark' ? '#fff' : '#002242',
+          }}
+        > 
+          <div className="solde-wallet" onClick={()=>setShowSolde(prev => !prev)}>
+            {
+              showSolde ? <p>10000 <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>
+            }
+          </div>
+          <Avatar icon={<IoWallet/>} size={25} className='wallet_icon' onClick={()=>setOpenRetrait(true)} />
         </div>
         <div className="control-topbar">
             {
@@ -93,10 +112,17 @@ function Topbar() {
             </Drawer>
             <Dropdown overlay={menu}>
               <Avatar
-                    icon={<UserOutlined />}
-                />
+                icon={<UserOutlined />}
+              />
             </Dropdown> 
         </div>
+        <Drawer
+          title="Demande De Retreit" 
+          onClose={()=>setOpenRetrait(prev=>!prev)} 
+          open={openRetrait}
+        >
+          <DemandeRetrait theme={theme} />
+        </Drawer>
       </Header>
   );
 }

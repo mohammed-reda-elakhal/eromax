@@ -5,15 +5,17 @@ import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import tarifData from '../../../../data/tarif.json'
 import Title from '../../../global/Title';
-import { Button, Image, Tabs } from 'antd';
+import { Button, Drawer, Image, Tabs } from 'antd';
 import { FaInfoCircle, FaPenFancy, FaPlus, FaRegUser , FaStore } from "react-icons/fa";
 import { MdPayment , MdOutlineSecurity, MdDelete } from "react-icons/md";
 import TableDashboard from '../../../global/TableDashboard';
 import { Link } from 'react-router-dom';
+import VilleForm from '../components/VilleForm';
 
 
 function Ville() {
     const { theme } = useContext(ThemeContext);
+    const [villeDrawer , setVilleDrawer] = useState(false)
     const columns = [
         {
             title: 'Ref',
@@ -83,10 +85,18 @@ function Ville() {
                         <Button
                             icon = {<FaPlus/>}
                             type='primary'
+                            onClick={()=>setVilleDrawer(prev=> !prev)}
                         >
                             Ajouter Tarif
                         </Button>
                         <TableDashboard theme={theme} column={columns} id="id" data={tarifData} />
+                        <Drawer
+                            title="Ville et Tarif"
+                            open={villeDrawer}
+                            onClose={()=>setVilleDrawer(prev => !prev)}
+                        >
+                            <VilleForm theme={theme}/>
+                        </Drawer>
                     </div>
                 </div>
             </main>
