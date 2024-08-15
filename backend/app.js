@@ -2,12 +2,8 @@ const  express = require("express");
 const connectToDB= require("./config/connectToDb");
 require('dotenv').config;
 
-<<<<<<<<< Temporary merge branch 1
 const cors = require("cors")
 
-=========
-const cors = require('cors')
->>>>>>>>> Temporary merge branch 2
 
 // Connection To DB
 connectToDB();
@@ -15,17 +11,9 @@ connectToDB();
 // init App
 const app = express();
 
-<<<<<<<<< Temporary merge branch 1
-//Middelwares 
-=========
-// cors
-app.use(cors({
-    origin:"http://localhost:3000"
-}))
 
 
-//Middelwares  
->>>>>>>>> Temporary merge branch 2
+
 app.use(express.json());
 
 //Cors Policy 
