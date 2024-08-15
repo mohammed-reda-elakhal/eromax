@@ -10,25 +10,12 @@ import { IoClose } from "react-icons/io5";
 import { IoWallet } from "react-icons/io5";
 import { FaRegEyeSlash } from "react-icons/fa";
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
+import {useDispatch} from 'react-redux'
+import { logoutUser } from '../../redux/apiCalls/authApiCall';
 
 const { Header } = Layout;
 
-const menu = (
-  <Menu>
-    <Menu.Item style={{width:"150px"}} key="ramasse">
-      <Link className='link_topbar' to="/dashboard/profile">
-        <ImProfile/>
-        Profile
-      </Link>
-    </Menu.Item>
-    <Menu.Item style={{width:"150px"}} key="exit">
-      <Link className='link_topbar' to="/login ">
-        <ImExit/>
-        Deconnecter
-      </Link>
-    </Menu.Item>
-  </Menu>
-);
+
 const notifications = [
   {
     "id": 1,
@@ -49,13 +36,31 @@ const styleIcon = {
     fontSize : '24',
     cursor : 'pointer'
 }
+let menu;
 
 function Topbar() {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [open, setOpen] = useState(false);
   const [showSolde, setShowSolde] = useState(false);
   const [openRetrait, setOpenRetrait] = useState(false);
+  const dispatch = useDispatch()
 
+  menu = (
+    <Menu>
+      <Menu.Item style={{width:"150px"}} key="ramasse">
+        <Link className='link_topbar' to="/dashboard/profile">
+          <ImProfile/>
+          Profile
+        </Link>
+      </Menu.Item>
+      <Menu.Item style={{width:"150px"}} key="exit">
+        <Link className='link_topbar' onClick={()=>dispatch(logoutUser())}>
+          <ImExit/>
+          Deconnecter
+        </Link>
+      </Menu.Item>
+    </Menu>
+  );
   
   const showDrawer = () => {
     setOpen(true);
