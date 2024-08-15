@@ -80,6 +80,7 @@ function validateProduit(product) {
 
 const Produit = mongoose.model("Product", ProductSchema);
 
+
 module.exports = {
     Produit,
     validateProduit,

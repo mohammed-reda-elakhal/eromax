@@ -9,6 +9,10 @@ const ColisSchema = new mongoose.Schema({
         unique: true,
         default: shortid.generate
     },
+    clientId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Client',
+    },
     code_suivi: {
         type: String,
         unique: true,

@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table } from 'antd';
-import Highlighter from 'react-highlight-words';
+import {  Table } from 'antd';
 
 function TableDashboard({column , data , id , theme , onSelectChange}) {
   const [client , setClient] = useState(false)

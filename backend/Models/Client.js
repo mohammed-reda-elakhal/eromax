@@ -29,13 +29,11 @@ const ClientSchema= new mongoose.Schema({
     start_date:{
         type:String,
     },
-    nomber_colis:{
+    number_colis:{
         type:String,
     },
-    file:{
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'file' 
-    },
+    files: [{ type: mongoose.Schema.Types.ObjectId, ref: 'File' }] //Array of fiels 
+    
 },{
     timestamps: true
 })
@@ -63,7 +61,7 @@ const clientValidation = (obj) => {
         active: Joi.boolean().default(true),
         role: Joi.string().default("client"),
         start_date:Joi.string(),
-        nomber_colis:Joi.string(),
+        number_colis:Joi.string(),
     });
     return clientJoiSchema.validate(obj);
 }
