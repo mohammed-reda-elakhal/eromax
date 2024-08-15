@@ -1,6 +1,7 @@
 const  express = require("express");
 const connectToDB= require("./config/connectToDb");
 require('dotenv').config;
+
 <<<<<<<<< Temporary merge branch 1
 const cors = require("cors")
 
