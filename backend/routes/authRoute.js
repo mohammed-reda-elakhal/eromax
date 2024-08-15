@@ -12,11 +12,6 @@ router.post("/register/client",registerClient);
 router.post("/register/livreur",registerLivreur);
 router.post("/register/team",registerTeam);
 
-<<<<<<<<< Temporary merge branch 1
-=========
-// api/auth/login/:role
-router.post("/login/:role",loginProfileCtrl);
->>>>>>>>> Temporary merge branch 2
 
 // api/auth/login/:role
 router.post("/login/:role",loginProfileCtrl);
