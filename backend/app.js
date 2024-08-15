@@ -1,6 +1,7 @@
 const  express = require("express");
 const connectToDB= require("./config/connectToDb");
 require('dotenv').config;
+const cors = require("cors")
 
 // Connection To DB
 connectToDB();
@@ -8,10 +9,7 @@ connectToDB();
 // init App
 const app = express();
 
-// cors
-app.use(cors({
-    origin:"http://localhost:3000"
-}))
+
 
 
 //Middelwares 
@@ -23,6 +21,7 @@ app.use(cors({
     origin: "http://localhost:3000", // Removed trailing slash
     credentials: true
 }));
+
 // Routes 
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));

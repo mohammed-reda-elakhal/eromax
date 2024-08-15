@@ -28,6 +28,8 @@ function Client({ theme }) {
 
     const openDrawer = (client) => {
         setCurrentClient(client || {}); // If no client is passed, assume it's an 'Add' operation
+        console.log(client);
+        
         setDrawerVisible(true);
     };
 
