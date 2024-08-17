@@ -7,6 +7,7 @@ const { cloudinaryUploadImage, cloudinaryRemoveImage } = require("../utils/cloud
 const fs = require("fs");
 const File = require("../Models/File");
 const { Colis } = require("../Models/Colis");
+const { Suivi_Colis } = require("../Models/Suivi_Colis");
 
 /** -------------------------------------------
  * @desc get list of clients
@@ -223,7 +224,7 @@ const UploadClientFiles = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: err.message });
     }
 });
-const generateInvoice = async (req, res) => {
+const generateFactureClient = async (req, res) => {
     const { colisId } = req.params; // Assuming colisId is passed as a URL parameter
 
     try {
@@ -236,6 +237,14 @@ const generateInvoice = async (req, res) => {
             return res.status(404).json({ error: "Colis not found" });
         }
         console.log(colis);
+        if (colis.statut !== "livrée") {
+            return res.status(400).json({ error: "La facture ne peut être générée que pour les colis livrés." });
+        }
+        const suiviColis = await Suivi_Colis.findOne({ id_colis: colisId });
+        if (!suiviColis) {
+            return res.status(404).json({ error: "Suivi de colis not found" });
+        }
+        const livraisonUpdate = suiviColis.status_updates.find(update => update.status === "livrée");
 
         // Fetch Store to get the Client ID
         const storeId= colis.store
@@ -253,9 +262,9 @@ const generateInvoice = async (req, res) => {
         }
 
         // Extract necessary data for the invoice
-        const invoiceData = {
+        const factureData = {
             code_suivi: colis.code_suivi,
-            date_livraison: new Date(colis.createdAt).toLocaleDateString(),
+            date_livraison: new Date(livraisonUpdate.date).toLocaleDateString(),
             telephone: client.tele,
             ville: colis.ville,
             produit: colis.nature_produit,
@@ -267,10 +276,10 @@ const generateInvoice = async (req, res) => {
         };
 
         // Return the invoice data
-        res.json(invoiceData);
+        res.json(factureData);
 
     } catch (err) {
-         console.error("Error generating invoice:", err);
+         console.error("Error generating Facture Client:", err);
     res.status(500).json({  message: "Internal server error", error: err.message });
  }
 };
@@ -283,5 +292,5 @@ module.exports = {
     deleteClient,
     clientPhotoController,
     UploadClientFiles,
-    generateInvoice
+    generateFactureClient
 };

@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllClients, getClientById, createClient, updateClient, deleteClient, clientPhotoController, UploadClientfiles, UploadClientFiles, generateInvoice } = require("../Controllers/clientControllers");
+const { getAllClients, getClientById, createClient, updateClient, deleteClient, clientPhotoController, UploadClientfiles, UploadClientFiles, generateFactureClient } = require("../Controllers/clientControllers");
 const photoUpload = require("../Middlewares/photoUpload");
 const { verifyToken, verifyTokenAndStore, verifyTokenAndClient } = require("../Middlewares/VerifyToken");
 const fileUpload = require("../Middlewares/fileUpload");
@@ -18,6 +18,6 @@ router.route("/:id")
 
 router.route("/:id/photo").post(verifyTokenAndClient,photoUpload.single("image"),clientPhotoController);
 router.route("/files/:id").post(fileUpload.single('file'),UploadClientFiles);
-router.get('/generate/:colisId',generateInvoice
+router.get('/generate/:colisId',generateFactureClient
     );
 module.exports= router;

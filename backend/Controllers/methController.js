@@ -30,7 +30,7 @@ const createMeth = async (req, res) => {
             return res.status(400).json({ error: 'Bank name is required' });
         }
 
-        // Ensure the file has been uploaded via Multer
+        // Ensure the file has uploaded in req
         if (!req.file) {
             return res.status(400).json({ error: 'No image file uploaded' });
         }
@@ -40,7 +40,7 @@ const createMeth = async (req, res) => {
         // Upload the image to Cloudinary
         const result = await cloudinaryUploadImage(imagePath);
 
-        // Check if there was an error during upload
+        // Check error during upload
         if (result instanceof Error) {
             return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: result.message });
         }
