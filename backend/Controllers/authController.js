@@ -10,7 +10,7 @@ const generateToken = (id, role, store) => {
     return jwt.sign({ id, role, store }, process.env.JWT_SECRET, { expiresIn: '1y' });
 };
 
-/**
+/**  
  * @desc Login Profile
  * @route POST /api/auth/login/:role
  * @access public
@@ -76,12 +76,13 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
             return res.status(200).json({
                 message: "Login successful. Please select a store.",
                 user,
-                stores: stores.map(store => ({ id: store._id, name: store.name }))
+                stores : stores.map(store => ({ id : store._id ,  storeName : store.storeName }))
             });
         }
     } else {
         token = generateToken(user._id, user.role, "");
     }
+
 
     // Respond with token and user profile
     res.status(200).json({
@@ -90,9 +91,11 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
         user
     });
 });
-
 module.exports.selectStoreCtrl = asyncHandler(async (req, res) => {
-    const { userId, storeId } = req.body;
+    const { userId, storeId } = req.query;
+
+    // Log received data for debugging
+    console.log('Received data:', { userId, storeId });
 
     // Validate the user and store
     const user = await Client.findById(userId);

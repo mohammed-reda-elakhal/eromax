@@ -1,0 +1,66 @@
+[
+    {
+      "nom": "Boutique A",
+      "client": "John Doe",
+      "tele": "+1234567890",
+      "code_suivi": "COL12345A",
+      "description": "Le colis est arrivé endommagé.",
+      "etat": false
+    },
+    {
+      "nom": "Shop B",
+      "client": "Jane Smith",
+      "tele": "+0987654321",
+      "code_suivi": "COL67890B",
+      "description": "Le colis n'est pas arrivé à temps.",
+      "etat": true
+    },
+    {
+      "nom": "Market C",
+      "client": "Ahmed Karim",
+      "tele": "+2134567890",
+      "code_suivi": "COL11223C",
+      "description": "Erreur dans le contenu du colis.",
+      "etat": false
+    },
+    {
+      "nom": "Store D",
+      "client": "Emily Brown",
+      "tele": "+6543210987",
+      "code_suivi": "COL44556D",
+      "description": "Le colis a été perdu en transit.",
+      "etat": true
+    },
+    {
+      "nom": "Supermarket E",
+      "client": "David Lee",
+      "tele": "+9876543210",
+      "code_suivi": "COL77889E",
+      "description": "Le colis a été livré à la mauvaise adresse.",
+      "etat": false
+    },
+    {
+      "nom": "Shop F",
+      "client": "Laura Davis",
+      "tele": "+3210987654",
+      "code_suivi": "COL99001F",
+      "description": "Le colis est arrivé en retard.",
+      "etat": true
+    },
+    {
+      "nom": "Boutique G",
+      "client": "Mohamed Ali",
+      "tele": "+4567890123",
+      "code_suivi": "COL22334G",
+      "description": "Le contenu du colis est incomplet.",
+      "etat": false
+    },
+    {
+      "nom": "Store H",
+      "client": "Sara Wilson",
+      "tele": "+7890123456",
+      "code_suivi": "COL55667H",
+      "description": "Le colis a été endommagé lors de la livraison.",
+      "etat": true
+    }
+  ]

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import clientData from '../../../../data/client.json';
-import { FaPenFancy, FaInfoCircle } from "react-icons/fa";
+import { FaPenFancy, FaInfoCircle , FaPlus } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { Avatar, Button, Modal, Drawer } from 'antd';
 import ClientForm from './ClientForm'; // Import the ClientForm component
@@ -28,6 +28,8 @@ function Client({ theme }) {
 
     const openDrawer = (client) => {
         setCurrentClient(client || {}); // If no client is passed, assume it's an 'Add' operation
+        console.log(client);
+        
         setDrawerVisible(true);
     };
 
@@ -155,6 +157,7 @@ function Client({ theme }) {
         <div>
             <Button 
                 type="primary" 
+                icon={FaPlus}
                 style={{ marginBottom: 16 }} 
                 onClick={() => openDrawer(null)}>
                 Add Client

@@ -3,14 +3,17 @@ import { Form, Input, Button, Select } from 'antd';
 
 const { Option } = Select;
 
-function LivreurForm({ onClose, initialValues, onSubmit }) {
+function LivreurForm({ onClose, initialValues, onSubmit , formLivreur }) {
   const [form] = Form.useForm();
 
   useEffect(() => {
+    // check id 
     if (initialValues) {
       form.setFieldsValue(initialValues);
+    }else{
+      form.setFieldsValue('')
     }
-  }, [initialValues, form]);
+  }, [formLivreur]);
 
   const onFinish = (values) => {
     onSubmit(values);
@@ -42,14 +45,6 @@ function LivreurForm({ onClose, initialValues, onSubmit }) {
       </Form.Item>
 
       <Form.Item
-        name="username"
-        label="Username"
-        rules={[{ required: true, message: 'Veuillez entrer le username' }]}
-      >
-        <Input placeholder="Username" />
-      </Form.Item>
-
-      <Form.Item
         name="email"
         label="Email"
         rules={[{ required: true, type: 'email', message: 'Veuillez entrer un email valide' }]}
@@ -64,11 +59,27 @@ function LivreurForm({ onClose, initialValues, onSubmit }) {
       >
         <Input placeholder="Téléphone" />
       </Form.Item>
+      
+      <Form.Item
+        name="password"
+        label="Password"
+        rules={[{ required: true, message: 'Veuillez entrer password' }]}
+      >
+        <Input placeholder="Adresse" />
+      </Form.Item>
+
+      <Form.Item
+        name="username"
+        label="Username"
+        rules={[{ required: false, message: 'Veuillez entrer le username' }]}
+      >
+        <Input placeholder="Username" />
+      </Form.Item>
 
       <Form.Item
         name="ville"
         label="Ville"
-        rules={[{ required: true, message: 'Veuillez entrer la ville' }]}
+        rules={[{ required: false, message: 'Veuillez entrer la ville' }]}
       >
         <Input placeholder="Ville" />
       </Form.Item>
@@ -76,15 +87,17 @@ function LivreurForm({ onClose, initialValues, onSubmit }) {
       <Form.Item
         name="adress"
         label="Adresse"
-        rules={[{ required: true, message: 'Veuillez entrer l\'adresse' }]}
+        rules={[{ required: false, message: 'Veuillez entrer l\'adresse' }]}
       >
         <Input placeholder="Adresse" />
       </Form.Item>
+      
+     
 
       <Form.Item
         name="region"
         label="Région"
-        rules={[{ required: true, message: 'Veuillez sélectionner une région' }]}
+        rules={[{ required: false, message: 'Veuillez sélectionner une région' }]}
       >
         <Select mode="multiple" placeholder="Sélectionnez une région">
           <Option value="Nantes">Nantes</Option>

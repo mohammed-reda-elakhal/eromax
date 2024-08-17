@@ -148,6 +148,7 @@ function Livreur({theme}) {
                 initialValues={selectedLivreur} 
                 onClose={() => setFormLivreur(false)} 
                 onSubmit={handleSubmit}
+                formLivreur = {formLivreur}
             />
         </Drawer>
         <Modal
