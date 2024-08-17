@@ -25,6 +25,8 @@ import ColisLivrée from "./scene/components/colis/pages/ColisLivrée";
 import Scan from "./scene/components/scan/page/Scan";
 import Compte from "./scene/components/compte/page/Compte";
 import Profile from "./scene/components/profile/page/Profile";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
@@ -141,6 +143,7 @@ function App() {
 
   return (
     <CustomThemeProvider>
+      <ToastContainer/>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

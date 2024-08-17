@@ -3,24 +3,30 @@ import { EyeInvisibleOutlined, EyeTwoTone, MailFilled } from '@ant-design/icons'
 import { Input, Checkbox, Button } from 'antd';
 import type { CheckboxProps } from 'antd';
 import { Link } from 'react-router-dom';
-
+import {useDispatch , useSelector} from "react-redux"
+import { loginUser } from '../redux/apiCalls/authApiCall';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
+  const dispatch=useDispatch()
+  const user = useSelector((state) => state.auth.user);
+
   const handleCheckboxChange: CheckboxProps['onChange'] = (e) => {
     setRememberMe(e.target.checked);
   };
-
+//form submit handler 
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = {
       email,
       password,
-      rememberMe,
+      //rememberMe,
     };
     console.log('Form Data:', formData);
+    dispatch(loginUser({email,password}));
+
     clearData();
   };
 
