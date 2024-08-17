@@ -9,17 +9,21 @@ import { LuBox, LuScanLine } from "react-icons/lu";
 import { BiTagAlt } from "react-icons/bi";
 import { BsFillInboxesFill } from "react-icons/bs";
 import { CgDanger } from "react-icons/cg";
-import StoreDown from './StoreDown';
+import StoreDown from './StoreDown'; // Ensure this component is correctly implemented
 import { MdEditNotifications } from "react-icons/md";
-import Solde from '../components/portfeuille/components/SoldeCart'
+import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
-
+import { useSelector } from 'react-redux';
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
   const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
   const [isNewReclamation, setIsNewReclamation] = useState(false);
   const [openWallet, setOpenWallet] = useState(false);
+  const { user } = useSelector((state) => state.auth);
+  
+  // Example data for stores (replace with actual data fetching logic)
+  const stores = user.role === "client" ? [{ id: 'store1', storeName: 'Store 1' }, { id: 'store2', storeName: 'Store 2' }] : [];
 
   const toggleCollapsed = () => {
     const newCollapsedState = !collapsed;
@@ -71,17 +75,19 @@ function Menubar() {
             {collapsed ? <FaAngleDoubleRight /> : <FaAngleDoubleLeft />}
           </button>
         </div>
-        
-        <StoreDown theme={theme} collapsed={collapsed} />
+
+        {/* Conditionally render StoreDown if user is a client and there are stores */}
+        {user.role === "client" && (
+          <StoreDown stores={stores} theme={theme} collapsed={collapsed} />
+        )}
 
         <Menu.Item icon={<FaTachometerAlt />}>
-          <Link to="/dashboard/home">Accueil</Link>
-        </Menu.Item>
-        
-        <Menu.Item icon={<CgDanger />} className= {isNewReclamation ? "change-color-animation" : ""}>
-          <Link to="/dashboard/reclamation" >Reclamation</Link>
+          <Link to="/dashboard/home" onClick={() => console.log(user.role)}>Accueil</Link>
         </Menu.Item>
 
+        <Menu.Item icon={<CgDanger />} className={isNewReclamation ? "change-color-animation" : ""}>
+          <Link to="/dashboard/reclamation">Reclamation</Link>
+        </Menu.Item>
 
         <Menu.Item icon={<FaUser />}>
           <Link to="/dashboard/compte">Comptes</Link>
@@ -96,17 +102,16 @@ function Menubar() {
         </Menu.Item>
 
         <Menu.Item icon={<IoWalletSharp />}>
-          <Link onClick={()=>setOpenWallet(true)}>Portfeuille</Link>
+          <Link onClick={() => setOpenWallet(true)}>Portfeuille</Link>
         </Menu.Item>
         <Drawer
           title="Portfeuille"
           open={openWallet}
-          onClose={()=>setOpenWallet(prev=>!prev)}
+          onClose={() => setOpenWallet(prev => !prev)}
         >
-            <Solde/>
-            <DemandeRetrait theme={theme} />
+          <Solde />
+          <DemandeRetrait theme={theme} />
         </Drawer>
-
 
         <Menu.Item icon={<LuScanLine />}>
           <Link to="/dashboard/scan">Scan</Link>
@@ -117,34 +122,29 @@ function Menubar() {
             <Link to="/dashboard/list-colis">List Colis</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link 
-              to="/dashboard/ajouter-colis/simple"
-            >
-              Ajouter Colis
-            </Link>
+            <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-r">Colis Ramasse</Link> 
+            <Link to="/dashboard/colis-r">Colis Ramasse</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-ex">Colis Expidie</Link> 
+            <Link to="/dashboard/colis-ex">Colis Expidie</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-rc">Colis Reçu</Link> 
+            <Link to="/dashboard/colis-rc">Colis Reçu</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-md">Colis Mise en Distribution</Link> 
+            <Link to="/dashboard/colis-md">Colis Mise en Distribution</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-l">Colis Livrée</Link> 
+            <Link to="/dashboard/colis-l">Colis Livrée</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/import-colis">Import Colis</Link> 
+            <Link to="/dashboard/import-colis">Import Colis</Link>
           </Menu.Item>
-
         </Menu.SubMenu>
 
         <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
@@ -158,10 +158,9 @@ function Menubar() {
             <Link to="/dashboard/colis-stock">Colis Stock</Link>
           </Menu.Item>
           <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/import-colis">Import Colis (Stock)</Link> 
+            <Link to="/dashboard/import-colis">Import Colis (Stock)</Link>
           </Menu.Item>
         </Menu.SubMenu>
-        
       </Menu>
     </div>
   );

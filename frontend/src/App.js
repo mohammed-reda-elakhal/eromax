@@ -157,7 +157,7 @@ function App() {
           <Route path="/register/livreur" element={<RegisterLivreur />} />
 
           
-          <Route path='dashboard' element={<ProtectedRoute/>}>
+          <Route path='dashboard' >
             <Route path="select-store" element= {<SelectStore/>} />
             <Route path="home" element={<HomeDashboard />} />
             <Route path="compte" element={<Compte />} />

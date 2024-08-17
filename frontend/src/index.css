@@ -32,34 +32,61 @@ code {
   display: flex;
   height: 100vh;
 }
-.login-section-cover{
-  width: 50%;
-  height:100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--gradien2);
-}
-.login-section-cover img{
-  width: 400px;
-}
 
 .login-section-main{
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 40%;
+  height: max-content;
+  width: max-content;
+  margin: auto;
+  box-shadow: 2px 2px 5px var(--gray);
+  padding-bottom: 3rem;
+  border-radius: 8px;
+
+}
+.login-section-toplogo{
+  background: var(--primary);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  
+  text-align: center;
 }
 .login-section-main-header{
   width: 80%;
-  margin: 0 auto;
+  margin: 16px auto;
 }
+.login-section-role {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Ensures equal spacing between items */
+  border-bottom: var(--secondary) 1px solid;
+  padding-top: 8px;
+  margin-bottom: 2rem;
+}
+
+.login-section-role p {
+  flex: 1 1 33%; /* Flex-grow, flex-shrink, and flex-basis */
+  text-align: center; /* Center text inside each <p> */
+  padding: 10px; /* Optional: Adds padding inside each <p> */
+  box-sizing: border-box; /* Ensures padding and border are included in the width */
+  cursor: pointer;
+  transition-duration: 0.5s;
+  font-weight: 700;
+  font-size: 1em;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+
+.login-section-role p:not(:last-child) {
+  border-right: 1px solid var(--primary); /* Replace with your desired color */
+}
+
+
 .login-section-main-header h3{
   color: var(--primary);
   font-weight: 600;
   margin: 8px 0;
-  font-size: 24px;
+  font-size: 18px;
 }
 .login-section-main-header p {
   color: var(--gray);

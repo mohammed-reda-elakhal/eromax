@@ -1,11 +1,10 @@
-import { createSlice } from "@reduxjs/toolkit"
-
+import { createSlice } from "@reduxjs/toolkit";
 
 const authSlice = createSlice({
     name: "auth",
     initialState: {
         user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null,
-        stores : [] ,
+        stores: JSON.parse(localStorage.getItem("stores")) || [],  // Ensure stores is an array
         selectedStore: localStorage.getItem("selectedStore") ? JSON.parse(localStorage.getItem("selectedStore")) : null,
     },
     reducers: {
@@ -17,17 +16,16 @@ const authSlice = createSlice({
             state.selectedStore = null;
             localStorage.removeItem("selectedStore");
         },
-        setStores(state , action){
-            state.stores = action.payload
+        setStores(state, action) {
+            state.stores = action.payload;
         },
-        selectStore(state, action) {
-            state.selectedStore = action.payload;
-            localStorage.setItem("selectedStore", JSON.stringify(action.payload));
-        }
+        selectStore(state, action) {  // Renamed to match action name
+            state.selectedStore = action.payload;  // Renamed state property to 'selectedStore'
+        },
     }
 });
 
 const authReducer = authSlice.reducer;
-const authActions = authSlice.actions
+const authActions = authSlice.actions;
 
-export { authActions , authReducer}
+export { authActions, authReducer };
