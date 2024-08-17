@@ -50,6 +50,8 @@ router.route('/truck/:code_suivi')
 
 // router api/colis/colisStore/:id_store get colis by store 
 router.route("/colisStore/:id").get(colisController.getColisByStore);
+router.route("/livreur").post(colisController.affecterLivreur);
+
 
 
 
