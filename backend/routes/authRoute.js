@@ -17,10 +17,10 @@ router.post("/register/team",registerTeam);
 router.post("/login/:role",loginProfileCtrl);
 
 
-router.post("/login",loginProfileCtrl);
 // api/auth/selectStore
 router.get("/selectStore",selectStoreCtrl);
 
+router.post("/login",loginProfileCtrl);
 
 
 module.exports= router;

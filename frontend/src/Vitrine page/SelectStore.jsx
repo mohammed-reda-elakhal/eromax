@@ -1,38 +1,37 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Button, Select } from 'antd';
-import { authActions } from '../redux/slices/authSlice';
+import { selectStoreClient } from '../redux/apiCalls/authApiCall';
 
 const SelectStore = () => {
-    const [selectedStore, setSelectedStore] = useState(null);
-    const { stores, user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { user, stores } = useSelector(state => state.auth);
 
-    const handleStoreSelection = () => {
-        if (selectedStore) {
-            const selected = stores.find(store => store.id === selectedStore);
-            dispatch(authActions.selectStore(selected));
-            navigate('/dashboard/home');
+    const handleSelectStore = (storeId) => {
+        // Ensure user and user._id are defined
+        if (user && (user._id || user.user?._id)) {
+            const userId = user._id || user.user._id; // Determine the correct user ID
+            
+            console.log(userId, storeId);
+            
+            dispatch(selectStoreClient(userId, storeId, navigate));
+        } else {
+            console.error("User or user._id is undefined");
         }
     };
 
     return (
-        <div className="select-store">
-            <h2>Select a Store</h2>
-            <Select
-                placeholder="Select a store"
-                style={{ width: '100%', marginBottom: '20px' }}
-                onChange={(value) => setSelectedStore(value)}
-            >
-                {stores.map(store => (
-                    <Select.Option key={store.id} value={store.id}>{store.name}</Select.Option>
-                ))}
-            </Select>
-            <Button type="primary" onClick={handleStoreSelection} disabled={!selectedStore}>
-                Proceed to Dashboard
-            </Button>
+        <div>
+            <h1>Select Store</h1>
+            {stores.length > 0 ? (
+                stores.map(store => (
+                    <button key={store.id} onClick={() => handleSelectStore(store.id)}>
+                        {store.storeName}
+                    </button>
+                ))
+            ) : (
+                <p>No stores available.</p>
+            )}
         </div>
     );
 };
