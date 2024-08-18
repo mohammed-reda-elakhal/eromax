@@ -23,6 +23,10 @@ const StoreSchema = new moongose.Schema({
         minlength: 2,
         maxlength: 100
     },
+    default:{
+        type: Boolean,
+        required: true,
+    },
     somme:{
         type:Number
     }
