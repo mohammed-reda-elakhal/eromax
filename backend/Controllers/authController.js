@@ -23,17 +23,18 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
     }
 
     const { role } = req.params;
-    const { email, password } = req.body;
+    const { email, password , username } = req.body;
     let user;
     let token;
 
     // Fetch the user based on the role
-    if (role === "admin") {
-        user = await Admin.findOne({ email });
+    if (role === "staf") {
+        if(username){
+            user = await Admin.findOne({ email , username });
+        }else{
+            user = await Team.findOne({ email });
+        }
     }
-    else if(role === "team") {
-        user = await Team.findOne({ email });
-    } 
     else if (role === "client") {
         user = await Client.findOne({ email });
     } 
@@ -55,42 +56,34 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Handle client role with multiple stores
+    // Handle client role with default store
     if (role === "client") {
-        const stores = await Store.find({ id_client: user._id });
-        if (!stores || stores.length === 0) {
-            return res.status(400).json({ message: "No stores associated with this client" });
+        const store = await Store.findOne({ id_client: user._id, default: true });
+        if (!store) {
+            return res.status(400).json({ message: "Aucun store trouvée pour cet client" });
         }
+        
+        token = generateToken(user._id, user.role, store._id);
 
-        if (stores.length === 1) {
-            // If client has only one store, log in with that store
-            token = generateToken(user._id, user.role, stores[0]._id);
-            return res.status(200).json({
-                message: "Login successful",
-                token,
-                user,
-                store: stores[0]
-            });
-        } else {
-            // If client has multiple stores, return the list of stores
-            return res.status(200).json({
-                message: "Login successful. Please select a store.",
-                user,
-                stores : stores.map(store => ({ id : store._id ,  storeName : store.storeName }))
-            });
-        }
+        // Respond with token and user profile
+        return res.status(200).json({
+            message: "Login successful",
+            token,
+            user,
+            store
+        });
     } else {
         token = generateToken(user._id, user.role, "");
+
+        // Respond with token and user profile for non-client roles
+        return res.status(200).json({
+            message: "Login successful",
+            token,
+            user
+        });
     }
-
-
-    // Respond with token and user profile
-    res.status(200).json({
-        message: "Login successful",
-        token,
-        user
-    });
 });
+
 module.exports.selectStoreCtrl = asyncHandler(async (req, res) => {
     const { userId, storeId } = req.query;
 
@@ -140,11 +133,13 @@ module.exports.registerAdmin = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "User already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const admin = new Admin({ email, password: hashedPassword, ...rest });
+    const username = req.body.nom+"_"+req.body.prenom
+    const admin = new Admin({ email, password: hashedPassword, username ,  ...rest });
 
     await admin.save();
 
     res.status(201).json({
+        message : `Dashboard EROMAX`,
         _id: admin._id,
         email: admin.email,
         role: admin.role,
@@ -165,21 +160,23 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const client = new Client({ email, password: hashedPassword, ...rest });
+    const username = req.body.nom+"_"+req.body.prenom
+    const client = new Client({ email, password: hashedPassword, username , ...rest });
 
     await client.save();
 
     // create store of client
     let store = await Store.create({
         id_client : client._id,
-        storeName : req.body.storeName
+        storeName : req.body.storeName,
+        default : true
     })
 
     // Populate the client data in store
     store = await store.populate('id_client',  ["-password"]);
 
     res.status(201).json({
-        message : `Welcom ${client.Prenom} to your account EROMAX`,
+        message : `Welcom ${client.prenom} to your account EROMAX`,
         role: client.role,
         store
     });
@@ -199,11 +196,13 @@ module.exports.registerLivreur = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const livreur = new Livreur({ email, password: hashedPassword, ...rest });
+    const username = req.body.nom+"_"+req.body.prenom
+    const livreur = new Livreur({ email, password: hashedPassword , username , ...rest });
 
     await livreur.save();
 
     res.status(201).json({
+        message : `Welcom ${livreur.prenom} to your account EROMAX`,
         _id: livreur._id,
         email: livreur.email,
         role: livreur.role,
@@ -225,13 +224,16 @@ module.exports.registerTeam = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const team = new Team({ email, password: hashedPassword, ...rest });
+    const username = req.body.nom+"_"+req.body.prenom
+    const team = new Team({ email, password: hashedPassword, username , ...rest });
 
     await team.save();
 
     res.status(201).json({
+        message : `Welcom ${team.prenom} to your account EROMAX`,
         _id: team._id,
         email: team.email,
+        username ,
         role: team.role,
     });
 });

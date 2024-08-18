@@ -7,7 +7,7 @@ const AdminSchema = new moongose.Schema({
     //add additional attributes
     nom: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
     prenom: { type: String, required: true, minlength: 2 },
-    username: { type: String, required: true , minlength: 2 },
+    username: { type: String , minlength: 2 },
     tele: { type: String, required: true },
     password: { type: String, required: true, trim: true, minlength: 5 },
     email: { type: String, required: true, trim: true, minlength: 5, maxlength: 100, unique: true },
@@ -33,7 +33,7 @@ const adminValidation = (obj) => {
     const adminJoiSchema = Joi.object({
         nom: Joi.string().trim().min(2).max(100).required(),
         prenom: Joi.string().trim().min(2).required(),
-        username: Joi.string().required(),
+        username: Joi.string(),
         tele: Joi.string().required(),
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
@@ -53,6 +53,7 @@ const validateLogin = (obj) => {
     const adminJoiSchema = Joi.object({
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
+        username : Joi.string().trim().required()
     });
     return adminJoiSchema.validate(obj);
 }

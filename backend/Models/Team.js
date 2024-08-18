@@ -5,7 +5,7 @@ const teamSchema = new mongoose.Schema({
     //add additional attributes
     nom: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
     prenom: { type: String, required: true, minlength: 2 },
-    username: { type: String, required: true, minlength: 2 },
+    username: { type: String, minlength: 2 },
     ville: { type: String, required: true },
     adresse: { type: String, required: true },
     tele: { type: String, required: true},
@@ -39,7 +39,7 @@ const teamValidation = (obj) => {
     const teamJoiSchema = Joi.object({
         nom: Joi.string().trim().min(2).max(100).required(),
         prenom: Joi.string().trim().min(2).required(),
-        username: Joi.string().trim().min(2).required(),
+        username: Joi.string().trim().min(2),
         ville: Joi.string().required(),
         adresse: Joi.string().required(),
         tele: Joi.string().required(),

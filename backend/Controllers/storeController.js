@@ -18,7 +18,8 @@ const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudin
 const createStores = asyncHandler(async (req, res) => {
   let store = await Store.create({
     id_client : req.user.id,
-    storeName : req.body.storeName
+    storeName : req.body.storeName,
+    default : false
   })
   res.json(store);
 });

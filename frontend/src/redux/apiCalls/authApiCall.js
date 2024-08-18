@@ -7,7 +7,7 @@ export function loginUser(user, role, navigate) {
     return async (dispatch) => {
         try {
             const { data } = await request.post(`/api/auth/login/${role}`, user);
-            dispatch(authActions.login(data));
+            dispatch(authActions.login(data.user));
 
             if (role === "client") {
                 if (data.store) {

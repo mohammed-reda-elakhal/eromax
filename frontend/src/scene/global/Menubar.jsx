@@ -23,7 +23,7 @@ function Menubar() {
   const { user } = useSelector((state) => state.auth);
   
   // Example data for stores (replace with actual data fetching logic)
-  const stores = user.role === "client" ? [{ id: 'store1', storeName: 'Store 1' }, { id: 'store2', storeName: 'Store 2' }] : [];
+  const stores = [{ id: 'store1', storeName: 'Store 1' }, { id: 'store2', storeName: 'Store 2' }] 
 
   const toggleCollapsed = () => {
     const newCollapsedState = !collapsed;
@@ -78,7 +78,7 @@ function Menubar() {
 
         {/* Conditionally render StoreDown if user is a client and there are stores */}
         {user.role === "client" && (
-          <StoreDown stores={stores} theme={theme} collapsed={collapsed} />
+          <StoreDown  theme={theme} collapsed={collapsed} />
         )}
 
         <Menu.Item icon={<FaTachometerAlt />}>
