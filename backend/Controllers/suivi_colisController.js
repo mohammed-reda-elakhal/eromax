@@ -12,7 +12,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     "attend de ramassage",
          //   || admin changer statu => team replacer admin 
     "ramasser",
-    "expidie", // affectation livreur and get data  ( nom , tele ) , autorisation(a faire)
+    "expedié", // affectation livreur and get data  ( nom , tele ) , autorisation(a faire)
     "reçu",
     "mise en distribution",
     "livrée",

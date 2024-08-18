@@ -23,7 +23,7 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
     }
 
     const { role } = req.params;
-    const { email, password , username } = req.body;
+    const { email, password ,username} = req.body;
     let user;
     let token;
 
@@ -126,15 +126,17 @@ module.exports.registerAdmin = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password  , ...rest } = req.body;
+    const { email, password,username  , ...rest } = req.body;
 
     const userExists = await Admin.findOne({ email });
     if (userExists) {
         return res.status(400).json({ message: "User already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const username = req.body.nom+"_"+req.body.prenom
     const admin = new Admin({ email, password: hashedPassword, username ,  ...rest });
+
 
     await admin.save();
 
@@ -142,6 +144,7 @@ module.exports.registerAdmin = asyncHandler(async (req, res) => {
         message : `Dashboard EROMAX`,
         _id: admin._id,
         email: admin.email,
+        username:admin.username,
         role: admin.role,
     });
 });

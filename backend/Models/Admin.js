@@ -51,6 +51,7 @@ const adminValidation = (obj) => {
 
 const validateLogin = (obj) => {
     const adminJoiSchema = Joi.object({
+        username:Joi.string().trim(),
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
         username : Joi.string().trim().required()
