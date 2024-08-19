@@ -20,10 +20,12 @@ function Menubar() {
   const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
   const [isNewReclamation, setIsNewReclamation] = useState(false);
   const [openWallet, setOpenWallet] = useState(false);
+  const [userData , setUserData] = useState({})
   const { user } = useSelector((state) => state.auth);
   
-  // Example data for stores (replace with actual data fetching logic)
-  const stores = [{ id: 'store1', storeName: 'Store 1' }, { id: 'store2', storeName: 'Store 2' }] 
+  useEffect(()=>{
+    setUserData(user)
+  },[])
 
   const toggleCollapsed = () => {
     const newCollapsedState = !collapsed;
@@ -77,9 +79,12 @@ function Menubar() {
         </div>
 
         {/* Conditionally render StoreDown if user is a client and there are stores */}
-        {user.role === "client" && (
-          <StoreDown  theme={theme} collapsed={collapsed} />
-        )}
+         {
+          userData.role === "client" && (
+            <StoreDown  theme={theme} collapsed={collapsed} />
+          )
+         }   
+          
 
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home" onClick={() => console.log(user.role)}>Accueil</Link>
