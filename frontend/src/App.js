@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "./Vitrine page/Home";
 import Login from './Vitrine page/Login';
 import Register from './Vitrine page/Register';
@@ -25,6 +25,14 @@ import ColisLivrée from "./scene/components/colis/pages/ColisLivrée";
 import Scan from "./scene/components/scan/page/Scan";
 import Compte from "./scene/components/compte/page/Compte";
 import Profile from "./scene/components/profile/page/Profile";
+import Ville from "./scene/components/ville/page/Ville";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import RegisterLivreur from "./Vitrine page/RegisterLivreur";
+import ProtectedRoute from "./utils/ProtectedRoute";
+import Reclamation from "./scene/components/reclamation/page/Reclamation";
+import Notification from "./scene/components/notification/page/Notification";
+import { useSelector } from 'react-redux';
 
 
 function App() {
@@ -32,6 +40,7 @@ function App() {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
+  const { user } = useSelector((state) => state.auth);
   
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -143,11 +152,11 @@ function App() {
     <CustomThemeProvider>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard/home" /> : <Login />} />
           <Route path="/register" element={<Register />} />
 
           
-          <Route path='dashboard'>
+          <Route path='dashboard' element={<ProtectedRoute/>}>
             <Route path="home" element={<HomeDashboard />} />
             <Route path="compte" element={<Compte />} />
             <Route path="profile" element={<Profile />} />

@@ -54,7 +54,7 @@ const validateLogin = (obj) => {
         username:Joi.string().trim(),
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
-        username : Joi.string().trim().required()
+        username : Joi.string().trim()
     });
     return adminJoiSchema.validate(obj);
 }
