@@ -4,9 +4,8 @@ const authSlice = createSlice({
     name: "auth",
     initialState: {
         user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null,
-        store: JSON.parse(localStorage.getItem("store")) || [],  // Ensure stores is an array
-        token: localStorage.getItem("token") || null,
-       
+        stores: JSON.parse(localStorage.getItem("stores")) || [],  // Ensure stores is an array
+        selectedStore: localStorage.getItem("selectedStore") ? JSON.parse(localStorage.getItem("selectedStore")) : null,
     },
     reducers: {
         login(state, action) {
@@ -15,10 +14,13 @@ const authSlice = createSlice({
         logout(state) {
             state.user = null;
             state.selectedStore = null;
-            localStorage.removeItem("store");
+            localStorage.removeItem("selectedStore");
         },
-        setStore(state, action) {
+        setStores(state, action) {
             state.stores = action.payload;
+        },
+        selectStore(state, action) {  // Renamed to match action name
+            state.selectedStore = action.payload;  // Renamed state property to 'selectedStore'
         },
     }
 });

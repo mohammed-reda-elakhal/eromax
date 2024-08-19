@@ -2,18 +2,13 @@ import React, { useState } from 'react';
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import { Input, Button } from 'antd';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../redux/apiCalls/authApiCall';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [role, setRole] = useState('client');
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -22,6 +17,7 @@ function Login() {
     const formData = {
       email,
       password,
+      rememberMe
     };
 
     // Include username if role is 'staf' and username is not empty
@@ -30,7 +26,8 @@ function Login() {
     }
 
     // Dispatch login action
-    dispatch(loginUser(formData, role, navigate));
+    // dispatch(loginUser(formData, role, navigate)); // Uncomment this when ready to use
+    console.log('Form Data:', formData);
     clearData();
   };
 

@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const { Client } = require("../Models/Client");
 const {Store} =require("../Models/Store");
 const { default: mongoose } = require("mongoose");
+const { Livreur } = require("../Models/Livreur");
 
 
 // Utility function to generate a unique code_suivi
@@ -367,5 +368,47 @@ exports.getColisByStore= asyncHandler(async(req,res)=>{
     res.status(500).json({ message: "Internal server error", error: err.message });
   }
 
-})
+});
+
+module.exports.affecterLivreur = async (req, res) => {
+    const { colisId, livreurId } = req.body; // Assuming these are passed in the request body
+
+    try {
+        // Récupérer le colis par son ID
+        const colis = await Colis.findById(colisId);
+
+        if (!colis) {
+            return res.status(404).json({ message: "Colis not found" });
+        }
+
+        // Vérifier si le statut est "expédié"
+        if (colis.statut !== "expedié") {
+            return res.status(400).json({ message: "Colis is not in the 'expédié' status" });
+        }
+
+        // Récupérer le livreur par son ID
+        const livreur = await Livreur.findById(livreurId);
+
+        if (!livreur) {
+            return res.status(404).json({ message: "Livreur not found" });
+        }
+
+        // Affecter le livreur au colis
+        colis.livreur = livreurId;
+
+        // Sauvegarder les modifications
+        await colis.save();
+        const dataLiv = {
+          Nom:livreur.nom,
+          Tele:livreur.tele
+      };
+        res.status(200).json({ message: "Livreur assigned successfully", dataLiv });
+    } catch (error) {
+        console.error("Error assigning Livreur:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+
+
+
 

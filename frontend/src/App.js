@@ -150,12 +150,10 @@ function App() {
 
   return (
     <CustomThemeProvider>
-        <ToastContainer/>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard/home" /> : <Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/register/livreur" element={<RegisterLivreur />} />
 
           
           <Route path='dashboard' element={<ProtectedRoute/>}>
@@ -164,27 +162,24 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="portfeuille" element={<Portfeuille />} />
             <Route path="scan" element={<Scan />} /> 
-            <Route path="ville" element={<Ville />} /> 
-            <Route path="reclamation" element={<Reclamation />} /> 
-            <Route path="notification" element={<Notification />} /> 
 
-            <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
-            <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
-            <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
-            <Route path="colis-ex" element={<ColisExpide search = {getColumnSearchProps} />} />
-            <Route path="colis-rc" element={<ColisReçu search = {getColumnSearchProps} />} />
-            <Route path="colis-md" element={<ColisMiseDistribution search = {getColumnSearchProps} />} />
-            <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
-            <Route path="ajouter-colis/:type" element={<AjouterColis />} />
-            <Route path="import-colis" element={<ColisImport />} />
+          <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
+          <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
+          <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
+          <Route path="colis-ex" element={<ColisExpide search = {getColumnSearchProps} />} />
+          <Route path="colis-rc" element={<ColisReçu search = {getColumnSearchProps} />} />
+          <Route path="colis-md" element={<ColisMiseDistribution search = {getColumnSearchProps} />} />
+          <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
+          <Route path="ajouter-colis/:type" element={<AjouterColis />} />
+          <Route path="import-colis" element={<ColisImport />} />
 
-            <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
-            <Route path="ajouter-produit" element={<AjouterProduit />} />
-            <Route path="ajouter-produit-colis" element={<ProduitColis search = {getColumnSearchProps}/>} />
-            <Route path="colis-stock" element={<ColisStock />} />
-            
-          </Route>
-        </Routes>
+          <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
+          <Route path="ajouter-produit" element={<AjouterProduit />} />
+          <Route path="ajouter-produit-colis" element={<ProduitColis search = {getColumnSearchProps}/>} />
+          <Route path="colis-stock" element={<ColisStock />} />
+          
+        </Route>
+      </Routes>
     </CustomThemeProvider>
   );
 }
