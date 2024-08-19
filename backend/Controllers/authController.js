@@ -126,7 +126,7 @@ module.exports.registerAdmin = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password,username  , ...rest } = req.body;
+    const { email, password , ...rest } = req.body;
 
     const userExists = await Admin.findOne({ email });
     if (userExists) {
