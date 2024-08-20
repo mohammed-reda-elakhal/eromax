@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Home from "./Vitrine page/Home";
 import Login from './Vitrine page/Login';
 import Register from './Vitrine page/Register';
@@ -32,15 +32,12 @@ import RegisterLivreur from "./Vitrine page/RegisterLivreur";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import Reclamation from "./scene/components/reclamation/page/Reclamation";
 import Notification from "./scene/components/notification/page/Notification";
-import { useSelector } from 'react-redux';
-
 
 function App() {
 
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
-  const { user } = useSelector((state) => state.auth);
   
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -150,9 +147,10 @@ function App() {
 
   return (
     <CustomThemeProvider>
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard/home" /> : <Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           
@@ -180,6 +178,7 @@ function App() {
           
         </Route>
       </Routes>
+      </BrowserRouter>
     </CustomThemeProvider>
   );
 }

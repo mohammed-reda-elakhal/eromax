@@ -10,8 +10,6 @@ import { IoClose } from "react-icons/io5";
 import { IoWallet } from "react-icons/io5";
 import { FaRegEyeSlash } from "react-icons/fa";
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
-import {useDispatch} from 'react-redux'
-import { logoutUser } from '../../redux/apiCalls/authApiCall';
 
 const { Header } = Layout;
 
@@ -43,7 +41,6 @@ function Topbar() {
   const [open, setOpen] = useState(false);
   const [showSolde, setShowSolde] = useState(false);
   const [openRetrait, setOpenRetrait] = useState(false);
-  const dispatch = useDispatch()
 
   menu = (
     <Menu>
@@ -54,7 +51,7 @@ function Topbar() {
         </Link>
       </Menu.Item>
       <Menu.Item style={{width:"150px"}} key="exit">
-        <Link className='link_topbar' onClick={()=>dispatch(logoutUser())}>
+        <Link className='link_topbar'>
           <ImExit/>
           Deconnecter
         </Link>

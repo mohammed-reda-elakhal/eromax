@@ -1,12 +1,7 @@
 import React from 'react'
 import { DownOutlined , UserOutlined } from '@ant-design/icons';
 import { Menu, Divider, Dropdown, Space, Avatar } from 'antd';
-import { useSelector, useDispatch } from 'react-redux';
-
 function StoreDown({theme , collapsed}) {
-
-
-    const { selectedStore, user } = useSelector((state) => state.auth);
 
     const menuItemStyle = {
         display: 'flex',
