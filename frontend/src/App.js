@@ -147,6 +147,7 @@ function App() {
 
   return (
     <CustomThemeProvider>
+      <ToastContainer/>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -157,7 +158,7 @@ function App() {
           <Route path='dashboard' element={<ProtectedRoute/>}>
             <Route path="home" element={<HomeDashboard />} />
             <Route path="compte" element={<Compte />} />
-            <Route path="profile" element={<Profile />} />
+            <Route path="profile/:id" element={<Profile />} />
             <Route path="portfeuille" element={<Portfeuille />} />
             <Route path="scan" element={<Scan />} /> 
 

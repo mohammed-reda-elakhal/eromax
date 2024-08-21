@@ -13,6 +13,7 @@ import StoreDown from './StoreDown'; // Ensure this component is correctly imple
 import { MdEditNotifications } from "react-icons/md";
 import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
+import { useDispatch , useSelector } from 'react-redux';
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -20,6 +21,12 @@ function Menubar() {
   const [isNewReclamation, setIsNewReclamation] = useState(false);
   const [openWallet, setOpenWallet] = useState(false);
   const [userData , setUserData] = useState({})
+  const {user} = useSelector(state => state.auth );
+
+  useEffect(()=>{
+    setUserData(user)
+  },[])
+
   
  
 
@@ -76,7 +83,11 @@ function Menubar() {
 
         {/* Conditionally render StoreDown if user is a client and there are stores */}
         
+        {
+          userData.role ==="client" && (
             <StoreDown  theme={theme} collapsed={collapsed} />
+          )
+        }
         
           
 

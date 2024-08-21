@@ -1,11 +1,23 @@
 import { Button, Divider, Image, Upload } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { MdVerified } from "react-icons/md";
 import { FaRegPenToSquare } from "react-icons/fa6";
 import { Descriptions } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { getProfileClient } from '../../../../redux/apiCalls/profileApiCalls';
+import { useParams } from 'react-router-dom';
 
 function ProfileInfo() {
     const [verify , setVerify] = useState(false)
+    const [profileData ,  setProfileData] = useState({}) 
+    const dispatch = useDispatch()
+    const {id} = useParams()
+
+    useEffect(()=>{
+      dispatch(getProfileClient(id))
+      window.scrollTo(0 , 0)
+    })
+
     const items = [
         {
           key: '1',
@@ -69,7 +81,7 @@ function ProfileInfo() {
                 </div>
                 <div className="profile_information_header-info">
                     <h3>
-                        Mohammed Reda
+                        {profileData.nom + " " + profileData.prenom}
                         <MdVerified style={verify ? {color:"blue"} : {color:"var(--gray)"} }/>
                     </h3>
                     <span>Client</span>
