@@ -44,6 +44,16 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Invalid role" });
     }
 
+    //verify admin or team 
+    if(role=="staff"){
+        if(username){
+            user=await Admin.findOne({email})
+        }else{
+            user = await Team.findOne({email})
+        }
+    }
+    
+
     // Check if user exists
     if (!user) {
         return res.status(400).json({ message: "Invalid email or password" });
@@ -173,7 +183,8 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
     // create store of client
     let store = await Store.create({
         id_client : client._id,
-        storeName : req.body.storeName
+        storeName : req.body.storeName,
+        default:true
     })
 
     // Populate the client data in store
