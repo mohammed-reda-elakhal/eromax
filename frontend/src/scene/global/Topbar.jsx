@@ -1,17 +1,18 @@
 import React, { useContext, useState } from 'react';
-import { Switch, Layout , Avatar, Tooltip, Dropdown, Menu, Badge, Drawer, Divider } from 'antd';
+import {  Layout , Avatar, Dropdown, Menu, Badge, Drawer, Divider } from 'antd';
 import { ThemeContext } from '../ThemeContext';
 import {  UserOutlined } from '@ant-design/icons';
 import { MdLightMode  , MdNightlight} from "react-icons/md";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link , useNavigate } from 'react-router-dom';
 import { ImProfile , ImExit } from "react-icons/im";
 import { IoIosNotifications } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
 import { IoWallet } from "react-icons/io5";
 import { FaRegEyeSlash } from "react-icons/fa";
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
-import {useDispatch} from 'react-redux'
-import { logoutUser } from '../../redux/apiCalls/authApiCall';
+import { useDispatch , useSelector } from 'react-redux';
+import { logoutUser } from '../../redux/apiCalls/authApiCalls';
+
 
 const { Header } = Layout;
 
@@ -43,22 +44,24 @@ function Topbar() {
   const [open, setOpen] = useState(false);
   const [showSolde, setShowSolde] = useState(false);
   const [openRetrait, setOpenRetrait] = useState(false);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const {user} = useSelector(state => state.auth)
+
 
   menu = (
     <Menu>
       <Menu.Item style={{width:"150px"}} key="ramasse">
-        <Link className='link_topbar' to="/dashboard/profile">
+        <Link className='link_topbar' to={`/dashboard/profile/${user._id}`}>
           <ImProfile/>
           Profile
         </Link>
       </Menu.Item>
       <Menu.Item style={{width:"150px"}} key="exit">
-      <Link className='link_topbar' onClick={() => {
-    dispatch(logoutUser());
-    navigate('/login'); // Redirect after logout
-}}>
+        <Link 
+          className='link_topbar'
+          onClick={()=>dispatch(logoutUser(navigate))}
+        >
           <ImExit/>
           Deconnecter
         </Link>

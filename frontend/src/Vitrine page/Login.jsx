@@ -1,33 +1,44 @@
 import React, { useState } from 'react';
-import { EyeInvisibleOutlined, EyeTwoTone, MailFilled } from '@ant-design/icons';
-import { Input, Checkbox, Button } from 'antd';
-import { Link } from 'react-router-dom';
+import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { Input, Button } from 'antd';
+import { Link , useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../redux/apiCalls/authApiCall';
+
+import { loginUser } from '../redux/apiCalls/authApiCalls';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [username, setUsername] = useState('');
   const [role, setRole] = useState('client');
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const [rememberMe, setRememberMe] = useState(false);
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Prepare form data
     const formData = {
-      email, password 
+      email,
+      password,
     };
-    dispatch(loginUser(formData, role, navigate)); // admin => username
+
+    // Include username if role is 'staf' and username is not empty
+    if (role === 'staf' && username.trim() !== '') {
+      formData.username = username;
+    }
+
+    // Dispatch login action
+    dispatch(loginUser(formData, role, navigate)); // Uncomment this when ready to use
+    console.log('Form Data:', formData);
     clearData();
   };
 
   const clearData = () => {
     setEmail('');
     setPassword('');
-    setRememberMe(false);
+    setUsername('');
   };
 
   return (
@@ -50,10 +61,10 @@ function Login() {
             Livreur
           </p>
           <p
-            style={role === 'staff' ? {color:"var(--limon)"} : {color:"black"}}
-            onClick={() => setRole('staff')}
+            style={role === 'staf' ? {color:"var(--limon)"} : {color:"black"}}
+            onClick={() => setRole('staf')}
           >
-            Staff
+            Staf
           </p>
         </div>
         <div className="login-section-main-header">
@@ -61,6 +72,15 @@ function Login() {
           <p>Ne partagez pas vos données de connexion pour votre sécurité</p>
         </div>
         <form onSubmit={handleSubmit}>
+          {role === "staf" && (
+            <Input
+              size="large"
+              placeholder="Username"
+              className='login-input'
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          )}
           <Input
             size="large"
             placeholder="Email"

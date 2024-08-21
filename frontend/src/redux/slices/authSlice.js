@@ -1,28 +1,28 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Safe JSON parsing function
+function safeParse(item) {
+    try {
+        return JSON.parse(item);
+    } catch (error) {
+        console.error("Error parsing JSON from localStorage:", error);
+        return null;
+    }
+}
+
 const authSlice = createSlice({
     name: "auth",
     initialState: {
-        user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null,
-        store: JSON.parse(localStorage.getItem("store")) || null,  // Ensure store is initialized correctly
-        token: localStorage.getItem("token") || null,
+        user: safeParse(localStorage.getItem("user")),
+        store: safeParse(localStorage.getItem("store")),
     },
     reducers: {
         login(state, action) {
             state.user = action.payload;
-            state.store = action.payload.store || null;
         },
-        logout(state) {
-            state.user = null;
-            //state.store = null;  // Clear store on logout
-            state.token = null;
-            localStorage.removeItem('user');
-            localStorage.removeItem('store');
-            localStorage.removeItem('token');
-        },
-        setStore(state, action) {  // Ensure this action is used for setting store
+        setStore(state, action) {
             state.store = action.payload;
-        },
+        }
     }
 });
 

@@ -13,17 +13,22 @@ import StoreDown from './StoreDown'; // Ensure this component is correctly imple
 import { MdEditNotifications } from "react-icons/md";
 import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
-import { useSelector } from 'react-redux';
+import { useDispatch , useSelector } from 'react-redux';
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
   const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
   const [isNewReclamation, setIsNewReclamation] = useState(false);
   const [openWallet, setOpenWallet] = useState(false);
-  const { user } = useSelector((state) => state.auth);
+  const [userData , setUserData] = useState({})
+  const {user} = useSelector(state => state.auth );
+
+  useEffect(()=>{
+    setUserData(user)
+  },[])
+
   
-  // Example data for stores (replace with actual data fetching logic)
-  const stores = user.role === "client" ? [{ id: 'store1', storeName: 'Store 1' }, { id: 'store2', storeName: 'Store 2' }] : [];
+ 
 
   const toggleCollapsed = () => {
     const newCollapsedState = !collapsed;
@@ -77,12 +82,17 @@ function Menubar() {
         </div>
 
         {/* Conditionally render StoreDown if user is a client and there are stores */}
-        {user.role === "client" && (
-          <StoreDown stores={stores} theme={theme} collapsed={collapsed} />
-        )}
+        
+        {
+          userData.role ==="client" && (
+            <StoreDown  theme={theme} collapsed={collapsed} />
+          )
+        }
+        
+          
 
         <Menu.Item icon={<FaTachometerAlt />}>
-          <Link to="/dashboard/home" onClick={() => console.log(user.role)}>Accueil</Link>
+          <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
 
         <Menu.Item icon={<CgDanger />} className={isNewReclamation ? "change-color-animation" : ""}>

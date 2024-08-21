@@ -18,6 +18,7 @@ router.route("/:id")
 
 router.route("/:id/photo").post(verifyTokenAndClient,photoUpload.single("image"),clientPhotoController);
 router.route("/files/:id").post(fileUpload.single('file'),UploadClientFiles);
-router.get('/generate/:colisId',generateFactureClient
-    );
+router.get('/generate/:colisId',generateFactureClient);
+
+
 module.exports= router;
