@@ -48,16 +48,3 @@ store : {
   .... more data
 }
 >>>>>>> c51572a5a7161cff79ea4300c71239ec997b3ada
-
-
-
-login => role if("client") 
-                              =>connnect par defaut 
-                                selet data where id store 
-                                select stores where id client 
-
-
-                                => login  // routing      
-                                => deconnecter 
-                              
-

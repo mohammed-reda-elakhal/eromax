@@ -29,6 +29,10 @@ const StoreSchema = new moongose.Schema({
     },
     somme:{
         type:Number
+    },
+    default:{
+        type:Boolean,
+        default:false
     }
 },{timestamps:true});
 

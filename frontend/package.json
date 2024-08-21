@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.19.0",
     "antd-img-crop": "^4.22.0",
+    "axios": "^1.7.4",
     "chart.js": "^4.4.3",
     "framer-motion": "^11.2.1",
     "html2canvas": "^1.4.1",
