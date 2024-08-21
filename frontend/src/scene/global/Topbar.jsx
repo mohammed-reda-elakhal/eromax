@@ -3,7 +3,7 @@ import { Switch, Layout , Avatar, Tooltip, Dropdown, Menu, Badge, Drawer, Divide
 import { ThemeContext } from '../ThemeContext';
 import {  UserOutlined } from '@ant-design/icons';
 import { MdLightMode  , MdNightlight} from "react-icons/md";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ImProfile , ImExit } from "react-icons/im";
 import { IoIosNotifications } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
@@ -43,7 +43,8 @@ function Topbar() {
   const [open, setOpen] = useState(false);
   const [showSolde, setShowSolde] = useState(false);
   const [openRetrait, setOpenRetrait] = useState(false);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   menu = (
     <Menu>
@@ -54,7 +55,10 @@ function Topbar() {
         </Link>
       </Menu.Item>
       <Menu.Item style={{width:"150px"}} key="exit">
-        <Link className='link_topbar' onClick={()=>dispatch(logoutUser())}>
+      <Link className='link_topbar' onClick={() => {
+    dispatch(logoutUser());
+    navigate('/login'); // Redirect after logout
+}}>
           <ImExit/>
           Deconnecter
         </Link>

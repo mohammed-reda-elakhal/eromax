@@ -1,6 +1,6 @@
-import { useDispatch, useSelector } from 'react-redux';
+/* import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { selectStoreClient } from '../redux/apiCalls/authApiCall';
+//import { selectStoreClient } from '../redux/apiCalls/authApiCall';
 
 const SelectStore = () => {
     const dispatch = useDispatch();
@@ -14,7 +14,7 @@ const SelectStore = () => {
             
             console.log(userId, storeId);
             
-            dispatch(selectStoreClient(userId, storeId, navigate));
+            //dispatch(selectStoreClient(userId, storeId, navigate));
         } else {
             console.error("User or user._id is undefined");
         }
@@ -37,3 +37,4 @@ const SelectStore = () => {
 };
 
 export default SelectStore;
+ */
