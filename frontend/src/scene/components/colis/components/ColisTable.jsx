@@ -14,6 +14,8 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Input, Space } from 'antd';
 import Highlighter from 'react-highlight-words';
 import UpdateColis from './UpdateColis';
+import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
+import { useDispatch, useSelector } from 'react-redux';
 
 const options = [
   { id: 1, name: 'Annulée' },
@@ -30,16 +32,22 @@ const ColisTable = ({ theme, darkStyle , search }) => {
   const [selectedColis, setSelectedColis] = useState(null);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [drawerColisupdate , setDrawerColisupdate] = useState(false)
-
+  const dispatch = useDispatch();
   const showDrawer = () => setOpenDrawer(true);
   const onClose = () => setOpenDrawer(false);
   const showModalReclamation = () => setIsModalReclamationOpen(true);
   const handleReclamationOk = () => setIsModalReclamationOpen(false);
   const handleReclamationCancel = () => setIsModalReclamationOpen(false);
+  const colisData = useSelector(state => state.colis.colis); 
   
   useEffect(() => {
-    setData(ColisData);
-  }, []);
+    dispatch(getColis());
+    window.scrollTo(0, 0);
+}, [dispatch]);
+useEffect(() => {
+  setData(colisData); // **Verify the structure of colisData**
+}, [colisData]);
+
 
   const handleInfo = (id) => {
     const colis = data.find(item => item.id === id);
