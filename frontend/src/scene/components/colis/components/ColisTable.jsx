@@ -14,15 +14,16 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Input, Space } from 'antd';
 import Highlighter from 'react-highlight-words';
 import UpdateColis from './UpdateColis';
-import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const options = [
   { id: 1, name: 'Annulée' },
   { id: 2, name: 'Changer Prix' },
 ];
 
-const ColisTable = ({ theme, darkStyle , search }) => {
+const ColisTable = ({ theme, darkStyle , search,storeId,role }) => {
   const [data, setData] = useState([]);
   const [selectedId , setSelectedId] = useState('')
   const [reclamation, setReclamation] = useState('Type de reclamation');
@@ -39,15 +40,39 @@ const ColisTable = ({ theme, darkStyle , search }) => {
   const handleReclamationOk = () => setIsModalReclamationOpen(false);
   const handleReclamationCancel = () => setIsModalReclamationOpen(false);
   const colisData = useSelector(state => state.colis.colis); 
-  
+  console.log(colisData);
   useEffect(() => {
+    setData(colisData); // Update local state whenever Redux state changes
+}, [colisData]);
+useEffect(() => {
+  const fetchColis = async () => {
+      try {
+          if (role === 'client' && storeId) {
+              // Fetch colis specific to the client
+              console.log('Fetching colis for client');
+              await dispatch(getColisForClient(storeId));
+          } else if (role === 'admin') {
+              // Fetch all colis for admin
+              console.log('Fetching all colis for admin');
+              await dispatch(getColis());
+          }
+      } catch (error) {
+          toast.error(error.message || "Failed to fetch colis");
+      }
+  };
+
+  fetchColis();
+  window.scrollTo(0, 0);
+}, [dispatch, storeId, role]);
+  /* useEffect(() => {
+    
     dispatch(getColis());
     window.scrollTo(0, 0);
 }, [dispatch]);
 useEffect(() => {
   setData(colisData); // **Verify the structure of colisData**
 }, [colisData]);
-
+ */
 
   const handleInfo = (id) => {
     const colis = data.find(item => item.id === id);

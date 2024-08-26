@@ -13,3 +13,13 @@ export function getProfileClient(userId) {
         }
     };
 }
+export function getProfileAdmin(userId) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/client/${userId}`);
+            dispatch(profileActions.setProfile(data));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch profile");
+        }
+    };
+}
