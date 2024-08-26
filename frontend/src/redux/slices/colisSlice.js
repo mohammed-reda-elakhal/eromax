@@ -3,17 +3,24 @@ import { createSlice } from "@reduxjs/toolkit";
 const colisSlice = createSlice({
     name: "colis",
     initialState: {
-        colisList:[],
+        colis:[],
         loading: false,
       error: null,
         
     },
     reducers: {
         setColis(state,action){
-            state.colisList= action.payload
+            if (Array.isArray(action.payload)) {
+                state.colis = action.payload; // Set data if it's an array
+                state.error = null;
+            } else {
+                console.error("Invalid payload format:", action.payload);
+                state.error = "Invalid data format received from server.";
+            }
+            state.loading = false;
         },
         addColis(state, action) {
-            state.colisList.push(action.payload); // Add the new colis to the list
+            state.colis.push(action.payload); // Add the new colis to the list
           },
         setLoading(state, action) {
             state.loading = action.payload;  // Manage loading state

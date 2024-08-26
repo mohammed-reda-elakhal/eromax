@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Modal, Divider, Select, Drawer, Steps, Button } from 'antd';
-import ColisData from '../../../../data/colis.json';
+//import ColisData from '../../../../data/colis.json';
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Si1001Tracklists } from "react-icons/si";
 import { FaWhatsapp, FaPrint , FaPenFancy } from "react-icons/fa";
@@ -23,7 +23,7 @@ const options = [
   { id: 2, name: 'Changer Prix' },
 ];
 
-const ColisTable = ({ theme, darkStyle , search,storeId,role }) => {
+const ColisTable = ({ theme, darkStyle ,search }) => {
   const [data, setData] = useState([]);
   const [selectedId , setSelectedId] = useState('')
   const [reclamation, setReclamation] = useState('Type de reclamation');
@@ -39,40 +39,39 @@ const ColisTable = ({ theme, darkStyle , search,storeId,role }) => {
   const showModalReclamation = () => setIsModalReclamationOpen(true);
   const handleReclamationOk = () => setIsModalReclamationOpen(false);
   const handleReclamationCancel = () => setIsModalReclamationOpen(false);
-  const colisData = useSelector(state => state.colis.colis); 
-  console.log(colisData);
-  useEffect(() => {
-    setData(colisData); // Update local state whenever Redux state changes
-}, [colisData]);
-useEffect(() => {
-  const fetchColis = async () => {
-      try {
-          if (role === 'client' && storeId) {
-              // Fetch colis specific to the client
-              console.log('Fetching colis for client');
-              await dispatch(getColisForClient(storeId));
-          } else if (role === 'admin') {
-              // Fetch all colis for admin
-              console.log('Fetching all colis for admin');
-              await dispatch(getColis());
-          }
-      } catch (error) {
-          toast.error(error.message || "Failed to fetch colis");
-      }
-  };
 
-  fetchColis();
-  window.scrollTo(0, 0);
-}, [dispatch, storeId, role]);
-  /* useEffect(() => {
-    
-    dispatch(getColis());
-    window.scrollTo(0, 0);
-}, [dispatch]);
-useEffect(() => {
-  setData(colisData); // **Verify the structure of colisData**
-}, [colisData]);
+//--------------------------------------------------------------------
+/**
+ * @Redux integration 
+ * @method : GetColis for Admin @access : Admin Only
+ * @method : GetColisForClinet for Client itself @access :Client  
  */
+ const { colisData, user,store} = useSelector((state) => ({
+  colisData: state.colis.colis || [],
+  user: state.auth.user,
+  store:state.auth.store
+}));
+console.log(store);
+useEffect(() => {
+
+  if (user?.role) {
+    if (user.role === "admin") {
+      dispatch(getColis());
+    } else if (user.role === "client"&&store?._id) {
+      dispatch(getColisForClient(store._id));
+    }
+  }
+  window.scrollTo(0, 0);
+}, [dispatch, user?.role, store?._id]);
+useEffect(() => {
+  if (Array.isArray(colisData)) {
+    setData(colisData);
+  } else {
+    console.error("colisData is not an array", colisData);
+    setData([]); // Default to an empty array if colisData is not an array
+  }
+}, [colisData]);
+//-------------------------------------------------------------------
 
   const handleInfo = (id) => {
     const colis = data.find(item => item.id === id);

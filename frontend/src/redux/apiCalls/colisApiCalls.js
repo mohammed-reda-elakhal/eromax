@@ -7,19 +7,29 @@ export function getColis() {
     return async (dispatch) => {
         try {
             const { data } = await request.get(`/api/colis/`);
-            dispatch({ type: colisActions.setColis, payload: data });
+            dispatch(colisActions.setColis(data)); // Use action creator
         } catch (error) {
             console.error("Failed to fetch colis:", error);
+            dispatch(colisActions.setError(error.message));
         }
     };
 }
 
 export const getColisForClient = (storeId) => async (dispatch) => {
+    dispatch(colisActions.setLoading(true));
     try {
-        const { data } = await request.get(`/api/colis/${storeId}`);
-        dispatch({ type: colisActions.setColis, payload: data });
+        const { data } = await request.get(`/api/colis/colisStore/${storeId}`);
+        console.log("Fetched data for client:", data);
+
+        if (data && Array.isArray(data.colis)) {
+            dispatch(colisActions.setColis(data.colis));
+        } else {
+            console.error("Unexpected data format:", data);
+            dispatch(colisActions.setError("Invalid data format received from server."));
+        }
     } catch (error) {
         console.error("Failed to fetch colis for client:", error);
+        dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
     }
 };
 
