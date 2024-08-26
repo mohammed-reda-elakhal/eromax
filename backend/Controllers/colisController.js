@@ -21,7 +21,8 @@ function generateCodeSuivi() {
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
  **/
-module.exports.CreateColisCtrl = asyncHandler(async (req, res) =>{
+module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
+  // Check if request body is provided
   if (!req.body) {
     return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
   }
@@ -32,28 +33,27 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) =>{
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  // Validate that req.user.store is a valid ObjectId if it's present
-  let store = req.user.store;
-  let team = null;
-
-  if (!store) {
-    store = null;
-    team = req.user.id;
+  // Validate that req.user is present and has store
+  if (!req.user || !req.user.store) {
+    return res.status(400).json({ message: "Store information is missing in user data" });
   }
-
   
-    // Generate a unique code_suivi
+  // Extract store and team information
+  let store = req.user.store; // Assuming req.user.store should be used
+  let team = req.user.id;     // Assuming team is the user id
+
+  // Generate a unique code_suivi
   let code_suivi;
   let isUnique = false;
-    while (!isUnique) {
-      code_suivi = generateCodeSuivi();
-      const existingColis = await Colis.findOne({ code_suivi });
-      if (!existingColis) {
-        isUnique = true;
-      }
+  while (!isUnique) {
+    code_suivi = generateCodeSuivi();
+    const existingColis = await Colis.findOne({ code_suivi });
+    if (!existingColis) {
+      isUnique = true;
     }
-  
-    console.log("code_suivi",code_suivi);
+  }
+
+  console.log("code_suivi", code_suivi);
 
   // Create and save the new Colis
   const newColis = new Colis({
@@ -63,15 +63,14 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) =>{
     code_suivi,
   });
 
-  
   const saveColis = await newColis.save();
 
-   // Populate store and team data
-   await saveColis.populate('store');
-   await saveColis.populate('team');
+  // Populate store and team data
+  await saveColis.populate('store');
+  await saveColis.populate('team');
 
-   // Verify that code_suivi is not null before proceeding
-   if (!newColis.code_suivi) {
+  // Verify that code_suivi is not null before proceeding
+  if (!newColis.code_suivi) {
     console.log("Error: code_suivi is null after saving Colis");
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
@@ -82,13 +81,13 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) =>{
     code_suivi: newColis.code_suivi,
     date_create: newColis.createdAt,
   });
-  
+
   const save_suivi = await suivi_colis.save();
 
   // Respond with both the saved Colis and Suivi_Colis
-  res.status(201).json({ 
-    colis: saveColis, 
-    suiviColis: save_suivi 
+  res.status(201).json({
+    colis: saveColis,
+    suiviColis: save_suivi
   });
   console.log("created");
 });

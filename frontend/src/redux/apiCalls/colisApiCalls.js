@@ -7,24 +7,67 @@ export function getColis() {
     return async (dispatch) => {
         try {
             const { data } = await request.get(`/api/colis/`);
-            console.log(data);
-            dispatch(colisActions.setColis(data));
+            dispatch({ type: colisActions.setColis, payload: data });
         } catch (error) {
-            // Handle different error cases
-            if (error.response) {
-                // The request was made and the server responded with a status code
-                if (error.response.status === 401) {
-                    toast.error("Unauthorized. Please check your credentials.");
-                } else {
-                    toast.error(`Error: ${error.response.data.message || "Failed to fetch colis"}`);
+            console.error("Failed to fetch colis:", error);
+        }
+    };
+}
+
+export const getColisForClient = (storeId) => async (dispatch) => {
+    try {
+        const { data } = await request.get(`/api/colis/${storeId}`);
+        dispatch({ type: colisActions.setColis, payload: data });
+    } catch (error) {
+        console.error("Failed to fetch colis for client:", error);
+    }
+};
+
+
+// Fonction pour obtenir le token d'authentification depuis le stockage local ou autre
+const getAuthToken = () => {
+    return localStorage.getItem('token');  
+}
+export function addColis(data) {
+    return async (dispatch) => {
+        const store = JSON.parse(localStorage.getItem('store')); // Obtenez le store depuis le localStorage
+        const storeId = store ? store._id : null; // Assurez-vous que le storeId est correct
+        console.log(storeId);
+        if (!storeId) {
+            toast.error("Store ID is missing in local storage");
+            return;
+        }
+
+        const token = JSON.parse(getAuthToken());
+        console.log(token);
+        if (!token) {
+            toast.error("Token is missing in local storage");
+            return;
+        }
+
+        try {
+            const response = await request.post(`/api/colis/${storeId}`, 
+                { ...data }, 
+                {
+                    headers: {
+                        'Authorization': `bearer ${token}`
+                    }
                 }
-            } else if (error.request) {
-                // The request was made but no response was received
-                toast.error("No response received. Please check your network.");
-            } else {
-                // Something happened in setting up the request
-                toast.error("Error: " + error.message);
+            );
+
+            // Handle success
+            dispatch({ type: 'ADD_COLIS_SUCCESS', payload: response.data });
+            toast.success("Colis ajouté avec succès !");
+            return response.data; // Retourne les données de réponse si nécessaire
+        } catch (error) {
+            // Handle error
+            dispatch({ type: 'ADD_COLIS_FAILURE', payload: error.message });
+            toast.error("Erreur lors de l'ajout du colis. Veuillez réessayer.");
+            
+            if (error.response && error.response.status === 401) {
+                console.log('Erreur d\'authentification');
             }
+            return error;
         }
     };
 }

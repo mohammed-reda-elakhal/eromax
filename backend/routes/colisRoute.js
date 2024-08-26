@@ -24,7 +24,7 @@ router.route('/')
 // Router api/colis/:id_user or :id_store
 router.route('/:id_user')
         .post(verifyTokenStoreTeamAdminClient,colisController.CreateColisCtrl)
-        .get( verifyTokenStoreTeamAdmin , colisController.getColisByUserOrStore)
+        .get(colisController.getColisByUserOrStore)
 
 
 // Router api/colis/:id

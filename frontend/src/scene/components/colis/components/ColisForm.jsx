@@ -3,7 +3,11 @@ import { InfoCircleOutlined, UserOutlined, PhoneOutlined } from '@ant-design/ico
 import { Input, Tooltip, Select, Col, Row , Checkbox } from 'antd';
 import { MdOutlineWidgets } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addColis } from '../../../../redux/apiCalls/colisApiCalls';
+import { toast } from 'react-toastify';
 const { TextArea } = Input;
+
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
 const NumericInput = (props) => {
@@ -85,7 +89,9 @@ function ColisForm({ theme , type}) {
     const [remplaceColis , setRemplaceColis] = useState(true)
     const [ouvrirColis , setOuvrirColis] = useState(true)
 
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
+    const dispatch = useDispatch();
+  
 
     useEffect(()=>{
         if(type === 'simple'){
@@ -146,7 +152,18 @@ function ColisForm({ theme , type}) {
             remplaceColis,
             colisType
         };
-
+        dispatch(addColis(data))
+        .then((response) => {
+            if (response) {
+                toast.success("Colis ajouté avec succès !");
+                handleCleanData();
+                navigate('/dashboard/list-colis');
+            }
+        })
+        .catch((error) => {
+            console.error('Erreur lors de l\'ajout du colis:', error);
+            toast.error("Erreur lors de l'ajout du colis. Veuillez réessayer.");
+        });
         console.log(data)
         handleCleanData()
         
