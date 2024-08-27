@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Modal, Divider, Select, Drawer, Steps, Button } from 'antd';
-import ColisData from '../../../../data/colis.json';
+//import ColisData from '../../../../data/colis.json';
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Si1001Tracklists } from "react-icons/si";
 import { FaWhatsapp, FaPrint , FaPenFancy } from "react-icons/fa";
@@ -14,13 +14,16 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Input, Space } from 'antd';
 import Highlighter from 'react-highlight-words';
 import UpdateColis from './UpdateColis';
+import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const options = [
   { id: 1, name: 'Annulée' },
   { id: 2, name: 'Changer Prix' },
 ];
 
-const ColisTable = ({ theme, darkStyle , search }) => {
+const ColisTable = ({ theme, darkStyle ,search }) => {
   const [data, setData] = useState([]);
   const [selectedId , setSelectedId] = useState('')
   const [reclamation, setReclamation] = useState('Type de reclamation');
@@ -30,16 +33,45 @@ const ColisTable = ({ theme, darkStyle , search }) => {
   const [selectedColis, setSelectedColis] = useState(null);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [drawerColisupdate , setDrawerColisupdate] = useState(false)
-
+  const dispatch = useDispatch();
   const showDrawer = () => setOpenDrawer(true);
   const onClose = () => setOpenDrawer(false);
   const showModalReclamation = () => setIsModalReclamationOpen(true);
   const handleReclamationOk = () => setIsModalReclamationOpen(false);
   const handleReclamationCancel = () => setIsModalReclamationOpen(false);
-  
-  useEffect(() => {
-    setData(ColisData);
-  }, []);
+
+//--------------------------------------------------------------------
+/**
+ * @Redux integration 
+ * @method : GetColis for Admin @access : Admin Only
+ * @method : GetColisForClinet for Client itself @access :Client  
+ */
+ const { colisData, user,store} = useSelector((state) => ({
+  colisData: state.colis.colis || [],
+  user: state.auth.user,
+  store:state.auth.store
+}));
+console.log(store);
+useEffect(() => {
+
+  if (user?.role) {
+    if (user.role === "admin") {
+      dispatch(getColis());
+    } else if (user.role === "client"&&store?._id) {
+      dispatch(getColisForClient(store._id));
+    }
+  }
+  window.scrollTo(0, 0);
+}, [dispatch, user?.role, store?._id]);
+useEffect(() => {
+  if (Array.isArray(colisData)) {
+    setData(colisData);
+  } else {
+    console.error("colisData is not an array", colisData);
+    setData([]); // Default to an empty array if colisData is not an array
+  }
+}, [colisData]);
+//-------------------------------------------------------------------
 
   const handleInfo = (id) => {
     const colis = data.find(item => item.id === id);
