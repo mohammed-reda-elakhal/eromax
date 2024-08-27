@@ -91,7 +91,7 @@ const updateLivreur = asyncHandler(async (req, res) => {
     res.status(404).json({ message: 'Livreur not found' });
     return;
   }
-  res.json(livreur);
+  res.json({ message: "Profile updated Successfully", Livreur: livreur });
 });
 /** -------------------------------------------
  *@desc Delete livreur    

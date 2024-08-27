@@ -71,12 +71,6 @@ const updateTeam = asyncHandler(async (req, res) => {
     const teamId = req.params.id;
     const updateData = req.body;
 
-    // Validate the update data
-    const { error } = teamValidation(updateData);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-
     // Find the team by ID and update
     const team = await Team.findByIdAndUpdate(teamId, updateData, { new: true });
 
@@ -85,7 +79,7 @@ const updateTeam = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json({
-        message: "Team updated successfully",
+        message: "Team Profile updated successfully",
         team: team
     });
 });

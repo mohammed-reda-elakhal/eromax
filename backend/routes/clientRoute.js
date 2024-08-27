@@ -13,7 +13,7 @@ router.route("/")
 // api/client/:id
 router.route("/:id")
         .get(getClientById)
-        .put(updateClient)
+        .put(verifyToken ,updateClient)
         .delete(deleteClient)
 
 router.route("/:id/photo").post(verifyTokenAndClient,photoUpload.single("image"),clientPhotoController);

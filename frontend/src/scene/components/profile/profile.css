@@ -1,10 +1,10 @@
 .profile_information_image-img{
     border-radius: 50%;
 }
-.profile_information_image-btn{
-    position: relative;
-    transform: translate(-20px);
-    top: 50px;
+.profile_information_photo{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 .profile_information_header{
     display: flex;
@@ -30,4 +30,11 @@
     gap: 30px;
     width: 90%;
     margin: auto;
+}
+
+.profile_information_main{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: start;
 }

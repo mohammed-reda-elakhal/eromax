@@ -91,21 +91,24 @@ const createClient = asyncHandler(async (req, res) => {
  * @method PUT
  * @access private only client himself
  -------------------------------------------
-*/
-const updateClient = asyncHandler(async (req, res) => {
+ */
+ const updateClient = asyncHandler(async (req, res) => {
     const updateData = req.body;
     const clientId = req.params.id;
 
-    const { error } = clientValidation(updateData);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
+    // Check if the authenticated user is the client
+    if (req.user.id !== clientId) {
+        return res.status(403).json({ message: 'Unauthorized to update this profile' });
     }
+
     const client = await Client.findByIdAndUpdate(clientId, updateData, { new: true });
     if (!client) {
         return res.status(404).json({ message: 'Client not found' });
     }
-    res.status(200).json({ message: "Client updated Successfully", clients: client });
+    
+    res.status(200).json({ message: "Client updated Successfully", client });
 });
+
 
 /** -------------------------------------------
  * @desc delete client

@@ -36,5 +36,4 @@ export function logoutUser(navigate) {
     localStorage.removeItem("user");
     localStorage.removeItem("store");
     localStorage.removeItem("token");
-    navigate("/login");
 }
