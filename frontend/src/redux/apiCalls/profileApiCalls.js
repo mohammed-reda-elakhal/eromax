@@ -16,8 +16,36 @@ export function getProfile(userId , role){
         }
     }
 }
-// update user data
-// updateProfile function
+
+// get list users 
+export function getProfileList(role){
+    return async(dispatch)=>{
+        try{
+            const {data} = await request.get(`/api/${role}`);
+            dispatch(profileActions.setProfileList(data))
+        }catch(error){
+            toast.error(error.message || "Failed to fetch profile List");
+        }
+    }
+}
+
+// create user
+export function createProfile(role , user){
+    return async (dispatch ) =>{
+        try {
+            const {data} = await request.post(`/api/${role}` , user);
+            getProfileList(role)
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.message || "Failed to create profile");
+            console.log(error.message);
+            
+        }
+    }
+}
+
+
+// update Profile function
 export function updateProfile(userId, role, user) {
     return async (dispatch, getState) => {
         try {
@@ -43,13 +71,16 @@ export function updateProfile(userId, role, user) {
         }
     };
 }
-export function getProfileAdmin(userId) {
-    return async (dispatch) => {
+
+// delete user
+export function deleteProfile(role , userId){
+    return async (dispatch ) =>{
         try {
-            const { data } = await request.get(`/api/client/${userId}`);
-            dispatch(profileActions.setProfile(data));
+            const {data} = await request.delete(`/api/${role}/${userId}` );
+            toast.success(data.message);
         } catch (error) {
-            toast.error(error.message || "Failed to fetch profile");
+            toast.error(error.message || "Failed to create profile");
+            console.log(error.message); 
         }
-    };
+    }
 }

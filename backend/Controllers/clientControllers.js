@@ -10,7 +10,7 @@ const { Colis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
 
 /** -------------------------------------------
- * @desc get list of clients
+ * @desc get list of clients along with their stores
  * @router /api/client
  * @method GET
  * @access private Only admin
@@ -18,28 +18,57 @@ const { Suivi_Colis } = require("../Models/Suivi_Colis");
 */
 const getAllClients = asyncHandler(async (req, res) => {
     try {
+        // Fetch all clients
         const clients = await Client.find();
-        res.json(clients);
+
+        // Fetch stores for each client
+        const clientsWithStores = await Promise.all(
+            clients.map(async (client) => {
+                const stores = await Store.find({ id_client: client._id });
+                return {
+                    ...client._doc, // Use _doc to get the actual client data
+                    stores
+                };
+            })
+        );
+
+        res.json(clientsWithStores);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
 /** -------------------------------------------
- * @desc get client by id
+ * @desc get client by id along with their stores
  * @router /api/client/:id
  * @method GET
  * @access private admin or client himself
  -------------------------------------------
 */
 const getClientById = asyncHandler(async (req, res) => {
-    const client = await Client.findById(req.params.id);
-    if (!client) {
-        res.status(404).json({ message: 'Client not found' });
-        return;
+    try {
+        // Fetch client by ID
+        const client = await Client.findById(req.params.id);
+        if (!client) {
+            return res.status(404).json({ message: 'Client not found' });
+        }
+
+        // Fetch stores associated with the client
+        const stores = await Store.find({ id_client: client._id });
+
+        // Combine client data with stores
+        const clientWithStores = {
+            ...client._doc, // Use _doc to get the actual client data
+            stores
+        };
+
+        res.json(clientWithStores);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-    res.json(client);
 });
+
+
 
 /** -------------------------------------------
  * @desc create new client and store by default
@@ -47,15 +76,17 @@ const getClientById = asyncHandler(async (req, res) => {
  * @method POST
  * @access private admin or client himself
  -------------------------------------------
-*/
-const createClient = asyncHandler(async (req, res) => {
+*/const createClient = asyncHandler(async (req, res) => {
     const { storeName, ...clientData } = req.body;
+
+    // Validate client data using Joi
     const { error } = clientValidation(clientData);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password, role, ...rest } = req.body;
+    const { email, password, role } = clientData;
+
     if (role !== "client") {
         return res.status(400).json({ message: "The role of user is wrong" });
     }
@@ -65,25 +96,33 @@ const createClient = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "User already exists" });
     }
 
+    // Create a unique username using prenom and nom
+    const username = clientData.prenom + "_" + clientData.nom;
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const client = new Client({ email, password: hashedPassword, ...rest });
+
+    // Create and save the new client
+    const client = new Client({ ...clientData, password: hashedPassword, username });
     const newClient = await client.save();
 
-    // Create store of client
+    // Create the client's store
     let store = await Store.create({
         id_client: client._id,
-        storeName: req.body.storeName
+        storeName : req.body.storeName,
+        default : true
     });
 
-    // Populate the client data in store
+    // Populate the client data in the store response
     store = await store.populate('id_client', ["-password"]);
 
     res.status(201).json({
-        message: `Welcome ${client.prenom} to your account EROMAX`,
+        message: `Compte de ${client.prenom} est Prêt`,
         role: client.role,
         store
     });
 });
+
 
 /** -------------------------------------------
  * @desc update client
@@ -95,11 +134,6 @@ const createClient = asyncHandler(async (req, res) => {
  const updateClient = asyncHandler(async (req, res) => {
     const updateData = req.body;
     const clientId = req.params.id;
-
-    // Check if the authenticated user is the client
-    if (req.user.id !== clientId) {
-        return res.status(403).json({ message: 'Unauthorized to update this profile' });
-    }
 
     const client = await Client.findByIdAndUpdate(clientId, updateData, { new: true });
     if (!client) {

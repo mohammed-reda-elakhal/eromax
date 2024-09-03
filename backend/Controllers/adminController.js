@@ -71,22 +71,16 @@ const updateAdmin = asyncHandler(async (req, res) => {
     const adminId = req.params.id;
     const updateData = req.body;
 
-    // Validate the update data
-    const { error } = adminValidation(updateData);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-
     // Find the team by ID and update
     const admin = await Admin.findByIdAndUpdate(adminId, updateData, { new: true });
 
     if (!admin) {
-        return res.status(404).json({ message: "admin not found" });
+        return res.status(404).json({ message: "Admin not Exist" });
     }
 
     res.status(200).json({
-        message: "Admin updated successfully",
-        team: team
+        message: "Admin est modifier",
+        admin
     });
 });
 /** -------------------------------------------
