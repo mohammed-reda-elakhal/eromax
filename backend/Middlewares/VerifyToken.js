@@ -3,30 +3,23 @@ const { Store } = require("../Models/Store");
 
 // verify token
 function verifyToken(req, res, next) {
-    const authToken = req.headers.token;
+    const authToken = req.headers.authorization;  // Check for 'authorization' header
     if (authToken) {
-        const token = authToken.split(" ")[1];
+        const token = authToken.split(" ")[1];  // Split to get the token part
         try {
             const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decodedPayload;
-            console.log("Decoded Payload:", decodedPayload);
-            /*
-                decodedPayload = {
-                    id , role  , store ( if exist ), secret_key
-                    req.user.id === id user 
-                    req.user.role === " role"
-                }
-            */
             next();
         } catch (error) {
-            console.error("Invalid token:", error);
-            return res.status(401).json({ message: "invalid token, access denied" });
+            console.error("Invalid token:", error);  // Log the error
+            return res.status(401).json({ message: "Invalid token, access denied" });
         }
     } else {
         console.warn("No token provided");
-        return res.status(401).json({ message: "no token provided, access denied" });
+        return res.status(401).json({ message: "No token provided, access denied" });
     }
 }
+
 
 // verify token and admin 
 function verifyTokenAndAdmin(req, res, next) {

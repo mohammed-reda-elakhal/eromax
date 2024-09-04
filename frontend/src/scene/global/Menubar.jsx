@@ -14,6 +14,7 @@ import { MdEditNotifications } from "react-icons/md";
 import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { useDispatch , useSelector } from 'react-redux';
+import { FaUserFriends } from "react-icons/fa"
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -99,9 +100,25 @@ function Menubar() {
           <Link to="/dashboard/reclamation">Reclamation</Link>
         </Menu.Item>
 
-        <Menu.Item icon={<FaUser />}>
-          <Link to="/dashboard/compte">Comptes</Link>
-        </Menu.Item>
+        {
+          userData.role ==="admin" && (
+            <Menu.SubMenu icon={<FaUserFriends />} title="Comptes">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/compte/client">Client</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/compte/livreur">Livreur</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/compte/Team">Team</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/compte/admin">Admin</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+        
 
         <Menu.Item icon={<MdEditNotifications />}>
           <Link to="/dashboard/notification">Notification</Link>

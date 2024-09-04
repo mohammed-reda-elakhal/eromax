@@ -15,6 +15,7 @@ const authSlice = createSlice({
     initialState: {
         user: safeParse(localStorage.getItem("user")),
         store: safeParse(localStorage.getItem("store")),
+        token:safeParse(localStorage.getItem("token"))
     },
     reducers: {
         login(state, action) {

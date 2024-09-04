@@ -104,9 +104,17 @@ function Topbar() {
                         : 
                     <MdLightMode onClick={toggleTheme} style={styleIcon}/>
             }
-            <Badge count={5} onClick={showDrawer}>
-              <Avatar icon={<IoIosNotifications/>}/>
-            </Badge>  
+            <Badge 
+              count={5} 
+              onClick={showDrawer} 
+              style={{ cursor: "pointer" }}
+            >
+              <Avatar 
+                icon={<IoIosNotifications />} 
+                style={{ cursor: "pointer" }} // Ensure the Avatar also has pointer style
+              />
+            </Badge>
+
             <Drawer title="Notification" onClose={onClose} open={open}>
               {
                 notifications.map((not)=>(
@@ -125,6 +133,7 @@ function Topbar() {
             <Dropdown overlay={menu}>
               <Avatar
                 icon={<UserOutlined />}
+                style={{ cursor: "pointer" }} // Ensure the Avatar also has pointer style
               />
             </Dropdown> 
         </div>

@@ -29,6 +29,7 @@ app.use("/api/colis", require("./routes/colisRoute"));
 app.use("/api/client", require("./routes/clientRoute"));
 app.use("/api/livreur", require("./routes/livreurRoute"));
 app.use("/api/team", require("./routes/teamRoute"));
+app.use("/api/admin", require("./routes/adminRoute"));
 app.use("/api/store", require("./routes/storeRoute"));
 app.use("/api/produit", require("./routes/produitRoute"));
 app.use("/api/variante", require("./routes/varianteRoute"));

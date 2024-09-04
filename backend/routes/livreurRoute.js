@@ -1,6 +1,7 @@
 const express = require("express");
 const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur, getLivreurbyVille  } = require("../Controllers/livreurController");
 const { affecterLivreur } = require("../Controllers/colisController");
+const { verifyToken } = require("../Middlewares/VerifyToken");
 const router = express.Router();
 
 
@@ -12,7 +13,7 @@ router.route("/")
 // api/livreur/:id
 router.route("/:id")
         .get(getLivreurById)
-        .put(updateLivreur)
+        .put( updateLivreur)
         .delete(deleteLivreur)
 
 //  api/livreur/ville  ---- get Livreurs by Ville

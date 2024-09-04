@@ -32,6 +32,14 @@ import RegisterLivreur from "./Vitrine page/RegisterLivreur";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import Reclamation from "./scene/components/reclamation/page/Reclamation";
 import Notification from "./scene/components/notification/page/Notification";
+import FormClient from "./scene/components/compte/page/FormClient";
+import Client from "./scene/components/compte/page/Client";
+import Livreur from "./scene/components/compte/page/Livreur";
+import FormLivreur from "./scene/components/compte/page/FormLivreur";
+import Team from "./scene/components/compte/page/Team";
+import FormTeam from "./scene/components/compte/page/FormTeam";
+import Admin from "./scene/components/compte/page/Admin";
+import FormAdmin from "./scene/components/compte/page/FormAdmin";
 
 function App() {
 
@@ -157,25 +165,38 @@ function App() {
           
           <Route path='dashboard' element={<ProtectedRoute/>}>
             <Route path="home" element={<HomeDashboard />} />
-            <Route path="compte" element={<Compte />} />
+            
             <Route path="profile/:id" element={<Profile />} />
             <Route path="portfeuille" element={<Portfeuille />} />
             <Route path="scan" element={<Scan />} /> 
+            <Route path="ville" element={<Ville />} /> 
+            <Route path="reclamation" element={<Reclamation />} /> 
+            
+            <Route path="compte">
+              <Route path="client" element={<Client />}  />
+              <Route path="client/:id" element={<FormClient />} /> 
+              <Route path="livreur" element={<Livreur />}  />
+              <Route path="livreur/:id" element={<FormLivreur />}  />
+              <Route path="team" element={<Team />}  />
+              <Route path="team/:id" element={<FormTeam />}  />
+              <Route path="admin" element={<Admin />}  />
+              <Route path="admin/:id" element={<FormAdmin />}  />
+            </Route>
 
-          <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
-          <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
-          <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
-          <Route path="colis-ex" element={<ColisExpide search = {getColumnSearchProps} />} />
-          <Route path="colis-rc" element={<ColisReçu search = {getColumnSearchProps} />} />
-          <Route path="colis-md" element={<ColisMiseDistribution search = {getColumnSearchProps} />} />
-          <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
-          <Route path="ajouter-colis/:type" element={<AjouterColis />} />
-          <Route path="import-colis" element={<ColisImport />} />
+            <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
+            <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
+            <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
+            <Route path="colis-ex" element={<ColisExpide search = {getColumnSearchProps} />} />
+            <Route path="colis-rc" element={<ColisReçu search = {getColumnSearchProps} />} />
+            <Route path="colis-md" element={<ColisMiseDistribution search = {getColumnSearchProps} />} />
+            <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
+            <Route path="ajouter-colis/:type" element={<AjouterColis />} />
+            <Route path="import-colis" element={<ColisImport />} />
 
-          <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
-          <Route path="ajouter-produit" element={<AjouterProduit />} />
-          <Route path="ajouter-produit-colis" element={<ProduitColis search = {getColumnSearchProps}/>} />
-          <Route path="colis-stock" element={<ColisStock />} />
+            <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
+            <Route path="ajouter-produit" element={<AjouterProduit />} />
+            <Route path="ajouter-produit-colis" element={<ProduitColis search = {getColumnSearchProps}/>} />
+            <Route path="colis-stock" element={<ColisStock />} />
           
         </Route>
       </Routes>

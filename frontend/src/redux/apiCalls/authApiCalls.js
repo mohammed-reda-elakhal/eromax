@@ -31,10 +31,23 @@ export function loginUser(user, role, navigate) {
     };
 }
 
+// create user
+export function registerUser(role , user){
+    return async (dispatch ) =>{
+        try {
+            const {data} = await request.post(`/api/auth/register/${role}` , user);
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.message || "Failed to create USer");
+            console.log(error.message);
+            
+        }
+    }
+}
+
 // logout function
 export function logoutUser(navigate) {
     localStorage.removeItem("user");
     localStorage.removeItem("store");
     localStorage.removeItem("token");
-    navigate("/login");
 }

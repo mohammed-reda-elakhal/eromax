@@ -134,14 +134,14 @@ module.exports.registerAdmin = asyncHandler(async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const username = req.body.nom+"_"+req.body.prenom
+    const username = req.body.prenom +"_"+ req.body.nom
     const admin = new Admin({ email, password: hashedPassword, username ,  ...rest });
 
 
     await admin.save();
 
     res.status(201).json({
-        message : `Dashboard EROMAX`,
+        message : `Bonjours nouveau admin`,
         _id: admin._id,
         email: admin.email,
         username:admin.username,
@@ -163,7 +163,7 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const username = req.body.nom+"_"+req.body.prenom
+    const username = req.body.prenom +"_"+ req.body.nom
     const client = new Client({ email, password: hashedPassword, username , ...rest });
 
     await client.save();
@@ -199,7 +199,7 @@ module.exports.registerLivreur = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const username = req.body.nom+"_"+req.body.prenom
+    const username = req.body.prenom +"_"+ req.body.nom
     const livreur = new Livreur({ email, password: hashedPassword , username , ...rest });
 
     await livreur.save();
@@ -227,7 +227,7 @@ module.exports.registerTeam = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const username = req.body.nom+"_"+req.body.prenom
+    const username = req.body.prenom +"_"+ req.body.nom
     const team = new Team({ email, password: hashedPassword, username , ...rest });
 
     await team.save();

@@ -3,12 +3,19 @@ import { createSlice } from "@reduxjs/toolkit";
 const profileSlice = createSlice({
     name: "profile",
     initialState: {
-        profile: null, // Corrected key to 'profile'
+        profile: null, // Initial state for profile
+        profileList : []
     },
     reducers: {
         setProfile(state, action) {
-            state.profile = action.payload; // Corrected key to 'profile'
+          state.profile = action.payload; // Update profile data
         },
+        setProfileList(state , action){
+            state.profileList = action.payload;
+        },
+        updateProfile(state , action){
+            state.profile = action.payload;
+        }
     },
 });
 

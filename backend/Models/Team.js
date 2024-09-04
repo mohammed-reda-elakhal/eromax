@@ -9,6 +9,7 @@ const teamSchema = new mongoose.Schema({
     ville: { type: String, required: true },
     adresse: { type: String, required: true },
     tele: { type: String, required: true},
+    cin: { type: String, required: false},
     password: { type: String, required: true, trim: true, minlength: 5 },
     email: { type: String, required: true, trim: true, minlength: 5, maxlength: 100, unique: true },
     profile: {
@@ -43,6 +44,7 @@ const teamValidation = (obj) => {
         ville: Joi.string().required(),
         adresse: Joi.string().required(),
         tele: Joi.string().required(),
+        cin: Joi.string(), 
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
         profile: Joi.object({

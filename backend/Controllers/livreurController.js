@@ -12,16 +12,14 @@ const bcrypt = require("bcryptjs");
 */
 
 const getAllLivreur = asyncHandler(async (req, res) => {
-   
-      const livreur = await Livreur.find();
-      res.json(livreur);
-
-      if(error){
-        res.status(500).json({ message: error.message });
-      }
-     
-    
-  });
+  try {
+    const livreurs = await Livreur.find();
+    res.json(livreurs); // Send the response with the list of livreurs
+  } catch (error) {
+    // If an error occurs, send a 500 status with the error message
+    res.status(500).json({ message: error.message });
+  }
+});
 
 /** -------------------------------------------
  *@desc get livreur by id   
@@ -56,7 +54,7 @@ const createLivreur = asyncHandler(async (req, res) => {
 
 
   const { email, password, role , ...rest } = req.body;
-  if(role != "client"){
+  if(role != "livreur"){
       return res.status(400).json({ message: "the role of user is wrong" });
   }
 
@@ -64,13 +62,14 @@ const createLivreur = asyncHandler(async (req, res) => {
   if (userExists) {
       return res.status(400).json({ message: "Livreur already exists" });
   }
+  const username = req.body.prenom + "_" + req.body.nom
   const hashedPassword = await bcrypt.hash(password, 10);
-  const livreur = new Livreur({ email, password: hashedPassword, ...rest });
+  const livreur = new Livreur({ email, password: hashedPassword, username , ...rest });
   const newLivreur = await livreur.save();
 
 
   res.status(201).json({
-    message : `Welcom ${livreur.Prenom} to your account EROMAX`,
+    message : `Welcom ${livreur.prenom} to your account EROMAX`,
     role: livreur.role,
   });
 });
@@ -91,7 +90,7 @@ const updateLivreur = asyncHandler(async (req, res) => {
     res.status(404).json({ message: 'Livreur not found' });
     return;
   }
-  res.json(livreur);
+  res.json({ message: "Profile updated Successfully", Livreur: livreur });
 });
 /** -------------------------------------------
  *@desc Delete livreur    
@@ -112,7 +111,7 @@ const deleteLivreur = asyncHandler(async (req, res) => {
   // Delete the client
   await livreur.deleteOne();
 
-  res.json({ message: 'Client and all associated stores deleted' });
+  res.json({ message: 'Livreur est suppremer' });
 });
 
 
