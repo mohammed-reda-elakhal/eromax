@@ -5,7 +5,7 @@ const colisSlice = createSlice({
     initialState: {
         colis:[],
         loading: false,
-      error: null,
+        error: null,
         
     },
     reducers: {
@@ -41,7 +41,26 @@ const selectColis = (state) => state.colis.colis;
 
 const selectColisRecu = createSelector(
   [selectColis],
-  (colis) => colis.filter((colis) => colis.statut === "R")
+  (colis) => (colis ? colis.filter((c) => c.statut === "Reçu") : [])
 );
-
-export { colisActions, colisReducer,selectColisRecu };
+const selectColisMiseDistrubution = createSelector(
+    [selectColis],
+    (colis) => (colis ? colis.filter((c) => c.statut === "Mise en Distribution") : [])
+  );
+  const selectColisExpedié = createSelector(
+    [selectColis],
+    (colis) => (colis ? colis.filter((c) => c.statut === "Expedié") : [])
+  );
+  const selectColisLivre = createSelector(
+    [selectColis],
+    (colis) => (colis ? colis.filter((c) => c.statut === "Livré") : [])
+  );
+  const selectColisPourRamassage = createSelector(
+    [selectColis],
+    (colis) => (colis ? colis.filter((c) => c.statut === "attente de ramassage") : [])
+  );
+  const selectColisRamasse = createSelector(
+    [selectColis],
+    (colis) => (colis ? colis.filter((c) => c.statut === "Ramassé") : [])
+  );
+export { colisActions, colisReducer,selectColisRecu ,selectColisMiseDistrubution,selectColisExpedié,selectColisLivre,selectColisPourRamassage,selectColisRamasse};

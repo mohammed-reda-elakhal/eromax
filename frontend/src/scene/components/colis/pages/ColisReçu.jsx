@@ -83,7 +83,7 @@ console.log("colis recu",colisRecu);
         }
         return item;
       });
-      colisActions.setColis(newData);
+      setData(newData);
       success(`Colis mise en distribution , veuillez vérifier sur la table de statut mise en distribution`);
     } else if (selectedRowKeys.length > 0) {
       const newData = colisRecu.map(item => {
@@ -92,7 +92,7 @@ console.log("colis recu",colisRecu);
         }
         return item;
       });
-      colisActions.setColis(newData);
+      setData(newData);
       setSelectedRowKeys([]);
       success(`${selectedRowKeys.length} colis mise en distribution, veuillez vérifier sur la table de statut mise en distribution`);
     } else {
@@ -117,7 +117,7 @@ console.log("colis recu",colisRecu);
 
   const confirmSuppression = () => {
     const newData = colisRecu.filter(item => !selectedRowKeys.includes(item.id));
-    colisActions.setColis(newData);
+    setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
   };

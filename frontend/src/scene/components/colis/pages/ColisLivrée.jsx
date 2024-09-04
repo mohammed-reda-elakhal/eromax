@@ -7,14 +7,63 @@ import { PlusCircleFilled } from '@ant-design/icons';
 import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
+import { selectColisLivre } from '../../../../redux/slices/colisSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisLivrée({search}) {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
+    const dispatch = useDispatch();
+    const ColisLivrée= useSelector(selectColisLivre); 
     
-
+    const {colisData,user,store} = useSelector((state) => ({
+        colisData: state.colis.colis || [],
+        user: state.auth.user,
+        store:state.auth.store
+      }));
+    
+      // Recuperation des colis selon le role 
+      useEffect(() => {
+    
+        if (user?.role) {
+          if (user.role === "admin") {
+            dispatch(getColis());
+          } else if (user.role === "client"&&store?._id) {
+            dispatch(getColisForClient(store._id));
+          }
+        }
+        window.scrollTo(0, 0);
+      }, [dispatch, user?.role, store?._id]);
+      useEffect(() => {
+        if (Array.isArray(colisData)) {
+          setData(colisData);
+        } else {
+          console.error("colisData is not an array", colisData);
+          setData([]); // Default to an empty array if colisData is not an array
+        }
+      }, [colisData]);
+      useEffect(() => {
+        dispatch(getColisForClient()); // Fetch tous les colis
+    }, [dispatch]);
+    
     useEffect(() => {
-        const colis = ColisData.filter(item => item.statut === 'Livrée');
+      if (ColisLivrée) {
+          setData(ColisLivrée); // Update data state with the fetched colis
+      }
+    }, [ColisLivrée]);
+    console.log("colis recu",ColisLivrée);
+     useEffect(() => {
+        const colis = ColisLivrée.filter(item => item.statut === 'Ramassé');
+        setData(colis);
+      }, []); 
+    
+      useEffect(() => {
+        const colis = ColisLivrée.filter(item => item.statut === 'Attente de Ramassage');
+        setData(colis);
+      }, []);
+    useEffect(() => {
+        const colis = ColisLivrée.filter(item => item.statut === 'Livrée');
         setData(colis);
     }, []);
 

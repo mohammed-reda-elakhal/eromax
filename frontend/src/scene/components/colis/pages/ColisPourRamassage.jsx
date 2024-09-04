@@ -10,10 +10,15 @@ import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
+import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectColisPourRamassage } from '../../../../redux/slices/colisSlice';
 
 function ColisPourRamassage({ search }) {
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const colisPourRamassage = useSelector(selectColisPourRamassage); 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -40,19 +45,60 @@ function ColisPourRamassage({ search }) {
       content: text,
     });
   };
+  //-----------------------------
+  const {colisData,user,store} = useSelector((state) => ({
+    colisData: state.colis.colis || [],
+    user: state.auth.user,
+    store:state.auth.store
+  }));
+
+  // Recuperation des colis selon le role 
+  useEffect(() => {
+
+    if (user?.role) {
+      if (user.role === "admin") {
+        dispatch(getColis());
+      } else if (user.role === "client"&&store?._id) {
+        dispatch(getColisForClient(store._id));
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [dispatch, user?.role, store?._id]);
+  useEffect(() => {
+    if (Array.isArray(colisData)) {
+      setData(colisData);
+    } else {
+      console.error("colisData is not an array", colisData);
+      setData([]); // Default to an empty array if colisData is not an array
+    }
+  }, [colisData]);
+  useEffect(() => {
+    dispatch(getColisForClient()); // Fetch tous les colis
+}, [dispatch]);
+
+useEffect(() => {
+  if (colisPourRamassage) {
+      setData(colisPourRamassage); // Update data state with the fetched colis
+  }
+}, [colisPourRamassage]);
+console.log("colis recu",colisPourRamassage);
+ useEffect(() => {
+    const colis = colisPourRamassage.filter(item => item.statut === 'Ramassé');
+    setData(colis);
+  }, []); 
 
   useEffect(() => {
     const colis = ColisData.filter(item => item.statut === 'Attente de Ramassage');
     setData(colis);
   }, []);
-
+//----------------------------------------------------------
   useEffect(() => {
     console.log('Selected row keys: ', selectedRowKeys);
   }, [selectedRowKeys]);
 
   const handleRamasse = (id = null) => {
     if (id) {
-      const newData = data.map(item => {
+      const newData = colisPourRamassage.map(item => {
         if (item.id === id) {
           item.statut = 'Ramassé';
         }
@@ -61,7 +107,7 @@ function ColisPourRamassage({ search }) {
       setData(newData);
       success(`Colis ramassé, veuillez vérifier sur la table de statut Ramassé`);
     } else if (selectedRowKeys.length > 0) {
-      const newData = data.map(item => {
+      const newData = colisPourRamassage.map(item => {
         if (selectedRowKeys.includes(item.id)) {
           item.statut = 'Ramassé';
         }
@@ -83,7 +129,7 @@ function ColisPourRamassage({ search }) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = data.find(item => item.id === selectedRowKeys[0]);
+      const record = colisPourRamassage.find(item => item.id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -91,7 +137,7 @@ function ColisPourRamassage({ search }) {
   };
 
   const confirmSuppression = () => {
-    const newData = data.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = colisPourRamassage.filter(item => !selectedRowKeys.includes(item.id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -113,7 +159,7 @@ function ColisPourRamassage({ search }) {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = data.map(item => {
+      const newData = colisPourRamassage.map(item => {
         if (item.id === currentColis.id) {
           return { ...item, ...values };
         }

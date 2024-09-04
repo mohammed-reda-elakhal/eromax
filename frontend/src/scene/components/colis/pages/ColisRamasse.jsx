@@ -5,17 +5,22 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input, Select } from 'antd';
-import ColisData from '../../../../data/colis.json';
+//import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectColisPourRamassage, selectColisRamasse } from '../../../../redux/slices/colisSlice';
+import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
 function ColisRamasse({ search }) {
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const ColisRamasse = useSelector(selectColisRamasse); 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -46,11 +51,46 @@ function ColisRamasse({ search }) {
       content: text,
     });
   };
-
+  //-------------------------------------------------------
+  const {colisData,user,store} = useSelector((state) => ({
+    colisData: state.colis.colis || [],
+    user: state.auth.user,
+    store:state.auth.store
+  }));
   useEffect(() => {
-    const colis = ColisData.filter(item => item.statut === 'Ramassé');
+
+    if (user?.role) {
+      if (user.role === "admin") {
+        dispatch(getColis());
+      } else if (user.role === "client"&&store?._id) {
+        dispatch(getColisForClient(store._id));
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [dispatch, user?.role, store?._id]);
+  useEffect(() => {
+    if (Array.isArray(colisData)) {
+      setData(colisData);
+    } else {
+      console.error("colisData is not an array", colisData);
+      setData([]); // Default to an empty array if colisData is not an array
+    }
+  }, [colisData]);
+  useEffect(() => {
+    dispatch(getColisForClient()); // Fetch tous les colis
+}, [dispatch]);
+
+useEffect(() => {
+  if (ColisRamasse) {
+      setData(ColisRamasse); // Update data state with the fetched colis
+  }
+}, [ColisRamasse]);
+console.log("colis recu",ColisRamasse);
+ useEffect(() => {
+    const colis = ColisRamasse.filter(item => item.statut === 'Ramassé');
     setData(colis);
-  }, []);
+  }, []); 
+  //------------------------------------------------------------------
 
   useEffect(() => {
     console.log('Selected row keys: ', selectedRowKeys);
@@ -63,7 +103,7 @@ function ColisRamasse({ search }) {
 
   const handleExpidie = () => {
     if (deliveryPerson) {
-      const newData = data.map(item => {
+      const newData = ColisRamasse.map(item => {
         if (item.id === currentColis.id) {
           item.statut = 'Expidie';
           item.deliveryPerson = deliveryPerson;
@@ -86,7 +126,7 @@ function ColisRamasse({ search }) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = data.find(item => item.id === selectedRowKeys[0]);
+      const record = ColisRamasse.find(item => item.id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -94,7 +134,7 @@ function ColisRamasse({ search }) {
   };
 
   const confirmSuppression = () => {
-    const newData = data.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = ColisRamasse.filter(item => !selectedRowKeys.includes(item.id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -116,7 +156,7 @@ function ColisRamasse({ search }) {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = data.map(item => {
+      const newData = ColisRamasse.map(item => {
         if (item.id === currentColis.id) {
           return { ...item, ...values };
         }
@@ -266,7 +306,7 @@ function ColisRamasse({ search }) {
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={data}
+              data={ColisRamasse}
               id="id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}

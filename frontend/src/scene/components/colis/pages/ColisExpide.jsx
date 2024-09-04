@@ -10,10 +10,15 @@ import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectColisExpedié } from '../../../../redux/slices/colisSlice';
+import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisExpide({search}) {
     const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const colisExpedié = useSelector(selectColisExpedié); 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -42,9 +47,16 @@ function ColisExpide({search}) {
   };
 
   useEffect(() => {
-    const colis = ColisData.filter(item => item.statut === 'Expédié');
-    setData(colis);
-  }, []);
+    dispatch(getColis()); // Fetch tous les colis
+}, [dispatch]);
+
+useEffect(() => {
+  if (colisExpedié) {
+      setData(colisExpedié); // Update data state with the fetched colis
+  }
+}, [colisExpedié]);
+console.log("colis expedié",colisExpedié);
+ 
 
   useEffect(() => {
     console.log('Selected row keys: ', selectedRowKeys);
@@ -52,7 +64,7 @@ function ColisExpide({search}) {
 
   const handleReçu = (id = null) => {
     if (id) {
-      const newData = data.map(item => {
+      const newData = colisExpedié.map(item => {
         if (item.id === id) {
           item.statut = 'Reçu';
         }
@@ -61,7 +73,7 @@ function ColisExpide({search}) {
       setData(newData);
       success(`Colis reçu, veuillez vérifier sur la table de statut reçu`);
     } else if (selectedRowKeys.length > 0) {
-      const newData = data.map(item => {
+      const newData = colisExpedié.map(item => {
         if (selectedRowKeys.includes(item.id)) {
           item.statut = 'Reçu';
         }
@@ -83,7 +95,7 @@ function ColisExpide({search}) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = data.find(item => item.id === selectedRowKeys[0]);
+      const record = colisExpedié.find(item => item.id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -91,7 +103,7 @@ function ColisExpide({search}) {
   };
 
   const confirmSuppression = () => {
-    const newData = data.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = colisExpedié.filter(item => !selectedRowKeys.includes(item.id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -113,7 +125,7 @@ function ColisExpide({search}) {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = data.map(item => {
+      const newData = colisExpedié.map(item => {
         if (item.id === currentColis.id) {
           return { ...item, ...values };
         }
@@ -281,7 +293,7 @@ function ColisExpide({search}) {
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={data}
+              data={colisExpedié}
               id="id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}

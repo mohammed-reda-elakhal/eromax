@@ -9,26 +9,67 @@ import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectColisMiseDistrubution } from '../../../../redux/slices/colisSlice';
+import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
 function ColisMiseDistribution({ search }) {
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const colisMiseDistrubution= useSelector(selectColisMiseDistrubution); 
   const [selectedColis, setSelectedColis] = useState(null);
   const [isAnnuléeModalVisible, setIsAnnuléeModalVisible] = useState(false);
   const [isProgrammeModalVisible, setIsProgrammeModalVisible] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
   const [programmeForm] = Form.useForm();
+  const {colisData,user,store} = useSelector((state) => ({
+    colisData: state.colis.colis || [],
+    user: state.auth.user,
+    store:state.auth.store
+  }));
 
+  // Recuperation des colis selon le role 
   useEffect(() => {
-    const colis = ColisData.filter(item => item.statut === 'Mise en Distribution');
+
+    if (user?.role) {
+      if (user.role === "admin") {
+        dispatch(getColis());
+      } else if (user.role === "client"&&store?._id) {
+        dispatch(getColisForClient(store._id));
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [dispatch, user?.role, store?._id]);
+  useEffect(() => {
+    if (Array.isArray(colisData)) {
+      setData(colisData);
+    } else {
+      console.error("colisData is not an array", colisData);
+      setData([]); // Default to an empty array if colisData is not an array
+    }
+  }, [colisData]);
+  useEffect(() => {
+    dispatch(getColisForClient()); // Fetch tous les colis
+}, [dispatch]);
+
+useEffect(() => {
+  if (colisMiseDistrubution) {
+      setData(colisMiseDistrubution); // Update data state with the fetched colis
+  }
+}, [colisMiseDistrubution]);
+console.log("colis recu",colisMiseDistrubution);
+ 
+  useEffect(() => {
+    const colis = colisMiseDistrubution.filter(item => item.statut === 'Mise en Distribution');
     setData(colis);
   }, []);
 
   const handleLivrée = (record) => {
-    const newData = data.map(item => {
+    const newData = colisMiseDistrubution.map(item => {
       if (item.id === record.id) {
         item.statut = 'Livrée';
       }
@@ -50,7 +91,7 @@ function ColisMiseDistribution({ search }) {
 
   const handleAnnuléeOk = () => {
     form.validateFields().then(values => {
-      const newData = data.map(item => {
+      const newData = colisMiseDistrubution.map(item => {
         if (item.id === selectedColis.id) {
           item.statut = 'Annulée';
           item.comment = values.comment;
@@ -67,7 +108,7 @@ function ColisMiseDistribution({ search }) {
 
   const handleProgrammeOk = () => {
     programmeForm.validateFields().then(values => {
-      const newData = data.map(item => {
+      const newData = colisMiseDistrubution.map(item => {
         if (item.id === selectedColis.id) {
           item.statut = 'Programmé';
           item.deliveryTime = values.deliveryTime;
@@ -241,7 +282,7 @@ function ColisMiseDistribution({ search }) {
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={data}
+              data={colisMiseDistrubution}
               id="id"
               theme={theme}
             />
