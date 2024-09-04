@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-
+import {createSelector} from 'reselect'
 const colisSlice = createSlice({
     name: "colis",
     initialState: {
@@ -20,7 +20,9 @@ const colisSlice = createSlice({
             state.loading = false;
         },
         addColis(state, action) {
-            state.colis.push(action.payload); // Add the new colis to the list
+            
+                state.colis.push(action.payload); // Add the new colis to the list
+            
           },
         setLoading(state, action) {
             state.loading = action.payload;  // Manage loading state
@@ -33,5 +35,13 @@ const colisSlice = createSlice({
 
 const colisReducer = colisSlice.reducer;
 const colisActions = colisSlice.actions;
+// Selecteur pour obtenir les colis avec le statut "reçu"
 
-export { colisActions, colisReducer };
+const selectColis = (state) => state.colis.colis;
+
+const selectColisRecu = createSelector(
+  [selectColis],
+  (colis) => colis.filter((colis) => colis.statut === "R")
+);
+
+export { colisActions, colisReducer,selectColisRecu };

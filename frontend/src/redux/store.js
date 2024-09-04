@@ -7,7 +7,8 @@ const store = configureStore({
     reducer : {
         auth: authReducer,
         profile : profileReducer,
-        colis:colisReducer
+        colis:colisReducer,
+        produit:profileReducer
     }
 })
 
