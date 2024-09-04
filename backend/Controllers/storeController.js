@@ -131,6 +131,7 @@ const deleteStore = asyncHandler(async (req, res) => {
 
  });
 
+
 module.exports = {
   getAllStores,
   getStoreById,

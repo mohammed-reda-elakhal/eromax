@@ -153,26 +153,36 @@ function ColisForm({ theme , type}) {
             colisType
         };
         dispatch(addColis(data))
-        .then((response) => {
-            if (response) {
-                toast.success("Colis ajouté avec succès !");
-                handleCleanData();
+    .then((response) => {
+        if (response) {
+            toast.success("Colis ajouté avec succès !");
+            handleCleanData();
+            
+            // Navigate based on the type of colis
+            if (colisType === ColisTypes[0].name || type === 'simple') {
                 navigate('/dashboard/list-colis');
+            } else if (colisType === ColisTypes[1].name || type === 'stock') {
+                navigate('/dashboard/ajouter-produit-colis');
             }
-        })
-        .catch((error) => {
-            console.error('Erreur lors de l\'ajout du colis:', error);
-            toast.error("Erreur lors de l'ajout du colis. Veuillez réessayer.");
-        });
-        console.log(data)
-        handleCleanData()
-        
-        if(colisType === ColisTypes[0].name || type === 'simple'){
-            navigate('/dashboard/list-colis')
-        }else if(colisType === ColisTypes[1].name || type === 'stock' ){
-            navigate('/dashboard/ajouter-produit-colis')
         }
+    })
+    .catch((error) => {
+        console.error('Erreur lors de l\'ajout du colis:', error);
+        toast.error("Erreur lors de l'ajout du colis. Veuillez réessayer.");
+    });
     };
+    useEffect(() => {
+        console.log('Nom:', nom);
+        console.log('Tele:', tele);
+        console.log('Ville:', ville);
+        console.log('Address:', adress);
+        console.log('Commentaire:', commentaire);
+        console.log('Prix:', prix);
+        console.log('Produit:', produit);
+        console.log('Colis Type:', colisType);
+        console.log('Remplace Colis:', remplaceColis);
+        console.log('Ouvrir Colis:', ouvrirColis);
+    }, [nom, tele, ville, adress, commentaire, prix, produit, colisType, remplaceColis, ouvrirColis]);
 
 
     return (

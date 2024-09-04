@@ -136,7 +136,41 @@ const getLivreurbyVille= asyncHandler(async(req,res)=>{
 
 
 
-})
+});
+const LivreurPhotoController = asyncHandler(async (req, res) => {
+  console.log('Inside clientPhotoController controller');
+  // Validation 
+  if (!req.file) {
+      return res.status(400).json({ message: "No file provided" });
+  }
+
+  // 2. get image path 
+  const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+  // 3. Upload to cloudinary
+  const result = await cloudinaryUploadImage(imagePath);
+  console.log(result);
+
+  const livreur = await Livreur.findById(req.params.id);
+  if (!livreur) {
+      return res.status(404).json({ message: "livreur not found" });
+  }
+  // 4. Get the livreur  from db
+  // 5. Delete the old profile photo if exists 
+  if (livreur.profile.publicId !== null) {
+      await cloudinaryRemoveImage(livreur.profile.publicId);
+  }
+  // 6. change image url in DB
+  livreur.profile = {
+      url: result.secure_url,
+      publicId: result.public_id
+  };
+  await livreur.save();
+  // 7. send response to client 
+  res.status(200).json({ message: 'Photo successfully uploaded', image: livreur.profile });
+
+  // 8. Remove Image from the server 
+  fs.unlinkSync(imagePath);
+});
 module.exports = {
-  getAllLivreur,getLivreurById , createLivreur , updateLivreur , deleteLivreur,getLivreurbyVille
+  getAllLivreur,getLivreurById , createLivreur , updateLivreur , deleteLivreur,getLivreurbyVille,LivreurPhotoController
 };

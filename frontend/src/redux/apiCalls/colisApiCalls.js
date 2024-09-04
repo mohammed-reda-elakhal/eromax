@@ -66,14 +66,13 @@ export function addColis(data) {
             );
 
             // Handle success
-            dispatch({ type: 'ADD_COLIS_SUCCESS', payload: response.data });
+            dispatch(colisActions.addColis(response.data)); // Use the action creator
             toast.success("Colis ajouté avec succès !");
-            return response.data; // Retourne les données de réponse si nécessaire
+            return response.data; // Return response data if needed
         } catch (error) {
             // Handle error
-            dispatch({ type: 'ADD_COLIS_FAILURE', payload: error.message });
+            dispatch(colisActions.setError(error.message)); // Use the action creator for errors
             toast.error("Erreur lors de l'ajout du colis. Veuillez réessayer.");
-            
             if (error.response && error.response.status === 401) {
                 console.log('Erreur d\'authentification');
             }

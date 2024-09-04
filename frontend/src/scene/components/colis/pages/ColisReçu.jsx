@@ -1,19 +1,38 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
+
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
+//import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
+import Input from 'antd/es/input';
+import Space from 'antd/es/space';
+import Button from 'antd/es/button';
+import Form from 'antd/es/form'
+import Modal from 'antd/es/modal/Modal';
+import { Menu } from 'antd';
+import Avatar from 'antd';
+import { message } from 'antd';
+import Popconfirm from 'antd/es/popconfirm';
+import Dropdown from 'antd/es/dropdown';
+import FloatButton from 'antd/es/float-button';
 import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
+import { useDispatch, useSelector } from 'react-redux';
+import { colisActions, selectColisRecu } from '../../../../redux/slices/colisSlice';
+import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisReçu({search}) {
     const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const colisRecu = useSelector(selectColisRecu); 
+  const loading = useSelector((state) => state.colis.loading);
+  const status = useSelector((state) => state.colis.status);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -42,9 +61,15 @@ function ColisReçu({search}) {
   };
 
   useEffect(() => {
-    const colis = ColisData.filter(item => item.statut === 'Reçu');
-    setData(colis);
-  }, []);
+    dispatch(getColis()); // Fetch tous les colis
+}, [dispatch]);
+
+useEffect(() => {
+  if (colisRecu) {
+      setData(colisRecu); // Update data state with the fetched colis
+  }
+}, [colisRecu]);
+console.log("colis recu",colisRecu);
 
   useEffect(() => {
     console.log('Selected row keys: ', selectedRowKeys);
@@ -52,22 +77,22 @@ function ColisReçu({search}) {
 
   const handleDistribution = (id = null) => {
     if (id) {
-      const newData = data.map(item => {
+      const newData = colisRecu.map(item => {
         if (item.id === id) {
           item.statut = 'mise en distribution';
         }
         return item;
       });
-      setData(newData);
+      colisActions.setColis(newData);
       success(`Colis mise en distribution , veuillez vérifier sur la table de statut mise en distribution`);
     } else if (selectedRowKeys.length > 0) {
-      const newData = data.map(item => {
+      const newData = colisRecu.map(item => {
         if (selectedRowKeys.includes(item.id)) {
           item.statut = 'mise en distribution';
         }
         return item;
       });
-      setData(newData);
+      colisActions.setColis(newData);
       setSelectedRowKeys([]);
       success(`${selectedRowKeys.length} colis mise en distribution, veuillez vérifier sur la table de statut mise en distribution`);
     } else {
@@ -83,7 +108,7 @@ function ColisReçu({search}) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = data.find(item => item.id === selectedRowKeys[0]);
+      const record = colisRecu.find(item => item.id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -91,8 +116,8 @@ function ColisReçu({search}) {
   };
 
   const confirmSuppression = () => {
-    const newData = data.filter(item => !selectedRowKeys.includes(item.id));
-    setData(newData);
+    const newData = colisRecu.filter(item => !selectedRowKeys.includes(item.id));
+    colisActions.setColis(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
   };
@@ -113,13 +138,14 @@ function ColisReçu({search}) {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = data.map(item => {
+      const newData = colisRecu.map(item => {
         if (item.id === currentColis.id) {
           return { ...item, ...values };
         }
         return item;
       });
       setData(newData);
+      
       setIsModalVisible(false);
       success("Colis modifié avec succès");
     }).catch(info => {
@@ -272,7 +298,7 @@ function ColisReçu({search}) {
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={data}
+              data={colisRecu}
               id="id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
