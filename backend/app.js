@@ -1,8 +1,10 @@
 const  express = require("express");
 const connectToDB= require("./config/connectToDb");
+const {getColisByIdLivreur}= require("./Controllers/colisController")
 require('dotenv').config;
 
-const cors = require("cors")
+const cors = require("cors");
+const { verifyToken } = require("./Middlewares/VerifyToken");
 
 
 // Connection To DB
@@ -23,6 +25,8 @@ app.use(cors({
     credentials: true
 }));
 
+
+
 // Routes 
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));
@@ -38,7 +42,6 @@ app.use("/api/notification", require("./routes/notificationRoute"));
 app.use("/api/meth", require("./routes/methRoute"));
 app.use("/api/payement", require("./routes/payementRoute"));
 app.use("/api/ville", require("./routes/villeRoute"));
-
 
 
 //Running server 
