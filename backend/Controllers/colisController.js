@@ -34,12 +34,12 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   }
 
   // Validate that req.user is present and has store
-  if (!req.user || !req.user.store) {
+  if (!req.user ) {
     return res.status(400).json({ message: "Store information is missing in user data" });
   }
   
   // Extract store and team information
-  let store = req.user.store; // Assuming req.user.store should be used
+  let store = req.user.store || null; // Assuming req.user.store should be used
   let team = req.user.id;     // Assuming team is the user id
 
   // Generate a unique code_suivi
@@ -52,8 +52,6 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
       isUnique = true;
     }
   }
-
-  console.log("code_suivi", code_suivi);
 
   // Create and save the new Colis
   const newColis = new Colis({
@@ -86,10 +84,10 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
   // Respond with both the saved Colis and Suivi_Colis
   res.status(201).json({
+    message : 'Colis est créer , merci ❤️',
     colis: saveColis,
     suiviColis: save_suivi
   });
-  console.log("created");
 });
 
 /**
@@ -100,10 +98,22 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
  * @access   private (only logger in user )
  * -------------------------------------------------------------------
 **/
-module.exports.getAllColisCtrl= asyncHandler(async(req,res)=>{
-    const colis = await Colis.find();
+module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
+  try {
+    const colis = await Colis.find()
+      .populate('team')        // Populate the team details
+      .populate('livreur')     // Populate the livreur details
+      .populate('store')       // Populate the store details
+      .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
+
     res.status(200).json(colis);
-}); 
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch colis.", error: error.message });
+  }
+});
+
+
 
 /**
  * -------------------------------------------------------------------

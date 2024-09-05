@@ -18,6 +18,7 @@ import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApi
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 
+
 const options = [
   { id: 1, name: 'Annulée' },
   { id: 2, name: 'Changer Prix' },
@@ -51,23 +52,17 @@ const ColisTable = ({ theme, darkStyle ,search }) => {
   user: state.auth.user,
   store:state.auth.store
 }));
-console.log(store);
 useEffect(() => {
 
-  if (user?.role) {
-    if (user.role === "admin") {
+  if (user) {
       dispatch(getColis());
-    } else if (user.role === "client"&&store?._id) {
-      dispatch(getColisForClient(store._id));
-    }
   }
   window.scrollTo(0, 0);
-}, [dispatch, user?.role, store?._id]);
+}, [dispatch, user]);
 useEffect(() => {
   if (Array.isArray(colisData)) {
     setData(colisData);
   } else {
-    console.error("colisData is not an array", colisData);
     setData([]); // Default to an empty array if colisData is not an array
   }
 }, [colisData]);
@@ -92,6 +87,18 @@ useEffect(() => {
   const handleChangeReclamation = (selectedOption) => {
     setReclamation(selectedOption);
   };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
+  
 
   const columnsColis = [
     { 
@@ -100,10 +107,11 @@ useEffect(() => {
       key: 'code_suivi' ,
       ...search('code_suivi'),
     },
-    { 
-      title: 'Dernière Mise à Jour', 
-      dataIndex: 'updated_at', 
-      key: 'updated_at' 
+    {
+      title: 'Dernière Mise à Jour',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      render: (text) => formatDate(text), // Format using the function
     },
     { 
       title: 'Destinataire', 

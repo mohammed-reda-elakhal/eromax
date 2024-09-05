@@ -95,10 +95,13 @@ function Menubar() {
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
-
-        <Menu.Item icon={<CgDanger />} className={isNewReclamation ? "change-color-animation" : ""}>
-          <Link to="/dashboard/reclamation">Reclamation</Link>
-        </Menu.Item>
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<CgDanger />} className={isNewReclamation ? "change-color-animation" : ""}>
+              <Link to="/dashboard/reclamation">Reclamation</Link>
+            </Menu.Item>
+          )
+        }
 
         {
           userData.role ==="admin" && (
@@ -119,30 +122,47 @@ function Menubar() {
           )
         }
         
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<MdEditNotifications />}>
+              <Link to="/dashboard/notification">Notification</Link>
+            </Menu.Item>
+          )
+        }
 
-        <Menu.Item icon={<MdEditNotifications />}>
-          <Link to="/dashboard/notification">Notification</Link>
-        </Menu.Item>
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<FaCity />}>
+              <Link to="/dashboard/ville">Villes</Link>
+            </Menu.Item>
+          )
+        }
 
-        <Menu.Item icon={<FaCity />}>
-          <Link to="/dashboard/ville">Villes</Link>
-        </Menu.Item>
+        {
+          userData.role ==="client" && (
+            <>
+              <Menu.Item icon={<IoWalletSharp />}>
+                <Link onClick={() => setOpenWallet(true)}>Portfeuille</Link>
+              </Menu.Item>
+              <Drawer
+                title="Portfeuille"
+                open={openWallet}
+                onClose={() => setOpenWallet(prev => !prev)}
+              >
+                <Solde />
+                <DemandeRetrait theme={theme} />
+              </Drawer>
+            </>
+          )
+        }
 
-        <Menu.Item icon={<IoWalletSharp />}>
-          <Link onClick={() => setOpenWallet(true)}>Portfeuille</Link>
-        </Menu.Item>
-        <Drawer
-          title="Portfeuille"
-          open={openWallet}
-          onClose={() => setOpenWallet(prev => !prev)}
-        >
-          <Solde />
-          <DemandeRetrait theme={theme} />
-        </Drawer>
-
-        <Menu.Item icon={<LuScanLine />}>
-          <Link to="/dashboard/scan">Scan</Link>
-        </Menu.Item>
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<LuScanLine />}>
+              <Link to="/dashboard/scan">Scan</Link>
+            </Menu.Item>
+          )
+        }
 
         <Menu.SubMenu icon={<LuBox />} title="Colis">
           <Menu.Item icon={<BiTagAlt />}>

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
@@ -9,6 +9,7 @@ import ColisFilterBar from '../components/ColisFilterBar';
 import ColisTable from '../components/ColisTable';
 import '../colis.css'
 import { Link } from 'react-router-dom';
+
 
 
 function ColisList({search}) {
@@ -63,6 +64,8 @@ function ColisList({search}) {
             color: '#fff',
         }),
     };
+
+    
     
     return (
         <div className='page-dashboard'>

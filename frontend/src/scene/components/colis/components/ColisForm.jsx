@@ -4,7 +4,7 @@ import { Input, Tooltip, Select, Col, Row , Checkbox } from 'antd';
 import { MdOutlineWidgets } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addColis } from '../../../../redux/apiCalls/colisApiCalls';
+import { addColis, createColis } from '../../../../redux/apiCalls/colisApiCalls';
 import { toast } from 'react-toastify';
 const { TextArea } = Input;
 
@@ -140,49 +140,19 @@ function ColisForm({ theme , type}) {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        const data = {
+        const colis = {
             nom,
             tele,
             ville,
-            adress,
+            adresse : adress,
             commentaire,
             prix,
-            produit,
-            ouvrirColis,
-            remplaceColis,
-            colisType
+            nature_produit :produit,
+            ouvrir :ouvrirColis,
+            is_remplace : remplaceColis,
         };
-        dispatch(addColis(data))
-    .then((response) => {
-        if (response) {
-            toast.success("Colis ajouté avec succès !");
-            handleCleanData();
-            
-            // Navigate based on the type of colis
-            if (colisType === ColisTypes[0].name || type === 'simple') {
-                navigate('/dashboard/list-colis');
-            } else if (colisType === ColisTypes[1].name || type === 'stock') {
-                navigate('/dashboard/ajouter-produit-colis');
-            }
-        }
-    })
-    .catch((error) => {
-        console.error('Erreur lors de l\'ajout du colis:', error);
-        toast.error("Erreur lors de l'ajout du colis. Veuillez réessayer.");
-    });
+        dispatch(createColis(colis))
     };
-    useEffect(() => {
-        console.log('Nom:', nom);
-        console.log('Tele:', tele);
-        console.log('Ville:', ville);
-        console.log('Address:', adress);
-        console.log('Commentaire:', commentaire);
-        console.log('Prix:', prix);
-        console.log('Produit:', produit);
-        console.log('Colis Type:', colisType);
-        console.log('Remplace Colis:', remplaceColis);
-        console.log('Ouvrir Colis:', ouvrirColis);
-    }, [nom, tele, ville, adress, commentaire, prix, produit, colisType, remplaceColis, ouvrirColis]);
 
 
     return (

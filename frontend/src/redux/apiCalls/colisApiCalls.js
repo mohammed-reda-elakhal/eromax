@@ -40,12 +40,14 @@ const getAuthToken = () => {
 }
 export function addColis(data) {
     return async (dispatch) => {
-        const store = JSON.parse(localStorage.getItem('store')); // Obtenez le store depuis le localStorage
-        const storeId = store ? store._id : null; // Assurez-vous que le storeId est correct
-        console.log(storeId);
-        if (!storeId) {
-            toast.error("Store ID is missing in local storage");
-            return;
+        const user = JSON.parse(localStorage.getItem('user'));
+        let store // Obtenez le store depuis le localStorage
+        let id_user
+        if(user && user.role === "client"){
+            store = JSON.parse(localStorage.getItem('store'));
+            id_user = store ? store._id : null;
+        }else{
+            id_user = user ? user._id : null;
         }
 
         const token = JSON.parse(getAuthToken());
@@ -56,11 +58,14 @@ export function addColis(data) {
         }
 
         try {
-            const response = await request.post(`/api/colis/${storeId}`, 
-                { ...data }, 
+            const response = await request.post(`/api/colis/`, 
+                data , 
                 {
                     headers: {
                         'Authorization': `bearer ${token}`
+                    },
+                    params:{
+                        id_user 
                     }
                 }
             );
@@ -77,6 +82,56 @@ export function addColis(data) {
                 console.log('Erreur d\'authentification');
             }
             return error;
+        }
+    };
+}
+
+// Create Colis function
+export function createColis(colis) {
+    return async (dispatch) => {
+        try {
+            // Get token and user data from localStorage
+            const token = localStorage.getItem('token'); // Assuming the token is stored under 'token'
+            const user = JSON.parse(localStorage.getItem('user')); // Assuming user data is stored under 'user'
+
+            // Ensure both token and user data are available
+            if (!token || !user) {
+                throw new Error('Missing authentication token or user information.');
+            }
+
+            // Determine if the user is a client, admin, or team member
+            let idToUse;
+            if (user.role === 'client') {
+                // For clients, use the store ID from localStorage
+                const store = JSON.parse(localStorage.getItem('store')); // Assuming store data is stored under 'store'
+                if (!store?._id) {
+                    throw new Error('Store information is missing.');
+                }
+                idToUse = store._id; // Use store ID for clients
+            } else if (user.role === 'admin' || user.role === 'team') {
+                // For admin or team, use the user ID
+                idToUse = user._id; // Use user ID for admin or team
+            } else {
+                throw new Error('User role is not authorized to create a colis.');
+            }
+
+            // Set up headers with token
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            // Make the POST request to create a colis with the determined ID
+            const { data } = await request.post(`/api/colis/${idToUse}`, colis, config);
+
+            // Show success notification
+            toast.success(data.message);
+        } catch (error) {
+            // Show error notification
+            toast.error(error.response?.data?.message || error.message || "Failed to create colis");
+            console.error(error);
         }
     };
 }
