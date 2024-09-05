@@ -1,25 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
-const { 
-        verifyToken , 
-        verifyTokenAndAdmin  , 
-        verifyTokenAndClientOrAdmin, 
-        verifyTokenAndClient, 
-        verifyTokenAndLivreur,
-        verifyTokenAndStore,
-        verifyTokenStoreTeamAdmin,
-        verifyTokenAdminTeam,
-        verifyTokenStoreTeamAdminClient
-        } = require("../Middlewares/VerifyToken"); 
+const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin} = require("../Middlewares/VerifyToken"); 
 const { updateSuiviColis } = require("../Controllers/suivi_colisController");
-const { isValidObjectId } = require("mongoose");
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
 //Router api/colis
 router.route('/')
-        .get(colisController.getAllColisCtrl)
+        .get(verifyTokenAndAdmin,colisController.getAllColisCtrl)
 
 // Router api/colis/:id_user or :id_store
 router.route('/:id_user')
@@ -50,7 +39,13 @@ router.route('/truck/:code_suivi')
 
 // router api/colis/colisStore/:id_store get colis by store 
 router.route("/colisStore/:id").get(colisController.getColisByStore);
-router.route("/livreur").post(colisController.affecterLivreur);
+router.route("/livreur")
+.post(colisController.affecterLivreur);
+
+router.route("/getColisLiv/:id_livreur").get(verifyTokenAndLivreurOrAdmin,colisController.getColisByIdLivreur)
+router.route("/getColisTeam/:id_team").get(verifyTokenAndAdmin,colisController.getColisByTeam)
+
+
 
 
 

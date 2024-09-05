@@ -6,6 +6,7 @@ const { Client } = require("../Models/Client");
 const {Store} =require("../Models/Store");
 const { default: mongoose } = require("mongoose");
 const { Livreur } = require("../Models/Livreur");
+const { Team } = require("../Models/Team");
 
 
 // Utility function to generate a unique code_suivi
@@ -417,7 +418,36 @@ module.exports.affecterLivreur = async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
+module.exports.getColisByIdLivreur=asyncHandler(async(req,res)=>{
 
+  const id_livreur= req.params.id_livreur
+  if(!id_livreur){
+    return res.status(400).json({ message: "Id Livreur no provided" });
+  }
+  const liv = Livreur.findById(id_livreur);
+  if(!liv){
+    return res.status(404).json({ message: "Livreur not found" });
+  }
+  const colisList= await Colis.find({livreur:id_livreur});
+  res.status(200).json({ message: "Colis Fetched Successfully", colisList });
+
+
+});
+module.exports.getColisByTeam=asyncHandler(async(req,res)=>{
+
+  const id_team= req.params.id_team;
+  if(!id_team){
+    return res.status(400).json({ message: "Id Team not provided" });
+  }
+  const team = Team.findById(id_team);
+  if(!team){
+    return res.status(404).json({ message: "Team not found" });
+  }
+  const colisList= await Colis.find({team:id_team});
+  res.status(200).json({ message: "Colis Fetched Successfullt", colisList });
+
+
+});
 
 
 
