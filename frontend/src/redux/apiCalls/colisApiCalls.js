@@ -150,3 +150,22 @@ export function createColis(colis) {
         }
     };
 }
+export const getColisForLivreur = (userId) => async (dispatch) => {
+    dispatch(colisActions.setLoading(true));
+    try {
+        // Fetch the data from the API
+        const { data } = await request.get(`/api/colis/getColisLiv/${userId}`);
+        console.log("Fetched data for client:", data);
+
+        // Check for the correct key in the response (colisList instead of colis)
+        if (data && Array.isArray(data.colisList)) {
+            dispatch(colisActions.setColis(data.colisList)); // Use colisList here
+        } else {
+            console.error("Unexpected data format:", data);
+            dispatch(colisActions.setError("Invalid data format received from server."));
+        }
+    } catch (error) {
+        console.error("Failed to fetch colis for client:", error);
+        dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
+    }
+};

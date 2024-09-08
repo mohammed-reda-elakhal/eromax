@@ -14,7 +14,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Input, Space } from 'antd';
 import Highlighter from 'react-highlight-words';
 import UpdateColis from './UpdateColis';
-import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 
@@ -59,10 +59,13 @@ useEffect(() => {
       dispatch(getColis());
     } else if (user.role === "client"&&store?._id) {
       dispatch(getColisForClient(store._id));
+    }else if (user.role === "livreur"){
+      dispatch(getColisForLivreur(user._id))
+
     }
   }
   window.scrollTo(0, 0);
-}, [dispatch, user?.role, store?._id]);
+}, [dispatch, user?.role, store?._id,user._id]);
 useEffect(() => {
   if (Array.isArray(colisData)) {
     setData(colisData);
