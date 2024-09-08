@@ -6,12 +6,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getProfile } from '../../../../redux/apiCalls/profileApiCalls';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import ProfileForm from './ProfileForm';
+import Cookies from 'js-cookie';
+
 
 function ProfileInfo() {
     const [verify, setVerify] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(Cookies.get('user'));
     const { id } = useParams();
     const {profile} = useSelector((state) => state.profile);
 

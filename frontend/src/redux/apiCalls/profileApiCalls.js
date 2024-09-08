@@ -1,6 +1,7 @@
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { profileActions } from "../slices/profileSlice";
+import Cookies from "js-cookie";
 
 
 
@@ -50,7 +51,7 @@ export function updateProfile(userId, role, user) {
     return async (dispatch, getState) => {
         try {
             // Get the token from localStorage
-            const token = JSON.parse(localStorage.getItem('token'));
+            const token = JSON.parse(Cookies.get('token'));
             if (!token) {
                 throw new Error('No token found in localStorage');
             }

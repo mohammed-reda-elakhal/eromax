@@ -5,6 +5,7 @@ require('dotenv').config;
 
 const cors = require("cors");
 const { verifyToken } = require("./Middlewares/VerifyToken");
+const cookieParser = require("cookie-parser");
 
 
 // Connection To DB
@@ -24,7 +25,7 @@ app.use(cors({
     origin: "http://localhost:3000", // Removed trailing slash
     credentials: true
 }));
-
+app.use(cookieParser());
 
 
 // Routes 

@@ -1,6 +1,9 @@
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { colisActions } from "../slices/colisSlice";
+import Cookies from "js-cookie";
+import { decodeToken } from "../../utils/tokenUtils";
+
 
 // Fetch post
 export function getColis() {
@@ -32,19 +35,19 @@ export const getColisForClient = (storeId) => async (dispatch) => {
         dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
     }
 };
-
+/*  */
 
 // Fonction pour obtenir le token d'authentification depuis le stockage local ou autre
-const getAuthToken = () => {
-    return localStorage.getItem('token');  
-}
+ const getAuthToken = () => {
+    return Cookies.get('token');  
+} 
 export function addColis(data) {
     return async (dispatch) => {
-        const user = JSON.parse(localStorage.getItem('user'));
+        const user = JSON.parse(Cookies.get('user'));
         let store // Obtenez le store depuis le localStorage
         let id_user
         if(user && user.role === "client"){
-            store = JSON.parse(localStorage.getItem('store'));
+            store = JSON.parse(Cookies.get('store'));
             id_user = store ? store._id : null;
         }else{
             id_user = user ? user._id : null;
@@ -62,7 +65,7 @@ export function addColis(data) {
                 data , 
                 {
                     headers: {
-                        'Authorization': `bearer ${token}`
+                        'authorization': `bearer ${token}`
                     },
                     params:{
                         id_user 
@@ -84,26 +87,38 @@ export function addColis(data) {
             return error;
         }
     };
-}
+} 
 
 // Create Colis function
 export function createColis(colis) {
     return async (dispatch) => {
         try {
-            // Get token and user data from localStorage
-            const token = localStorage.getItem('token'); // Assuming the token is stored under 'token'
-            const user = JSON.parse(localStorage.getItem('user')); // Assuming user data is stored under 'user'
+            // Get token and user data from cookies
+            const token =Cookies.get('token'); // Retrieve token as a string
+            console.log("Token sent to backend:", token);
+            const user = JSON.parse(Cookies.get('user')); // Parse user data from cookies
+            console.log("User",user);
+            // Debugging token to ensure it's correctly retrieved
+            console.log("Token from cookies:", token);
 
             // Ensure both token and user data are available
             if (!token || !user) {
                 throw new Error('Missing authentication token or user information.');
             }
 
+            
+
+            const decodedToken = decodeToken(token);
+            console.log('Decoded Token:', decodedToken);
+
+            // Check if token is expired
+         
             // Determine if the user is a client, admin, or team member
             let idToUse;
             if (user.role === 'client') {
-                // For clients, use the store ID from localStorage
-                const store = JSON.parse(localStorage.getItem('store')); // Assuming store data is stored under 'store'
+                // For clients, use the store ID from cookies
+                const store = JSON.parse(Cookies.get('store')); // Parse store data from cookies
+                console.log(store);
                 if (!store?._id) {
                     throw new Error('Store information is missing.');
                 }
@@ -115,10 +130,10 @@ export function createColis(colis) {
                 throw new Error('User role is not authorized to create a colis.');
             }
 
-            // Set up headers with token
+            // Set up headers with token in correct format
             const config = {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
                     'Content-Type': 'application/json',
                 }
             };
