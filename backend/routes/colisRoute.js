@@ -42,7 +42,7 @@ router.route("/colisStore/:id").get(colisController.getColisByStore);
 router.route("/livreur")
 .post(colisController.affecterLivreur);
 
-router.route("/getColisLiv/:id_livreur").get(verifyTokenAndLivreurOrAdmin,colisController.getColisByIdLivreur)
+router.route("/getColisLiv/:id_livreur").get(colisController.getColisByIdLivreur)
 router.route("/getColisTeam/:id_team").get(verifyTokenAndAdmin,colisController.getColisByTeam)
 
 
