@@ -152,6 +152,7 @@ function ColisForm({ theme , type}) {
             is_remplace : remplaceColis,
         };
         dispatch(createColis(colis))
+        console.log("Colis",colis);
     };
 
 

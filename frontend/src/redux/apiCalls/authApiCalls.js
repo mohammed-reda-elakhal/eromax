@@ -1,19 +1,19 @@
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { authActions } from "../slices/authSlice";
-
+import Cookies from "js-cookie";
 // login function
 export function loginUser(user, role, navigate) {
     return async (dispatch) => {
         try {
             const { data } = await request.post(`/api/auth/login/${role}`, user);
             dispatch(authActions.login(data.user));
-            localStorage.setItem("user", JSON.stringify(data.user));
-            localStorage.setItem("token", JSON.stringify(data.token));
+            Cookies.set("user", JSON.stringify(data.user),{ expires: 30 });// expand expiration time 
+            Cookies.set("token", JSON.stringify(data.token));
             
             if (data.user.role === "client") {
                 dispatch(authActions.setStore(data.store));
-                localStorage.setItem("store", JSON.stringify(data.store));
+                Cookies.set("store", JSON.stringify(data.store),{ expires: 30 });
             }
 
             toast.success(data.message);
@@ -47,7 +47,7 @@ export function registerUser(role , user){
 
 // logout function
 export function logoutUser(navigate) {
-    localStorage.removeItem("user");
-    localStorage.removeItem("store");
-    localStorage.removeItem("token");
+    Cookies.remove("user");
+    Cookies.remove("store");
+    Cookies.remove("token");
 }

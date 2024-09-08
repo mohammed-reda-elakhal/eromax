@@ -1,10 +1,12 @@
 const jwt = require("jsonwebtoken");
 
+
 // verify token
 function verifyToken(req, res, next) {
     const authToken = req.headers.authorization;  // Check for 'authorization' header
     if (authToken) {
         const token = authToken.split(" ")[1];  // Split to get the token part
+
         try {
             const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decodedPayload;
@@ -55,6 +57,7 @@ function verifyTokenStoreTeamAdminClient(req, res, next) {
             next();
         } else {
             return res.status(401).json({ message: "You are not allowed to this operation" });
+            console.log('you not alowded');
         }
     });
 }

@@ -54,11 +54,15 @@ const ColisTable = ({ theme, darkStyle ,search }) => {
 }));
 useEffect(() => {
 
-  if (user) {
+  if (user?.role) {
+    if (user.role === "admin") {
       dispatch(getColis());
+    } else if (user.role === "client"&&store?._id) {
+      dispatch(getColisForClient(store._id));
+    }
   }
   window.scrollTo(0, 0);
-}, [dispatch, user]);
+}, [dispatch, user?.role, store?._id]);
 useEffect(() => {
   if (Array.isArray(colisData)) {
     setData(colisData);
