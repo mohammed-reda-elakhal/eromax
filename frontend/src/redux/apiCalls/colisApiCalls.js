@@ -51,9 +51,11 @@ export function createColis(colis) {
 
             
 
+
             const decodedToken = decodeToken(token);
             console.log('Decoded Token:', decodedToken);
             
+
             // Determine if the user is a client, admin, or team member
             let idToUse;
             if (user.role === 'client') {
@@ -108,5 +110,72 @@ export const getColisForLivreur = (userId) => async (dispatch) => {
     } catch (error) {
         console.error("Failed to fetch colis for client:", error);
         dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
+    }
+};
+export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
+    try{
+        const token = Cookies.get('token');
+        if(!token){
+            toast.error('Authentification token is missing')
+        }
+        const config={
+            headers:{
+                'authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+
+            }
+        };
+        const body={
+            colisId:colisId,
+            livreurId:livreurId
+        }
+        const data = await request.post(`api/livreur/colis`,body);
+        console.log('Colis a affecter ',data);
+        dispatch(colisActions.updateColis(data.colis));
+
+    }catch(error){
+        toast.error(error.response?.data?.message || 'Failed to assign livreur');
+        dispatch(colisActions.setError(error.message));
+
+    }
+
+}
+export const updateStatut = (colisId, newStatus) => async (dispatch) => {
+    if (!colisId) {
+        toast.error('ID de colis manquant');
+        return;
+    }
+    console.log('inside update api call');
+    // Retrieve the authentication token
+    const token = Cookies.get('token');
+    if (!token) {
+        toast.error('Authentication token is missing');
+        return;
+    }
+
+    // Configuration for the API request
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        }
+    };
+
+    // Request body
+    const body = {
+        new_status: newStatus
+    };
+
+    try {
+        // Make the API request to update the status
+        const {data} = await request.put(`/api/colis/St/${colisId}`,body);
+        console.log('colisID',colisId);
+        // Handle success
+        dispatch(colisActions.updateColis(data.colis)); // Assuming you have an action to update the colis
+        toast.success("Colis status updated successfully!");
+    } catch (error) {
+        // Handle error
+        toast.error(error.response?.data?.message || "Failed to update colis status");
+        console.error("Update status error:", error);
     }
 };

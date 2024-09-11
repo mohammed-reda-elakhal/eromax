@@ -52,16 +52,7 @@ function ColisLivrée({search}) {
           setData(ColisLivrée); // Update data state with the fetched colis
       }
     }, [ColisLivrée]);
-    console.log("colis recu",ColisLivrée);
-     useEffect(() => {
-        const colis = ColisLivrée.filter(item => item.statut === 'Ramassé');
-        setData(colis);
-      }, []); 
-    
-      useEffect(() => {
-        const colis = ColisLivrée.filter(item => item.statut === 'Attente de Ramassage');
-        setData(colis);
-      }, []);
+    console.log("colis Livré",ColisLivrée);
     useEffect(() => {
         const colis = ColisLivrée.filter(item => item.statut === 'Livrée');
         setData(colis);
@@ -85,9 +76,15 @@ function ColisLivrée({search}) {
             key: 'livreur',
             render: (text, record) => (
                 <span>
-                    <p>{record.livreur.nom}</p>
-                    <p>{record.livreur.tele}</p>
-                </span>
+                {record.livreur ? (
+              <>
+                <p>{record.livreur.Nom}</p>
+                <p>{record.livreur.Tel}</p>
+              </>
+               ) : 
+                <p>{record.livreur.Nom}</p> // Show a fallback message if `livreur` is undefined
+              }
+              </span>
             ),
         },
         {

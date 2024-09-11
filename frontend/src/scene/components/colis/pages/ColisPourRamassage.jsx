@@ -5,14 +5,15 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
-import ColisData from '../../../../data/colis.json';
+//import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
-import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisPourRamassage } from '../../../../redux/slices/colisSlice';
+import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 
 function ColisPourRamassage({ search }) {
   const { theme } = useContext(ThemeContext);
@@ -23,6 +24,7 @@ function ColisPourRamassage({ search }) {
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentColis, setCurrentColis] = useState(null);
+  const [deliveryPerson, setDeliveryPerson] = useState(null);
   const [form] = Form.useForm();
 
   const success = (text) => {
@@ -46,76 +48,80 @@ function ColisPourRamassage({ search }) {
     });
   };
   //-----------------------------
-  const {colisData,user,store} = useSelector((state) => ({
-    colisData: state.colis.colis || [],
+  const { colisData, user, store } = useSelector((state) => ({
+    colisData: state.colis.colis || [],  // Corrected the casing of colisData
     user: state.auth.user,
-    store:state.auth.store
+    store: state.auth.store,
   }));
-
-  // Recuperation des colis selon le role 
+  
+  // Recuperation des colis selon le role
   useEffect(() => {
-
     if (user?.role) {
       if (user.role === "admin") {
         dispatch(getColis());
-      } else if (user.role === "client"&&store?._id) {
+      } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id));
+      } else if (user.role === "livreur") {
+        dispatch(getColisForLivreur(user._id));  // Use getColisForLivreur for 'livreur'
       }
     }
     window.scrollTo(0, 0);
-  }, [dispatch, user?.role, store?._id]);
+  }, [dispatch, user?.role, store?._id, user._id]);
+  
+  // Filter colis for "Attente de Ramassage"
   useEffect(() => {
-    if (Array.isArray(colisData)) {
-      setData(colisData);
-    } else {
-      console.error("colisData is not an array", colisData);
-      setData([]); // Default to an empty array if colisData is not an array
+    if (Array.isArray(colisData)) {  // Check if colisData is an array before filtering
+      const filteredColis = colisData.filter(item => item.statut === 'attente de ramassage');
+      setData(filteredColis); // Set the filtered data directly
     }
   }, [colisData]);
+  
+  // Log the filtered "colisPourRamassage" data
   useEffect(() => {
-    dispatch(getColisForClient()); // Fetch tous les colis
-}, [dispatch]);
+    if (Array.isArray(colisPourRamassage)) {  // Ensure colisPourRamassage is an array
+      setData(colisPourRamassage); // Set the data based on the selector
+      console.log("colis pour ramassage ", colisPourRamassage);
+    }
+  }, [colisPourRamassage]);
 
-useEffect(() => {
-  if (colisPourRamassage) {
-      setData(colisPourRamassage); // Update data state with the fetched colis
-  }
-}, [colisPourRamassage]);
-console.log("colis recu",colisPourRamassage);
- useEffect(() => {
-    const colis = colisPourRamassage.filter(item => item.statut === 'Ramassé');
-    setData(colis);
-  }, []); 
-
-  useEffect(() => {
-    const colis = ColisData.filter(item => item.statut === 'Attente de Ramassage');
-    setData(colis);
-  }, []);
+ 
 //----------------------------------------------------------
   useEffect(() => {
     console.log('Selected row keys: ', selectedRowKeys);
   }, [selectedRowKeys]);
 
-  const handleRamasse = (id = null) => {
-    if (id) {
-      const newData = colisPourRamassage.map(item => {
-        if (item.id === id) {
-          item.statut = 'Ramassé';
-        }
-        return item;
-      });
+  const handleRamasse = (colisId) => {
+    if (!colisId) {
+      warning("ID de colis manquant.");
+      return;
+     }
+     console.log('id pour ramasser', colisId);
+    if (colisId) {
+      const newData = colisPourRamassage.map(item => 
+  
+        item._id === colisId ? { ...item, statut: 'Ramassée' } : item
+
+      );
       setData(newData);
-      success(`Colis ramassé, veuillez vérifier sur la table de statut Ramassé`);
+      // Dispatch the updateStatut action to update the server
+    dispatch(updateStatut(colisId, 'Ramassée'));
+      success(`Colis  ${colisId} Ramassée, veuillez vérifier sur la table de statut Ramassé`);
     } else if (selectedRowKeys.length > 0) {
       const newData = colisPourRamassage.map(item => {
-        if (selectedRowKeys.includes(item.id)) {
-          item.statut = 'Ramassé';
+        if (selectedRowKeys.includes(item._id)) {
+          return {
+            ...item,
+            statut: 'Ramassée',
+        };
         }
         return item;
       });
       setData(newData);
       setSelectedRowKeys([]);
-      success(`${selectedRowKeys.length} colis ramassés, veuillez vérifier sur la table de statut Ramassé`);
+      selectedRowKeys.forEach(colisId => {
+        dispatch(updateStatut(colisId, 'Ramassée'));
+      });
+      success(`${selectedRowKeys.length} colis Ramassée, veuillez vérifier sur la table de statut Ramassé`);
     } else {
       warning("Veuillez sélectionner une colonne");
     }
@@ -160,7 +166,7 @@ console.log("colis recu",colisPourRamassage);
   const handleOk = () => {
     form.validateFields().then(values => {
       const newData = colisPourRamassage.map(item => {
-        if (item.id === currentColis.id) {
+        if (item._id === currentColis._id) {
           return { ...item, ...values };
         }
         return item;
@@ -275,7 +281,7 @@ console.log("colis recu",colisPourRamassage);
         <Popconfirm
           title="Ramassage Colis"
           description="Tu es sûr de faire ramassage pour ce colis?"
-          onConfirm={() => handleRamasse(record.id)}
+          onConfirm={() => handleRamasse(record._id)}
           okText="Oui"
           cancelText="Non"
         >

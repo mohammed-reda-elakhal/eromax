@@ -11,7 +11,7 @@ import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisMiseDistrubution } from '../../../../redux/slices/colisSlice';
-import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
@@ -61,46 +61,55 @@ useEffect(() => {
       setData(colisMiseDistrubution); // Update data state with the fetched colis
   }
 }, [colisMiseDistrubution]);
-console.log("colis recu",colisMiseDistrubution);
+console.log("colis Mise en Distribution",colisMiseDistrubution);
  
   useEffect(() => {
     const colis = colisMiseDistrubution.filter(item => item.statut === 'Mise en Distribution');
     setData(colis);
   }, []);
+  //----------------------------------
 
   const handleLivrée = (record) => {
     const newData = colisMiseDistrubution.map(item => {
-      if (item.id === record.id) {
+      if (item.id === record._id) {
         item.statut = 'Livrée';
       }
       return item;
     });
     setData(newData);
-    success(`Colis ${record.id} marqué comme livrée.`);
+    dispatch(updateStatut(record._id, 'Livrée'));
+    success(`Colis ${record._id} marqué comme Livrée.`);
+    
+    
   };
 
   const handleAnnulée = (record) => {
-    setSelectedColis(record);
+    setSelectedColis(record._id);
+    
     setIsAnnuléeModalVisible(true);
   };
 
   const handleProgramme = (record) => {
-    setSelectedColis(record);
+    setSelectedColis(record._id);
     setIsProgrammeModalVisible(true);
   };
 
   const handleAnnuléeOk = () => {
     form.validateFields().then(values => {
       const newData = colisMiseDistrubution.map(item => {
-        if (item.id === selectedColis.id) {
+        if (item.id === selectedColis._id) {
           item.statut = 'Annulée';
           item.comment = values.comment;
         }
         return item;
       });
-      setData(newData);
-      setIsAnnuléeModalVisible(false);
-      success(`Colis ${selectedColis.id} marqué comme annulée.`);
+      setData(newData);  // Mets à jour l'état local `data`
+      dispatch(updateStatut(selectedColis._id, 'Annulée'));
+      setIsAnnuléeModalVisible(false);  // Ferme la modal
+      success(`Colis ${selectedColis._id} marqué comme annulée.`);
+  
+      // Ajoute un appel API pour persister cette modification
+    
     }).catch(info => {
       console.log('Validate Failed:', info);
     });
@@ -109,7 +118,7 @@ console.log("colis recu",colisMiseDistrubution);
   const handleProgrammeOk = () => {
     programmeForm.validateFields().then(values => {
       const newData = colisMiseDistrubution.map(item => {
-        if (item.id === selectedColis.id) {
+        if (item.id === selectedColis._id) {
           item.statut = 'Programmé';
           item.deliveryTime = values.deliveryTime;
         }
@@ -117,7 +126,7 @@ console.log("colis recu",colisMiseDistrubution);
       });
       setData(newData);
       setIsProgrammeModalVisible(false);
-      success(`Colis ${selectedColis.id} programmé pour livraison dans ${values.deliveryTime}.`);
+      success(`Colis ${selectedColis._id} programmé pour livraison dans ${values.deliveryTime}.`);
     }).catch(info => {
       console.log('Validate Failed:', info);
     });
@@ -148,8 +157,14 @@ console.log("colis recu",colisMiseDistrubution);
       key: 'livreur',
       render: (text, record) => (
         <span>
-          <p>{record.livreur.nom}</p>
-          <p>{record.livreur.tele}</p>
+          {record.livreur ? (
+        <>
+          <p>{record.livreur.Nom}</p>
+          <p>{record.livreur.Tel}</p>
+        </>
+         ) : (
+          <p>Aucun livreur assigné</p> // Show a fallback message if `livreur` is undefined
+        )}
         </span>
       ),
     },
