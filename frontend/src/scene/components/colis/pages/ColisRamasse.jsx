@@ -12,7 +12,8 @@ import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisPourRamassage, selectColisRamasse } from '../../../../redux/slices/colisSlice';
-import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { affecterLivreur, getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 
 const { Option } = Select;
 
@@ -20,6 +21,7 @@ function ColisRamasse({ search }) {
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
+  const livreurList = useSelector((state) => state.livreur.livreurList);
   const ColisRamasse = useSelector(selectColisRamasse); 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
@@ -29,7 +31,7 @@ function ColisRamasse({ search }) {
   const [deliveryPerson, setDeliveryPerson] = useState(null);
   const [form] = Form.useForm();
 
-  const deliveryPersonnel = ['Livreur 1', 'Livreur 2', 'Livreur 3']; // Example delivery personnel
+  // const deliveryPersonnel = ['Livreur 1', 'Livreur 2', 'Livreur 3']; // Example delivery personnel
 
   const success = (text) => {
     messageApi.open({
@@ -90,6 +92,11 @@ console.log("colis recu",ColisRamasse);
     const colis = ColisRamasse.filter(item => item.statut === 'Ramassé');
     setData(colis);
   }, []); 
+
+   //get list Livreur
+   useEffect(() => {
+    dispatch(getLivreurList()); // Fetch the list of livreurs on component mount
+  }, [dispatch]);
   //------------------------------------------------------------------
 
   useEffect(() => {
@@ -102,13 +109,31 @@ console.log("colis recu",ColisRamasse);
   };
 
   const handleExpidie = () => {
-    if (deliveryPerson) {
+    if (livreurList && currentColis) {
+      console.log(currentColis._id);
+      try{
+        dispatch(affecterLivreur(currentColis._id, deliveryPerson._id));
+        console.log("current colis expedie ",currentColis.statut);
+
+
+        console.log('Livreur',deliveryPerson._id);
+        success(`Colis expédié par ${deliveryPerson.Nom}, veuillez vérifier sur la table de statut Expidie`);
+        setIsExpidieModalVisible(false);
+
+      }catch (error) {
+      console.error('Error assigning livreur:', error);
+      warning("Une erreur est survenue lors de l'assignation du livreur");
+    }
+   
       const newData = ColisRamasse.map(item => {
         if (item.id === currentColis.id) {
-          item.statut = 'Expidie';
-          item.deliveryPerson = deliveryPerson;
+          return {
+            ...item,
+            statut: 'Expidie',
+            deliveryPerson: deliveryPerson._id
+          };
         }
-        return item;
+        return item
       });
       setData(newData);
       setIsExpidieModalVisible(false);
@@ -156,13 +181,14 @@ console.log("colis recu",ColisRamasse);
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = ColisRamasse.map(item => {
-        if (item.id === currentColis.id) {
+      const updatedData = ColisRamasse.map(item => {
+        if (item.id === currentColis._id) {
+          console.log('current colis pour Ok ',currentColis._id);
           return { ...item, ...values };
         }
         return item;
       });
-      setData(newData);
+      setData(updatedData);
       setIsModalVisible(false);
       success("Colis modifié avec succès");
     }).catch(info => {
@@ -430,10 +456,11 @@ console.log("colis recu",ColisRamasse);
           >
             <Select
               placeholder="Sélectionner un livreur"
-              onChange={(value) => setDeliveryPerson(value)}
+              onChange={(value) => setDeliveryPerson(livreurList.find(person => person._id === value))}
             >
-              {deliveryPersonnel.map(person => (
-                <Option key={person} value={person}>{person}</Option>
+              {livreurList.map(person => (
+               <Option key={person._id} value={person._id}>
+          {person.Nom}</Option>
               ))}
             </Select>
           </Form.Item>

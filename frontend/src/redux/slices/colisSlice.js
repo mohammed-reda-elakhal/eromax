@@ -30,6 +30,9 @@ const colisSlice = createSlice({
         setError(state, action) {
             state.error = action.payload;  // Manage error state
         },
+        updateColis(state , action){
+          state.profile = action.payload;
+      }
     },
 });
 

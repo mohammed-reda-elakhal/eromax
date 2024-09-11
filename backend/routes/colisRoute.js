@@ -8,12 +8,12 @@ const { ajoutVille } = require("../Controllers/villeCtrl");
 
 //Router api/colis
 router.route('/')
-        .get(verifyTokenAndAdmin,colisController.getAllColisCtrl)
+        .get(colisController.getAllColisCtrl)
 
 // Router api/colis/:id_user or :id_store
 router.route('/:id_user')
         .post(verifyTokenStoreTeamAdminClient,colisController.CreateColisCtrl)
-        .get(colisController.getColisByUserOrStore)
+        .get(colisController.getColisByUserOrStore);
 
 
 // Router api/colis/:id
@@ -39,8 +39,8 @@ router.route('/truck/:code_suivi')
 
 // router api/colis/colisStore/:id_store get colis by store 
 router.route("/colisStore/:id").get(colisController.getColisByStore);
-router.route("/livreur")
-.post(colisController.affecterLivreur);
+
+router.route("/livreur").post(colisController.affecterLivreur);
 
 router.route("/getColisLiv/:id_livreur").get(colisController.getColisByIdLivreur)
 router.route("/getColisTeam/:id_team").get(verifyTokenAndAdmin,colisController.getColisByTeam)

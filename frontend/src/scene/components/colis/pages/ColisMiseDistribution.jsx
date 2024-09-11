@@ -11,7 +11,7 @@ import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisMiseDistrubution } from '../../../../redux/slices/colisSlice';
-import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
@@ -77,6 +77,8 @@ console.log("colis recu",colisMiseDistrubution);
     });
     setData(newData);
     success(`Colis ${record.id} marqué comme livrée.`);
+    dispatch(updateStatut(record._id, 'Livrée'));
+    
   };
 
   const handleAnnulée = (record) => {
@@ -98,9 +100,12 @@ console.log("colis recu",colisMiseDistrubution);
         }
         return item;
       });
-      setData(newData);
-      setIsAnnuléeModalVisible(false);
+      setData(newData);  // Mets à jour l'état local `data`
+      setIsAnnuléeModalVisible(false);  // Ferme la modal
       success(`Colis ${selectedColis.id} marqué comme annulée.`);
+  
+      // Ajoute un appel API pour persister cette modification
+      dispatch(updateStatut(selectedColis.id, 'Annulée', values.comment));
     }).catch(info => {
       console.log('Validate Failed:', info);
     });

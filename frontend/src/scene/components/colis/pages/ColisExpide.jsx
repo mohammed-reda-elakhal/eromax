@@ -12,7 +12,7 @@ import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisExpedié } from '../../../../redux/slices/colisSlice';
-import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisExpide({search}) {
     const { theme } = useContext(ThemeContext);
@@ -45,19 +45,41 @@ function ColisExpide({search}) {
       content: text,
     });
   };
-
+  //-------------------------------------------------------
+  const { colisData, user, store } = useSelector((state) => ({
+    colisData: state.colis.colis || [],  // Corrected the casing of colisData
+    user: state.auth.user,
+    store: state.auth.store,
+  }));
   useEffect(() => {
-    dispatch(getColis()); // Fetch tous les colis
-}, [dispatch]);
-
-useEffect(() => {
-  if (colisExpedié) {
-      setData(colisExpedié); // Update data state with the fetched colis
-  }
-}, [colisExpedié]);
-console.log("colis expedié",colisExpedié);
- 
-
+    if (user?.role) {
+      if (user.role === "admin") {
+        dispatch(getColis());
+      } else if (user.role === "client" && store?._id) {
+        dispatch(getColisForClient(store._id));
+      } else if (user.role === "livreur") {
+        dispatch(getColisForLivreur(user._id));  // Use getColisForLivreur for 'livreur'
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [dispatch, user?.role, store?._id, user._id]);
+  
+  // Filter colis for "Attente de Ramassage"
+  useEffect(() => {
+    if (Array.isArray(colisData)) {  // Check if colisData is an array before filtering
+      const filteredColis = colisData.filter(item => item.statut === 'Expedié');
+      setData(filteredColis); // Set the filtered data directly
+    }
+  }, [colisData]);
+  
+  // Log the filtered "colisPourRamassage" data
+  useEffect(() => {
+    if (Array.isArray(colisExpedié)) {  // Ensure colisPourRamassage is an array
+      setData(colisExpedié); // Set the data based on the selector
+      console.log("colis expedié ", colisExpedié);
+    }
+  }, [colisExpedié]);
+//----------------------------------------------
   useEffect(() => {
     console.log('Selected row keys: ', selectedRowKeys);
   }, [selectedRowKeys]);
@@ -81,6 +103,10 @@ console.log("colis expedié",colisExpedié);
       });
       setData(newData);
       setSelectedRowKeys([]);
+      // Dispatch the updateStatut action for each selected colis
+    selectedRowKeys.forEach(colisId => {
+      dispatch(updateStatut(colisId, 'Reçu'));
+    });
       success(`${selectedRowKeys.length} colis reçu, veuillez vérifier sur la table de statut reçu`);
     } else {
       warning("Veuillez sélectionner une colonne");
@@ -179,7 +205,7 @@ console.log("colis expedié",colisExpedié);
       dataIndex: 'livreur',
       render: (text, record) => (
         <span>
-          {record.livreur.nom}
+          {record.livreur}
         </span>
       ),
     },

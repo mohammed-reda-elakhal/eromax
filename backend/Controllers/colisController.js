@@ -391,9 +391,9 @@ module.exports.affecterLivreur = async (req, res) => {
             return res.status(404).json({ message: "Colis not found" });
         }
 
-        // Vérifier si le statut est "expédié"
-        if (colis.statut !== "expedié") {
-            return res.status(400).json({ message: "Colis is not in the 'expédié' status" });
+        // Vérifier si le statut est ramassé
+        if (colis.statut !== "Ramassé") {
+            return res.status(400).json({ message: "Colis is not in the 'Ramassé' status" });
         }
 
         // Récupérer le livreur par son ID
@@ -403,16 +403,16 @@ module.exports.affecterLivreur = async (req, res) => {
             return res.status(404).json({ message: "Livreur not found" });
         }
 
-        // Affecter le livreur au colis
+        // Affecter le livreur  et le nouveau statut  au colis
         colis.livreur = livreurId;
-
+        colis.statut='Expedié'
         // Sauvegarder les modifications
         await colis.save();
         const dataLiv = {
           Nom:livreur.nom,
           Tele:livreur.tele
       };
-        res.status(200).json({ message: "Livreur assigned successfully", dataLiv });
+        res.status(200).json({ message: "Livreur assigned successfully", dataLiv,colis });
     } catch (error) {
         console.error("Error assigning Livreur:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
