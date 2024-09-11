@@ -37,70 +37,13 @@ export const getColisForClient = (storeId) => async (dispatch) => {
 };
 /*  */
 
-// Fonction pour obtenir le token d'authentification depuis le stockage local ou autre
- const getAuthToken = () => {
-    return Cookies.get('token');  
-} 
-export function addColis(data) {
-    return async (dispatch) => {
-        const user = JSON.parse(Cookies.get('user'));
-        let store // Obtenez le store depuis le localStorage
-        let id_user
-        if(user && user.role === "client"){
-            store = JSON.parse(Cookies.get('store'));
-            id_user = store ? store._id : null;
-        }else{
-            id_user = user ? user._id : null;
-        }
-
-        const token = JSON.parse(getAuthToken());
-        console.log(token);
-        if (!token) {
-            toast.error("Token is missing in local storage");
-            return;
-        }
-
-        try {
-            const response = await request.post(`/api/colis/`, 
-                data , 
-                {
-                    headers: {
-                        'authorization': `bearer ${token}`
-                    },
-                    params:{
-                        id_user 
-                    }
-                }
-            );
-
-            // Handle success
-            dispatch(colisActions.addColis(response.data)); // Use the action creator
-            toast.success("Colis ajouté avec succès !");
-            return response.data; // Return response data if needed
-        } catch (error) {
-            // Handle error
-            dispatch(colisActions.setError(error.message)); // Use the action creator for errors
-            toast.error("Erreur lors de l'ajout du colis. Veuillez réessayer.");
-            if (error.response && error.response.status === 401) {
-                console.log('Erreur d\'authentification');
-            }
-            return error;
-        }
-    };
-} 
-
 // Create Colis function
 export function createColis(colis) {
     return async (dispatch) => {
         try {
             // Get token and user data from cookies
             const token =Cookies.get('token'); // Retrieve token as a string
-            console.log("Token sent to backend:", token);
             const user = JSON.parse(Cookies.get('user')); // Parse user data from cookies
-            console.log("User",user);
-            // Debugging token to ensure it's correctly retrieved
-            console.log("Token from cookies:", token);
-
             // Ensure both token and user data are available
             if (!token || !user) {
                 throw new Error('Missing authentication token or user information.');
@@ -110,9 +53,7 @@ export function createColis(colis) {
 
             const decodedToken = decodeToken(token);
             console.log('Decoded Token:', decodedToken);
-
-            // Check if token is expired
-         
+            
             // Determine if the user is a client, admin, or team member
             let idToUse;
             if (user.role === 'client') {
