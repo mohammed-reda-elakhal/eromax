@@ -24,7 +24,7 @@ import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
 import { colisActions, selectColisRecu } from '../../../../redux/slices/colisSlice';
-import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisReçu({search}) {
     const { theme } = useContext(ThemeContext);
@@ -75,25 +75,36 @@ console.log("colis recu",colisRecu);
     console.log('Selected row keys: ', selectedRowKeys);
   }, [selectedRowKeys]);
 
-  const handleDistribution = (id = null) => {
-    if (id) {
-      const newData = colisRecu.map(item => {
-        if (item.id === id) {
-          item.statut = 'mise en distribution';
-        }
-        return item;
-      });
+  const handleDistribution = (colisId) => {
+    if (!colisId) {
+      warning("ID de colis manquant.");
+      return;
+     }
+     console.log('id', colisId);
+    if (colisId) {
+      const newData = colisRecu.map(item => 
+      
+        item._id === colisId ? { ...item, statut: 'Mise en Distribution' } : item
+      );
       setData(newData);
+      dispatch(updateStatut(colisId, 'Mise en Distribution'));
       success(`Colis mise en distribution , veuillez vérifier sur la table de statut mise en distribution`);
     } else if (selectedRowKeys.length > 0) {
       const newData = colisRecu.map(item => {
-        if (selectedRowKeys.includes(item.id)) {
-          item.statut = 'mise en distribution';
+        if (selectedRowKeys.includes(item._id)) {
+          return {
+            ...item,
+            statut: 'Mise en Distribution',
+        };
         }
         return item;
       });
       setData(newData);
       setSelectedRowKeys([]);
+      // Dispatch the updateStatut action for each selected colis
+    selectedRowKeys.forEach(colisId => {
+      dispatch(updateStatut(colisId, 'Mise en Distribution'));
+    });
       success(`${selectedRowKeys.length} colis mise en distribution, veuillez vérifier sur la table de statut mise en distribution`);
     } else {
       warning("Veuillez sélectionner une colonne");
@@ -139,7 +150,7 @@ console.log("colis recu",colisRecu);
   const handleOk = () => {
     form.validateFields().then(values => {
       const newData = colisRecu.map(item => {
-        if (item.id === currentColis.id) {
+        if (item._id === currentColis._id) {
           return { ...item, ...values };
         }
         return item;
@@ -255,7 +266,7 @@ console.log("colis recu",colisRecu);
         <Popconfirm
           title="Ramassage Colis"
           description="Tu es sûr de faire ramassage pour ce colis?"
-          onConfirm={() => handleDistribution(record.id)}
+          onConfirm={() => handleDistribution(record._id)}
           okText="Oui"
           cancelText="Non"
         >

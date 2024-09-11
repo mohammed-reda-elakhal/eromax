@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
-import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisPourRamassage } from '../../../../redux/slices/colisSlice';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
@@ -90,26 +90,38 @@ function ColisPourRamassage({ search }) {
     console.log('Selected row keys: ', selectedRowKeys);
   }, [selectedRowKeys]);
 
-  const handleRamasse = (id = null) => {
-    if (id) {
-      const newData = colisPourRamassage.map(item => {
-        if (item.id === id) {
-          item.statut = 'Ramassé';
-        }
-        return item;
-      });
+  const handleRamasse = (colisId) => {
+    if (!colisId) {
+      warning("ID de colis manquant.");
+      return;
+     }
+     console.log('id pour ramasser', colisId);
+    if (colisId) {
+      const newData = colisPourRamassage.map(item => 
+  
+        item._id === colisId ? { ...item, statut: 'Ramassée' } : item
+
+      );
       setData(newData);
-      success(`Colis ramassé, veuillez vérifier sur la table de statut Ramassé`);
+      // Dispatch the updateStatut action to update the server
+    dispatch(updateStatut(colisId, 'Ramassée'));
+      success(`Colis  ${colisId} Ramassée, veuillez vérifier sur la table de statut Ramassé`);
     } else if (selectedRowKeys.length > 0) {
       const newData = colisPourRamassage.map(item => {
-        if (selectedRowKeys.includes(item.id)) {
-          item.statut = 'Ramassé';
+        if (selectedRowKeys.includes(item._id)) {
+          return {
+            ...item,
+            statut: 'Ramassée',
+        };
         }
         return item;
       });
       setData(newData);
       setSelectedRowKeys([]);
-      success(`${selectedRowKeys.length} colis ramassés, veuillez vérifier sur la table de statut Ramassé`);
+      selectedRowKeys.forEach(colisId => {
+        dispatch(updateStatut(colisId, 'Ramassée'));
+      });
+      success(`${selectedRowKeys.length} colis Ramassée, veuillez vérifier sur la table de statut Ramassé`);
     } else {
       warning("Veuillez sélectionner une colonne");
     }
@@ -154,7 +166,7 @@ function ColisPourRamassage({ search }) {
   const handleOk = () => {
     form.validateFields().then(values => {
       const newData = colisPourRamassage.map(item => {
-        if (item.id === currentColis.id) {
+        if (item._id === currentColis._id) {
           return { ...item, ...values };
         }
         return item;
@@ -269,7 +281,7 @@ function ColisPourRamassage({ search }) {
         <Popconfirm
           title="Ramassage Colis"
           description="Tu es sûr de faire ramassage pour ce colis?"
-          onConfirm={() => handleRamasse(record.id)}
+          onConfirm={() => handleRamasse(record._id)}
           okText="Oui"
           cancelText="Non"
         >

@@ -8,17 +8,17 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   const id_colis= req.params.id;
   const {new_status}=req.body;
   const validStatuses = [
-    "nouveau colis",
-    "attend de ramassage",
+    "Nouveau Colis",
+    "Attente de Ramassage",
          //   || admin changer statu => team replacer admin 
-    "ramasser",
-    "expedié", // affectation livreur and get data  ( nom , tele ) , autorisation(a faire)
-    "reçu",
-    "mise en distribution",
-    "livrée",
-    "annulée",
-    "programmée",
-    "refusée",
+    "Ramassée",
+    "Expediée", // affectation livreur and get data  ( nom , tele ) , autorisation(a faire)
+    "Reçu",
+    "Mise en Distribution",
+    "Livrée",
+    "Annulée",
+    "Programmée",
+    "Refusée",
   ];
   if (!id_colis || !new_status) {
     return res.status(400).json({ message: "id_colis and new_status are required" });

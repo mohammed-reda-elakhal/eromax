@@ -13,6 +13,7 @@ import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisExpedié } from '../../../../redux/slices/colisSlice';
 import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { toast } from 'react-toastify';
 
 function ColisExpide({search}) {
     const { theme } = useContext(ThemeContext);
@@ -67,7 +68,7 @@ function ColisExpide({search}) {
   // Filter colis for "Attente de Ramassage"
   useEffect(() => {
     if (Array.isArray(colisData)) {  // Check if colisData is an array before filtering
-      const filteredColis = colisData.filter(item => item.statut === 'Expedié');
+      const filteredColis = colisData.filter(item => item.statut === 'Expediée');
       setData(filteredColis); // Set the filtered data directly
     }
   }, [colisData]);
@@ -84,20 +85,31 @@ function ColisExpide({search}) {
     console.log('Selected row keys: ', selectedRowKeys);
   }, [selectedRowKeys]);
 
-  const handleReçu = (id = null) => {
-    if (id) {
-      const newData = colisExpedié.map(item => {
-        if (item.id === id) {
-          item.statut = 'Reçu';
-        }
-        return item;
-      });
+  const handleReçu = (colisId) => {
+    if (!colisId) {
+      warning("ID de colis manquant.");
+      return;
+     }
+  console.log('id', colisId);
+    if (colisId) {
+      console.log('id',colisId);
+      const newData = colisExpedié.map(item => 
+          item._id === colisId ? { ...item, statut: 'Reçu' } : item
+      );
       setData(newData);
-      success(`Colis reçu, veuillez vérifier sur la table de statut reçu`);
+        // Dispatch the updateStatut action to update the server
+    dispatch(updateStatut(colisId, 'Reçu'));
+    success(`Colis ${colisId} Reçu, veuillez vérifier sur la table de statut reçu`);
+    console.log('id colis recu',colisId);
     } else if (selectedRowKeys.length > 0) {
+      console.log('Selected row keys:', selectedRowKeys.length);
       const newData = colisExpedié.map(item => {
-        if (selectedRowKeys.includes(item.id)) {
-          item.statut = 'Reçu';
+        console.log('item._id', item._id);
+        if (selectedRowKeys.includes(item._id)) {
+          return {
+            ...item,
+            statut: 'Reçu',
+        };
         }
         return item;
       });
@@ -107,7 +119,7 @@ function ColisExpide({search}) {
     selectedRowKeys.forEach(colisId => {
       dispatch(updateStatut(colisId, 'Reçu'));
     });
-      success(`${selectedRowKeys.length} colis reçu, veuillez vérifier sur la table de statut reçu`);
+      success(`${selectedRowKeys.length}  colis reçu, veuillez vérifier sur la table de statut reçu`);
     } else {
       warning("Veuillez sélectionner une colonne");
     }
@@ -121,7 +133,7 @@ function ColisExpide({search}) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = colisExpedié.find(item => item.id === selectedRowKeys[0]);
+      const record = colisExpedié.find(item => item._id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -129,7 +141,7 @@ function ColisExpide({search}) {
   };
 
   const confirmSuppression = () => {
-    const newData = colisExpedié.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = colisExpedié.filter(item => !selectedRowKeys.includes(item._id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -152,7 +164,8 @@ function ColisExpide({search}) {
   const handleOk = () => {
     form.validateFields().then(values => {
       const newData = colisExpedié.map(item => {
-        if (item.id === currentColis.id) {
+        if (item._id === currentColis._id) {
+          console.log('current colis in expedie ok',currentColis);
           return { ...item, ...values };
         }
         return item;
@@ -276,7 +289,7 @@ function ColisExpide({search}) {
         <Popconfirm
           title="Ramassage Colis"
           description="Tu es sûr de faire ramassage pour ce colis?"
-          onConfirm={() => handleReçu(record.id)}
+          onConfirm={() => handleReçu(record._id)}
           okText="Oui"
           cancelText="Non"
         >

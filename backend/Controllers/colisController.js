@@ -392,7 +392,7 @@ module.exports.affecterLivreur = async (req, res) => {
         }
 
         // Vérifier si le statut est ramassé
-        if (colis.statut !== "Ramassé") {
+        if (colis.statut !== "Ramassée") {
             return res.status(400).json({ message: "Colis is not in the 'Ramassé' status" });
         }
 
@@ -405,7 +405,7 @@ module.exports.affecterLivreur = async (req, res) => {
 
         // Affecter le livreur  et le nouveau statut  au colis
         colis.livreur = livreurId;
-        colis.statut='Expedié'
+        colis.statut='Expediée'
         // Sauvegarder les modifications
         await colis.save();
         const dataLiv = {

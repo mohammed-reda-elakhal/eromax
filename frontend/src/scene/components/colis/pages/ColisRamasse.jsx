@@ -87,9 +87,9 @@ useEffect(() => {
       setData(ColisRamasse); // Update data state with the fetched colis
   }
 }, [ColisRamasse]);
-console.log("colis recu",ColisRamasse);
+console.log("colis ramassé",ColisRamasse);
  useEffect(() => {
-    const colis = ColisRamasse.filter(item => item.statut === 'Ramassé');
+    const colis = ColisRamasse.filter(item => item.statut === 'ramassé');
     setData(colis);
   }, []); 
 

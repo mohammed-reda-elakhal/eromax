@@ -198,6 +198,11 @@ export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
 
 }
 export const updateStatut = (colisId, newStatus) => async (dispatch) => {
+    if (!colisId) {
+        toast.error('ID de colis manquant');
+        return;
+    }
+    console.log('inside update api call');
     // Retrieve the authentication token
     const token = Cookies.get('token');
     if (!token) {
@@ -220,8 +225,8 @@ export const updateStatut = (colisId, newStatus) => async (dispatch) => {
 
     try {
         // Make the API request to update the status
-        const data = await request.put(`/api/colis/statu/${colisId}`, body);
-        
+        const {data} = await request.put(`/api/colis/St/${colisId}`,body);
+        console.log('colisID',colisId);
         // Handle success
         dispatch(colisActions.updateColis(data.colis)); // Assuming you have an action to update the colis
         toast.success("Colis status updated successfully!");
