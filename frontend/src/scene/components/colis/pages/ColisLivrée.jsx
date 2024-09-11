@@ -76,15 +76,9 @@ function ColisLivrée({search}) {
             key: 'livreur',
             render: (text, record) => (
                 <span>
-                {record.livreur ? (
-              <>
-                <p>{record.livreur.Nom}</p>
-                <p>{record.livreur.Tel}</p>
-              </>
-               ) : 
-                <p>{record.livreur.Nom}</p> // Show a fallback message if `livreur` is undefined
-              }
-              </span>
+                    <p>{record.livreur.nom}</p>
+                    <p>{record.livreur.tele}</p>
+                </span>
             ),
         },
         {
