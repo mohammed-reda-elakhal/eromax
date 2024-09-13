@@ -12,7 +12,7 @@ import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisExpedié } from '../../../../redux/slices/colisSlice';
-import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur, updateStatut , getColisByStatu} from '../../../../redux/apiCalls/colisApiCalls';
 import { toast } from 'react-toastify';
 
 function ColisExpide({search}) {
@@ -53,37 +53,24 @@ function ColisExpide({search}) {
     store: state.auth.store,
   }));
   useEffect(() => {
-    if (user?.role) {
-      if (user.role === "admin") {
-        dispatch(getColis());
-      } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id));
-      } else if (user.role === "livreur") {
-        dispatch(getColisForLivreur(user._id));  // Use getColisForLivreur for 'livreur'
-      }
+    if (user) {
+        dispatch(getColisByStatu("Expediée"));
     }
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
   
   // Filter colis for "Attente de Ramassage"
   useEffect(() => {
-    if (Array.isArray(colisData)) {  // Check if colisData is an array before filtering
-      const filteredColis = colisData.filter(item => item.statut === 'Expediée');
-      setData(filteredColis); // Set the filtered data directly
-    }
+      setData(colisData); 
   }, [colisData]);
   
   // Log the filtered "colisPourRamassage" data
   useEffect(() => {
     if (Array.isArray(colisExpedié)) {  // Ensure colisPourRamassage is an array
       setData(colisExpedié); // Set the data based on the selector
-      console.log("colis expedié ", colisExpedié);
     }
   }, [colisExpedié]);
-//----------------------------------------------
-  useEffect(() => {
-    console.log('Selected row keys: ', selectedRowKeys);
-  }, [selectedRowKeys]);
+//---------------------------------------------
 
   const handleReçu = (colisId) => {
     if (!colisId) {
@@ -218,10 +205,11 @@ function ColisExpide({search}) {
       dataIndex: 'livreur',
       render: (text, record) => (
         <span>
-          {record.livreur}
+          {record.livreur ? `${record.livreur.nom} ${record.livreur.prenom}` : 'No Livreur'}
         </span>
       ),
     },
+    
     {
       title: 'Téléphone',
       dataIndex: 'tele',
@@ -332,7 +320,7 @@ function ColisExpide({search}) {
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={colisExpedié}
+              data={data}
               id="id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}

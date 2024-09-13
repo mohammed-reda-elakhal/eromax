@@ -18,6 +18,22 @@ export function getColis() {
     };
 }
 
+// Fetch post
+// Fix the request by appending `statu` as a query parameter
+export function getColisByStatu(statu) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/colis/select/status?statu=${"Expediée"}`);
+            dispatch(colisActions.setColis(data)); // Use action creator
+            console.log(data);
+        } catch (error) {
+            console.error("Failed to fetch colis:", error);
+            dispatch(colisActions.setError(error.message));
+        }
+    };
+}
+
+
 export const getColisForClient = (storeId) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {

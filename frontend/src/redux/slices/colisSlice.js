@@ -72,7 +72,7 @@ const selectColisLivre = createSelector(
 
 const selectColisPourRamassage = createSelector(
     [selectColis],
-    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "Attente de Ramassage") : []
+    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "attente de ramassage") : []
 );
 
 const selectColisRamasse = createSelector(

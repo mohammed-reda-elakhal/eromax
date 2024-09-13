@@ -10,6 +10,10 @@ const { ajoutVille } = require("../Controllers/villeCtrl");
 router.route('/')
         .get(colisController.getAllColisCtrl)
 
+//Router api/colis
+router.route('/select/status')
+        .get(colisController.getColisByStatuCtrl)
+
 // Router api/colis/:id_user or :id_store
 router.route('/:id_user')
         .post(verifyTokenStoreTeamAdminClient,colisController.CreateColisCtrl)
@@ -26,12 +30,12 @@ router.route('/:id')
 router.route('/:code_suivi')
         .get(colisController.getColisByCodeSuiviCtrl)
 
-// router api/colis/statu/:id
-router.route('/statu/:id')
-        .put(colisController.UpdateStatusCtrl)
+
+
 
 //router api/colis/St
-router.route("/St/:id").put(updateSuiviColis)
+router.route("/St/:id")
+        .put(updateSuiviColis)
 
 // router api/colis/truck/:code_suivi
 router.route('/truck/:code_suivi')

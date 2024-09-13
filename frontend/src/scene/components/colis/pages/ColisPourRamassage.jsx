@@ -67,20 +67,23 @@ function ColisPourRamassage({ search }) {
     }
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
-  
-  // Filter colis for "Attente de Ramassage"
-  useEffect(() => {
+
+  const selectDataColis = () =>{
     if (Array.isArray(colisData)) {  // Check if colisData is an array before filtering
       const filteredColis = colisData.filter(item => item.statut === 'attente de ramassage');
       setData(filteredColis); // Set the filtered data directly
     }
-  }, [colisData]);
+  }
+  
+  // Filter colis for "Attente de Ramassage"
+  useEffect(() => {
+    selectDataColis()
+  }, [colisData ]);
   
   // Log the filtered "colisPourRamassage" data
   useEffect(() => {
     if (Array.isArray(colisPourRamassage)) {  // Ensure colisPourRamassage is an array
       setData(colisPourRamassage); // Set the data based on the selector
-      console.log("colis pour ramassage ", colisPourRamassage);
     }
   }, [colisPourRamassage]);
 
@@ -91,37 +94,10 @@ function ColisPourRamassage({ search }) {
   }, [selectedRowKeys]);
 
   const handleRamasse = (colisId) => {
-    if (!colisId) {
-      warning("ID de colis manquant.");
-      return;
-     }
-     console.log('id pour ramasser', colisId);
     if (colisId) {
-      const newData = colisPourRamassage.map(item => 
-  
-        item._id === colisId ? { ...item, statut: 'Ramassée' } : item
-
-      );
-      setData(newData);
       // Dispatch the updateStatut action to update the server
-    dispatch(updateStatut(colisId, 'Ramassée'));
-      success(`Colis  ${colisId} Ramassée, veuillez vérifier sur la table de statut Ramassé`);
-    } else if (selectedRowKeys.length > 0) {
-      const newData = colisPourRamassage.map(item => {
-        if (selectedRowKeys.includes(item._id)) {
-          return {
-            ...item,
-            statut: 'Ramassée',
-        };
-        }
-        return item;
-      });
-      setData(newData);
-      setSelectedRowKeys([]);
-      selectedRowKeys.forEach(colisId => {
-        dispatch(updateStatut(colisId, 'Ramassée'));
-      });
-      success(`${selectedRowKeys.length} colis Ramassée, veuillez vérifier sur la table de statut Ramassé`);
+      dispatch(updateStatut(colisId, 'Ramassée'));
+      selectDataColis()
     } else {
       warning("Veuillez sélectionner une colonne");
     }

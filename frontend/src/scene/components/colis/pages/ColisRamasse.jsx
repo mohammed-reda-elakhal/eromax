@@ -460,7 +460,8 @@ console.log("colis ramassé",ColisRamasse);
             >
               {livreurList.map(person => (
                <Option key={person._id} value={person._id}>
-          {person.Nom}</Option>
+                  {person.nom}
+                </Option>
               ))}
             </Select>
           </Form.Item>

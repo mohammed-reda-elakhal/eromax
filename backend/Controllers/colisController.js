@@ -125,7 +125,7 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
 **/
 module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
-    const colis = await Colis.findById(req.params.id);
+    const colis = await Colis.findById(req.params.id).populate('livreur') ;
     if(!colis){
         return res.status(404).json({message:"Colis not found"});
     }
@@ -142,12 +142,38 @@ module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
  * -------------------------------------------------------------------
 **/
 exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
-    const colis = await Colis.findOne({ code_suivi: req.params.code_suivi });
+    const colis = await Colis.findOne({ code_suivi: req.params.code_suivi }).populate('livreur') ;
     if (!colis) {
         return res.status(404).json({ message: "Colis not found" });
     }
     res.status(200).json(colis);
 });
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     get colis by code suivi
+ * @route    /api/colis/statu
+ * @method   GET
+ * @access   private (only logger in user )
+ * -------------------------------------------------------------------
+**/
+exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
+  const colis = await Colis.find({ statut: req.query.statu })
+    .populate('livreur')
+    .populate('store')
+    .populate('team')
+    .sort({ updatedAt: -1 });
+
+
+  if (!colis) {
+    return res.status(404).json({ message: "Colis not found" });
+  }
+
+  res.status(200).json(colis);
+});
+
+
+
 
 /**
  * -------------------------------------------------------------------
@@ -162,9 +188,9 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
   let team = req.user.id
   let store = req.user.store
   if(req.user.role === "team" || req.user.role === "admin"){
-    colis = await Colis.find({ team }).populate('team');
+    colis = await Colis.find({ team }).populate('team').populate('livreur') ;
   }else{
-    colis = await Colis.find({ store }).populate("store");
+    colis = await Colis.find({ store }).populate("store").populate('livreur') ;
   }
   if (!colis) {
       return res.status(404).json({ message: "Colis not found" });
