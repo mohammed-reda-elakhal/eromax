@@ -93,15 +93,24 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
 /**
  * -------------------------------------------------------------------
- * @desc     get all colis
+ * @desc     get all colis, optionally filter by statut
  * @route    /api/colis/
  * @method   GET
- * @access   private (only logger in user )
+ * @access   private (only logged in user)
  * -------------------------------------------------------------------
 **/
 module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
   try {
-    const colis = await Colis.find()
+    const { statut } = req.query; // Extract 'statut' from the query params
+    let filter = {};
+
+    // Add 'statut' to the filter if it's provided
+    if (statut) {
+      filter.statut = statut;
+    }
+
+    // Find colis with optional filtering by 'statut'
+    const colis = await Colis.find(filter)
       .populate('team')        // Populate the team details
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
@@ -177,23 +186,37 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
 
 /**
  * -------------------------------------------------------------------
- * @desc     get colis by user or store
+ * @desc     get colis by user or store, optionally filter by statut
  * @route    /api/colis/:id_user
  * @method   GET
- * @access   private (only logger in user )
+ * @access   private (only logged in user)
  * -------------------------------------------------------------------
 **/
 exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
-  let colis 
-  let team = req.user.id
-  let store = req.user.store
-  if(req.user.role === "team" || req.user.role === "admin"){
-    colis = await Colis.find({ team }).populate('team').populate('livreur') ;
-  }else{
-    colis = await Colis.find({ store }).populate("store").populate('livreur') ;
+  let colis;
+  let team = req.user.id;
+  let store = req.user.store;
+  let filter = {};
+
+  // Check if the optional 'statut' parameter is provided
+  const { statut } = req.query;
+
+  if (req.user.role === "team" || req.user.role === "admin") {
+    filter.team = team;
+  } else {
+    filter.store = store;
   }
+
+  // Add 'statut' to the filter if it's provided
+  if (statut) {
+    filter.statut = statut;
+  }
+
+  // Find colis based on the constructed filter
+  colis = await Colis.find(filter).populate('team').populate('livreur').populate('store');
+
   if (!colis) {
-      return res.status(404).json({ message: "Colis not found" });
+    return res.status(404).json({ message: "Colis not found" });
   }
 
   res.status(200).json(colis);

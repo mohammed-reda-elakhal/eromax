@@ -3,13 +3,24 @@ import request from "../../utils/request";
 import { colisActions } from "../slices/colisSlice";
 import Cookies from "js-cookie";
 import { decodeToken } from "../../utils/tokenUtils";
+import { jwtDecode } from "jwt-decode";
 
 
 // Fetch post
-export function getColis() {
+export function getColis(statut) {
     return async (dispatch) => {
         try {
-            const { data } = await request.get(`/api/colis/`);
+            const token = Cookies.get('token');
+            if(!token){
+                toast.error('Authentification token is missing')
+            }
+            const config = {
+                headers: {
+                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+                    'Content-Type': 'application/json',
+                }
+            };
+            const { data } = await request.get(`/api/colis?statut=${statut}`, config);
             dispatch(colisActions.setColis(data)); // Use action creator
         } catch (error) {
             console.error("Failed to fetch colis:", error);
@@ -20,10 +31,20 @@ export function getColis() {
 
 // Fetch post
 // Fix the request by appending `statu` as a query parameter
-export function getColisByStatu(statu) {
+export function getColisByStatu(statut) {
     return async (dispatch) => {
         try {
-            const { data } = await request.get(`/api/colis/select/status?statu=${"Expediée"}`);
+            const token = Cookies.get('token');
+            if(!token){
+                toast.error('Authentification token is missing')
+            }
+            const config = {
+                headers: {
+                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+                    'Content-Type': 'application/json',
+                }
+            };
+            const { data } = await request.get(`/api/colis/select/status?statu=${statut}`,config);
             dispatch(colisActions.setColis(data)); // Use action creator
             console.log(data);
         } catch (error) {
@@ -34,18 +55,24 @@ export function getColisByStatu(statu) {
 }
 
 
-export const getColisForClient = (storeId) => async (dispatch) => {
+export const getColisForClient = (storeId , statut) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {
-        const { data } = await request.get(`/api/colis/colisStore/${storeId}`);
-        console.log("Fetched data for client:", data);
-
-        if (data && Array.isArray(data.colis)) {
-            dispatch(colisActions.setColis(data.colis));
-        } else {
-            console.error("Unexpected data format:", data);
-            dispatch(colisActions.setError("Invalid data format received from server."));
+        const token = Cookies.get('token');
+        if(!token){
+            toast.error('Authentification token is missing')
+            
         }
+
+        const config = {
+            headers: {
+                'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+                'Content-Type': 'application/json',
+            }
+        };
+        const { data } = await request.get(`/api/colis/${storeId}?statut=${statut}`,config);
+        console.log("Fetched data for client:", data);
+        dispatch(colisActions.setColis(data)); // Use action creator
     } catch (error) {
         console.error("Failed to fetch colis for client:", error);
         dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
@@ -146,7 +173,7 @@ export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
             livreurId:livreurId
         }
         const data = await request.post(`api/livreur/colis`,body);
-        console.log('Colis a affecter ',data);
+        
         dispatch(colisActions.updateColis(data.colis));
 
     }catch(error){

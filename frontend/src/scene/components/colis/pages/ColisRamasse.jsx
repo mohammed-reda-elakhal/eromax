@@ -62,14 +62,15 @@ function ColisRamasse({ search }) {
   useEffect(() => {
 
     if (user?.role) {
-      if (user.role === "admin") {
-        dispatch(getColis());
-      } else if (user.role === "client"&&store?._id) {
-        dispatch(getColisForClient(store._id));
+      if (user.role === "admin" || user.role === "team") {
+        dispatch(getColis("Ramassée"));
+      } else if (user.role === "client" && store?._id) {
+        dispatch(getColisForClient(store._id , "Ramassée"));
       }
     }
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id]);
+
   useEffect(() => {
     if (Array.isArray(colisData)) {
       setData(colisData);
@@ -78,20 +79,10 @@ function ColisRamasse({ search }) {
       setData([]); // Default to an empty array if colisData is not an array
     }
   }, [colisData]);
-  useEffect(() => {
-    dispatch(getColisForClient()); // Fetch tous les colis
-}, [dispatch]);
 
 useEffect(() => {
-  if (ColisRamasse) {
-      setData(ColisRamasse); // Update data state with the fetched colis
-  }
-}, [ColisRamasse]);
-console.log("colis ramassé",ColisRamasse);
- useEffect(() => {
-    const colis = ColisRamasse.filter(item => item.statut === 'ramassé');
-    setData(colis);
-  }, []); 
+      setData(colisData); // Update data state with the fetched colis
+}, [colisData]);
 
    //get list Livreur
    useEffect(() => {
@@ -114,10 +105,6 @@ console.log("colis ramassé",ColisRamasse);
       try{
         dispatch(affecterLivreur(currentColis._id, deliveryPerson._id));
         console.log("current colis expedie ",currentColis.statut);
-
-
-        console.log('Livreur',deliveryPerson._id);
-        success(`Colis expédié par ${deliveryPerson.Nom}, veuillez vérifier sur la table de statut Expidie`);
         setIsExpidieModalVisible(false);
 
       }catch (error) {
@@ -125,19 +112,8 @@ console.log("colis ramassé",ColisRamasse);
       warning("Une erreur est survenue lors de l'assignation du livreur");
     }
    
-      const newData = ColisRamasse.map(item => {
-        if (item.id === currentColis.id) {
-          return {
-            ...item,
-            statut: 'Expidie',
-            deliveryPerson: deliveryPerson._id
-          };
-        }
-        return item
-      });
-      setData(newData);
+      
       setIsExpidieModalVisible(false);
-      success(`Colis expédié par ${deliveryPerson}, veuillez vérifier sur la table de statut Expidie`);
     } else {
       warning("Veuillez sélectionner un livreur");
     }

@@ -58,46 +58,27 @@ function ColisPourRamassage({ search }) {
   useEffect(() => {
     if (user?.role) {
       if (user.role === "admin") {
-        dispatch(getColis());
+        dispatch(getColis("attente de ramassage"));
       } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id));
+        dispatch(getColisForClient(store._id , "attente de ramassage"));
       } else if (user.role === "livreur") {
-        dispatch(getColisForLivreur(user._id));  // Use getColisForLivreur for 'livreur'
+        dispatch(getColisForLivreur(user._id ));  // Use getColisForLivreur for 'livreur'
       }
     }
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
-
-  const selectDataColis = () =>{
-    if (Array.isArray(colisData)) {  // Check if colisData is an array before filtering
-      const filteredColis = colisData.filter(item => item.statut === 'attente de ramassage');
-      setData(filteredColis); // Set the filtered data directly
-    }
-  }
   
   // Filter colis for "Attente de Ramassage"
   useEffect(() => {
-    selectDataColis()
+    setData(colisData)
   }, [colisData ]);
   
-  // Log the filtered "colisPourRamassage" data
-  useEffect(() => {
-    if (Array.isArray(colisPourRamassage)) {  // Ensure colisPourRamassage is an array
-      setData(colisPourRamassage); // Set the data based on the selector
-    }
-  }, [colisPourRamassage]);
 
- 
-//----------------------------------------------------------
-  useEffect(() => {
-    console.log('Selected row keys: ', selectedRowKeys);
-  }, [selectedRowKeys]);
 
   const handleRamasse = (colisId) => {
     if (colisId) {
       // Dispatch the updateStatut action to update the server
       dispatch(updateStatut(colisId, 'Ramassée'));
-      selectDataColis()
     } else {
       warning("Veuillez sélectionner une colonne");
     }

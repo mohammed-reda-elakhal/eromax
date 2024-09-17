@@ -53,8 +53,12 @@ function ColisExpide({search}) {
     store: state.auth.store,
   }));
   useEffect(() => {
-    if (user) {
-        dispatch(getColisByStatu("Expediée"));
+    if (user?.role) {
+      if (user.role === "admin" || user.role === "team") {
+        dispatch(getColis("Expediée"));
+      } else if (user.role === "client" && store?._id) {
+        dispatch(getColisForClient(store._id , "Expediée"));
+      }
     }
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
@@ -64,12 +68,7 @@ function ColisExpide({search}) {
       setData(colisData); 
   }, [colisData]);
   
-  // Log the filtered "colisPourRamassage" data
-  useEffect(() => {
-    if (Array.isArray(colisExpedié)) {  // Ensure colisPourRamassage is an array
-      setData(colisExpedié); // Set the data based on the selector
-    }
-  }, [colisExpedié]);
+
 //---------------------------------------------
 
   const handleReçu = (colisId) => {
@@ -205,7 +204,7 @@ function ColisExpide({search}) {
       dataIndex: 'livreur',
       render: (text, record) => (
         <span>
-          {record.livreur ? `${record.livreur.nom} ${record.livreur.prenom}` : 'No Livreur'}
+          {record.livreur ? `${record.livreur.nom} ${record.livreur.prenom} \n ${record.livreur.tele}` : 'No Livreur'}
         </span>
       ),
     },

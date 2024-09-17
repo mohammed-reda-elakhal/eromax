@@ -9,7 +9,8 @@ export function loginUser(user, role, navigate) {
             const { data } = await request.post(`/api/auth/login/${role}`, user);
             dispatch(authActions.login(data.user));
             Cookies.set("user", JSON.stringify(data.user),{ expires: 30 });// expand expiration time 
-            Cookies.set("token", JSON.stringify(data.token));
+            Cookies.set("token", data.token);
+
             
             if (data.user.role === "client") {
                 dispatch(authActions.setStore(data.store));
