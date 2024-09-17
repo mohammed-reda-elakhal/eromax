@@ -497,6 +497,31 @@ module.exports.getColisByTeam=asyncHandler(async(req,res)=>{
 
 
 });
+exports.getColisByLivreur = asyncHandler(async (req, res) => {
+  let colis;
+  let livreur = req.params.id_livreur;
+  let filter = {};
 
+  // Check if the optional 'statut' parameter is provided
+  const { statut } = req.query;
+
+  if (req.user.role === "livreur") {
+    filter.livreur = livreur;
+  }
+
+  // Add 'statut' to the filter if it's provided
+  if (statut) {
+    filter.statut = statut;
+  }
+
+  // Find colis based on the constructed filter
+  colis = await Colis.find(filter).populate('livreur');
+
+  if (!colis) {
+    return res.status(404).json({ message: "Colis not found" });
+  }
+
+  res.status(200).json(colis);
+});
 
 

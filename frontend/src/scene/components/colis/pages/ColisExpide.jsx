@@ -58,6 +58,8 @@ function ColisExpide({search}) {
         dispatch(getColis("Expediée"));
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id , "Expediée"));
+      }else if (user.role === "livreur"){
+        dispatch(getColisForLivreur(user._id , "Expediée"));
       }
     }
     window.scrollTo(0, 0);

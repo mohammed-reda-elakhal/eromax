@@ -136,16 +136,26 @@ export function createColis(colis) {
         }
     };
 }
-export const getColisForLivreur = (userId) => async (dispatch) => {
+export const getColisForLivreur = (userId,statut) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {
+        const token =Cookies.get('token'); // Retrieve token as a string
+        console.log('Token',token);
+        const user = JSON.parse(Cookies.get('user')); // Parse user data from cookies
+        const config = {
+            headers: {
+                'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+                'Content-Type': 'application/json',
+            }
+        };
         // Fetch the data from the API
-        const { data } = await request.get(`/api/colis/getColisLiv/${userId}`);
+        const { data } = await request.get(`/api/colis/getColisLiv/${userId}?statut=${statut}`,config);
         console.log("Fetched data for client:", data);
 
         // Check for the correct key in the response (colisList instead of colis)
-        if (data && Array.isArray(data.colisList)) {
-            dispatch(colisActions.setColis(data.colisList)); // Use colisList here
+        const colisList = Array.isArray(data) ? data : data.colisList;
+        if (colisList && Array.isArray(colisList)) {
+            dispatch(colisActions.setColis(colisList)); // Use colisList here
         } else {
             console.error("Unexpected data format:", data);
             dispatch(colisActions.setError("Invalid data format received from server."));

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
-const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin} = require("../Middlewares/VerifyToken"); 
+const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin, verifyTokenAndLivreur} = require("../Middlewares/VerifyToken"); 
 const { updateSuiviColis } = require("../Controllers/suivi_colisController");
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
@@ -46,7 +46,7 @@ router.route("/colisStore/:id").get(colisController.getColisByStore);
 
 router.route("/livreur").post(colisController.affecterLivreur);
 
-router.route("/getColisLiv/:id_livreur").get(colisController.getColisByIdLivreur)
+router.route("/getColisLiv/:id_livreur").get(verifyTokenAndLivreurOrAdmin,colisController.getColisByLivreur)
 router.route("/getColisTeam/:id_team").get(verifyTokenAndAdmin,colisController.getColisByTeam)
 
 

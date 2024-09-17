@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { selectColisLivre } from '../../../../redux/slices/colisSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisByStatu, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisLivrée({search}) {
     const { theme } = useContext(ThemeContext);
@@ -30,7 +30,9 @@ function ColisLivrée({search}) {
           if (user.role === "admin") {
             dispatch(getColis());
           } else if (user.role === "client"&&store?._id) {
-            dispatch(getColisForClient(store._id));
+            dispatch(getColisForClient(store._id,'Livrée'));
+          }else if(user.role==='livreur'){
+            dispatch(getColisByStatu('Livrée'))
           }
         }
         window.scrollTo(0, 0);
@@ -43,9 +45,6 @@ function ColisLivrée({search}) {
           setData([]); // Default to an empty array if colisData is not an array
         }
       }, [colisData]);
-      useEffect(() => {
-        dispatch(getColisForClient()); // Fetch tous les colis
-    }, [dispatch]);
     
     useEffect(() => {
       if (ColisLivrée) {
@@ -76,8 +75,7 @@ function ColisLivrée({search}) {
             key: 'livreur',
             render: (text, record) => (
                 <span>
-                    <p>{record.livreur.nom}</p>
-                    <p>{record.livreur.tele}</p>
+                   {record.livreur ? `${record.livreur.nom} ${record.livreur.prenom} \n ${record.livreur.tele}` : 'No Livreur'}
                 </span>
             ),
         },
