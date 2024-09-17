@@ -157,14 +157,7 @@ console.log("colis Mise en Distribution",colisMiseDistrubution);
       key: 'livreur',
       render: (text, record) => (
         <span>
-          {record.livreur ? (
-        <>
-          <p>{record.livreur.Nom}</p>
-          <p>{record.livreur.Tel}</p>
-        </>
-         ) : (
-          <p>Aucun livreur assigné</p> // Show a fallback message if `livreur` is undefined
-        )}
+          {record.livreur ? `${record.livreur.nom} ${record.livreur.prenom} \n ${record.livreur.tele}` : 'No Livreur'}
         </span>
       ),
     },

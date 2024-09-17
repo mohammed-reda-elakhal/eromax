@@ -62,7 +62,7 @@ function ColisPourRamassage({ search }) {
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id , "attente de ramassage"));
       } else if (user.role === "livreur") {
-        dispatch(getColisForLivreur(user._id ));  // Use getColisForLivreur for 'livreur'
+        dispatch(getColisForLivreur(user._id,'attente de ramassage' ));  // Use getColisForLivreur for 'livreur'
       }
     }
     window.scrollTo(0, 0);
