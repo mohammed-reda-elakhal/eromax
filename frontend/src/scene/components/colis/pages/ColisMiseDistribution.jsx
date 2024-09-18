@@ -11,7 +11,7 @@ import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisMiseDistrubution } from '../../../../redux/slices/colisSlice';
-import { getColis, getColisForClient, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
@@ -26,47 +26,29 @@ function ColisMiseDistribution({ search }) {
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
   const [programmeForm] = Form.useForm();
-  const {colisData,user,store} = useSelector((state) => ({
-    colisData: state.colis.colis || [],
+  // Recuperation des colis selon le role 
+  const { colisData, user, store } = useSelector((state) => ({
+    colisData: state.colis.colis || [],  // Corrected the casing of colisData
     user: state.auth.user,
-    store:state.auth.store
+    store: state.auth.store,
   }));
 
-  // Recuperation des colis selon le role 
-  useEffect(() => {
-
+  const getColisFunction = ()=>{
     if (user?.role) {
-      if (user.role === "admin") {
-        dispatch(getColis());
-      } else if (user.role === "client"&&store?._id) {
-        dispatch(getColisForClient(store._id));
+      if (user.role === "admin" || user.role === "team") {
+        dispatch(getColis("Mise en Distribution"));
+      } else if (user.role === "client" && store?._id) {
+        dispatch(getColisForClient(store._id , "Mise en Distribution"));
+      }else if (user.role === "livreur"){
+        dispatch(getColisForLivreur(user._id , "Mise en Distribution"));
       }
     }
-    window.scrollTo(0, 0);
-  }, [dispatch, user?.role, store?._id]);
-  useEffect(() => {
-    if (Array.isArray(colisData)) {
-      setData(colisData);
-    } else {
-      console.error("colisData is not an array", colisData);
-      setData([]); // Default to an empty array if colisData is not an array
-    }
-  }, [colisData]);
-  useEffect(() => {
-    dispatch(getColisForClient()); // Fetch tous les colis
-}, [dispatch]);
+  }
 
 useEffect(() => {
-  if (colisMiseDistrubution) {
-      setData(colisMiseDistrubution); // Update data state with the fetched colis
-  }
-}, [colisMiseDistrubution]);
-console.log("colis Mise en Distribution",colisMiseDistrubution);
- 
-  useEffect(() => {
-    const colis = colisMiseDistrubution.filter(item => item.statut === 'Mise en Distribution');
-    setData(colis);
-  }, []);
+    getColisFunction()
+    setData(colisData); // Update data state with the fetched colis
+}, [colisData]);
   //----------------------------------
 
   const handleLivrée = (record) => {
@@ -290,7 +272,7 @@ console.log("colis Mise en Distribution",colisMiseDistrubution);
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={colisMiseDistrubution}
+              data={data}
               id="id"
               theme={theme}
             />

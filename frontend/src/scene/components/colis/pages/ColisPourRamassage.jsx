@@ -78,11 +78,26 @@ function ColisPourRamassage({ search }) {
   const handleRamasse = (colisId) => {
     if (colisId) {
       // Dispatch the updateStatut action to update the server
-      dispatch(updateStatut(colisId, 'Ramassée'));
+      dispatch(updateStatut(colisId, 'Ramassée')).then(() => {
+        // Filter out the colis with the changed status
+        const updatedData = data.filter(item => item._id !== colisId);
+        setData(updatedData); // Update the local state to reflect the new data without the modified colis
+  
+        // Optionally refetch the data if needed
+        // You can call the appropriate fetch function based on the user's role here.
+        if (user?.role === 'admin') {
+          dispatch(getColis("attente de ramassage"));
+        } else if (user?.role === 'client' && store?._id) {
+          dispatch(getColisForClient(store._id, "attente de ramassage"));
+        } else if (user?.role === 'livreur') {
+          dispatch(getColisForLivreur(user._id, 'attente de ramassage'));
+        }
+      });
     } else {
       warning("Veuillez sélectionner une colonne");
     }
   };
+  
 
   const showModal = (record) => {
     setCurrentColis(record);

@@ -71,7 +71,6 @@ export const getColisForClient = (storeId , statut) => async (dispatch) => {
             }
         };
         const { data } = await request.get(`/api/colis/${storeId}?statut=${statut}`,config);
-        console.log("Fetched data for client:", data);
         dispatch(colisActions.setColis(data)); // Use action creator
     } catch (error) {
         console.error("Failed to fetch colis for client:", error);
@@ -140,8 +139,6 @@ export const getColisForLivreur = (userId,statut) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {
         const token =Cookies.get('token'); // Retrieve token as a string
-        console.log('Token',token);
-        const user = JSON.parse(Cookies.get('user')); // Parse user data from cookies
         const config = {
             headers: {
                 'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
@@ -150,16 +147,7 @@ export const getColisForLivreur = (userId,statut) => async (dispatch) => {
         };
         // Fetch the data from the API
         const { data } = await request.get(`/api/colis/getColisLiv/${userId}?statut=${statut}`,config);
-        console.log("Fetched data for client:", data);
-
-        // Check for the correct key in the response (colisList instead of colis)
-        const colisList = Array.isArray(data) ? data : data.colisList;
-        if (colisList && Array.isArray(colisList)) {
-            dispatch(colisActions.setColis(colisList)); // Use colisList here
-        } else {
-            console.error("Unexpected data format:", data);
-            dispatch(colisActions.setError("Invalid data format received from server."));
-        }
+        dispatch(colisActions.setColis(data)); // Use action creator
     } catch (error) {
         console.error("Failed to fetch colis for client:", error);
         dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
@@ -183,7 +171,7 @@ export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
             livreurId:livreurId
         }
         const data = await request.post(`api/livreur/colis`,body);
-        
+
         dispatch(colisActions.updateColis(data.colis));
 
     }catch(error){
@@ -201,11 +189,11 @@ export const updateStatut = (colisId, newStatus) => async (dispatch) => {
     console.log('inside update api call');
     // Retrieve the authentication token
     const token = Cookies.get('token');
+    const user = JSON.parse(Cookies.get('user')); // Parse user data from cookies
     if (!token) {
         toast.error('Authentication token is missing');
         return;
     }
-
     // Configuration for the API request
     const config = {
         headers: {
