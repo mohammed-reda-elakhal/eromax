@@ -17,22 +17,18 @@ import { message } from 'antd';
 import Popconfirm from 'antd/es/popconfirm';
 import Dropdown from 'antd/es/dropdown';
 import FloatButton from 'antd/es/float-button';
-import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
-import { colisActions, selectColisRecu } from '../../../../redux/slices/colisSlice';
-import { getColis, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { colisActions} from '../../../../redux/slices/colisSlice';
+import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisReçu({search}) {
     const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
-  const colisRecu = useSelector(selectColisRecu); 
-  const loading = useSelector((state) => state.colis.loading);
-  const status = useSelector((state) => state.colis.status);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -59,54 +55,43 @@ function ColisReçu({search}) {
       content: text,
     });
   };
-
+  const { colisData, user, store } = useSelector((state) => ({
+    colisData: state.colis.colis || [],  // Corrected the casing of colisData
+    user: state.auth.user,
+    store: state.auth.store,
+  }));
+  const getColisFunction = ()=>{
+    if (user?.role) {
+      if (user.role === "admin" || user.role === "team") {
+        dispatch(getColis("Reçu"));
+      } else if (user.role === "client" && store?._id) {
+        dispatch(getColisForClient(store._id , "Reçu"));
+      }else if (user.role === "livreur"){
+        dispatch(getColisForLivreur(user._id , "Reçu"));
+      }
+    }
+  }
   useEffect(() => {
-    dispatch(getColis()); // Fetch tous les colis
-}, [dispatch]);
+    getColisFunction()
+    window.scrollTo(0, 0);
+  }, [dispatch, user?.role, store?._id, user._id]);
 
 useEffect(() => {
-  if (colisRecu) {
-      setData(colisRecu); // Update data state with the fetched colis
+  if (colisData) {
+      setData(colisData); // Update data state with the fetched colis
   }
-}, [colisRecu]);
-console.log("colis recu",colisRecu);
-
-  useEffect(() => {
-    console.log('Selected row keys: ', selectedRowKeys);
-  }, [selectedRowKeys]);
+}, [colisData]);
 
   const handleDistribution = (colisId) => {
     if (!colisId) {
       warning("ID de colis manquant.");
       return;
-     }
-     console.log('id', colisId);
+    }
     if (colisId) {
-      const newData = colisRecu.map(item => 
-      
-        item._id === colisId ? { ...item, statut: 'Mise en Distribution' } : item
-      );
-      setData(newData);
       dispatch(updateStatut(colisId, 'Mise en Distribution'));
-      success(`Colis mise en distribution , veuillez vérifier sur la table de statut mise en distribution`);
-    } else if (selectedRowKeys.length > 0) {
-      const newData = colisRecu.map(item => {
-        if (selectedRowKeys.includes(item._id)) {
-          return {
-            ...item,
-            statut: 'Mise en Distribution',
-        };
-        }
-        return item;
-      });
-      setData(newData);
-      setSelectedRowKeys([]);
-      // Dispatch the updateStatut action for each selected colis
-    selectedRowKeys.forEach(colisId => {
-      dispatch(updateStatut(colisId, 'Mise en Distribution'));
-    });
-      success(`${selectedRowKeys.length} colis mise en distribution, veuillez vérifier sur la table de statut mise en distribution`);
-    } else {
+      getColisFunction()
+    } 
+    else {
       warning("Veuillez sélectionner une colonne");
     }
   };
@@ -119,7 +104,7 @@ console.log("colis recu",colisRecu);
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = colisRecu.find(item => item.id === selectedRowKeys[0]);
+      const record = colisData.find(item => item.id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -127,7 +112,7 @@ console.log("colis recu",colisRecu);
   };
 
   const confirmSuppression = () => {
-    const newData = colisRecu.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = colisData.filter(item => !selectedRowKeys.includes(item.id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -149,7 +134,7 @@ console.log("colis recu",colisRecu);
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = colisRecu.map(item => {
+      const newData = colisData.map(item => {
         if (item._id === currentColis._id) {
           return { ...item, ...values };
         }
@@ -309,7 +294,7 @@ console.log("colis recu",colisRecu);
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={colisRecu}
+              data={colisData}
               id="id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}

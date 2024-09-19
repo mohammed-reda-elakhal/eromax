@@ -7,7 +7,6 @@ import { PlusCircleFilled } from '@ant-design/icons';
 import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
-import { selectColisLivre } from '../../../../redux/slices/colisSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getColis, getColisByStatu, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 
@@ -15,7 +14,6 @@ function ColisLivrée({search}) {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
     const dispatch = useDispatch();
-    const ColisLivrée= useSelector(selectColisLivre); 
     
     const {colisData,user,store} = useSelector((state) => ({
         colisData: state.colis.colis || [],
@@ -45,17 +43,6 @@ function ColisLivrée({search}) {
           setData([]); // Default to an empty array if colisData is not an array
         }
       }, [colisData]);
-    
-    useEffect(() => {
-      if (ColisLivrée) {
-          setData(ColisLivrée); // Update data state with the fetched colis
-      }
-    }, [ColisLivrée]);
-    console.log("colis Livré",ColisLivrée);
-    useEffect(() => {
-        const colis = ColisLivrée.filter(item => item.statut === 'Livrée');
-        setData(colis);
-    }, []);
 
     const columns = [
         {

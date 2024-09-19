@@ -388,8 +388,13 @@ module.exports.getSuiviColis= asyncHandler(async(req,res)=>{
 
 
 /**
- * get colis by Store 
- */
+ * -------------------------------------------------------------------
+ * @desc     get Colis By Store Id
+ * @route    api/colis/truck/:code_suivi
+ * @method   GET api/colis/colisStore/:id_store
+ * @access   ( client )
+ * -------------------------------------------------------------------
+ **/
 
 
 exports.getColisByStore= asyncHandler(async(req,res)=>{
@@ -428,6 +433,15 @@ exports.getColisByStore= asyncHandler(async(req,res)=>{
   }
 
 });
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Affecter Livreur
+ * @route    api/colis/livreur
+ * @method   GET 
+ * @access   private ( admin )
+ * -------------------------------------------------------------------
+ **/
 
 module.exports.affecterLivreur = async (req, res) => {
     const { colisId, livreurId } = req.body; // Assuming these are passed in the request body

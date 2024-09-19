@@ -6,26 +6,24 @@ import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
 //import ColisData from '../../../../data/colis.json';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectColisPourRamassage } from '../../../../redux/slices/colisSlice';
-import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
-
 function ColisPourRamassage({ search }) {
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
-  const colisPourRamassage = useSelector(selectColisPourRamassage); 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentColis, setCurrentColis] = useState(null);
   const [deliveryPerson, setDeliveryPerson] = useState(null);
   const [form] = Form.useForm();
+  const navigate = useNavigate(); // Get history for redirection
+
 
   const success = (text) => {
     messageApi.open({
@@ -53,7 +51,8 @@ function ColisPourRamassage({ search }) {
     user: state.auth.user,
     store: state.auth.store,
   }));
-  
+
+ 
   // Recuperation des colis selon le role
   useEffect(() => {
     if (user?.role) {
@@ -62,7 +61,7 @@ function ColisPourRamassage({ search }) {
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id , "attente de ramassage"));
       } else if (user.role === "livreur") {
-        dispatch(getColisForLivreur(user._id,'attente de ramassage' ));  // Use getColisForLivreur for 'livreur'
+        dispatch(getColisForLivreur(user._id,'attente de ramassage'));  // Use getColisForLivreur for 'livreur'
       }
     }
     window.scrollTo(0, 0);
@@ -72,17 +71,28 @@ function ColisPourRamassage({ search }) {
   useEffect(() => {
     setData(colisData)
   }, [colisData ]);
+
+  // Hide page for "livreur" role
+  if (user?.role === 'livreur') {
+    return null; // This will hide the entire page content for "livreur"
+  }
+
   
 
 
   const handleRamasse = (colisId) => {
     if (colisId) {
       // Dispatch the updateStatut action to update the server
-      dispatch(updateStatut(colisId, 'Ramassée'));
+      dispatch(updateStatut(colisId, 'Ramassée')).then(() => {
+        // Filter out the colis with the changed status
+        const updatedData = data.filter(item => item._id !== colisId);
+        setData(updatedData); // Update the local state to reflect the new data without the modified colis
+      });
     } else {
       warning("Veuillez sélectionner une colonne");
     }
   };
+  
 
   const showModal = (record) => {
     setCurrentColis(record);
@@ -92,7 +102,7 @@ function ColisPourRamassage({ search }) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = colisPourRamassage.find(item => item.id === selectedRowKeys[0]);
+      const record = colisData.find(item => item.id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -100,7 +110,7 @@ function ColisPourRamassage({ search }) {
   };
 
   const confirmSuppression = () => {
-    const newData = colisPourRamassage.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = colisData.filter(item => !selectedRowKeys.includes(item.id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -122,7 +132,7 @@ function ColisPourRamassage({ search }) {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = colisPourRamassage.map(item => {
+      const newData = colisData.map(item => {
         if (item._id === currentColis._id) {
           return { ...item, ...values };
         }

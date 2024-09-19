@@ -5,13 +5,11 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
-import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
-import { selectColisExpedié } from '../../../../redux/slices/colisSlice';
 import { getColis, getColisForClient, getColisForLivreur, updateStatut , getColisByStatu} from '../../../../redux/apiCalls/colisApiCalls';
 import { toast } from 'react-toastify';
 
@@ -19,7 +17,6 @@ function ColisExpide({search}) {
     const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
-  const colisExpedié = useSelector(selectColisExpedié); 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -46,12 +43,18 @@ function ColisExpide({search}) {
       content: text,
     });
   };
-  //-------------------------------------------------------
+  /**
+   * @desc API integration
+   * Get Expedie Colis 
+   * Update their stautus to 
+   */
+  //Get States
   const { colisData, user, store } = useSelector((state) => ({
     colisData: state.colis.colis || [],  // Corrected the casing of colisData
     user: state.auth.user,
     store: state.auth.store,
   }));
+  //get Colis For each roles
   useEffect(() => {
     if (user?.role) {
       if (user.role === "admin" || user.role === "team") {
@@ -65,7 +68,7 @@ function ColisExpide({search}) {
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
   
-  // Filter colis for "Attente de Ramassage"
+//Render Data 
   useEffect(() => {
       setData(colisData); 
   }, [colisData]);
@@ -81,18 +84,15 @@ function ColisExpide({search}) {
   console.log('id', colisId);
     if (colisId) {
       console.log('id',colisId);
-      const newData = colisExpedié.map(item => 
+      const newData = colisData.map(item => 
           item._id === colisId ? { ...item, statut: 'Reçu' } : item
       );
       setData(newData);
         // Dispatch the updateStatut action to update the server
     dispatch(updateStatut(colisId, 'Reçu'));
     success(`Colis ${colisId} Reçu, veuillez vérifier sur la table de statut reçu`);
-    console.log('id colis recu',colisId);
     } else if (selectedRowKeys.length > 0) {
-      console.log('Selected row keys:', selectedRowKeys.length);
-      const newData = colisExpedié.map(item => {
-        console.log('item._id', item._id);
+      const newData = colisData.map(item => {
         if (selectedRowKeys.includes(item._id)) {
           return {
             ...item,
@@ -112,6 +112,7 @@ function ColisExpide({search}) {
       warning("Veuillez sélectionner une colonne");
     }
   };
+//------------------------------------------------------
 
   const showModal = (record) => {
     setCurrentColis(record);
@@ -121,7 +122,7 @@ function ColisExpide({search}) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = colisExpedié.find(item => item._id === selectedRowKeys[0]);
+      const record = colisData.find(item => item._id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -129,7 +130,7 @@ function ColisExpide({search}) {
   };
 
   const confirmSuppression = () => {
-    const newData = colisExpedié.filter(item => !selectedRowKeys.includes(item._id));
+    const newData = colisData.filter(item => !selectedRowKeys.includes(item._id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -151,7 +152,7 @@ function ColisExpide({search}) {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = colisExpedié.map(item => {
+      const newData = colisData.map(item => {
         if (item._id === currentColis._id) {
           console.log('current colis in expedie ok',currentColis);
           return { ...item, ...values };

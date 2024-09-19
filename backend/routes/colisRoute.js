@@ -43,7 +43,7 @@ router.route('/truck/:code_suivi')
 
 // router api/colis/colisStore/:id_store get colis by store 
 router.route("/colisStore/:id").get(colisController.getColisByStore);
-
+// router api/colis/livreur
 router.route("/livreur").post(colisController.affecterLivreur);
 
 router.route("/getColisLiv/:id_livreur").get(verifyTokenAndLivreurOrAdmin,colisController.getColisByLivreur)
