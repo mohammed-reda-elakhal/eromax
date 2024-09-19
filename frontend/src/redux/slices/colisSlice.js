@@ -1,6 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createSelector } from 'reselect';
-
 const colisSlice = createSlice({
     name: "colis",
     initialState: {
@@ -47,37 +45,4 @@ const colisSlice = createSlice({
 const colisReducer = colisSlice.reducer;
 const colisActions = colisSlice.actions;
 
-// Selectors
-const selectColis = (state) => state.colis.colis;
-
-const selectColisRecu = createSelector(
-    [selectColis],
-    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "Reçu") : []
-);
-
-const selectColisMiseDistrubution = createSelector(
-    [selectColis],
-    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "Mise en Distribution") : []
-);
-
-const selectColisExpedié = createSelector(
-    [selectColis],
-    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "Expediée") : []
-);
-
-const selectColisLivre = createSelector(
-    [selectColis],
-    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "Livrée") : []
-);
-
-const selectColisPourRamassage = createSelector(
-    [selectColis],
-    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "attente de ramassage") : []
-);
-
-const selectColisRamasse = createSelector(
-    [selectColis],
-    (colis) => Array.isArray(colis) ? colis.filter((c) => c.statut === "Ramassée") : []
-);
-
-export { colisActions, colisReducer, selectColisRecu, selectColisMiseDistrubution, selectColisExpedié, selectColisLivre, selectColisPourRamassage, selectColisRamasse };
+export { colisActions, colisReducer };

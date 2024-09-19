@@ -168,15 +168,27 @@ function Menubar() {
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/list-colis">List Colis</Link>
           </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-r">Colis Ramasse</Link>
-          </Menu.Item>
+          {userData.role !== "livreur" && (
+  <Menu.Item icon={<BiTagAlt />}>
+    <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
+  </Menu.Item>
+    )}
+    {userData.role !== "livreur" && (
+      <Menu.Item icon={<BiTagAlt />}>
+      <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
+    </Menu.Item>
+
+    )}
+          {userData.role !== "livreur" && (
+  <Menu.Item icon={<BiTagAlt />}>
+    <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
+  </Menu.Item>
+    )}
+    {userData.role !== "livreur" && (
+  <Menu.Item icon={<BiTagAlt />}>
+    <Link to="/dashboard/colis-r">Colis Ramasse</Link>
+  </Menu.Item>
+)}
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/colis-ex">Colis Expidie</Link>
           </Menu.Item>

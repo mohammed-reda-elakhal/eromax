@@ -22,14 +22,13 @@ import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
-import { colisActions, selectColisRecu } from '../../../../redux/slices/colisSlice';
+import { colisActions} from '../../../../redux/slices/colisSlice';
 import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisReçu({search}) {
     const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
-  const colisRecu = useSelector(selectColisRecu); 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -77,15 +76,11 @@ function ColisReçu({search}) {
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
 
-  useEffect(() => {
-    dispatch(getColis()); // Fetch tous les colis
-}, [dispatch]);
-
 useEffect(() => {
-  if (colisRecu) {
+  if (colisData) {
       setData(colisData); // Update data state with the fetched colis
   }
-}, [colisRecu]);
+}, [colisData]);
 
   const handleDistribution = (colisId) => {
     if (!colisId) {
@@ -109,7 +104,7 @@ useEffect(() => {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = colisRecu.find(item => item.id === selectedRowKeys[0]);
+      const record = colisData.find(item => item.id === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -117,7 +112,7 @@ useEffect(() => {
   };
 
   const confirmSuppression = () => {
-    const newData = colisRecu.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = colisData.filter(item => !selectedRowKeys.includes(item.id));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -139,7 +134,7 @@ useEffect(() => {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      const newData = colisRecu.map(item => {
+      const newData = colisData.map(item => {
         if (item._id === currentColis._id) {
           return { ...item, ...values };
         }
@@ -299,7 +294,7 @@ useEffect(() => {
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={colisRecu}
+              data={colisData}
               id="id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}

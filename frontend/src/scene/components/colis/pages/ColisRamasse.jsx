@@ -68,7 +68,7 @@ function ColisRamasse({ search }) {
     if (currentColis && currentColis.livreurId) {
       try {
         await dispatch(affecterLivreur(currentColis._id, currentColis.livreurId));
-  
+        success("Colis Expedié");
         setIsModalVisible(false);
       } catch (err) {
         error('Erreur lors de l\'assignation du livreur');

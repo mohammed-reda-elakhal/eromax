@@ -10,7 +10,6 @@ import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
-import { selectColisMiseDistrubution } from '../../../../redux/slices/colisSlice';
 import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
@@ -19,7 +18,6 @@ function ColisMiseDistribution({ search }) {
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
-  const colisMiseDistrubution= useSelector(selectColisMiseDistrubution); 
   const [selectedColis, setSelectedColis] = useState(null);
   const [isAnnuléeModalVisible, setIsAnnuléeModalVisible] = useState(false);
   const [isProgrammeModalVisible, setIsProgrammeModalVisible] = useState(false);
@@ -33,18 +31,16 @@ function ColisMiseDistribution({ search }) {
     store: state.auth.store,
   }));
 
-  const getColisFunction = ()=>{
+  const getColisFunction = () => {
     if (user?.role) {
-      if (user.role === "admin" || user.role === "team") {
-        dispatch(getColis("Mise en Distribution"));
+      if (user.role === "admin") {
+        dispatch(getColis());
       } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id , "Mise en Distribution"));
-      }else if (user.role === "livreur"){
-        dispatch(getColisForLivreur(user._id , "Mise en Distribution"));
+        dispatch(getColisForClient(store._id ,'Mise en Distribution'));
       }
     }
-  }
-
+    window.scrollTo(0, 0);
+  };  // This closing bracket was missing 
 useEffect(() => {
     getColisFunction()
     setData(colisData); // Update data state with the fetched colis
@@ -52,7 +48,7 @@ useEffect(() => {
   //----------------------------------
 
   const handleLivrée = (record) => {
-    const newData = colisMiseDistrubution.map(item => {
+    const newData = colisData.map(item => {
       if (item.id === record._id) {
         item.statut = 'Livrée';
       }
@@ -78,7 +74,7 @@ useEffect(() => {
 
   const handleAnnuléeOk = () => {
     form.validateFields().then(values => {
-      const newData = colisMiseDistrubution.map(item => {
+      const newData = colisData.map(item => {
         if (item.id === selectedColis._id) {
           item.statut = 'Annulée';
           item.comment = values.comment;
@@ -99,7 +95,7 @@ useEffect(() => {
 
   const handleProgrammeOk = () => {
     programmeForm.validateFields().then(values => {
-      const newData = colisMiseDistrubution.map(item => {
+      const newData = colisData.map(item => {
         if (item.id === selectedColis._id) {
           item.statut = 'Programmé';
           item.deliveryTime = values.deliveryTime;
