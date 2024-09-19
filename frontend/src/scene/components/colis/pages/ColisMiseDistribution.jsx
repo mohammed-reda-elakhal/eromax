@@ -11,7 +11,7 @@ import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { selectColisMiseDistrubution } from '../../../../redux/slices/colisSlice';
-import { getColis, getColisForClient, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
@@ -40,6 +40,8 @@ function ColisMiseDistribution({ search }) {
         dispatch(getColis());
       } else if (user.role === "client"&&store?._id) {
         dispatch(getColisForClient(store._id));
+      }else if (user.role === "livreur") {
+        dispatch(getColisForLivreur(user._id,'Mise en Distribution'));
       }
     }
     window.scrollTo(0, 0);
