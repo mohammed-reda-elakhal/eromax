@@ -515,13 +515,17 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
   let colis;
   let livreur = req.params.id_livreur;
   let filter = {};
+  const allowedStatuses = ["Expediée", "Mise en distribution", "Livrée"];
 
   // Check if the optional 'statut' parameter is provided
   const { statut } = req.query;
 
   if (req.user.role === "livreur") {
     filter.livreur = livreur;
+    filter.statut = { $in: allowedStatuses };
   }
+  
+
 
   // Add 'statut' to the filter if it's provided
   if (statut) {
