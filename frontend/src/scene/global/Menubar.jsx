@@ -97,9 +97,14 @@ function Menubar() {
         </Menu.Item>
         {
           userData.role ==="admin" && (
-            <Menu.Item icon={<CgDanger />} className={isNewReclamation ? "change-color-animation" : ""}>
-              <Link to="/dashboard/reclamation">Reclamation</Link>
-            </Menu.Item>
+            <Menu.SubMenu icon={<CgDanger />} title="Comptes">
+              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/reclamation">Reclamation Non Complete</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/reclamation-complete">Reclamation Complete</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
           )
         }
 
@@ -124,9 +129,14 @@ function Menubar() {
         
         {
           userData.role ==="admin" && (
-            <Menu.Item icon={<MdEditNotifications />}>
-              <Link to="/dashboard/notification">Notification</Link>
-            </Menu.Item>
+            <Menu.SubMenu icon={<MdEditNotifications />} title="Notification">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/gnotification">Générals Notifications</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/enotification">Events Notifications</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
           )
         }
 
@@ -164,47 +174,80 @@ function Menubar() {
           )
         }
 
-        <Menu.SubMenu icon={<LuBox />} title="Colis">
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/list-colis">List Colis</Link>
-          </Menu.Item>
-          {userData.role !== "livreur" && (
-  <Menu.Item icon={<BiTagAlt />}>
-    <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
-  </Menu.Item>
-    )}
-    {userData.role !== "livreur" && (
-      <Menu.Item icon={<BiTagAlt />}>
-      <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
-    </Menu.Item>
+        {
+          (userData.role === "admin" || userData.role === "team") && (
+            <Menu.SubMenu icon={<LuBox />} title="Colis">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/list-colis">List Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-r">Colis Ramasse</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-ex">Colis Expidie</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-rc">Colis Reçu</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-md">Colis Mise en Distribution</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-l">Colis Livrée</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/import-colis">Import Colis</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
 
-    )}
-          {userData.role !== "livreur" && (
-  <Menu.Item icon={<BiTagAlt />}>
-    <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
-  </Menu.Item>
-    )}
-    {userData.role !== "livreur" && (
-  <Menu.Item icon={<BiTagAlt />}>
-    <Link to="/dashboard/colis-r">Colis Ramasse</Link>
-  </Menu.Item>
-)}
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-ex">Colis Expidie</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-rc">Colis Reçu</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-md">Colis Mise en Distribution</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-l">Colis Livrée</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/import-colis">Import Colis</Link>
-          </Menu.Item>
-        </Menu.SubMenu>
+
+        {
+          userData.role ==="client" && (
+            <Menu.SubMenu icon={<LuBox />} title="Espace Client">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/list-colis">List Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/import-colis">Import Colis</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+        {
+          userData.role ==="livreur" && (
+            <Menu.SubMenu icon={<LuBox />} title="Espace Livreur">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/list-colis">List Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-ex">Colis Expidée</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-rc">Colis Reçu</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-md">Colis Mise en distrubution</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-l">Colis Livrée</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
 
         <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
           <Menu.Item icon={<BiTagAlt />}>

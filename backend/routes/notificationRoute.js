@@ -1,12 +1,16 @@
-const { getNotifications, createNotification, deleteNotification, markAsRead } = require('../Controllers/notificationController');
+const { getNotifications, createNotification, deleteNotification, markAsRead, updateNotification, getNotificationsByVisibility } = require('../Controllers/notificationController');
 
 const router = require('express').Router();
 // api/notification
 router.route('/')
         .get(getNotifications)
         .post(createNotification);
+
+router.route('/visible')
+        .get(getNotificationsByVisibility)
             
-router.route('/:id').delete(deleteNotification);
-router.route('/:id/read').patch(markAsRead);
+router.route('/:id')
+        .delete(deleteNotification)
+        .put(updateNotification);
 
 module.exports=router;

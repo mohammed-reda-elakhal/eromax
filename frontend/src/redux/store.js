@@ -3,6 +3,8 @@ import { authReducer } from "./slices/authSlice"
 import { profileReducer } from "./slices/profileSlice"
 import { colisReducer } from "./slices/colisSlice"
 import { livreurReducer } from "./slices/livreurSlice"
+import { notificationReducer } from "./slices/notificationSlice"
+import { reclamationReducer } from "./slices/reclamationSlice"
 
 const store = configureStore({
     reducer : {
@@ -10,7 +12,9 @@ const store = configureStore({
         profile : profileReducer,
         colis:colisReducer,
         produit:profileReducer,
-        livreur:livreurReducer
+        livreur:livreurReducer,
+        notification:notificationReducer,
+        reclamation : reclamationReducer
     }
 })
 

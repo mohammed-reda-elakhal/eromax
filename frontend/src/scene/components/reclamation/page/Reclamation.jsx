@@ -118,7 +118,7 @@ function Reclamation() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <Tabs defaultActiveKey="1" items={items} onChange={onChange} />
+                        <ReclamationIncomplete theme={theme}/>,
                     </div>
                 </div>
             </main>

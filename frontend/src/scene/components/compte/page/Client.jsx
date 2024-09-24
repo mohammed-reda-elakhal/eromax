@@ -17,19 +17,18 @@ function Client() {
 
     const [isModalStoreOpen, setIsModalStoreOpen] = useState(false);
     const [selectedStores, setSelectedStores] = useState([]);
-    const [data, setData ] = useState([]);
     const [drawerVisible, setDrawerVisible] = useState(false); // For Drawer visibility
     const [currentClient, setCurrentClient] = useState(null); // Current client being edited or added
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const dispatch = useDispatch();
-    const user = JSON.parse(localStorage.getItem('user'));
-    const { profileList } = useSelector((state) => state.profile); // Get the profile list from Redux
+    const { profileList, user } = useSelector((state) => ({
+        profileList: state.profile.profileList,
+        user: state.auth.user
+    }));
 
     useEffect(() => {
-        if (user) {
-            dispatch(getProfileList("client"));
-        }
+        dispatch(getProfileList("client"));
         window.scrollTo(0, 0);
     }, [dispatch, user]);
 
@@ -56,9 +55,9 @@ function Client() {
         setCurrentClient(null);
     };
 
-    const handleDeleteProfile = (id) =>{
-        dispatch(deleteProfile("client" , id))
-    }
+    const handleDeleteProfile = (id) => {
+        dispatch(deleteProfile("client", id));
+    };
 
     // Define table columns
     const columns = [
@@ -80,13 +79,14 @@ function Client() {
             title: 'Username',
             dataIndex: 'username',
             key: 'username',
-        },{
+        },
+        {
             title: 'Store',
             dataIndex: 'store',
             render: (text, record) => (
                 <p>{(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}</p>
             )
-        },        
+        },
         {
             title: 'Email',
             dataIndex: 'email',
@@ -136,29 +136,28 @@ function Client() {
             render: (text, record) => (
                 <div className='action_user'>
                     <Button 
-                        style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
+                        style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent" }} 
                         icon={<FaPenFancy size={20} />}
-                        onClick={() => navigate(`/dashboard/compte/client/${record._id}` ,  { state: { from: '/dashboard/compte/client' } })}
+                        onClick={() => navigate(`/dashboard/compte/client/${record._id}`, { state: { from: '/dashboard/compte/client' } })}
                     />
                     <Button 
-                        style={{ color: 'red', borderColor: "red", background:"transparent"  }} 
+                        style={{ color: 'red', borderColor: "red", background: "transparent" }} 
                         icon={<MdDelete size={20} />}
-                        onClick={()=>handleDeleteProfile(record._id)}
+                        onClick={() => handleDeleteProfile(record._id)}
                     />
                     <Button 
-                        style={{ color: 'blue', borderColor: "blue" , background:"transparent"  }} 
+                        style={{ color: 'blue', borderColor: "blue", background: "transparent" }} 
                         icon={<FaInfoCircle size={20} />}
                         // Add more info logic here
                     />
                 </div>
             )
         }
-        
     ];
 
     return (
         <div className='page-dashboard'>
-            <Menubar/>
+            <Menubar />
             <main className="page-main">
                 <Topbar />
                 <div

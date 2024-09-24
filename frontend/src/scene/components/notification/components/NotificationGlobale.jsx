@@ -1,92 +1,88 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import { Button, Switch, Drawer, Form, Input, Space } from 'antd';
-import not from "../../../../data/NotGlobale.json";
-import { FaPenToSquare } from "react-icons/fa6";
-import { FaPlus } from "react-icons/fa";
+import { FaPenToSquare, FaPlus } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
+import { useDispatch, useSelector } from 'react-redux';
+import { getNotification, createNotification, updateNotification, deleteNotification } from '../../../../redux/apiCalls/notificationApiCalls';
+import { notificationActions } from '../../../../redux/slices/notificationSlice';
 
 function NotificationGlobale({ theme }) {
-    const [notifications, setNotifications] = useState(not);
+    const dispatch = useDispatch();
+    const { notification } = useSelector((state) => state.notification);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [editingNotification, setEditingNotification] = useState(null);
-    const [form] = Form.useForm(); // Create a form instance
+    const [form] = Form.useForm();
+
+    useEffect(() => {
+        dispatch(getNotification());
+        window.scrollTo(0, 0);
+    }, [dispatch]);
 
     const handleToggleVisibility = (id) => {
-        const updatedNotifications = notifications.map(notification => {
-            if (notification.id === id) {
-                return { ...notification, visible: !notification.visible };
-            }
-            return notification;
-        });
-        setNotifications(updatedNotifications);
+        const notif = notification.find(n => n._id === id);
+        if (notif) {
+            dispatch(updateNotification(id, { visibility: !notif.visibility }));
+        }
     };
 
     const handleAddNotification = () => {
-        setEditingNotification(null); // Clear editing state
-        form.resetFields(); // Clear the form fields
-        setDrawerVisible(true); // Open drawer for adding new notification
+        setEditingNotification(null);
+        form.resetFields();
+        setDrawerVisible(true);
     };
 
     const handleEditNotification = (notification) => {
-        setEditingNotification(notification); // Load selected notification into form
+        setEditingNotification(notification);
         setDrawerVisible(true);
-        // Set form fields with existing values, after the drawer is fully opened
         setTimeout(() => {
-            form.setFieldsValue(notification);
+            form.setFieldsValue({ 
+                message: notification.message, 
+                visibility: notification.visibility 
+            });
         }, 0);
     };
 
     const handleDeleteNotification = (id) => {
-        const updatedNotifications = notifications.filter(notification => notification.id !== id);
-        setNotifications(updatedNotifications);
+        // Optimistically remove the notification from the state
+        const updatedNotifications = notification.filter(notif => notif._id !== id);
+        dispatch(notificationActions.setNotification(updatedNotifications)); // Update state locally
+
+        // Call the delete action
+        dispatch(deleteNotification(id));
     };
 
     const handleFormSubmit = (values) => {
         if (editingNotification) {
             // Update existing notification
-            const updatedNotifications = notifications.map(notification =>
-                notification.id === editingNotification.id
-                    ? { ...notification, ...values }
-                    : notification
-            );
-            setNotifications(updatedNotifications);
+            dispatch(updateNotification(editingNotification._id, { message: values.message, visibility: values.visibility }));
         } else {
             // Add new notification
-            const newNotification = {
-                id: notifications.length + 1,
-                ...values
-            };
-            setNotifications([...notifications, newNotification]);
+            dispatch(createNotification({ message: values.message, visibility: values.visibility }));
         }
         setDrawerVisible(false);
-        form.resetFields(); // Clear the form after submission
+        form.resetFields();
     };
 
     const handleCloseDrawer = () => {
         setDrawerVisible(false);
-        form.resetFields(); // Clear the form when drawer is closed
+        form.resetFields();
     };
 
     const columns = [
         {
-            title: 'Ref',
-            dataIndex: 'id',
-            key: 'id'
-        },
-        {
             title: 'Notification',
-            dataIndex: 'desc',
-            key: 'desc'
+            dataIndex: 'message',
+            key: 'message'
         },
         {
             title: 'Visibility',
-            dataIndex: 'visible',
-            key: 'visible',
+            dataIndex: 'visibility',
+            key: 'visibility',
             render: (text, record) => (
                 <Switch
-                    checked={record.visible}
-                    onChange={() => handleToggleVisibility(record.id)}
+                    checked={record.visibility}
+                    onChange={() => handleToggleVisibility(record._id)}
                 />
             )
         },
@@ -104,7 +100,7 @@ function NotificationGlobale({ theme }) {
                         type='primary'
                         danger
                         icon={<MdDelete />}
-                        onClick={() => handleDeleteNotification(record.id)}
+                        onClick={() => handleDeleteNotification(record._id)}
                     />
                 </div>
             )
@@ -120,7 +116,7 @@ function NotificationGlobale({ theme }) {
             >   
                 Ajouter Notification
             </Button>
-            <TableDashboard theme={theme} id="id" column={columns} data={notifications} />
+            <TableDashboard theme={theme} id="id" column={columns} data={notification} />
 
             <Drawer
                 title={editingNotification ? 'Edit Notification' : 'Add Notification'}
@@ -132,18 +128,18 @@ function NotificationGlobale({ theme }) {
                 <Form
                     layout="vertical"
                     onFinish={handleFormSubmit}
-                    form={form} // Connect the form instance
-                    initialValues={{ desc: '', visible: true }} // Set initial values to empty for new notification
+                    form={form}
+                    initialValues={{ message: '', visibility: true }} // Adjust initial values
                 >
                     <Form.Item
-                        name="desc"
+                        name="message"
                         label="Description"
                         rules={[{ required: true, message: 'Please enter a description' }]}
                     >
                         <Input placeholder="Enter notification description" />
                     </Form.Item>
                     <Form.Item
-                        name="visible"
+                        name="visibility"
                         label="Visibility"
                         valuePropName="checked"
                     >

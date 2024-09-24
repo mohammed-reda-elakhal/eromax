@@ -1,44 +1,36 @@
-const { default: mongoose } = require("mongoose");
-const moongose = require("mongoose");
+const mongoose = require("mongoose");
 
-
-const StoreSchema = new moongose.Schema({
-
-    id_client:{
-        type:moongose.Schema.Types.ObjectId,
-        ref:'Client',
-        required:true
+const StoreSchema = new mongoose.Schema({
+    id_client: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Client',
+        required: true
     },
-    image:{
-        type : Object,
-        default : {
-            url : "https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_640.png",
-            publicId : null
+    image: {
+        type: Object,
+        default: {
+            url: "https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_640.png",
+            publicId: null
         }
     },
-    storeName:{
+    storeName: {
         type: String,
         required: true,
         trim: true,
         minlength: 2,
         maxlength: 100
     },
-    default:{
+    default: {
         type: Boolean,
-        required: true,
+        default: false // This should only be defined once
     },
-    somme:{
-        type:Number
-    },
-    default:{
-        type:Boolean,
-        default:false
+    somme: {
+        type: Number
     }
-},{timestamps:true});
+}, { timestamps: true });
 
+const Store = mongoose.model('Store', StoreSchema);
 
-const Store = mongoose.models.Store || mongoose.model('Store', StoreSchema);
-
-module.exports= {
+module.exports = {
     Store
-}
+};

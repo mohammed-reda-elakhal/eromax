@@ -19,16 +19,18 @@ export function getProfile(userId , role){
 }
 
 // get list users 
-export function getProfileList(role){
-    return async(dispatch)=>{
-        try{
-            const {data} = await request.get(`/api/${role}`);
-            dispatch(profileActions.setProfileList(data))
-        }catch(error){
+export function getProfileList(role) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/${role}`);
+            dispatch(profileActions.setProfileList(data));
+        } catch (error) {
+            console.error('Fetch error:', error); // Log the error for debugging
             toast.error(error.message || "Failed to fetch profile List");
         }
-    }
+    };
 }
+
 
 // create user
 export function createProfile(role , user){
@@ -51,7 +53,7 @@ export function updateProfile(userId, role, user) {
     return async (dispatch, getState) => {
         try {
             // Get the token from localStorage
-            const token = JSON.parse(Cookies.get('token'));
+            const token = Cookies.get('token');
             if (!token) {
                 throw new Error('No token found in localStorage');
             }

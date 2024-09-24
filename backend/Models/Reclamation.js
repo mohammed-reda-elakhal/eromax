@@ -1,33 +1,36 @@
 const mongoose = require("mongoose");
 
-
 const reclamationSchema = new mongoose.Schema({
-    clientId:{
-        type:mongoose.Schema.Types.ObjectId,
-        required:true,
-        ref:'Client'
+    store: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Store'
     },
-    subject:{
-        type:String,
-        required:true,
-        trim:true
+    colis: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Colis' // Ensure this matches the correct model name
     },
-    description:{
-        type:String,
-        required:true
+    subject: {
+        type: String,
+        required: true,
+        trim: true
     },
-    resolu:{
-        type:Boolean,
-        default:false
+    description: {
+        type: String,
+        required: true
+    },
+    resoudre: {
+        type: Boolean,
+        default: false
     }
-    
-
-},{
+}, {
     timestamps: true
 });
-const Reclamation = mongoose.model('Reclamation',reclamationSchema);
 
-module.exports={
+
+const Reclamation = mongoose.model('Reclamation', reclamationSchema);
+
+module.exports = {
     Reclamation
-
 };

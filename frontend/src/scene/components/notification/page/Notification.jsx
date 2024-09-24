@@ -63,7 +63,7 @@ function Notification() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <Tabs defaultActiveKey="1" items={items} onChange={onChange} />
+                        <NotificationGlobale theme={theme}/>
                     </div>
                 </div>
             </main>

@@ -5,7 +5,6 @@ import { FaRegPenToSquare } from "react-icons/fa6";
 import { useDispatch, useSelector } from 'react-redux';
 import { getProfile } from '../../../../redux/apiCalls/profileApiCalls';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import ProfileForm from './ProfileForm';
 import Cookies from 'js-cookie';
 
 

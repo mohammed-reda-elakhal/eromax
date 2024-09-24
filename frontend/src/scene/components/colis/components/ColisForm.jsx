@@ -152,6 +152,7 @@ function ColisForm({ theme , type}) {
             is_remplace : remplaceColis,
         };
         dispatch(createColis(colis))
+        navigate('/dashboard/list-colis')
         console.log("Colis",colis);
     };
 

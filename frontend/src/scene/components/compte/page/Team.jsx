@@ -18,8 +18,10 @@ function Team() {
     const navigate = useNavigate()
 
     const dispatch = useDispatch();
-    const user = JSON.parse(localStorage.getItem('user'));
-    const { profileList } = useSelector((state) => state.profile); // Get the profile list from Redux
+    const { profileList, user } = useSelector((state) => ({
+        profileList: state.profile.profileList,
+        user: state.auth.user
+    }));
 
     useEffect(() => {
         if (user) {

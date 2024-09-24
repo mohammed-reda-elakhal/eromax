@@ -40,6 +40,7 @@ import Team from "./scene/components/compte/page/Team";
 import FormTeam from "./scene/components/compte/page/FormTeam";
 import Admin from "./scene/components/compte/page/Admin";
 import FormAdmin from "./scene/components/compte/page/FormAdmin";
+import ReclamationOk from "./scene/components/reclamation/page/ReclamationOk";
 
 function App() {
 
@@ -170,7 +171,9 @@ function App() {
             <Route path="portfeuille" element={<Portfeuille />} />
             <Route path="scan" element={<Scan />} /> 
             <Route path="ville" element={<Ville />} /> 
-            <Route path="reclamation" element={<Reclamation />} /> 
+            <Route path="reclamation" element={<Reclamation />} />
+            <Route path="reclamation-complete" element={<ReclamationOk />} />
+            <Route path="gnotification" element={<Notification />} /> 
             
             <Route path="compte">
               <Route path="client" element={<Client />}  />

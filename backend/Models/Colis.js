@@ -22,7 +22,7 @@ const ColisSchema = new mongoose.Schema({
         required: true,
     },
     tele: {
-        type: Number,
+        type: String, // Change to String for better handling of leading zeros
         required: true,
         trim: true,
         minlength: 10,
@@ -65,17 +65,17 @@ const ColisSchema = new mongoose.Schema({
     },
     is_simple: {
         type: Boolean,
-        default : true,
+        default: true,
     },
     is_remplace: {
         type: Boolean,
-        default : false,
+        default: false,
     },
     is_fragile: {
         type: Boolean,
-        default : false,
+        default: false,
     },
-    produits: [{ // array
+    produits: [{
         produit: { 
             type: mongoose.Schema.Types.ObjectId, 
             ref: 'Produit' 
@@ -107,7 +107,6 @@ ColisSchema.pre('save', function (next) {
         this.code_suivi = shortid.generate();
     }
     next();
-    console.log(this.code_suivi);
 });
 
 // Colis Model
@@ -119,7 +118,7 @@ function validateRegisterColis(obj) {
         adresse: Joi.string().required(),
         nom: Joi.string().required(),
         ville: Joi.string().required(),
-        tele: Joi.string().pattern(/^[0-9]{10}$/).required(),
+        tele: Joi.string().pattern(/^[0-9]{10}$/).required(), // Kept as string for phone number
         prix: Joi.number().required(),
         commentaire: Joi.string(),
         etat: Joi.boolean(),
