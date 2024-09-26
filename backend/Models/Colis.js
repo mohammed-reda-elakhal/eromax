@@ -97,6 +97,9 @@ const ColisSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Livreur'
     },
+    date_programme: {
+        type: Date,
+    }
 }, {
     timestamps: true
 });

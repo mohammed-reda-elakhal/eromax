@@ -220,3 +220,32 @@ export const updateStatut = (colisId, newStatus) => async (dispatch) => {
         console.error("Update status error:", error);
     }
 };
+
+export const colisProgramme=(colisId,daysToAdd)=>async(dispatch)=>{
+    try {
+        // Dispatch the loading action
+        dispatch(colisActions.setLoading(true));
+
+        // Make the API request to schedule the delivery
+        const data = await request.post('http://localhost:8084/api/client/programme', {
+            colisId,
+            daysToAdd
+        });
+
+        // Assuming the response contains the updated colis data
+        dispatch(colisActions.addColis(data.colis)); // Add the scheduled colis to the state
+
+        // Dispatch the success state to stop loading
+        dispatch(colisActions.setLoading(false));
+    } catch (error) {
+        console.error("Error scheduling delivery:", error);
+
+        // Dispatch the error action to set the error message
+        dispatch(colisActions.setError(error.response?.data?.message || "Error scheduling delivery"));
+
+        // Stop loading in case of failure
+        dispatch(colisActions.setLoading(false));
+    }
+    
+
+}

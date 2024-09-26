@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur, getLivreurbyVille  } = require("../Controllers/livreurController");
+const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur, getLivreurbyVille, generateFactureLivreur  } = require("../Controllers/livreurController");
 const { affecterLivreur } = require("../Controllers/colisController");
 const { verifyToken } = require("../Middlewares/VerifyToken");
 const router = express.Router();
@@ -19,4 +19,7 @@ router.route("/:id")
 //  api/livreur/ville  ---- get Livreurs by Ville
 router.route("/ville").post(getLivreurbyVille)
 router.route("/colis").post(affecterLivreur);
+router.route("/facture/:colisId").post(generateFactureLivreur);
+
+
 module.exports= router;

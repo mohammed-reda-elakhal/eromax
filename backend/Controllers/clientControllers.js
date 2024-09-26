@@ -320,7 +320,81 @@ const generateFactureClient = async (req, res) => {
     res.status(500).json({  message: "Internal server error", error: err.message });
  }
 };
-
+const generateFactureClientwithLiv = async (req, res) => {
+    const { storeId, date } = req.params; // Assuming clientId and date are passed as URL parameters
+    
+    try {
+      // Convert date parameter to start and end of the day
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0); // Start of the day
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999); // End of the day
+  
+      // Fetch all colis for the client that were delivered (status "Livrée") on the given day
+      const colisList = await Colis.find({
+        statut: "Livrée",
+        store: storeId, // Fetch colis for the specific store
+        updatedAt: { $gte: startDate, $lte: endDate } // Only colis updated (delivered) on the given day
+      }).populate('livreur'); // Populate livreur details for each colis
+  
+      if (colisList.length === 0) {
+        return res.status(404).json({ error: "No colis found for the client on the given day." });
+      }
+  
+      // Fetch client data
+      const store =await Store.findById(storeId)
+      const client = await Client.findById(store.id_client);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+  
+      // Initialize totals
+      let totalBrut = 0;
+      let totalNet = 0;
+  
+      // Prepare facture data for each colis
+      const factureItems = colisList.map(colis => {
+        const livreurTarif = colis.livreur?.tarif || 0; // Get livreur's tarif or default to 0
+        const frais = livreurTarif; // The delivery fee is based on the livreur's tarif
+        const netAmount = colis.prix - frais; // Calculate net amount by subtracting the delivery fee
+        totalBrut += colis.prix;
+        totalNet += netAmount;
+  
+        return {
+          code_suivi: colis.code_suivi,
+          date_livraison: new Date(colis.updatedAt).toLocaleDateString(),
+          ville: colis.ville,
+          produit: colis.nature_produit,
+          crbt: colis.prix,
+          frais: frais, // Livreurs' tarif as the fee
+          total_brut: colis.prix,
+          total_net: netAmount,
+          livreur: {
+            nom: colis.livreur?.nom || 'N/A', // Livreurs' name or 'N/A' if not available
+            tarif: livreurTarif, // The specific tarif for the livreur
+          }
+        };
+      });
+  
+      // Final facture data for the client for the day
+      const factureData = {
+        client_name: client.nom,
+        client_telephone: client.tele,
+        total_colis: colisList.length,
+        total_brut: totalBrut,
+        total_net: totalNet,
+        facture_items: factureItems,
+      };
+  
+      // Return the combined invoice data for the client
+      res.json(factureData);
+  
+    } catch (err) {
+      console.error("Error generating Facture Client:", err);
+      res.status(500).json({ message: "Internal server error", error: err.message });
+    }
+};
+  
 module.exports = {
     getAllClients,
     getClientById,
@@ -329,5 +403,6 @@ module.exports = {
     deleteClient,
     clientPhotoController,
     UploadClientFiles,
-    generateFactureClient
+    generateFactureClient,
+    generateFactureClientwithLiv
 };
