@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
-import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { colisProgramme, getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
@@ -68,7 +68,7 @@ useEffect(() => {
   };
 
   const handleProgramme = (record) => {
-    setSelectedColis(record._id);
+    setSelectedColis(record);
     setIsProgrammeModalVisible(true);
   };
 
@@ -94,16 +94,34 @@ useEffect(() => {
   };
 
   const handleProgrammeOk = () => {
+    if (!selectedColis || !selectedColis._id) {
+      console.error('selectedColis is undefined or missing _id');
+      return;
+    }
     programmeForm.validateFields().then(values => {
+      const deliveryTime = parseInt(values.deliveryTime.replace(/\D/g, ''), 10); // Extract number from delivery time
+      if (isNaN(deliveryTime)) {
+        console.error('Invalid delivery time');
+        return;
+      }
       const newData = colisData.map(item => {
-        if (item.id === selectedColis._id) {
-          item.statut = 'Programmé';
-          item.deliveryTime = values.deliveryTime;
+        
+        if (item._id === selectedColis._id) {
+          return {
+            ...item, // Spread the existing properties
+            statut: 'Programmé', // Update the statut
+            deliveryTime: deliveryTime // Update the deliveryTime
+          };
         }
         return item;
       });
       setData(newData);
       setIsProgrammeModalVisible(false);
+      dispatch(colisProgramme(selectedColis._id,deliveryTime));
+      console.log('selected',selectedColis._id);
+      console.log('delevery time',deliveryTime);
+
+
       success(`Colis ${selectedColis._id} programmé pour livraison dans ${values.deliveryTime}.`);
     }).catch(info => {
       console.log('Validate Failed:', info);

@@ -4,7 +4,6 @@ const {getColisByIdLivreur}= require("./Controllers/colisController")
 require('dotenv').config;
 
 const cors = require("cors");
-const { verifyToken } = require("./Middlewares/VerifyToken");
 const cookieParser = require("cookie-parser");
 
 

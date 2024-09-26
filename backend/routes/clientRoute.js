@@ -1,8 +1,9 @@
 const express = require("express");
-const { getAllClients, getClientById, createClient, updateClient, deleteClient, clientPhotoController, UploadClientfiles, UploadClientFiles, generateFactureClient } = require("../Controllers/clientControllers");
+const { getAllClients, getClientById, createClient, updateClient, deleteClient, clientPhotoController, UploadClientfiles, UploadClientFiles, generateFactureClient, generateFactureClientwithLiv } = require("../Controllers/clientControllers");
 const photoUpload = require("../Middlewares/photoUpload");
-const { verifyToken, verifyTokenAndStore, verifyTokenAndClient, verifyTokenAndAdmin } = require("../Middlewares/VerifyToken");
+const { verifyToken, verifyTokenAndStore, verifyTokenAndClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin } = require("../Middlewares/VerifyToken");
 const fileUpload = require("../Middlewares/fileUpload");
+const colisController = require('../Controllers/colisController')
 const router = express.Router();
 
 // api/client
@@ -19,6 +20,10 @@ router.route("/:id")
 router.route("/:id/photo").post(verifyTokenAndClient,photoUpload.single("image"),clientPhotoController);
 router.route("/files/:id").post(fileUpload.single('file'),UploadClientFiles);
 router.get('/generate/:colisId',generateFactureClient);
+router.get('/generate/:storeId/:date',generateFactureClientwithLiv);
+
+router.route("/programme").post(colisController.colisProgramme);
+
 
 
 module.exports= router;

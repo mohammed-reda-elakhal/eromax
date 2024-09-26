@@ -21,6 +21,7 @@ const LivreurSchema = new mongoose.Schema({
     active: { type: Boolean, default: false },
     role: { type: String, required: true, default: 'livreur' },
     type: { type: String, required: true, default: 'simple' },
+    tarif:{type :Number , required:true},
     domaine:{type : String , required : false},
     file: { type: mongoose.Schema.Types.ObjectId, ref: 'file' },
 
@@ -55,6 +56,7 @@ const livreurValidation = (obj) => {
         }),
         active: Joi.boolean().default(false),
         role: Joi.string().default("livreur"),
+        tarif:Joi.allow(),
 
         // Joi validation for region
         villes: Joi.array().items(Joi.string()) // Region is optional but must follow this structure if provided

@@ -7,6 +7,7 @@ const {Store} =require("../Models/Store");
 const { default: mongoose } = require("mongoose");
 const { Livreur } = require("../Models/Livreur");
 const { Team } = require("../Models/Team");
+const schedule = require('node-schedule')
 
 
 // Utility function to generate a unique code_suivi
@@ -482,7 +483,6 @@ module.exports.affecterLivreur = async (req, res) => {
     }
 };
 module.exports.getColisByIdLivreur=asyncHandler(async(req,res)=>{
-
   const id_livreur= req.params.id_livreur
   if(!id_livreur){
     return res.status(400).json({ message: "Id Livreur no provided" });
@@ -511,6 +511,8 @@ module.exports.getColisByTeam=asyncHandler(async(req,res)=>{
 
 
 });
+
+
 exports.getColisByLivreur = asyncHandler(async (req, res) => {
   let colis;
   let livreur = req.params.id_livreur;
@@ -541,5 +543,54 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
 
   res.status(200).json(colis);
 });
+
+exports.colisProgramme = asyncHandler(async (req, res) => {
+  const { colisId, daysToAdd } = req.body;
+
+    // Validate input
+    if (!mongoose.Types.ObjectId.isValid(colisId)) {
+        return res.status(400).send("Invalid Colis ID");
+    }
+
+    if (typeof daysToAdd !== 'number' || daysToAdd <= 0) {
+        return res.status(400).send("Invalid number of days to add");
+    }
+
+    try {
+        // Find the Colis by ID
+        const colis = await Colis.findById(colisId);
+        if (!colis) {
+            return res.status(404).send("Colis not found");
+        }
+
+        // Calculate the scheduled delivery date by adding `daysToAdd` to the current date
+        const currentDate = new Date();
+        const deliveryDate = new Date(currentDate);
+        deliveryDate.setDate(currentDate.getDate() + daysToAdd);
+
+        // Update status to "expédié" and set the scheduled delivery date
+        colis.statut = "Expediée";
+        colis.date_programme = deliveryDate;
+        await colis.save();
+
+        // Schedule a job to revert the status to "mise en distribution" on the scheduled delivery date
+        schedule.scheduleJob(deliveryDate, async function() {
+            const updatedColis = await Colis.findById(colisId);
+            if (updatedColis) {
+                updatedColis.statut = "Mise en Distribution";
+                await updatedColis.save();
+                console.log(`Colis ${colisId} status changed to "Mise en Distribution"`);
+            }
+        });
+
+        return res.status(200).send(`Delivery scheduled for ${deliveryDate} and status updated to 'Expédié'.`);
+    } catch (error) {
+        return res.status(500).send("Something went wrong: " + error.message);
+    }
+});
+
+
+
+
 
 
