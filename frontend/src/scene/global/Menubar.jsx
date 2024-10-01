@@ -97,7 +97,7 @@ function Menubar() {
         </Menu.Item>
         {
           userData.role ==="admin" && (
-            <Menu.SubMenu icon={<CgDanger />} title="Comptes">
+            <Menu.SubMenu icon={<CgDanger />} title="Reclamations">
               <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
                 <Link to="/dashboard/reclamation">Reclamation Non Complete</Link>
               </Menu.Item>

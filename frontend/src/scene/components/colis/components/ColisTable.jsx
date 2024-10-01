@@ -135,10 +135,13 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           <button className='btn-dashboard' onClick={() => handleInfo(record.id)}><IoMdInformationCircleOutline /></button>
           <button className='btn-dashboard' onClick={() => setOpenDrawer(true)}><Si1001Tracklists /></button>
           <button className='btn-dashboard' onClick={() => handleTicket(record.id)}><FaPrint /></button>
-          <button className='btn-dashboard' onClick={() => setDrawerColisUpdate(true)}><FaPenFancy /></button>
+          {user.role !== 'client' && ( // Conditionally render the update button
+            <button className='btn-dashboard' onClick={() => setDrawerColisUpdate(true)}><FaPenFancy /></button>
+          )}
         </div>
       )
     }
+    
   ];
 
   const componentRef = useRef();
