@@ -5,6 +5,7 @@ const { Store } = require("../Models/Store");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
 const { Colis } = require("../Models/Colis");
 const { Client } = require("../Models/Client");
+const {Ville}= require('../Models/Ville')
 
 
 /** -------------------------------------------
@@ -202,6 +203,9 @@ const generateFactureLivreur = async (req, res) => {
     // Fetch Store to get the Client ID
     const storeId = colis.store;
     const store = await Store.findById(storeId);
+   const livreur_ville=colis.livreur.ville
+   const ville= await Ville.find({ nom: livreur_ville })
+   const tarif_ville=ville.tarif
 
     if (!store) {
       return res.status(404).json({ error: "Store not found" });
@@ -223,8 +227,8 @@ const generateFactureLivreur = async (req, res) => {
     }
 
     // Calculate the adjusted delivery fee (our fixed fee - livreur's tariff)
-    const fixedDeliveryFee = 40; // Example: your fixed fee is 40
-    const deliveryFee = fixedDeliveryFee - livreurTarif;
+    const DeliveryFee = tarif_ville; // Example: your fixed fee is 40 // extact from ville tarifs 
+    const deliveryFee = DeliveryFee - livreurTarif;
 
     // Ensure that the total_net does not go below zero (in case tarif exceeds fixed fee)
     const total_net = Math.max(colis.prix - deliveryFee, 0);
@@ -286,6 +290,7 @@ const generateFactureLivreurMultiple = async (req, res) => {
     // Initialize totals
     let totalBrut = 0;
     let totalNet = 0;
+    
 
     // Prepare facture data for each colis
     const factureItems = colisList.map(colis => {
