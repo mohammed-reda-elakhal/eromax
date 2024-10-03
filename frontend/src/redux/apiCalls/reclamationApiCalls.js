@@ -24,7 +24,7 @@ export function createReclamation(reclamationData) {
         try {
             const { data } = await request.post(`/api/reclamation`, reclamationData);
             dispatch(reclamationActions.addReclamation(data)); // Assuming you have an addReclamation reducer
-            toast.success("Reclamation created successfully");
+            toast.success(data.message);
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to create reclamation");
         }

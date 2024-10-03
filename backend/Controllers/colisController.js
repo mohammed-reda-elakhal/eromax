@@ -7,7 +7,8 @@ const {Store} =require("../Models/Store");
 const { default: mongoose } = require("mongoose");
 const { Livreur } = require("../Models/Livreur");
 const { Team } = require("../Models/Team");
-const schedule = require('node-schedule')
+const schedule = require('node-schedule');
+const { Ville } = require("../Models/Ville");
 
 
 // Utility function to generate a unique code_suivi
@@ -23,6 +24,7 @@ function generateCodeSuivi() {
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
  **/
+
 module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   // Check if request body is provided
   if (!req.body) {
@@ -36,13 +38,19 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   }
 
   // Validate that req.user is present and has store
-  if (!req.user ) {
+  if (!req.user) {
     return res.status(400).json({ message: "Store information is missing in user data" });
   }
-  
+
   // Extract store and team information
-  let store = req.user.store || null; // Assuming req.user.store should be used
-  let team = req.user.id;     // Assuming team is the user id
+  let store = req.user.store || null;  // Assuming req.user.store should be used
+  let team = req.user.id;  // Assuming team is the user id
+
+  // Validate and fetch the ville by its ID from the request body
+  const ville = await Ville.findById(req.body.ville);
+  if (!ville) {
+    return res.status(400).json({ message: "Ville not found" });
+  }
 
   // Generate a unique code_suivi
   let code_suivi;
@@ -60,14 +68,16 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     ...req.body,
     store,
     team,
+    ville: ville._id,  // Add the ville reference
     code_suivi,
   });
 
   const saveColis = await newColis.save();
 
-  // Populate store and team data
+  // Populate store, team, and ville data
   await saveColis.populate('store');
   await saveColis.populate('team');
+  await saveColis.populate('ville');
 
   // Verify that code_suivi is not null before proceeding
   if (!newColis.code_suivi) {
@@ -86,12 +96,11 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
   // Respond with both the saved Colis and Suivi_Colis
   res.status(201).json({
-    message : 'Colis est créer , merci ❤️',
+    message: 'Colis créé avec succès, merci ❤️',
     colis: saveColis,
-    suiviColis: save_suivi
+    suiviColis: save_suivi,
   });
 });
-
 /**
  * -------------------------------------------------------------------
  * @desc     get all colis, optionally filter by statut
@@ -115,6 +124,7 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       .populate('team')        // Populate the team details
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
+      .populate('ville')
       .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
     res.status(200).json(colis);
@@ -172,6 +182,7 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
     .populate('livreur')
     .populate('store')
     .populate('team')
+    .populate('ville')
     .sort({ updatedAt: -1 });
 
 
@@ -214,7 +225,7 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
   }
 
   // Find colis based on the constructed filter
-  colis = await Colis.find(filter).populate('team').populate('livreur').populate('store').sort({ updatedAt: -1 });;
+  colis = await Colis.find(filter).populate('team').populate('livreur').populate('store').populate('ville').sort({ updatedAt: -1 });;
 
   if (!colis) {
     return res.status(404).json({ message: "Colis not found" });
@@ -231,7 +242,7 @@ exports.getColisByClient=asyncHandler(async(req,res)=>{
    
   try{
     const clientId= req.params.id;
-  const client = await Client.findById(clientId);
+  const client = await Client.findById(clientId).populate('ville');
 
   if(!client){
     return res.status(404).json({message:"Cleint not Found"});
@@ -420,7 +431,7 @@ exports.getColisByStore= asyncHandler(async(req,res)=>{
 
     console.log("Store found:", store);
 
-    const colisList = await Colis.find({ store: storeId });
+    const colisList = await Colis.find({ store: storeId }).populate('ville');
 
     console.log("Colis list fetched:", colisList);
 

@@ -173,8 +173,8 @@ function ColisPourRamassage({ search }) {
     },
     {
       title: 'Dernière Mise à Jour',
-      dataIndex: 'updated_at',
-      key: 'updated_at',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
     },
     {
       title: 'Destinataire',
@@ -231,6 +231,21 @@ function ColisPourRamassage({ search }) {
       title: 'Ville',
       dataIndex: 'ville',
       key: 'ville',
+      render: (text, record) => (
+        <span>
+          {record.ville.nom}
+        </span>
+      ),
+    },
+    {
+      title: 'Tarif',
+      dataIndex: 'ville',
+      key: 'ville',
+      render: (text, record) => (
+        <span>
+          {record.ville.tarif}
+        </span>
+      ),
     },
     {
       title: 'Prix',
@@ -245,20 +260,24 @@ function ColisPourRamassage({ search }) {
     {
       title: 'Option',
       render: (text, record) => (
-        <Popconfirm
-          title="Ramassage Colis"
-          description="Tu es sûr de faire ramassage pour ce colis?"
-          onConfirm={() => handleRamasse(record._id)}
-          okText="Oui"
-          cancelText="Non"
-        >
-          <Button
-            type="primary"
-            icon={<MdDeliveryDining />}
-          >
-            Ramasse
-          </Button>
-        </Popconfirm>
+        <>
+          {user.role !== 'client' && (
+            <Popconfirm
+              title="Ramassage Colis"
+              description="Tu es sûr de faire ramassage pour ce colis?"
+              onConfirm={() => handleRamasse(record._id)}
+              okText="Oui"
+              cancelText="Non"
+            >
+              <Button
+                type="primary"
+                icon={<MdDeliveryDining />}
+              >
+                Ramasse
+              </Button>
+            </Popconfirm>
+          )}
+        </>
       ),
     },
   ];

@@ -29,12 +29,10 @@ const ColisSchema = new mongoose.Schema({
         maxlength: 10,
     },
     ville: {
-        type: String,
-        required: true,
-    },
-    code_ville: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Ville'
+        ref: 'Ville',
+        require:true
+
     },
     adresse: {
         type: String,
@@ -131,7 +129,6 @@ function validateRegisterColis(obj) {
         is_simple: Joi.boolean(),
         is_remplace: Joi.boolean(),
         is_fragile: Joi.boolean(),
-        code_ville: Joi.string(),
         code_suivi: Joi.string(),
         produits: Joi.array().items(Joi.object({
             produit: Joi.string().required(),
