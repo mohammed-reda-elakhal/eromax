@@ -1,6 +1,8 @@
 import React from 'react'
+import { useDispatch , useSelector } from 'react-redux';
 
 function SoldeCart({theme}) {
+    const {user , store} = useSelector(state => state.auth)
   return (
     <div className='carte-solde'>
         <div className="logo">
@@ -12,7 +14,7 @@ function SoldeCart({theme}) {
         <h3>Mohammed reda</h3>
         <div className="solde">
             <h2 className="solde-value">
-                0.00 DH
+                {store.solde} DH
             </h2>
             <p>Solde du Compte</p>
         </div>

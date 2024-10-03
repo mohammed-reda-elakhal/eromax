@@ -37,6 +37,10 @@ function ColisMiseDistribution({ search }) {
         dispatch(getColis());
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id ,'Mise en Distribution'));
+      }else if (user.role === "livreur"){
+        dispatch(getColisForLivreur(user._id , "Mise en Distribution"));
+      }else if (user.role === "team") {
+        dispatch(getColisForClient(user._id,'Mise en Distribution'));  // Use getColisForLivreur for 'livreur'
       }
     }
     window.scrollTo(0, 0);

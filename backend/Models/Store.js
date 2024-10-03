@@ -26,6 +26,10 @@ const StoreSchema = new mongoose.Schema({
     },
     somme: {
         type: Number
+    },
+    solde : {
+        type : Number,
+        default : 0 ,
     }
 }, { timestamps: true });
 

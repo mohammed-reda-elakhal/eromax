@@ -121,6 +121,13 @@ function LivreurFormAdd({ close }) {
             >
                 <Input />
             </Form.Item>
+            <Form.Item
+                label="Tarif"
+                name="tarif"
+                rules={[{ required: true, message: 'Veuillez entrer le Tarif!' }]}
+            >
+                <Input />
+            </Form.Item>
 
             {/* Multiple cities (villes) selection */}
             <Form.Item

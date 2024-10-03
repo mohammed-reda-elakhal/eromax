@@ -48,6 +48,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         dispatch(getColisForClient(store._id, ''));
       } else if (user.role === 'livreur') {
         dispatch(getColisForLivreur(user._id, ''));
+      }else if (user.role === 'team') {
+        dispatch(getColisForClient(user._id, ''));
       }
     }
   }, [dispatch, user?.role, store?._id, user._id]);
@@ -104,6 +106,14 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   // Columns definition
   const columnsColis = [
     { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi', ...search('code_suivi') },
+    { 
+      title: 'Livreur', 
+      dataIndex: 'livreur', 
+      key: 'livreur', 
+      render: (text, record) => (
+        <span>{record.livreur ? record.livreur.nom + ' - ' + record.livreur.tele : 'Operation de Ramassage'}</span> // Check if 'livreur' exists, otherwise show default message
+      )
+    },
     { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
     { title: 'Destinataire', dataIndex: 'nom', key: 'nom', ...search('nom') },
     { title: 'Téléphone', dataIndex: 'tele', key: 'tele' },
@@ -130,9 +140,11 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'reclamations',
       render: (_, record) => (
         <div className="table-reclamation">
-          <button className="btn-dashboard" onClick={() => openReclamationModal(record)}>
-            Reclamation
-          </button>
+           {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+            <button className="btn-dashboard" onClick={() => openReclamationModal(record)}>
+              Reclamation
+            </button>
+           )}
           <div className="table-option">
             <button className="btn-dashboard" onClick={() => handleInfo(record.id)}><FaWhatsapp /></button>
             <button className="btn-dashboard" onClick={() => console.log('More options for record with id:', record.id)}><TbPhoneCall /></button>
@@ -145,14 +157,21 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'action',
       render: (_, record) => (
         <div className="table-option">
-          <button className="btn-dashboard" onClick={() => setState({ ...state, drawerOpen: true })}><Si1001Tracklists /></button>
-          <button className="btn-dashboard" onClick={() => handleTicket(record)}><FaPrint /></button>
-          {user.role !== 'client' && (
-            <button className="btn-dashboard" onClick={() => setState({ ...state, drawerColisUpdate: true })}><FaPenFancy /></button>
+          <button className="btn-dashboard" onClick={() => setState({ ...state, drawerOpen: true })}>
+            <Si1001Tracklists />
+          </button>
+          <button className="btn-dashboard" onClick={() => handleTicket(record)}>
+            <FaPrint />
+          </button>
+          {user.role !== 'client' && user.role !== 'livreur' && (
+            <button className="btn-dashboard" onClick={() => setState({ ...state, drawerColisUpdate: true })}>
+              <FaPenFancy />
+            </button>
           )}
         </div>
       ),
-    },
+    }
+    
   ];
   
 

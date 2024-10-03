@@ -68,6 +68,8 @@ function ColisReçu({search}) {
         dispatch(getColisForClient(store._id , "Reçu"));
       }else if (user.role === "livreur"){
         dispatch(getColisForLivreur(user._id , "Reçu"));
+      }else if (user.role === "team") {
+        dispatch(getColisForClient(user._id,'Reçu'));  // Use getColisForLivreur for 'livreur'
       }
     }
   }

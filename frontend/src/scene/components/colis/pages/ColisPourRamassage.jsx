@@ -60,8 +60,8 @@ function ColisPourRamassage({ search }) {
         dispatch(getColis("attente de ramassage"));
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id , "attente de ramassage"));
-      } else if (user.role === "livreur") {
-        dispatch(getColisForLivreur(user._id,'attente de ramassage'));  // Use getColisForLivreur for 'livreur'
+      }else if (user.role === "team") {
+        dispatch(getColisForClient(user._id,'attente de ramassage'));  // Use getColisForLivreur for 'livreur'
       }
     }
     window.scrollTo(0, 0);
@@ -311,7 +311,7 @@ function ColisPourRamassage({ search }) {
             <TableDashboard
               column={columns}
               data={data}
-              id="id"
+              id="_id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
             />

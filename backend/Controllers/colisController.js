@@ -546,7 +546,7 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
   }
 
   // Find colis based on the constructed filter
-  colis = await Colis.find(filter).populate('livreur');
+  colis = await Colis.find(filter).populate('livreur').populate('ville');
 
   if (!colis) {
     return res.status(404).json({ message: "Colis not found" });

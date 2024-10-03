@@ -8,7 +8,7 @@ import ColisData from '../../../../data/colis.json';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
-import { getColis, getColisByStatu, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisByStatu, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
 
 function ColisLivrée({search}) {
     const { theme } = useContext(ThemeContext);
@@ -29,8 +29,10 @@ function ColisLivrée({search}) {
             dispatch(getColis());
           } else if (user.role === "client"&&store?._id) {
             dispatch(getColisForClient(store._id,'Livrée'));
-          }else if(user.role==='livreur'){
-            dispatch(getColisByStatu('Livrée'))
+          }else if (user.role === "livreur"){
+            dispatch(getColisForLivreur(user._id , "Livrée"));
+          }else if (user.role === "team") {
+            dispatch(getColisForClient(user._id,'Livrée'));  // Use getColisForLivreur for 'livreur'
           }
         }
         window.scrollTo(0, 0);

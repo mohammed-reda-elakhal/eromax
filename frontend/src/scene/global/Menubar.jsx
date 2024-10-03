@@ -110,6 +110,20 @@ function Menubar() {
 
         {
           userData.role ==="admin" && (
+            <Menu.SubMenu icon={<CgDanger />} title="Payements">
+              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/reclamation">Demande retrait</Link>
+              </Menu.Item>
+              
+              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/reclamation-complete">List Methode Payement</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
+        {
+          userData.role ==="admin" && (
             <Menu.SubMenu icon={<FaUserFriends />} title="Comptes">
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/compte/client">Client</Link>
@@ -151,9 +165,17 @@ function Menubar() {
         {
           userData.role ==="client" && (
             <>
-              <Menu.Item icon={<IoWalletSharp />}>
-                <Link onClick={() => setOpenWallet(true)}>Portfeuille</Link>
-              </Menu.Item>
+              <Menu.SubMenu icon={<IoWalletSharp />} title="Portfeuille">
+                <Menu.Item icon={<BiTagAlt />}>
+                  <Link onClick={() => setOpenWallet(true)}>Portfeuille & Demande</Link>
+                </Menu.Item>
+                <Menu.Item icon={<BiTagAlt />}>
+                  <Link onClick={() => setOpenWallet(true)}>List Demandes</Link>
+                </Menu.Item>
+                <Menu.Item icon={<BiTagAlt />}>
+                  <Link onClick={() => setOpenWallet(true)}>List transactions</Link>
+                </Menu.Item>
+              </Menu.SubMenu>
               <Drawer
                 title="Portfeuille"
                 open={openWallet}

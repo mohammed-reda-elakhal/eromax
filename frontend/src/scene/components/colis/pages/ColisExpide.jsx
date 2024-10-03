@@ -63,6 +63,8 @@ function ColisExpide({search}) {
         dispatch(getColisForClient(store._id , "Expediée"));
       }else if (user.role === "livreur"){
         dispatch(getColisForLivreur(user._id , "Expediée"));
+      }else if (user.role === "team") {
+        dispatch(getColisForClient(user._id,'Expediée'));  // Use getColisForLivreur for 'livreur'
       }
     }
     window.scrollTo(0, 0);
@@ -194,8 +196,8 @@ function ColisExpide({search}) {
     },
     {
       title: 'Dernière Mise à Jour',
-      dataIndex: 'updated_at',
-      key: 'updated_at',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
     },
     {
       title: 'Destinataire',
@@ -262,6 +264,16 @@ function ColisExpide({search}) {
       title: 'Ville',
       dataIndex: 'ville',
       key: 'ville',
+      render: (text, record) => (
+        <span>
+          {record.ville.nom}
+        </span>
+      ),
+    },
+    {
+      title: 'Adress',
+      dataIndex: 'adresse',
+      key: 'adresse',
     },
     {
       title: 'Prix',
@@ -323,7 +335,7 @@ function ColisExpide({search}) {
             <TableDashboard
               column={columns}
               data={data}
-              id="id"
+              id="_id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
             />

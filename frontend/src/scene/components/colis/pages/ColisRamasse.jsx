@@ -39,6 +39,8 @@ function ColisRamasse({ search }) {
         dispatch(getColis("Ramassée"));
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id, "Ramassée"));
+      }else if (user.role === "team") {
+        dispatch(getColisForClient(user._id,'Ramassée'));  // Use getColisForLivreur for 'livreur'
       }
     }
     dispatch(getLivreurList()); // Fetch livreur list on mount
@@ -108,8 +110,8 @@ function ColisRamasse({ search }) {
     },
     {
       title: 'Dernière Mise à Jour',
-      dataIndex: 'updated_at',
-      key: 'updated_at',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
     },
     {
       title: 'Destinataire',
@@ -139,11 +141,21 @@ function ColisRamasse({ search }) {
       ),
     },
     {
+      title: 'Ville',
+      dataIndex: 'ville',
+      key: 'ville',
+      render: (text, record) => (
+        <span>
+          {record.ville.nom}
+        </span>
+      ),
+    },
+    {
       title: 'Option',
       render: (text, record) => (
         <>
           <Button type="primary" icon={<MdDeliveryDining />} onClick={() => showModal(record, 'expedie')}>
-            Affecter Livreur
+            Expidée
           </Button>
         </>
       ),
@@ -167,7 +179,7 @@ function ColisRamasse({ search }) {
             <TableDashboard
               column={columns}
               data={data}
-              id="id"
+              id="_id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
             />
@@ -214,7 +226,7 @@ function ColisRamasse({ search }) {
             >
               {livreurList.map(person => (
                 <Option key={person._id} value={person._id}>
-                  {person.nom}
+                  {person.username}
                 </Option>
               ))}
             </Select>

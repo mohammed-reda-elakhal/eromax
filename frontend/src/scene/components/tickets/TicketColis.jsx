@@ -14,12 +14,12 @@ function TicketColis({ colis }) {
           </div>
           <div className="ticket-colis-header-code">
             <div className="code-bar">
-              <Barcode value={colis.code_suivi} width={0.6} height={30} fontSize = {12} />
+              <Barcode value={colis.code_suivi} width={0.6} height={30} fontSize={12} />
             </div>
             <div className="qr-code">
-              <QRCode value="hey" size={50}/>
+              <QRCode value="hey" size={50} />
             </div>
-            <p>{colis.ville}</p>
+            <p>{colis.ville.nom}</p> {/* Ensure you're accessing the correct string property */}
           </div>
         </div>
         <div className="ticket-colis-main">
@@ -39,11 +39,11 @@ function TicketColis({ colis }) {
             </div>
             <div className="ticket-colis-main-destinataire">
               <h5>Destinataire :</h5>
-              <p> <strong>Nom :</strong> {colis.nom} </p>
+              <p><strong>Nom :</strong> {colis.nom.nom}</p> {/* Access 'nom' field */}
               <p><strong>Téléphone :</strong> {colis.tele}</p>
-              <p><strong>Ville :</strong> {colis.ville}</p>
+              <p><strong>Ville :</strong> {colis.ville.nom}</p> {/* Access 'nom' field in 'ville' */}
               <p><strong>Adresse :</strong> {colis.adresse}</p>
-              <h2>{colis.prix} DH </h2>
+              <h2>{colis.prix} DH</h2> {/* Ensure 'prix' is a valid number or string */}
             </div>
           </div>
           <div className="ticket-colis-footer">
@@ -56,7 +56,7 @@ function TicketColis({ colis }) {
           </div>
         </div>
       </div>
-      <img src="/image/rotate_phone.gif" alt="" width="300px" className='rotate_phone_ticket' />
+      <img src="/image/rotate_phone.gif" alt="" width="300px" className="rotate_phone_ticket" />
     </>
   );
 }

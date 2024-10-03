@@ -25,7 +25,6 @@ const ColisSchema = new mongoose.Schema({
         type: String, // Change to String for better handling of leading zeros
         required: true,
         trim: true,
-        minlength: 10,
         maxlength: 10,
     },
     ville: {
@@ -119,7 +118,7 @@ function validateRegisterColis(obj) {
         adresse: Joi.string().required(),
         nom: Joi.string().required(),
         ville: Joi.string().required(),
-        tele: Joi.string().pattern(/^[0-9]{10}$/).required(), // Kept as string for phone number
+        tele: Joi.string().required(), // Kept as string for phone number
         prix: Joi.number().required(),
         commentaire: Joi.string(),
         etat: Joi.boolean(),

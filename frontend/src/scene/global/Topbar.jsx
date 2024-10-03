@@ -46,7 +46,7 @@ function Topbar() {
   const [openRetrait, setOpenRetrait] = useState(false);
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const {user} = useSelector(state => state.auth)
+  const {user , store} = useSelector(state => state.auth)
 
 
   menu = (
@@ -83,19 +83,27 @@ function Topbar() {
         }}
         className='top-bar'
       >
-        <div 
-          className="topbar-walet"
-          style={{
-            backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
-            color: theme === 'dark' ? '#fff' : '#002242',
-          }}
-        > 
-          <div className="solde-wallet" onClick={()=>setShowSolde(prev => !prev)}>
-            {
-              showSolde ? <p>10000 <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>
-            }
-          </div>
-          <Avatar icon={<IoWallet/>} size={25} className='wallet_icon' onClick={()=>setOpenRetrait(true)} />
+        <div>
+        {
+          user?.role === 'client' && (
+            <div 
+              className="topbar-walet"
+              style={{
+                backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
+                color: theme === 'dark' ? '#fff' : '#002242',
+              }}
+            > 
+              <div className="solde-wallet" onClick={()=>{
+                setShowSolde(prev => !prev)
+              }}>
+                {
+                  showSolde ? <p>{store.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>
+                }
+              </div>
+              <Avatar icon={<IoWallet/>} size={25} className='wallet_icon' onClick={()=>setOpenRetrait(true)} />
+            </div>
+          )
+        }
         </div>
         <div className="control-topbar">
             {
