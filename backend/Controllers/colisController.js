@@ -406,9 +406,7 @@ module.exports.getSuiviColis= asyncHandler(async(req,res)=>{
  * @method   GET api/colis/colisStore/:id_store
  * @access   ( client )
  * -------------------------------------------------------------------
- **/
-
-
+**/
 exports.getColisByStore= asyncHandler(async(req,res)=>{
 
   try {
@@ -416,11 +414,11 @@ exports.getColisByStore= asyncHandler(async(req,res)=>{
 
     const storeId = req.params.id;
     
-    if (!mongoose.Types.ObjectId.isValid(storeId)) {
+    if (!mongoose.Types.ObjectId.isValid(storeId)) { 
       console.error("Invalid Store ID format:", storeId);
       return res.status(400).json({ message: "Invalid Store ID format" });
     }
-
+    
     console.log("Finding store with ID:", storeId);
     const store = await Store.findById(storeId);
 

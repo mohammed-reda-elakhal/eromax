@@ -21,7 +21,7 @@ router.route('/:id')
 
 
 
-router.route("/:id_user").get(verifyTokenAndStore,getStoreById);
+router.route("/:id_user").get(getStoreById);
 
 // api/store/update-photo/:id
 router.route("/:id/photo").post(photoUpload.single("image"),storePhotoController);

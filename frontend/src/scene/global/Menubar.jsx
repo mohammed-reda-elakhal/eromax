@@ -15,6 +15,7 @@ import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { useDispatch , useSelector } from 'react-redux';
 import { FaUserFriends } from "react-icons/fa"
+import { FaFileInvoiceDollar } from "react-icons/fa6";
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -271,6 +272,16 @@ function Menubar() {
           )
         }
 
+        {
+          userData.role ==="client" && (
+            <Menu.SubMenu icon={<FaFileInvoiceDollar />} title = "Facture">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/clients">Facture Client</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
         <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/list-produit">Produit</Link>
@@ -286,6 +297,7 @@ function Menubar() {
           </Menu.Item>
         </Menu.SubMenu>
       </Menu>
+      
     </div>
   );
 }
