@@ -42,6 +42,9 @@ app.use("/api/notification", require("./routes/notificationRoute"));
 app.use("/api/meth", require("./routes/methRoute"));
 app.use("/api/payement", require("./routes/payementRoute"));
 app.use("/api/ville", require("./routes/villeRoute"));
+app.use('/api/demande-retrait',require("./routes/demandeRoutes"));
+app.use('/api/transaction', require("./routes/transactionRoute"));
+app.use('/api/notification-user', require('./routes/notificationUserRoute'));
 
 
 //Running server 
