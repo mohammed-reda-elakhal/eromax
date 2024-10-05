@@ -373,7 +373,7 @@ const generateFactureClientwithLiv = async (req, res) => {
           total_brut: colis.prix,
           total_net: netAmount,
           livreur: {
-            nom: colis.livreur?.nom || 'N/A', // Livreurs' name or 'N/A' if not available
+            nom: colis.livreur?.nom , // Livreurs' name or 'N/A' if not available
             tarif: livreurTarif, // The specific tarif for the livreur
           }
         };
