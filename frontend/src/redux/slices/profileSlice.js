@@ -4,11 +4,15 @@ const profileSlice = createSlice({
     name: "profile",
     initialState: {
         profile: null, // Initial state for profile
-        profileList : []
+        profileList : [],
+        store : null
     },
     reducers: {
         setProfile(state, action) {
           state.profile = action.payload; // Update profile data
+        },
+        setStore(state , action){
+            state.store = action.payload
         },
         setProfileList(state , action){
             state.profileList = action.payload;

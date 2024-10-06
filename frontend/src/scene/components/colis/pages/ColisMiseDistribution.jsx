@@ -34,7 +34,7 @@ function ColisMiseDistribution({ search }) {
   const getColisFunction = () => {
     if (user?.role) {
       if (user.role === "admin") {
-        dispatch(getColis());
+        dispatch(getColis("Mise en Distribution"));
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id ,'Mise en Distribution'));
       }else if (user.role === "livreur"){

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {  Layout , Avatar, Dropdown, Menu, Badge, Drawer, Divider } from 'antd';
 import { ThemeContext } from '../ThemeContext';
 import {  UserOutlined } from '@ant-design/icons';
@@ -12,6 +12,7 @@ import { FaRegEyeSlash } from "react-icons/fa";
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { useDispatch , useSelector } from 'react-redux';
 import { logoutUser } from '../../redux/apiCalls/authApiCalls';
+import { getStoreById } from '../../redux/apiCalls/profileApiCalls';
 
 
 const { Header } = Layout;
@@ -47,8 +48,14 @@ function Topbar() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const {user , store} = useSelector(state => state.auth)
+  const  storeData = useSelector(state => state.profile.store)
 
 
+  useEffect(()=>{
+   if(user?.role ==="client"){
+    dispatch(getStoreById(store?._id))
+   }
+  },[dispatch])
   menu = (
     <Menu>
       <Menu.Item style={{width:"150px"}} key="ramasse">
@@ -97,7 +104,7 @@ function Topbar() {
                 setShowSolde(prev => !prev)
               }}>
                 {
-                  showSolde ? <p>{store.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>
+                  showSolde ? <p>{storeData.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>
                 }
               </div>
               <Avatar icon={<IoWallet/>} size={25} className='wallet_icon' onClick={()=>setOpenRetrait(true)} />

@@ -37,6 +37,11 @@ router.route('/:code_suivi')
 router.route("/St/:id")
         .put(updateSuiviColis)
 
+
+//router api/colis/St
+router.route("/facture/colis")
+        .get(colisController.createFactureByClient)
+
 // router api/colis/truck/:code_suivi
 router.route('/truck/:code_suivi')
         .get(colisController.getSuiviColis)

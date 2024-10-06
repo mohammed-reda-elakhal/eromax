@@ -32,6 +32,20 @@ export function getProfileList(role) {
 }
 
 
+// get store data
+export function getStoreById(id){
+    return async(dispatch)=>{
+        try {
+            const { data } = await request.get(`/api/store/${id}`);
+            dispatch(profileActions.setStore(data));
+        } catch (error) {
+            console.error('Fetch error:', error); // Log the error for debugging
+            toast.error(error.message || "Failed to fetch profile List");
+        }
+    }
+}
+
+
 // create user
 export function createProfile(role , user){
     return async (dispatch ) =>{

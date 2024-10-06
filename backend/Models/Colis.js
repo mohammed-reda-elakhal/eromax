@@ -96,6 +96,9 @@ const ColisSchema = new mongoose.Schema({
     },
     date_programme: {
         type: Date,
+    },
+    date_livraisant: {
+        type: Date,
     }
 }, {
     timestamps: true

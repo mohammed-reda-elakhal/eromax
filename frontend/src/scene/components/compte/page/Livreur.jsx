@@ -85,12 +85,17 @@ function Livreur() {
             key: 'tele',
         },
         {
-            title: 'Villes', // Adding the list of cities
+            title: 'Region', // Adding the list of cities
             dataIndex: 'villes',
             key: 'villes',
             render: (villes) => (
                 <span>{villes?.map(ville => ville).join('\n') || 'Aucune ville'}</span>
             ),
+        },
+        {
+            title: 'Tarif',
+            dataIndex: 'tarif',
+            key: 'tarif',
         },
         {
             title: 'Adresse',

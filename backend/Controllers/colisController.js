@@ -600,6 +600,29 @@ exports.colisProgramme = asyncHandler(async (req, res) => {
 
 
 
+// Controller function to group by store and show data per day
+exports.createFactureByClient = async (req, res) => {
+  try {
+    // Query the database for colis where store is not null and statut is 'Livrée'
+    const colis = await Colis.find({
+        store: { $ne: null }, // Store should not be null
+        statut: 'Livrée',     // Statut should be 'Livrée'
+    })
+    .select('code_suivi store ville statut prix')  // Select only specific fields
+    .populate('store')  // Populate store to show its name field
+    .populate('ville'); // Populate ville to show its name field (assuming ville also has a name field)
 
+    // If no colis found
+    if (!colis.length) {
+        return res.status(404).json({ message: 'No delivered colis found' });
+    }
 
+    // Return the found colis
+    res.status(200).json(colis);
 
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+      
+  }
+};

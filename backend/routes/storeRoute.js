@@ -18,10 +18,7 @@ router.route('/:id_user')
 router.route('/:id')
         .put(updateStore)
         .delete(deleteStore)
-
-
-
-router.route("/:id_user").get(getStoreById);
+        .get(getStoreById);
 
 // api/store/update-photo/:id
 router.route("/:id/photo").post(photoUpload.single("image"),storePhotoController);

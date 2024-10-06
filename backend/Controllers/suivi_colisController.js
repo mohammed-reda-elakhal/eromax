@@ -57,6 +57,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
 
     // Update the Store.solde by adding the result to the old value
     store.solde = (store.solde || 0) + subtractionResult;
+    colis.date_livraisant = new Date()
 
     // Save the updated store information
     await store.save();
