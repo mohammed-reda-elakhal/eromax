@@ -8,6 +8,7 @@ router.route("/")
 
 
 // Route to update a team by ID
+// name/api/admin/:id
 router.route("/:id")
         .put(updateAdmin)
         .get(getAdminById)

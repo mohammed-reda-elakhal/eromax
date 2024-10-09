@@ -16,6 +16,7 @@ import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait'
 import { useDispatch , useSelector } from 'react-redux';
 import { FaUserFriends } from "react-icons/fa"
 import { FaFileInvoiceDollar } from "react-icons/fa6";
+import { MdPayment } from "react-icons/md";
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -111,13 +112,13 @@ function Menubar() {
 
         {
           userData.role ==="admin" && (
-            <Menu.SubMenu icon={<CgDanger />} title="Payements">
+            <Menu.SubMenu icon={<MdPayment />} title="Payements">
               <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
                 <Link to="/dashboard/reclamation">Demande retrait</Link>
               </Menu.Item>
               
               <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/reclamation-complete">List Methode Payement</Link>
+                <Link to="/dashboard/payement/list">List Methode Payement</Link>
               </Menu.Item>
             </Menu.SubMenu>
           )
@@ -272,16 +273,15 @@ function Menubar() {
           )
         }
 
-        {
-          userData.role ==="client" && (
             <Menu.SubMenu icon={<FaFileInvoiceDollar />} title = "Facture">
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/facture/clients">Facture Client</Link>
+                <Link to="/dashboard/facture/client">Facture Client</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/livreur">Facture Livreur</Link>
               </Menu.Item>
             </Menu.SubMenu>
-          )
-        }
-
+        
         <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
           <Menu.Item icon={<BiTagAlt />}>
             <Link to="/dashboard/list-produit">Produit</Link>

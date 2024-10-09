@@ -41,6 +41,12 @@ import FormTeam from "./scene/components/compte/page/FormTeam";
 import Admin from "./scene/components/compte/page/Admin";
 import FormAdmin from "./scene/components/compte/page/FormAdmin";
 import ReclamationOk from "./scene/components/reclamation/page/ReclamationOk";
+import FactureClient from "./scene/components/facture/page/FactureClient";
+import FactureDetail from "./scene/components/facture/page/FactureDetailClient";
+import FactureLivreur from "./scene/components/facture/page/FactureLivreur";
+import FactureDetailLivreur from "./scene/components/facture/page/FactureDetailLivreur";
+import MethodePayemet from "./scene/components/payement/page/MethodePayemet";
+import MethodePayementOperation from "./scene/components/payement/page/MethodePayementOperation";
 
 function App() {
 
@@ -184,6 +190,19 @@ function App() {
               <Route path="team/:id" element={<FormTeam />}  />
               <Route path="admin" element={<Admin />}  />
               <Route path="admin/:id" element={<FormAdmin />}  />
+            </Route>
+
+            <Route path='facture'>
+              <Route path="client" element={<FactureClient />}  />
+              <Route path="livreur" element={<FactureLivreur />}  />
+              <Route path="detail/client/:code_facture" element={<FactureDetail />}  />
+              <Route path="detail/livreur/:code_facture" element={<FactureDetailLivreur />}  />
+            </Route>
+
+            <Route path='payement'>
+              <Route path="list" element={<MethodePayemet />}  />
+              <Route path="ajouter" element={<MethodePayementOperation />}  />
+              <Route path="modifier/:id" element={<MethodePayementOperation />}  />
             </Route>
 
             <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />

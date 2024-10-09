@@ -46,9 +46,13 @@ export function registerUser(role , user){
     }
 }
 
-// logout function
-export function logoutUser(navigate) {
-    Cookies.remove("user");
-    Cookies.remove("store");
-    Cookies.remove("token");
-}
+export const logoutUser = (navigate) => {
+    return (dispatch) => {
+      // Remove cookies first
+      Cookies.remove('user');
+      Cookies.remove('store');
+      Cookies.remove('token');
+      
+      navigate('/login');
+    };
+  };

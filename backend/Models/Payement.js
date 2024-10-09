@@ -19,14 +19,7 @@ const PayementSchema = new mongoose.Schema({
     rib:{
         type:String,
         required:true
-    },
-    type:{
-        type:String,
-        required:true,
-        enum: ['retrait', 'versement', 'transfert'],
-        default:'retrait'
     }
-
 });
 
 const Payement = mongoose.model('Payement',PayementSchema)

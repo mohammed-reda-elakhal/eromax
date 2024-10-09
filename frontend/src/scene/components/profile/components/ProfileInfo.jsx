@@ -85,11 +85,9 @@ function ProfileInfo() {
                         <Upload>
                             <Button icon={<FaRegPenToSquare />} type='primary'>Modifier Photo</Button>
                         </Upload>
-                        <h2>{profile ? profile.username : ''}</h2>
                     </div>
                 </div>
             </div>
-            <Divider />
             <div className="profile_information_main">
                 <Button type='primary' icon={<FaRegPenToSquare />} onClick={()=>handleModifieProfileRoute()}>
                     Modifier Profile

@@ -56,6 +56,11 @@ function Topbar() {
     dispatch(getStoreById(store?._id))
    }
   },[dispatch])
+
+  const logoutFunction = ()=>{
+    dispatch(logoutUser(navigate))
+    navigate('/login')
+  }
   menu = (
     <Menu>
       <Menu.Item style={{width:"150px"}} key="ramasse">
@@ -67,7 +72,8 @@ function Topbar() {
       <Menu.Item style={{width:"150px"}} key="exit">
         <Link 
           className='link_topbar'
-          onClick={()=>dispatch(logoutUser(navigate))}
+          onClick={()=>logoutFunction()}
+          to={'/login'}
         >
           <ImExit/>
           Deconnecter

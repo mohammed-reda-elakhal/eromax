@@ -116,7 +116,7 @@ function NotificationGlobale({ theme }) {
             >   
                 Ajouter Notification
             </Button>
-            <TableDashboard theme={theme} id="id" column={columns} data={notification} />
+            <TableDashboard theme={theme} id="_id" column={columns} data={notification} />
 
             <Drawer
                 title={editingNotification ? 'Edit Notification' : 'Add Notification'}

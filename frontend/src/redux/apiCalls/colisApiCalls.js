@@ -70,7 +70,7 @@ export const getColisForClient = (storeId , statut) => async (dispatch) => {
                 'Content-Type': 'application/json',
             }
         };
-        const { data } = await request.get(`/api/colis/${storeId}?statut=${statut}`,config);
+        const { data } = await request.get(`/api/colis/user/${storeId}?statut=${statut}`,config);
         dispatch(colisActions.setColis(data)); // Use action creator
     } catch (error) {
         console.error("Failed to fetch colis for client:", error);
@@ -124,7 +124,7 @@ export function createColis(colis) {
             };
 
             // Make the POST request to create a colis with the determined ID
-            const { data } = await request.post(`/api/colis/${idToUse}`, colis, config);
+            const { data } = await request.post(`/api/colis/user/${idToUse}`, colis, config);
 
             // Show success notification
             toast.success(data.message);

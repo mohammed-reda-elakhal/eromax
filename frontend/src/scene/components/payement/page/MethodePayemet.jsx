@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
-import '../notification.css';
+import '../payement.css';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import RecData from '../../../../data/reclamation.json';
@@ -9,7 +9,9 @@ import { Button, Table, Tabs } from 'antd';
 import { FaInfoCircle } from "react-icons/fa";
 import { AiFillNotification } from "react-icons/ai";
 import { MdNotificationsActive } from "react-icons/md";
-import NotificationGlobale from '../components/NotificationGlobale';
+import ListMethodePayement from '../components/ListMethodePayement';
+import { PlusCircleFilled } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
 
 
 const onChange = (key) => {
@@ -28,20 +30,6 @@ function MethodePayemet() {
         setData(updatedData);
     };
 
-    const items = [
-        {
-          key: '1',
-          label: <p className='title-tabs'> <AiFillNotification size={20}/>Globale Notification</p>,
-          children:<NotificationGlobale theme={theme}/>,
-        },
-        {
-          key: '2',
-          label: <p className='title-tabs'> <MdNotificationsActive size={20}/>Event Notification</p>,
-          children:" <ReclamationComplete theme={theme} />",
-        },
-
-    ];
-
     return (
         <div className='page-dashboard'>
             <Menubar />
@@ -56,6 +44,10 @@ function MethodePayemet() {
                 >
                     <div className="page-content-header">
                         <Title nom='Notification' />
+                        <Link to={`/dashboard/payement/ajouter`} className='btn-dashboard'>
+                            <PlusCircleFilled style={{marginRight:"8px"}} />
+                            Ajouter Methode Payement
+                        </Link>
                     </div>
                     <div
                         className="content"
@@ -63,7 +55,7 @@ function MethodePayemet() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <NotificationGlobale theme={theme}/>
+                        <ListMethodePayement/>
                     </div>
                 </div>
             </main>

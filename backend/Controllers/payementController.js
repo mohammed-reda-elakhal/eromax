@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 // Create a new payment
 const createPayement = async (req, res) => {
     try {
-        const { clientId, idBank, nom, rib, type } = req.body;
+        const { clientId, idBank, nom, rib } = req.body;
 
         // Check if the provided Meth_Payement ID (idBank) is valid
         const methPayement = await Meth_Payement.findById(idBank);
@@ -21,7 +21,6 @@ const createPayement = async (req, res) => {
             idBank, // This is the Meth_Payement ID you selected
             nom,
             rib,
-            type
         });
 
         const savedPayement = await newPayement.save();
@@ -68,7 +67,7 @@ const getPaymentsByClientId = async (req, res) => {
         }
 
         // Find payments associated with the given client ID
-        const payments = await Payement.find({ clientId: clientId });
+        const payments = await Payement.find({ clientId: clientId }).populate('clientId').populate('idBank');
 
         // Check if any payments were found
         if (!payments.length) {

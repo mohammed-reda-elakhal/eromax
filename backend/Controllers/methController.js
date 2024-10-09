@@ -4,25 +4,7 @@ const { cloudinaryUploadImage } = require('../utils/cloudinary');
 const path = require('path')
 const fs =require('fs')
 
-// Create a new bank payment method
-const createMethPayement = asyncHandler(async (req, res) => {
-    try {
-        const { bank, image } = req.body;
 
-        const newMethPayement = new Meth_Payement({
-            bank,
-            image: {
-                url: image.url,
-                public_id: image.public_id
-            }
-        });
-
-        const savedMethPayement = await newMethPayement.save();
-        res.status(201).json(savedMethPayement);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
 const createMeth = async (req, res) => {
     try {
         const { bank } = req.body;
@@ -132,7 +114,7 @@ const deleteMethPayement = asyncHandler(async (req, res) => {
 });
 
 module.exports={
-    createMethPayement,
+
     createMeth,
     getAllMethPayements,
     getMethPayementById,

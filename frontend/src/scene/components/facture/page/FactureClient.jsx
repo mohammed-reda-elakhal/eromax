@@ -5,7 +5,7 @@ import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import RecData from '../../../../data/reclamation.json';
 import Title from '../../../global/Title';
-import NotificationGlobale from '../components/NotificationGlobale';
+import FactureClientTable from '../components/FactureClientTable';
 
 
 const onChange = (key) => {
@@ -38,7 +38,7 @@ function FactureClient() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        
+                        <FactureClientTable  theme={theme}/>
                     </div>
                 </div>
             </main>

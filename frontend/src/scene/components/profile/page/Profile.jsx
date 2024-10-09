@@ -9,37 +9,12 @@ import { FaRegUser , FaStore } from "react-icons/fa";
 import { IoDocumentAttach } from "react-icons/io5";
 import { MdPayment , MdOutlineSecurity } from "react-icons/md";
 import ProfileInfo from '../components/ProfileInfo';
+import PayementProfile from '../components/PayementProfile';
 
 
 function Profile() {
     const { theme } = useContext(ThemeContext);
-    const items = [
-        {
-          key: '1',
-          label: <p className='title-tabs'> <FaRegUser size={20}/>Information</p>,
-          children: <ProfileInfo/>,
-        },
-        {
-          key: '2',
-          label: <p className='title-tabs'> <IoDocumentAttach size={20}/>Document</p>,
-          children: 'Content of Tab Pane 2',
-        },
-        {
-          key: '3',
-          label: <p className='title-tabs'> <FaStore size={20}/>Bussness</p>,
-          children: 'Content of Tab Pane 3',
-        },
-        {
-            key: '4',
-            label: <p className='title-tabs'> <MdPayment size={20}/>Payement</p>,
-            children: 'Content of Tab Pane 4',
-        },
-        {
-            key: '5',
-            label: <p className='title-tabs'> <MdOutlineSecurity size={20}/>Sécuritée</p>,
-            children: 'Content of Tab Pane 5',
-        },
-      ];
+   
    
   
 
@@ -65,7 +40,10 @@ function Profile() {
                         }} 
                     >
                         <h4>Profile</h4>
-                        <Tabs defaultActiveKey="1" items={items} />
+                        <div className="container-profile">
+                            <ProfileInfo />
+                            <PayementProfile />
+                        </div>
                     </div>
                 </div>
             </main>

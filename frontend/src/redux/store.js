@@ -6,6 +6,11 @@ import { colisReducer } from "./slices/colisSlice";
 import { livreurReducer } from "./slices/livreurSlice";
 import { notificationReducer } from "./slices/notificationSlice";
 import { reclamationReducer } from "./slices/reclamationSlice";
+import { factureReducer } from "./slices/factureSlice";
+import { meth_payementReducer } from "./slices/methPayementSlice";
+import { payementReducer } from "./slices/payementSlice";
+
+
 
 const store = configureStore({
   reducer: {
@@ -16,6 +21,9 @@ const store = configureStore({
     livreur: livreurReducer,
     notification: notificationReducer,
     reclamation: reclamationReducer,
+    facture: factureReducer,
+    meth_payement: meth_payementReducer,
+    payement: payementReducer, // Add payement reducer to the store
   },
 });
 

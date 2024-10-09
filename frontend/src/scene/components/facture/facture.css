@@ -1,0 +1,127 @@
+.facture-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.facture-buttons button {
+    background-color: #008cba;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 5px;
+}
+
+.facture-buttons button:hover {
+    background-color: #005f5f;
+}
+
+.facture-buttons{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #f0f0f0;
+    justify-content: center;
+    padding: 1.6em ;
+}
+.facture-detail {
+    background-color: white;
+    font-family: Arial, sans-serif;
+    max-width: 1000px;
+    margin: auto;
+    padding: 3em 2em;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.facture-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.facture-title h2 {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.facture-info {
+    display: flex;
+    justify-content: space-between;
+    width: 50%;
+}
+
+.expediteur p,
+.bon-livraison p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+.facture-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.facture-table th,
+.facture-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.facture-table th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+.facture-signatures {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.signature-client,
+.signature-livreur {
+    width: 45%;
+    border-top: 1px solid #000;
+    padding-top: 10px;
+}
+
+.signature-client p,
+.signature-livreur p {
+    text-align: center;
+    margin: 0;
+}
+.table-facture{
+    padding: 6em 2rem;
+}
+.table-calcul{
+    padding: 3em 2rem;
+    width: 50%;
+}
+
+@media print {
+    .facture-detail {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        background-color: white;
+        width: 100%;
+    }
+    
+    .table-facture {
+        padding: 0;
+    }
+    
+    .table-calcul {
+        padding: 0;
+    }
+}

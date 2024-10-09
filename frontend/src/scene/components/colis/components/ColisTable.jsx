@@ -44,7 +44,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     if (user?.role) {
       if (user.role === 'admin') {
         dispatch(getColis(''));
-      } else if (user.role === 'client' && store?._id) {
+      } else if (user.role === 'client') {
         dispatch(getColisForClient(store._id, ''));
       } else if (user.role === 'livreur') {
         dispatch(getColisForLivreur(user._id, ''));
