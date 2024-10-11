@@ -48,7 +48,7 @@ export function updateReclamation(id, updateData) {
 export function updateReclamationStatus(id) {
     return async (dispatch) => {
         try {
-            const { data } = await request.patch(`/api/reclamation/${id}/status`);
+            const { data } = await request.put(`/api/reclamation/statut/${id}`);
             // Assuming your backend correctly returns the updated reclamation
             dispatch(reclamationActions.updateReclamationStatus({ id, resoudre: data.reclamation.resoudre }));
             toast.success("Reclamation status updated successfully");

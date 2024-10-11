@@ -78,42 +78,38 @@ function ColisExpide({search}) {
 
 //---------------------------------------------
 
-  const handleReçu = (colisId) => {
-    if (!colisId) {
-      warning("ID de colis manquant.");
-      return;
-     }
+const handleReçu = (colisId) => {
+  if (!colisId) {
+    warning("ID de colis manquant.");
+    return;
+  }
+  
   console.log('id', colisId);
-    if (colisId) {
-      console.log('id',colisId);
-      const newData = colisData.map(item => 
-          item._id === colisId ? { ...item, statut: 'Reçu' } : item
-      );
-      setData(newData);
-        // Dispatch the updateStatut action to update the server
-    dispatch(updateStatut(colisId, 'Reçu'));
-    success(`Colis ${colisId} Reçu, veuillez vérifier sur la table de statut reçu`);
-    } else if (selectedRowKeys.length > 0) {
-      const newData = colisData.map(item => {
-        if (selectedRowKeys.includes(item._id)) {
-          return {
-            ...item,
-            statut: 'Reçu',
-        };
-        }
-        return item;
-      });
-      setData(newData);
-      setSelectedRowKeys([]);
-      // Dispatch the updateStatut action for each selected colis
-    selectedRowKeys.forEach(colisId => {
-      dispatch(updateStatut(colisId, 'Reçu'));
+  if (colisId) {
+    // Update the status to 'Reçu' and filter the item out of the data array
+    const newData = data.filter(item => item._id !== colisId); // Filter out the colis
+    setData(newData);
+
+    // Dispatch the updateStatut action to update the server
+    dispatch(updateStatut(colisId, 'Reçu')).then().catch(err => {
+      error('Erreur lors de la mise à jour du statut.');
     });
-      success(`${selectedRowKeys.length}  colis reçu, veuillez vérifier sur la table de statut reçu`);
-    } else {
-      warning("Veuillez sélectionner une colonne");
-    }
-  };
+  } else if (selectedRowKeys.length > 0) {
+    const newData = data.filter(item => !selectedRowKeys.includes(item._id)); // Filter out all selected colis
+    setData(newData);
+    setSelectedRowKeys([]);
+
+    // Dispatch the updateStatut action for each selected colis
+    selectedRowKeys.forEach(colisId => {
+      dispatch(updateStatut(colisId, 'Reçu')).then().catch(err => {
+        error('Erreur lors de la mise à jour du statut.');
+      });
+    });
+  } else {
+    warning("Veuillez sélectionner une colonne");
+  }
+};
+
 //------------------------------------------------------
 
   const showModal = (record) => {

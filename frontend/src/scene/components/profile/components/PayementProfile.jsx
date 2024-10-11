@@ -45,17 +45,17 @@ function PayementProfile() {
         <div style={{ padding: '20px' }}>
             <Row gutter={[16, 16]}>
                 {payements.map((payement) => (
-                <Col xs={24} sm={12} md={8} lg={6} key={payement._id}>
+                <Col xs={24} sm={12} md={8} lg={6} key={payement?._id}>
                     <Card
                     hoverable
                     style={{ width: '100%' }}
-                    cover={<Avatar src={payement.idBank.image.url} size={64} style={{ margin: '10px auto' }} />}
+                    cover={<Avatar src={payement?.idBank?.image?.url} size={64} style={{ margin: '10px auto' }} />}
                     >
                     <Meta
                         title={payement.nom} // Client's Name
-                        description={payement.rib} // RIB
+                        description={payement?.rib} // RIB
                     />
-                    <p style={{ marginTop: '10px' }}>Bank: <strong>{payement.idBank.Bank}</strong></p>
+                    <p style={{ marginTop: '10px' }}>Bank: <strong>{payement?.idBank?.Bank}</strong></p>
                     </Card>
                 </Col>
                 ))}

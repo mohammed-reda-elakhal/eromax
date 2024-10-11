@@ -12,7 +12,7 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import Menubar from '../../../global/Menubar';
 
-function Client() {
+function Client({search}) {
     const { theme } = useContext(ThemeContext);
 
     const [isModalStoreOpen, setIsModalStoreOpen] = useState(false);
@@ -71,6 +71,7 @@ function Client() {
         {
             title: 'Nom Complet',
             dataIndex: 'nom',
+            ...search('nom'),
             render: (text, record) => (
                 <span>{record.nom} {record.prenom}</span>
             ),

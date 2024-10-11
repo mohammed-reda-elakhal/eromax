@@ -82,7 +82,7 @@ function ReclamationComplete({ theme }) {
                         <Button 
                             type = 'primary'
                         >
-                            Complete
+                            delete
                         </Button>
                     )}
                 </div>

@@ -182,7 +182,7 @@ function App() {
             <Route path="gnotification" element={<Notification />} /> 
             
             <Route path="compte">
-              <Route path="client" element={<Client />}  />
+              <Route path="client" element={<Client search = {getColumnSearchProps}  />}  />
               <Route path="client/:id" element={<FormClient />} /> 
               <Route path="livreur" element={<Livreur />}  />
               <Route path="livreur/:id" element={<FormLivreur />}  />

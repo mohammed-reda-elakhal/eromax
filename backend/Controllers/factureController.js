@@ -1,8 +1,9 @@
-const { Colis } = require('../Models/Colis');
+const { Colis } = require('../Models/Colis'); 
 const Facture = require('../Models/Facture');
 const moment = require('moment');
 const shortid = require('shortid');
 const { Suivi_Colis } = require('../Models/Suivi_Colis');
+const { Store } = require('../Models/Store');  // Import the Store model
 const cron = require('node-cron');
 
 // Function to generate code_facture
@@ -34,7 +35,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
             store: { $ne: null },
             livreur: { $ne: null },
             statut: 'Livrée'
-        }).populate('store').populate('livreur');
+        }).populate('store').populate('livreur').populate('ville');  // Populate 'ville' to access tarif
 
         // Filter out the colis that were delivered today by checking `Suivi_Colis`
         const deliveredTodayColis = [];
@@ -74,11 +75,13 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     date: colis.date_livraisant,
                     colis: [],
                     totalPrix: 0,
+                    totalTarif: 0,  // Keep track of total tarif for the colis
                 };
             }
 
             facturesMapClient[storeId][dateKey].colis.push(colis);
             facturesMapClient[storeId][dateKey].totalPrix += colis.prix;
+            facturesMapClient[storeId][dateKey].totalTarif += colis.ville.tarif || 0;  // Use `ville.tarif` to calculate tarif
 
             // Group for livreur factures
             if (!facturesMapLivreur[livreurId]) {
@@ -91,11 +94,13 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     date: colis.date_livraisant,
                     colis: [],
                     totalPrix: 0,
+                    totalTarif: 0,  // Keep track of total tarif for the colis
                 };
             }
 
             facturesMapLivreur[livreurId][dateKey].colis.push(colis);
             facturesMapLivreur[livreurId][dateKey].totalPrix += colis.prix;
+            facturesMapLivreur[livreurId][dateKey].totalTarif += colis.ville.tarif || 0;  // Use `ville.tarif`
         });
 
         // Prepare factures for clients
@@ -114,6 +119,18 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                 });
 
                 facturesToInsertClient.push(newFacture);
+
+                // Now calculate `prixTotal - sumTarif` and update the store's solde
+                const result = factureData.totalPrix - factureData.totalTarif;
+
+                const store = await Store.findById(factureData.store._id);
+                if (store) {
+                    store.solde = (store.solde || 0) + (isNaN(result) ? 0 : result);
+                    // Save the updated store information
+                    console.log("tarif :"+factureData.totalTarif);
+                    
+                    await store.save();
+                }
             }
         }
 
@@ -150,8 +167,8 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 };
 
 // Schedule a job to create factures every day at midnight
-cron.schedule('30 1 * * *', async () => {
-    console.log('Running daily facture generation at 02:07');
+cron.schedule('7 14 * * *', async () => {
+    console.log('Running daily facture generation at 14:07');
     await createFacturesForClientsAndLivreurs();
 });
 
@@ -160,7 +177,7 @@ cron.schedule('30 1 * * *', async () => {
 const getAllFacture = async (req, res) => {
     try {
         // Destructure query parameters with default values
-        const { page = 1, limit = 10, type, date, storeId, livreurId, sortBy = 'date', order = 'desc' } = req.query;
+        const { page = 1, limit = 50, type, date, storeId, livreurId, sortBy = 'date', order = 'desc' } = req.query;
 
         // Build the filter object
         const filter = {};

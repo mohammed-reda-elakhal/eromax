@@ -43,28 +43,6 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   await colis.save();
 
   // **Special operation when status is "Livrée"**
-  if (new_status === "Livrée") {
-    // Recuperate the Ville and Store data
-    const ville = colis.ville;
-    const store = colis.store;
-
-    if (!ville || !store) {
-      return res.status(400).json({ message: "Ville or Store information not found for the colis" });
-    }
-
-    // Perform the subtraction: (colis.prix - ville.solde)
-    const subtractionResult = colis.prix - ville.tarif;
-
-    // Update the Store.solde by adding the result to the old value
-    store.solde = (store.solde || 0) + subtractionResult;
-    colis.date_livraisant = new Date()
-
-    // Save the updated store information
-    await store.save();
-
-    // Log the operation for debugging (optional)
-    console.log(`Store solde updated for store ${store._id}. New solde: ${store.solde}`);
-  }
 
   // Update or create the Suivi_Colis entry (tracking record)
   let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });

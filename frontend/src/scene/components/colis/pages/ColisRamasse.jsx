@@ -3,12 +3,11 @@ import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
-import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input, Select } from 'antd';
+import { PlusCircleFilled } from '@ant-design/icons';
+import { Button, Modal, Form, Input, Select, message } from 'antd';
 import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
-import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
 import { affecterLivreur, getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
@@ -22,6 +21,7 @@ function ColisRamasse({ search }) {
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentColis, setCurrentColis] = useState(null);
+  const [livreurId, setLivreurId] = useState(null); // State for storing selected delivery person
   const [form] = Form.useForm();
   const dispatch = useDispatch();
 
@@ -39,8 +39,8 @@ function ColisRamasse({ search }) {
         dispatch(getColis("Ramassée"));
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id, "Ramassée"));
-      }else if (user.role === "team") {
-        dispatch(getColisForClient(user._id,'Ramassée'));  // Use getColisForLivreur for 'livreur'
+      } else if (user.role === "team") {
+        dispatch(getColisForClient(user._id,'Ramassée'));
       }
     }
     dispatch(getLivreurList()); // Fetch livreur list on mount
@@ -56,22 +56,25 @@ function ColisRamasse({ search }) {
   const warning = (text) => messageApi.warning(text);
   const error = (text) => messageApi.error(text);
 
-  const showModal = (record, type) => {
+  const showModal = (record) => {
     setCurrentColis(record);
-    if (type === 'expedie') {
-      setIsModalVisible({ type: 'expedie' });
-    } else if (type === 'modifier') {
-      form.setFieldsValue(record);
-      setIsModalVisible({ type: 'modifier' });
-    }
+    setLivreurId(null); // Reset delivery person selection
+    form.resetFields(); // Reset form fields
+    setIsModalVisible(true);
   };
 
   const handleAffecterLivreur = async () => {
-    if (currentColis && currentColis.livreurId) {
+    if (currentColis && livreurId) {
       try {
-        await dispatch(affecterLivreur(currentColis._id, currentColis.livreurId));
-        success("Colis Expedié");
+        await dispatch(affecterLivreur(currentColis._id, livreurId));
+        success("Colis Expédié");
+        // Hide the assigned colis from the table
+        const updatedData = data.filter(item => item._id !== currentColis._id);
+        setData(updatedData);
         setIsModalVisible(false);
+        form.resetFields(); // Clear the form fields after assigning
+        setCurrentColis(null); // Clear current colis and reset
+        setLivreurId(null); // Reset livreurId after assignment
       } catch (err) {
         error('Erreur lors de l\'assignation du livreur');
       }
@@ -80,25 +83,11 @@ function ColisRamasse({ search }) {
     }
   };
 
-  const handleModifierColis = () => {
-    form.validateFields()
-      .then(values => {
-        const updatedData = data.map(item => {
-          if (item._id === currentColis._id) {
-            return { ...item, ...values };
-          }
-          return item;
-        });
-        setData(updatedData);
-        setIsModalVisible(false);
-      })
-      .catch(info => {
-        console.log('Validate Failed:', info);
-      });
-  };
-
   const handleCancel = () => {
     setIsModalVisible(false);
+    form.resetFields(); // Reset the form when the modal is cancelled
+    setCurrentColis(null); // Clear current colis
+    setLivreurId(null); // Reset delivery person selection
   };
 
   const columns = [
@@ -154,7 +143,7 @@ function ColisRamasse({ search }) {
       title: 'Option',
       render: (text, record) => (
         <>
-          <Button type="primary" icon={<MdDeliveryDining />} onClick={() => showModal(record, 'expedie')}>
+          <Button type="primary" icon={<MdDeliveryDining />} onClick={() => showModal(record)}>
             Expidée
           </Button>
         </>
@@ -188,33 +177,10 @@ function ColisRamasse({ search }) {
         </div>
       </main>
       
-      {/* Modifier Colis Modal */}
-      <Modal
-        title="Modifier Colis"
-        visible={isModalVisible?.type === 'modifier'}
-        onOk={handleModifierColis}
-        onCancel={handleCancel}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item name="code_suivi" label="Code Suivi" rules={[{ required: true, message: 'Veuillez entrer le code suivi!' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="nom" label="Destinataire" rules={[{ required: true, message: 'Veuillez entrer le nom du destinataire!' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="tele" label="Téléphone" rules={[{ required: true, message: 'Veuillez entrer le téléphone!' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="statut" label="Statut" rules={[{ required: true, message: 'Veuillez entrer le statut!' }]}>
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
-
       {/* Affecter Livreur Modal */}
       <Modal
         title="Sélectionner Livreur"
-        visible={isModalVisible?.type === 'expedie'}
+        visible={isModalVisible}
         onOk={handleAffecterLivreur}
         onCancel={handleCancel}
       >
@@ -222,7 +188,8 @@ function ColisRamasse({ search }) {
           <Form.Item name="livreur" label="Livreur" rules={[{ required: true, message: 'Veuillez sélectionner un livreur!' }]}>
             <Select
               placeholder="Sélectionner un livreur"
-              onChange={value => setCurrentColis({ ...currentColis, livreurId: value })}
+              value={livreurId} // Controlled select input for livreur
+              onChange={value => setLivreurId(value)} // Update livreurId on selection
             >
               {livreurList.map(person => (
                 <Option key={person._id} value={person._id}>

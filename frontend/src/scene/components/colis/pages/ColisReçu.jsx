@@ -84,19 +84,26 @@ useEffect(() => {
   }
 }, [colisData]);
 
-  const handleDistribution = (colisId) => {
-    if (!colisId) {
-      warning("ID de colis manquant.");
-      return;
-    }
-    if (colisId) {
-      dispatch(updateStatut(colisId, 'Mise en Distribution'));
-      getColisFunction()
-    } 
-    else {
-      warning("Veuillez sélectionner une colonne");
-    }
-  };
+const handleDistribution = (colisId) => {
+  if (!colisId) {
+    warning("ID de colis manquant.");
+    return;
+  }
+
+  if (colisId) {
+    // Update the status to 'Mise en Distribution' and filter the item out of the data array
+    const updatedData = data.filter(item => item._id !== colisId); // Filter out the colis from the table
+    setData(updatedData); // Update the data state
+
+    // Dispatch the updateStatut action to update the server
+    dispatch(updateStatut(colisId, 'Mise en Distribution')).then().catch(err => {
+      error('Erreur lors de la mise à jour du statut.');
+    });
+  } else {
+    warning("Veuillez sélectionner une colonne");
+  }
+};
+
 
   const showModal = (record) => {
     setCurrentColis(record);
@@ -178,8 +185,8 @@ useEffect(() => {
     },
     {
       title: 'Dernière Mise à Jour',
-      dataIndex: 'updated_at',
-      key: 'updated_at',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
     },
     {
       title: 'Destinataire',
@@ -296,7 +303,7 @@ useEffect(() => {
             <h4>Colis attend de ramassage</h4>
             <TableDashboard
               column={columns}
-              data={colisData}
+              data={data} // Use the local data state, not the Redux state
               id="id"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
