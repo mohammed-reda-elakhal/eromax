@@ -2,7 +2,8 @@ const Meth_Payement = require('../Models/Meth_Payement');
 const asyncHandler =require('express-async-handler');
 const { cloudinaryUploadImage } = require('../utils/cloudinary');
 const path = require('path')
-const fs =require('fs')
+const fs =require('fs');
+const Payement = require('../Models/Payement');
 
 
 const createMeth = async (req, res) => {
@@ -106,6 +107,8 @@ const deleteMethPayement = asyncHandler(async (req, res) => {
         if (!deletedMethPayement) {
             return res.status(404).json({ message: 'Bank payment method not found' });
         }
+        // Delete all payments that were made using this payment method
+        await Payement.deleteMany({ idBank: id });
 
         res.status(200).json({ message: 'Bank payment method deleted successfully' });
     } catch (error) {

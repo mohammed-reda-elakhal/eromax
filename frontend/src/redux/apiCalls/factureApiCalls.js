@@ -32,5 +32,24 @@ export function getFactureDetailsByCode(codeFacture ) {
         }
     };
 }
-
+export function getFactureDetailsByClient(id_client){
+    return async (dispatch)=>{
+        try{const {data}=await request.get(`/api/facture/detail/${id_client}`);
+        dispatch(factureActions.setFactureDetail(data.list));
+    }catch(error){
+        toast.error(error.message || "Failed to fetch facture details");
+    }
+        
+    }
+}
+export function getFactureDetailsByLivreur(id){
+    return async (dispatch)=>{
+        try{const {data}=await request.get(`/api/facture/detail/liv/${id}`);
+        dispatch(factureActions.setFactureDetail(data.list));
+    }catch(error){
+        toast.error(error.message || "Failed to fetch facture details");
+    }
+        
+    }
+}
 
