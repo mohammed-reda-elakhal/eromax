@@ -4,20 +4,22 @@ import html2canvas from 'html2canvas';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getFactureDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
+import { getFactureDetailsByClient, getFactureDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
 import { Table, Tag } from 'antd';
 
 const FactureDetail = () => {
     const printRef = useRef();
     const dispatch = useDispatch();
     const facture = useSelector((state) => state.facture.detailFacture);
+    const user =useSelector((state)=>state.auth.user._id);
     const { code_facture } = useParams();
 
     useEffect(() => {
         dispatch(getFactureDetailsByCode(code_facture , 'Client'));
+        dispatch(getFactureDetailsByClient(user,'Client'))
         window.scrollTo(0, 0);
         console.log(facture);
-    }, [dispatch, code_facture]);
+    }, [dispatch, user,code_facture]);
 
     // Function to generate PDF and download
     const handleDownloadPdf = async () => {

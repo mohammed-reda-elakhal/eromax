@@ -30,7 +30,7 @@ const ListMethodePayement = () => {
             <Card
               hoverable
               className="payment-card"
-              cover={<img alt="bank logo" src={method.image.url} className="payment-card-img" />}
+              cover={<img alt="bank logo" src={method.image?.url} className="payment-card-img" />}
               actions={[
                 <Button
                   icon={<MdDelete />}

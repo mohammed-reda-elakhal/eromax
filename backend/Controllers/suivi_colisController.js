@@ -22,7 +22,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
 
   // Validate inputs
   if (!id_colis || !new_status) {
-    return res.status(400).json({ message: "id_colis and new_status are required" });
+    return res.status(400).json({ message: "id_colis and new_status are required " });
   }
   
   if (!validStatuses.includes(new_status)) {
@@ -67,7 +67,8 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     message: "Status and date updated successfully",
     colis,
     suivi_colis,
-    updated_store_solde: colis.store.solde // Optional: include updated solde in response
+    updated_store_solde: colis.store.somme // Optional: include updated solde in response
+    // 
   });
 });
 
