@@ -1,11 +1,15 @@
-import React from 'react';
+import { toast } from "react-toastify";
+import request from "../../utils/request";
+import { transactionActions } from "../slices/transactionSlice";
 
-const TrasactionApiCallls = () => {
-    return (
-        <div>
-            
-        </div>
-    );
+export function getAllTransaction() {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/transaction/`);
+            console.log('Transaction List', data);
+            dispatch(transactionActions.setTransaction(data));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch transaction List");
+        }
+    };
 }
-
-export default TrasactionApiCallls;

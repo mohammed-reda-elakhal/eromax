@@ -24,9 +24,6 @@ const StoreSchema = new mongoose.Schema({
         type: Boolean,
         default: false // This should only be defined once
     },
-    somme: {
-        type: Number
-    },
     solde : {
         type : Number,
         default : 0 ,

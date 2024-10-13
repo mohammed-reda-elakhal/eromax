@@ -9,6 +9,8 @@ import { reclamationReducer } from "./slices/reclamationSlice";
 import { factureReducer } from "./slices/factureSlice";
 import { meth_payementReducer } from "./slices/methPayementSlice";
 import { payementReducer } from "./slices/payementSlice";
+import { transactionReducer } from "./slices/transactionSlice";
+import { demandeRetraitReducer } from "./slices/demandeRetraitSlice";
 
 
 
@@ -24,6 +26,8 @@ const store = configureStore({
     facture: factureReducer,
     meth_payement: meth_payementReducer,
     payement: payementReducer, // Add payement reducer to the store
+    transaction:transactionReducer,
+    demandeRetrait:demandeRetraitReducer
   },
 });
 
