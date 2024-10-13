@@ -27,3 +27,14 @@ export function createDemandeRetrait(demandeRetraitData) {
         }
     };
 }
+export function validerDemandeRetrait(id_demande) {
+    return async (dispatch) => {
+      try {
+        const { data } = await request.post(`/api/demande-retrait/valide`, { id_demande });
+        toast.success("Demande de retrait validée avec succès !");
+        dispatch(demandeRetraitActions.updateDemandeRetrait(data)); 
+      } catch (error) {
+        toast.error(error.message || "Échec de la validation de la demande de retrait");
+      }
+    };
+  }
