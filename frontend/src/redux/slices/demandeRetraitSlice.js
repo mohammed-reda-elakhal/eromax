@@ -3,19 +3,25 @@ import { createSlice } from "@reduxjs/toolkit";
 const demandeRetraitSlice = createSlice({
     name: "demandeRetrait",
     initialState: {
-        demandeRetraits: [],
+        demandesRetraits: [],
     },
     reducers: {
         setdemandeRetrait(state, action) {
-            state.demandeRetraits = action.payload;
+            state.demandesRetraits = action.payload;
         },
         adddemandeRetrait(state, action) {
-            state.demandeRetraits.push(action.payload);
+            state.demandesRetraits.push(action.payload);
         },
         deletedemandeRetrait(state, action) {
-            // Correction ici : utiliser `state.demandeRetraits`
-            state.demandeRetraits = state.demandeRetraits.filter(demandeRetrait => demandeRetrait._id !== action.payload);
+          
+            state.demandesRetraits = state.demandesRetraits.filter(demandeRetrait => demandeRetrait._id !== action.payload);
         },
+        updateDemandeRetrait(state, action) {
+            const updatedDemande = action.payload;
+            state.demandesRetraits = state.demandesRetraits.map((demande) =>
+              demande._id === updatedDemande._id ? updatedDemande : demande
+            );
+          },
     },
 });
 
