@@ -5,6 +5,7 @@ const shortid = require('shortid');
 const { Suivi_Colis } = require('../Models/Suivi_Colis');
 const { Store } = require('../Models/Store');  // Import the Store model
 const cron = require('node-cron');
+const Transaction = require('../Models/Transaction');
 
 // Function to generate code_facture
 const generateCodeFacture = (date) => {
@@ -126,11 +127,15 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                 const store = await Store.findById(factureData.store._id);
                 if (store) {
                     store.solde = (store.solde || 0) + (isNaN(result) ? 0 : result);
-                    // Save the updated store information
-                    console.log("tarif :"+factureData.totalTarif);
-                    
                     await store.save();
                 }
+                const transaction = new Transaction({
+                    id_store: store._id,
+                    montant: result,
+                    type: 'debit', // Transaction de type crédit
+                });
+                await transaction.save();
+            
             }
         }
 
@@ -167,7 +172,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 };
 
 // Schedule a job to create factures every day at midnight
-cron.schedule('08 00 * * *', async () => {
+cron.schedule('4 1 * * *', async () => {
     console.log('Running daily facture generation at 00:02');
     await createFacturesForClientsAndLivreurs();
 });
@@ -223,6 +228,7 @@ const getAllFacture = async (req, res) => {
                 ]
             })
             .sort(sortOptions)
+            .sort({ createdAt: -1 })
             .lean();
 
         // Count total documents matching the filter
@@ -241,6 +247,72 @@ const getAllFacture = async (req, res) => {
     }
 };
 
+
+const getFacturesByStore = async (req, res) => {
+    try {
+        // Destructure query parameters with default values
+        const { page = 1, limit = 50, date, livreurId, sortBy = 'date', order = 'desc' } = req.query;
+        const { storeId } = req.params; // Extract storeId from req.params
+
+        // Build the filter object
+        const filter = {};
+
+        // Ensure storeId is included in the filter
+        if (storeId) filter.store = storeId;
+
+        // Handle date filtering
+        if (date) {
+            const start = new Date(date);
+            const end = new Date(date);
+            end.setDate(end.getDate() + 1);
+            filter.date = { $gte: start, $lt: end };
+        }
+
+        // Filter by livreurId if provided
+        if (livreurId) filter.livreur = livreurId;
+
+        // Sort options
+        const sortOptions = {};
+        sortOptions[sortBy] = order === 'asc' ? 1 : -1;
+
+        // Query the database for factures based on storeId
+        const factures = await Facture.find(filter)
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .populate({
+                path: 'store',
+                select: 'storeName id_client'  // Populate store name and client
+            })
+            .populate({
+                path: 'livreur',
+                select: 'nom tele'  // Populate livreur name and phone number
+            })
+            .populate({
+                path: 'colis',
+                populate: [
+                    { path: 'ville', select: 'nom key ref tarif' },  // Populate ville details
+                    { path: 'store', select: 'storeName' }  // Populate store details within colis
+                ]
+            })
+            .sort(sortOptions)
+            .sort({ createdAt: -1 })  // Secondary sort by creation date (most recent first)
+            .lean();
+
+        // Count total documents matching the filter
+        const total = await Facture.countDocuments(filter);
+
+        // Send response with the selected factures and pagination data
+        res.status(200).json({
+            message: 'Factures retrieved successfully',
+            factures,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page)
+        });
+    } catch (error) {
+        console.error("Error fetching factures by store:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
 
 const getFactureByCode = async (req, res) => {
     try {
@@ -350,7 +422,8 @@ const getFactureByClient = async (req, res) => {
                     { path: 'store', select: 'storeName' },  // Populate 'store' details within 'colis'
                 ],
             })
-            .lean();
+            .lean()
+            .sort({ createdAt: -1 })
 
         // If no factures are found, return a 404 error
         if (factures.length === 0) {
@@ -401,89 +474,72 @@ const getFactureByClient = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-const getFactureByLivreur = async (req, res) => {
+const getFacturesByLivreur = async (req, res) => {
     try {
-      const { livreurId } = req.params;
-  
-      // Find factures by the given livreur
-      const factures = await Facture.find({ livreur: livreurId })
-        .populate({
-          path: 'store',
-          select: 'storeName id_client',
-          populate: {
-            path: 'id_client',  // Populate the client details from the store
-            select: 'tele',  // Assuming 'tele' is the client's telephone field
-          },
-        })
-        .populate({
-          path: 'livreur',
-          select: 'nom tele tarif',
-        })
-        .populate({
-          path: 'colis',
-          populate: [
-            { path: 'ville', select: 'nom key ref tarif' },  // Populate 'ville' details
-            { path: 'store', select: 'storeName' },  // Populate 'store' details within 'colis'
-          ],
-        })
-        .lean();
-  
-      // If no factures are found, return a 404 error
-      if (!factures || factures.length === 0) {
-        return res.status(404).json({ message: 'No factures found for this livreur' });
-      }
-  
-      // Function to fetch the delivery date for a given code_suivi
-      const getDeliveryDate = async (code_suivi) => {
-        const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
-        if (suiviColis) {
-          const livraison = suiviColis.status_updates.find(status => status.status === 'Livrée');
-          return livraison ? livraison.date : null; // Return the delivery date if found
+        // Destructure query parameters with default values
+        const { page = 1, limit = 50, date, storeId, sortBy = 'date', order = 'desc' } = req.query;
+        const { livreurId } = req.params; // Extract livreurId from req.params
+
+        // Build the filter object
+        const filter = {};
+
+        // Ensure livreurId is included in the filter
+        if (livreurId) filter.livreur = livreurId;
+
+        // Handle date filtering
+        if (date) {
+            const start = new Date(date);
+            const end = new Date(date);
+            end.setDate(end.getDate() + 1);
+            filter.date = { $gte: start, $lt: end };
         }
-        return null;
-      };
-  
-      // Prepare the response data for each facture
-      const response = await Promise.all(
-        factures.map(async (facture) => ({
-          code_facture: facture.code_facture,
-          date: facture.createdAt,
-          type: facture.type,
-          store: facture.store ? facture.store.storeName : null,
-          client_tele: facture.store && facture.store.id_client ? facture.store.id_client.tele : null, // Get client telephone
-          livreur: facture.livreur ? facture.livreur.nom : null,
-          livreur_tele: facture.livreur ? facture.livreur.tele : null,
-          livreur_tarif: facture.livreur ? facture.livreur.tarif : null,
-          totalPrix: facture.totalPrix,
-          date: facture.date,
-          colis: await Promise.all(facture.colis.map(async (col) => {
-            const livraisonDate = await getDeliveryDate(col.code_suivi); // Get delivery date from Suivi_Colis
-            return {
-              code_suivi: col.code_suivi,
-              destinataire: col.nom,
-              telephone: col.tele,
-              ville: col.ville ? col.ville.nom : null,
-              adresse: col.adresse,
-              statu: col.statut,
-              prix: col.prix,
-              tarif: col.ville ? col.ville.tarif : null,
-              date_livraison: livraisonDate, // Add the delivery date
-            };
-          })),
-        }))
-      );
-  
-      // Send the formatted response
-      res.status(200).json({
-        message: 'Factures by livreur retrieved successfully',
-        factures: response,
-      });
+
+        // Filter by storeId if provided
+        if (storeId) filter.store = storeId;
+
+        // Sort options
+        const sortOptions = {};
+        sortOptions[sortBy] = order === 'asc' ? 1 : -1;
+
+        // Query the database for factures based on livreurId
+        const factures = await Facture.find(filter)
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .populate({
+                path: 'store',
+                select: 'storeName id_client'  // Populate store name and client details
+            })
+            .populate({
+                path: 'livreur',
+                select: 'nom tele'  // Populate livreur name and phone number
+            })
+            .populate({
+                path: 'colis',
+                populate: [
+                    { path: 'ville', select: 'nom key ref tarif' },  // Populate ville details
+                    { path: 'store', select: 'storeName' }  // Populate store details within colis
+                ]
+            })
+            .sort(sortOptions)
+            .sort({ createdAt: -1 })  // Secondary sort by creation date (most recent first)
+            .lean();
+
+        // Count total documents matching the filter
+        const total = await Facture.countDocuments(filter);
+
+        // Send response with the selected factures and pagination data
+        res.status(200).json({
+            message: 'Factures retrieved successfully',
+            factures,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page)
+        });
     } catch (error) {
-      console.error('Error fetching factures by livreur:', error);
-      res.status(500).json({ message: 'Internal server error' });
+        console.error("Error fetching factures by livreur:", error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-  };
-  
+};
+
 
 
 module.exports = {
@@ -491,5 +547,6 @@ module.exports = {
     getAllFacture ,
     getFactureByCode,
     getFactureByClient,
-    getFactureByLivreur
+    getFacturesByLivreur,
+    getFacturesByStore
 };

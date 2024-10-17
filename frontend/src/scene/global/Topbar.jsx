@@ -13,6 +13,7 @@ import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait'
 import { useDispatch , useSelector } from 'react-redux';
 import { logoutUser } from '../../redux/apiCalls/authApiCalls';
 import { getStoreById } from '../../redux/apiCalls/profileApiCalls';
+import SoldeCart from '../components/portfeuille/components/SoldeCart';
 
 
 const { Header } = Layout;
@@ -113,7 +114,7 @@ function Topbar() {
                   showSolde ? <p>{storeData.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>
                 }
               </div>
-              <Avatar icon={<IoWallet/>} size={25} className='wallet_icon' onClick={()=>setOpenRetrait(true)} />
+              <Avatar icon={<IoWallet />} size={25} className='wallet_icon' onClick={()=>setOpenRetrait(true)} />
             </div>
           )
         }
@@ -163,7 +164,8 @@ function Topbar() {
           onClose={()=>setOpenRetrait(prev=>!prev)} 
           open={openRetrait}
         >
-          <DemandeRetrait theme={theme} />
+          <SoldeCart theme={theme} />
+          <DemandeRetrait setOpenWallet = {setOpenRetrait} theme={theme} />
         </Drawer>
       </Header>
   );

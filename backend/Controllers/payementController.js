@@ -33,7 +33,7 @@ const createPayement = async (req, res) => {
 // Get all payments
 const getAllPayements =asyncHandler(async (req, res) => {
     try {
-        const payements = await Payement.find().populate('clientId idBank');
+        const payements = await Payement.find().populate('clientId idBank').sort({ createdAt: -1 });
         res.status(200).json(payements);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -67,7 +67,7 @@ const getPaymentsByClientId = async (req, res) => {
         }
 
         // Find payments associated with the given client ID
-        const payments = await Payement.find({ clientId: clientId }).populate('clientId').populate('idBank');
+        const payments = await Payement.find({ clientId: clientId }).populate('clientId').populate('idBank').sort({ createdAt: -1 });
 
         // Check if any payments were found
         if (!payments.length) {

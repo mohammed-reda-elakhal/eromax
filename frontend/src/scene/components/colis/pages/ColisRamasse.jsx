@@ -11,6 +11,14 @@ import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { affecterLivreur, getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined,
+} from '@ant-design/icons';
+import { Tag } from 'antd';
+
 
 const { Option } = Select;
 
@@ -67,8 +75,6 @@ function ColisRamasse({ search }) {
     if (currentColis && livreurId) {
       try {
         await dispatch(affecterLivreur(currentColis._id, livreurId));
-        success("Colis Expédié");
-        // Hide the assigned colis from the table
         const updatedData = data.filter(item => item._id !== currentColis._id);
         setData(updatedData);
         setIsModalVisible(false);
@@ -90,18 +96,37 @@ function ColisRamasse({ search }) {
     setLivreurId(null); // Reset delivery person selection
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  };
+
   const columns = [
     {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
       ...search('code_suivi')
+    },{
+      title: 'Livreur',
+      dataIndex: 'livreur',
+      key: 'livreur',
+      render: (text, record) => (
+        <span>
+          {
+            record.livreur 
+            ? 
+            record.livreur.nom + ' - ' + record.livreur.tele 
+            : 
+            <Tag icon={<ClockCircleOutlined />} color="default">
+               Operation de Ramassage
+            </Tag>
+           
+          }
+        </span> // Check if 'livreur' exists, otherwise show default message
+      )
     },
-    {
-      title: 'Dernière Mise à Jour',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-    },
+    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
@@ -113,20 +138,29 @@ function ColisRamasse({ search }) {
       key: 'tele',
     },
     {
+      title: 'État',
+      dataIndex: 'etat',
+      key: 'etat',
+      render: (text, record) => (
+        record.etat ? (
+          <Tag color="success" icon={<CheckCircleOutlined />}>
+            Payée
+          </Tag>
+        ) : (
+          <Tag color="error" icon={<CloseCircleOutlined />}>
+            Non Payée
+          </Tag>
+        )
+      ),
+    },
+    {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
       render: (text, record) => (
-        <span style={{
-          backgroundColor: record.statut.trim() === 'Livrée' ? 'green' : '#4096ff',
-          color: 'white',
-          padding: '5px',
-          borderRadius: '3px',
-          display: 'inline-block',
-          textAlign: 'center'
-        }}>
+        <Tag icon={<SyncOutlined spin />} color="processing">
           {record.statut}
-        </span>
+        </Tag>
       ),
     },
     {

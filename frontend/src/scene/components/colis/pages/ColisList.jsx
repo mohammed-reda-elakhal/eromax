@@ -93,7 +93,6 @@ function ColisList({search}) {
                         }}
                     >
                         <h4>List Colis</h4>
-                        <ColisFilterBar theme={theme} darkStyle={darkStyle}/>
                         <ColisTable theme={theme} darkStyle={darkStyle} search={search}/>
                     </div>
                 </div>

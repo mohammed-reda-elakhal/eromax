@@ -56,7 +56,7 @@ const createMeth = async (req, res) => {
 // Get all bank payment methods
 const getAllMethPayements = asyncHandler(async (req, res) => {
     try {
-        const methPayements = await Meth_Payement.find();
+        const methPayements = await Meth_Payement.find().sort({ createdAt: -1 });
         res.status(200).json(methPayements);
     } catch (error) {
         res.status(500).json({ error: error.message });

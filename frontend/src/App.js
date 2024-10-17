@@ -47,6 +47,8 @@ import FactureLivreur from "./scene/components/facture/page/FactureLivreur";
 import FactureDetailLivreur from "./scene/components/facture/page/FactureDetailLivreur";
 import MethodePayemet from "./scene/components/payement/page/MethodePayemet";
 import MethodePayementOperation from "./scene/components/payement/page/MethodePayementOperation";
+import DemandeRetraitTable from "./scene/components/payement/page/DemandeRetraitTable";
+import TransactionTable from "./scene/components/payement/page/TransactionTable";
 
 function App() {
 
@@ -180,7 +182,10 @@ function App() {
             <Route path="reclamation" element={<Reclamation />} />
             <Route path="reclamation-complete" element={<ReclamationOk />} />
             <Route path="gnotification" element={<Notification />} /> 
+            <Route path="demande-retrait" element={<DemandeRetraitTable />} /> 
+            <Route path="transaction" element={<TransactionTable />} /> 
             
+
             <Route path="compte">
               <Route path="client" element={<Client search = {getColumnSearchProps}  />}  />
               <Route path="client/:id" element={<FormClient />} /> 

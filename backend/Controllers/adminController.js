@@ -10,7 +10,7 @@ const { adminValidation, Admin } = require("../Models/Admin");
  -------------------------------------------
 */
 const getAdmin = asyncHandler(async (req, res) => {
-    const admin = await Admin.find();
+    const admin = await Admin.find().sort({ createdAt: -1 });
     res.status(200).json(admin);
 });
 

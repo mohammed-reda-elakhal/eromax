@@ -99,7 +99,7 @@ const createReclamation = asyncHandler(async (req, res) => {
 const getReclamationByClient = asyncHandler(async (req, res) => {
     try {
         const { id_user } = req.params; 
-        const reclamation = await Reclamation.find({ clientId: id_user }); 
+        const reclamation = await Reclamation.find({ clientId: id_user }).sort({ createdAt: -1 }); 
         res.status(200).json(reclamation);
     } catch (e) {
         res.status(500).json({ message: 'Failed to get reclamation', error: e.message });

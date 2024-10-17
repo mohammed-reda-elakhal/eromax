@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import TableDashboard from '../../../global/TableDashboard'
 import { useDispatch, useSelector } from 'react-redux';
-import { getFacture } from '../../../../redux/apiCalls/factureApiCalls';
+import { getFacture, getFactureDetailsByClient } from '../../../../redux/apiCalls/factureApiCalls';
 import { Button } from 'antd';
 import { FaRegFolderOpen } from "react-icons/fa6";
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,10 +11,18 @@ function FactureClientTable({theme}) {
   const navigate = useNavigate()
 
   const dispatch = useDispatch();
-  const { facture } = useSelector((state) => state.facture);
+  const { facture, user, store } = useSelector((state) => ({
+    facture: state.facture.facture,
+    user: state.auth.user,
+    store: state.auth.store,
+}));
 
   useEffect(() => {
-    dispatch(getFacture('client'));
+    if(user?.role ==="admin"){
+      dispatch(getFacture('client'));
+    }else if(user?.role === "client"){
+      dispatch(getFactureDetailsByClient(store?._id))
+    }
     window.scrollTo(0, 0);
 }, [dispatch]);
 

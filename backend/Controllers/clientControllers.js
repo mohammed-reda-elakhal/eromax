@@ -19,7 +19,7 @@ const { Suivi_Colis } = require("../Models/Suivi_Colis");
 const getAllClients = asyncHandler(async (req, res) => {
     try {
         // Fetch all clients
-        const clients = await Client.find();
+        const clients = await Client.find().sort({ createdAt: -1 });
 
         // Fetch stores for each client
         const clientsWithStores = await Promise.all(

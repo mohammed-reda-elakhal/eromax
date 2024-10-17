@@ -42,7 +42,6 @@ function Profile() {
                         <h4>Profile</h4>
                         <div className="container-profile">
                             <ProfileInfo />
-                            <PayementProfile />
                         </div>
                     </div>
                 </div>

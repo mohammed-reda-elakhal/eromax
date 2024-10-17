@@ -39,9 +39,32 @@ exports.createTransaction = async (req, res) => {
 
 exports.getAllTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find().populate('id_store');
+    const transactions = await Transaction.find()
+    .populate({
+      path: 'id_store',           // Populate id_store (Store)
+      populate: { path: 'id_client' } // Then populate id_client from Store
+    })
+    .sort({ createdAt: -1 })
+
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+exports.getTransactionsByClient = async (req, res) => {
+  try {
+    const id_store = req.params.id_user ; 
+    const transactions = await Transaction.find( {id_store})
+    .populate({
+      path: 'id_store',           // Populate id_store (Store)
+      populate: { path: 'id_client' } // Then populate id_client from Store
+    })
+    .sort({ createdAt: -1 })
+    res.status(200).json(transactions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+

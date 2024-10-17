@@ -13,15 +13,13 @@ function PayementProfile() {
   const user = JSON.parse(Cookies.get('user'));
   const dispatch = useDispatch();
   const { id } = useParams();
-  const { payements, isFetching } = useSelector((state) => state.payement);
+  const { payements } = useSelector((state) => state.payement);
   const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
-    if (user) {
-      const userId = id || user._id;
-      dispatch(getPaymentsByClientId(userId));
-    }
+    const userId = id || user._id;
+    dispatch(getPaymentsByClientId(userId));
     window.scrollTo(0, 0); // Scroll to the top when the component loads
-  }, [dispatch, id, user]);
+  }, [dispatch]);
 
 
   const OpenModal = () =>{

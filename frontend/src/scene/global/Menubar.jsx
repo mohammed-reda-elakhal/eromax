@@ -114,9 +114,11 @@ function Menubar() {
           userData.role ==="admin" && (
             <Menu.SubMenu icon={<MdPayment />} title="Payements">
               <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/reclamation">Demande retrait</Link>
+                <Link to="/dashboard/demande-retrait">Demande retrait</Link>
               </Menu.Item>
-              
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to={'/dashboard/transaction'}>List transactions</Link>
+              </Menu.Item>
               <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
                 <Link to="/dashboard/payement/list">List Methode Payement</Link>
               </Menu.Item>
@@ -172,10 +174,10 @@ function Menubar() {
                   <Link onClick={() => setOpenWallet(true)}>Portfeuille & Demande</Link>
                 </Menu.Item>
                 <Menu.Item icon={<BiTagAlt />}>
-                  <Link onClick={() => setOpenWallet(true)}>List Demandes</Link>
+                  <Link to={"/dashboard/demande-retrait"}>List Demandes</Link>
                 </Menu.Item>
                 <Menu.Item icon={<BiTagAlt />}>
-                  <Link onClick={() => setOpenWallet(true)}>List transactions</Link>
+                  <Link to={'/dashboard/transaction'}>List transactions</Link>
                 </Menu.Item>
               </Menu.SubMenu>
               <Drawer
@@ -184,7 +186,7 @@ function Menubar() {
                 onClose={() => setOpenWallet(prev => !prev)}
               >
                 <Solde />
-                <DemandeRetrait theme={theme} />
+                <DemandeRetrait setOpenWallet = {setOpenWallet} theme={theme} />
               </Drawer>
             </>
           )
@@ -273,14 +275,23 @@ function Menubar() {
           )
         }
 
-            <Menu.SubMenu icon={<FaFileInvoiceDollar />} title = "Facture">
+        <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
+          {
+            (userData.role === "client" || userData.role === "admin") && (
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/facture/client">Facture Client</Link>
               </Menu.Item>
+            )
+          }
+          {
+            (userData.role === "livreur" || userData.role === "admin") && (
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/facture/livreur">Facture Livreur</Link>
               </Menu.Item>
-            </Menu.SubMenu>
+            )
+          }
+        </Menu.SubMenu>
+
         
         <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
           <Menu.Item icon={<BiTagAlt />}>
