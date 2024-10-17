@@ -74,6 +74,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
   const saveColis = await newColis.save();
 
+
   // Populate store, team, and ville data
   await saveColis.populate('store');
   await saveColis.populate('team');
@@ -90,6 +91,9 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     id_colis: newColis._id,
     code_suivi: newColis.code_suivi,
     date_create: newColis.createdAt,
+    status_updates: [
+      { status: "Attente de Ramassage", date: new Date() }  // Statut initial
+    ]
   });
 
   const save_suivi = await suivi_colis.save();
@@ -483,6 +487,23 @@ module.exports.affecterLivreur = async (req, res) => {
         colis.statut='Expediée'
         // Sauvegarder les modifications
         await colis.save();
+
+          let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+          if (!suivi_colis) {
+              suivi_colis = new Suivi_Colis({
+                  id_colis: colisId,
+                  code_suivi: colis.code_suivi,
+                  status_updates: [
+                      { status: 'Expediée', date: new Date() }  //ajouter le statut expediée
+                  ]
+              });
+          } else {
+              // Ajouter la nouvelle mise à jour du statut
+              suivi_colis.status_updates.push({ status: 'Expediée', date: new Date() });
+          }
+  
+          // Sauvegarder les mises à jour du suivi
+          await suivi_colis.save();
         const dataLiv = {
           Nom:livreur.nom,
           Tele:livreur.tele
