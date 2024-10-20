@@ -24,6 +24,14 @@ import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
 import { colisActions} from '../../../../redux/slices/colisSlice';
 import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined,
+} from '@ant-design/icons';
+import { Tag } from 'antd';
+
 
 function ColisReçu({search}) {
     const { theme } = useContext(ThemeContext);
@@ -176,6 +184,11 @@ const handleDistribution = (colisId) => {
     </Menu>
   );
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  };
+
   const columns = [
     {
       title: 'Code Suivi',
@@ -184,10 +197,25 @@ const handleDistribution = (colisId) => {
       ...search('code_suivi')
     },
     {
-      title: 'Dernière Mise à Jour',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
+      title: 'Livreur',
+      dataIndex: 'livreur',
+      key: 'livreur',
+      render: (text, record) => (
+        <span>
+          {
+            record.livreur 
+            ? 
+            record.livreur.nom + ' - ' + record.livreur.tele 
+            : 
+            <Tag icon={<ClockCircleOutlined />} color="default">
+               Operation de Ramassage
+            </Tag>
+           
+          }
+        </span> // Check if 'livreur' exists, otherwise show default message
+      )
     },
+    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
@@ -203,17 +231,15 @@ const handleDistribution = (colisId) => {
       dataIndex: 'etat',
       key: 'etat',
       render: (text, record) => (
-        <span style={{
-          backgroundColor: record.etat ? 'green' : '#4096ff',
-          color: 'white',
-          padding: '5px',
-          borderRadius: '3px',
-          display: 'inline-block',
-          whiteSpace: 'pre-wrap',
-          textAlign: 'center'
-        }}>
-          {record.etat ? 'Payée' : 'Non\nPayée'}
-        </span>
+        record.etat ? (
+          <Tag color="success" icon={<CheckCircleOutlined />}>
+            Payée
+          </Tag>
+        ) : (
+          <Tag color="error" icon={<CloseCircleOutlined />}>
+            Non Payée
+          </Tag>
+        )
       ),
     },
     {
@@ -221,17 +247,9 @@ const handleDistribution = (colisId) => {
       dataIndex: 'statut',
       key: 'statut',
       render: (text, record) => (
-        <span style={{
-          backgroundColor: record.statut.trim() === 'Livrée' ? 'green' : '#4096ff',
-          color: 'white',
-          padding: '5px',
-          borderRadius: '3px',
-          display: 'inline-block',
-          whiteSpace: 'pre-wrap',
-          textAlign: 'center'
-        }}>
+        <Tag icon={<SyncOutlined spin />} color="processing">
           {record.statut}
-        </span>
+        </Tag>
       ),
     },
     {
@@ -243,6 +261,11 @@ const handleDistribution = (colisId) => {
       title: 'Ville',
       dataIndex: 'ville',
       key: 'ville',
+      render: (text, record) => (
+        <span>
+          {record.ville.nom}
+        </span>
+      ),
     },
     {
       title: 'Prix',

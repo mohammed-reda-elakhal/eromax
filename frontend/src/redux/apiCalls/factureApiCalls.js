@@ -34,8 +34,8 @@ export function getFactureDetailsByCode(codeFacture ) {
 }
 export function getFactureDetailsByClient(id_client){
     return async (dispatch)=>{
-        try{const {data}=await request.get(`/api/facture/detail/${id_client}`);
-        dispatch(factureActions.setFactureDetail(data.list));
+        try{const {data}=await request.get(`/api/facture/detail/client/${id_client}`);
+        dispatch(factureActions.setFacture(data.factures));
     }catch(error){
         toast.error(error.message || "Failed to fetch facture details");
     }
@@ -44,8 +44,8 @@ export function getFactureDetailsByClient(id_client){
 }
 export function getFactureDetailsByLivreur(id){
     return async (dispatch)=>{
-        try{const {data}=await request.get(`/api/facture/detail/liv/${id}`);
-        dispatch(factureActions.setFactureDetail(data.list));
+        try{const {data}=await request.get(`/api/facture/detail/livreur/${id}`);
+        dispatch(factureActions.setFacture(data.factures));
     }catch(error){
         toast.error(error.message || "Failed to fetch facture details");
     }

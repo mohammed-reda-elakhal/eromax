@@ -12,10 +12,15 @@ import { toast } from 'react-toastify';
 import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import TableDashboard from '../../../global/TableDashboard';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { Tag } from 'antd';
+import { IoSearch } from "react-icons/io5";
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
     data: [],
+    filteredData: [],
+    searchTerm: '',
     selectedRowKeys: [],
     selectedRows: [],
     selectedColis: null,
@@ -32,7 +37,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   const componentRef = useRef();
   const dispatch = useDispatch();
-  
+
   const { colisData, user, store } = useSelector((state) => ({
     colisData: state.colis.colis || [],
     user: state.auth.user,
@@ -48,7 +53,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         dispatch(getColisForClient(store._id, ''));
       } else if (user.role === 'livreur') {
         dispatch(getColisForLivreur(user._id, ''));
-      }else if (user.role === 'team') {
+      } else if (user.role === 'team') {
         dispatch(getColisForClient(user._id, ''));
       }
     }
@@ -59,8 +64,24 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     setState(prevState => ({
       ...prevState,
       data: Array.isArray(colisData) ? colisData : [],
+      filteredData: Array.isArray(colisData) ? colisData : [],
     }));
   }, [colisData]);
+
+  // Filter data based on search term
+  useEffect(() => {
+    const { searchTerm, data } = state;
+    const filteredData = data.filter(item =>
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+    setState(prevState => ({ ...prevState, filteredData }));
+  }, [state.searchTerm, state.data]);
+
+  const handleSearch = (e) => {
+    setState(prevState => ({ ...prevState, searchTerm: e.target.value }));
+  };
 
   // Handle row selection
   const handleRowSelection = (selectedRowKeys, selectedRows) => {
@@ -106,33 +127,53 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   // Columns definition
   const columnsColis = [
     { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi', ...search('code_suivi') },
-    { 
-      title: 'Livreur', 
-      dataIndex: 'livreur', 
-      key: 'livreur', 
+    {
+      title: 'Livreur',
+      dataIndex: 'livreur',
+      key: 'livreur',
       render: (text, record) => (
-        <span>{record.livreur ? record.livreur.nom + ' - ' + record.livreur.tele : 'Operation de Ramassage'}</span> // Check if 'livreur' exists, otherwise show default message
-      )
+        <span>
+          {record.livreur 
+            ? `${record.livreur.nom} - ${record.livreur.tele}`
+            : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>
+          }
+        </span>
+      ),
     },
     { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
     { title: 'Destinataire', dataIndex: 'nom', key: 'nom', ...search('nom') },
     { title: 'Téléphone', dataIndex: 'tele', key: 'tele' },
-    { title: 'État', dataIndex: 'etat', key: 'etat', render: (text, record) => (
-        <span className={record.etat ? 'paid' : 'unpaid'}>
-          {record.etat ? 'Payée' : 'Non Payée'}
-        </span>
+    {
+      title: 'État',
+      dataIndex: 'etat',
+      key: 'etat',
+      render: (text, record) => (
+        record.etat ? (
+          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag>
+        ) : (
+          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+        )
       ),
     },
-    { title: 'Statut', dataIndex: 'statut', key: 'statut', render: (text, record) => (
-        <span className={record.statut.trim() === 'Livrée' ? 'status-delivered' : record.statut.trim() === 'Annulée' || record.statut.trim() === 'Refusée' ? 'status-cancelled' : 'status-pending'}>
-          {record.statut}
-        </span>
-      ),
+    {
+      title: 'Statut',
+      dataIndex: 'statut',
+      key: 'statut',
+      render: (status) => {
+        if (status === 'Livrée') {
+          return <Tag icon={<CheckCircleOutlined />} color="success">{status}</Tag>;
+        } else if (status === 'Annulée' || status === 'Refusée') {
+          return <Tag icon={<CloseCircleOutlined />} color="error">{status}</Tag>;
+        } else if (status === 'Programme') {
+          return <Tag icon={<ClockCircleOutlined />} color="default">Programme</Tag>;
+        } else {
+          return <Tag icon={<SyncOutlined spin />} color="processing">{status}</Tag>;
+        }
+      },
     },
     { title: 'Date de Livraison', dataIndex: 'date_livraison', key: 'date_livraison' },
     { title: 'Ville', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.nom}</span> },
     { title: 'Tarif (DH)', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.tarif}</span> },
-
     { title: 'Prix (DH)', dataIndex: 'prix', key: 'prix', ...search('prix') },
     { title: 'Nature de Produit', dataIndex: 'nature_produit', key: 'nature_produit' },
     {
@@ -140,11 +181,11 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'reclamations',
       render: (_, record) => (
         <div className="table-reclamation">
-           {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+          {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
             <button className="btn-dashboard" onClick={() => openReclamationModal(record)}>
               Reclamation
             </button>
-           )}
+          )}
           <div className="table-option">
             <button className="btn-dashboard" onClick={() => handleInfo(record.id)}><FaWhatsapp /></button>
             <button className="btn-dashboard" onClick={() => console.log('More options for record with id:', record.id)}><TbPhoneCall /></button>
@@ -171,9 +212,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         </div>
       ),
     }
-    
   ];
-  
 
   const openReclamationModal = (colis) => {
     setState(prevState => ({
@@ -223,8 +262,21 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   return (
     <>
-      <TableDashboard column={columnsColis} data={state.data} id="_id" onSelectChange={handleRowSelection} />
-      
+      <Input
+        placeholder="Recherche ..."
+        value={state.searchTerm}
+        onChange={handleSearch}
+        style={{ marginBottom: 16 , width : "50%" }}
+        size='large'
+        suffix = {<IoSearch />}
+      />
+      <TableDashboard
+        column={columnsColis}
+        data={state.filteredData}
+        id="_id"
+        onSelectChange={handleRowSelection}
+      />
+
       <Modal title="Reclamation" open={state.reclamationModalVisible} onOk={handleCreateReclamation} onCancel={() => setState({ ...state, reclamationModalVisible: false })}>
         <Input placeholder="Subject" value={state.subject} onChange={(e) => setState({ ...state, subject: e.target.value })} style={{ marginBottom: '10px' }} />
         <Input.TextArea placeholder="Message/Description" value={state.message} onChange={(e) => setState({ ...state, message: e.target.value })} rows={4} />
@@ -238,8 +290,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       <Drawer title="Les données de colis suivre" onClose={() => setState({ ...state, drawerOpen: false })} open={state.drawerOpen}>
         <Steps progressDot current={1} direction="vertical" items={[{ title: 'Finished', description: 'Description 1' }, { title: 'Finished', description: 'Description 2' }, { title: 'In Progress', description: 'Description 3' }, { title: 'Waiting', description: 'Description 4' }]} />
       </Drawer>
-
-     
     </>
   );
 };

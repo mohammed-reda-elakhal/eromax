@@ -2,19 +2,68 @@
 const DemandeRetrait = require('../Models/Demande_Retrait');
 const { Store } = require('../Models/Store');
 const Transaction = require('../Models/Transaction')
+
+
 exports.createDemandeRetrait = async (req, res) => {
   try {
+    const { id_store } = req.body; // Assuming the store ID is tied to the user
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    // Find the latest demande retrait by this store (or user)
+    const lastDemande = await DemandeRetrait.findOne({
+      id_store: id_store, // Filter by store/user
+      createdAt: { $gte: oneDayAgo }, // Only consider demandes created within the last 24 hours
+    });
+
+    // If a demande exists within the last 24 hours, prevent the new creation
+    if (lastDemande) {
+      return res.status(400).json({
+        message: 'Vous ne pouvez soumettre qu\'une seule demande de retrait toutes les 24 heures.',
+      });
+    }
+
+    // Create a new demande retrait
     const demandeRetrait = new DemandeRetrait(req.body);
     await demandeRetrait.save();
-    res.status(201).json(demandeRetrait);
+    res.status(201).json( {message : "Votre demande est bien reçu attendez pour effectuer votre verment" , data : demandeRetrait});
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
+
 exports.getAllDemandesRetrait = async (req, res) => {
   try {
-    const demandes = await DemandeRetrait.find().populate('id_store id_payement');
+    const demandes = await DemandeRetrait.find()
+      .populate({
+        path: 'id_store',           // Populate id_store (Store)
+        populate: { path: 'id_client' } // Then populate id_client from Store
+      })
+      .populate({
+        path: 'id_payement',        // Populate id_payement (Payment)
+        populate: { path: 'idBank' }    // Then populate idBank from Payment
+      });
+
+    res.status(200).json(demandes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getDemandesRetraitByClient = async (req, res) => {
+  try {
+    const demandes = await DemandeRetrait.find({id_store : req.params.id_user}) 
+    .populate({
+      path: 'id_store',           // Populate id_store (Store)
+      populate: { path: 'id_client' } // Then populate id_client from Store
+    })
+    .populate({
+      path: 'id_payement',        // Populate id_payement (Payment)
+      populate: { path: 'idBank' }    // Then populate idBank from Payment
+    });
     res.status(200).json(demandes);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -49,7 +98,7 @@ exports.verserDemandeRetrait = async (req, res) => {
  
 
     res.status(200).json({
-        message: 'Versement effectué avec succès et transaction créée',
+        message: 'Versement effectué avec succès 💵🤑',
         data: { demandeRetrait, transaction }
     });
 

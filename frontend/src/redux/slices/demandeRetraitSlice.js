@@ -9,7 +9,7 @@ const demandeRetraitSlice = createSlice({
         setdemandeRetrait(state, action) {
             state.demandesRetraits = action.payload;
         },
-        adddemandeRetrait(state, action) {
+        addDemandeRetrait(state, action) {
             state.demandesRetraits.push(action.payload);
         },
         deletedemandeRetrait(state, action) {

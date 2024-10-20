@@ -12,6 +12,16 @@ import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined,
+} from '@ant-design/icons';
+import { Tag } from 'antd';
+
+
+
 function ColisPourRamassage({ search }) {
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
@@ -23,6 +33,7 @@ function ColisPourRamassage({ search }) {
   const [deliveryPerson, setDeliveryPerson] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate(); // Get history for redirection
+
 
 
   const success = (text) => {
@@ -164,6 +175,11 @@ function ColisPourRamassage({ search }) {
     </Menu>
   );
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  };
+
   const columns = [
     {
       title: 'Code Suivi',
@@ -172,10 +188,25 @@ function ColisPourRamassage({ search }) {
       ...search('code_suivi')
     },
     {
-      title: 'Dernière Mise à Jour',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
+      title: 'Livreur',
+      dataIndex: 'livreur',
+      key: 'livreur',
+      render: (text, record) => (
+        <span>
+          {
+            record.livreur 
+            ? 
+            record.livreur.nom + ' - ' + record.livreur.tele 
+            : 
+            <Tag icon={<ClockCircleOutlined />} color="default">
+               Operation de Ramassage
+            </Tag>
+           
+          }
+        </span> // Check if 'livreur' exists, otherwise show default message
+      )
     },
+    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
@@ -191,17 +222,15 @@ function ColisPourRamassage({ search }) {
       dataIndex: 'etat',
       key: 'etat',
       render: (text, record) => (
-        <span style={{
-          backgroundColor: record.etat ? 'green' : '#4096ff',
-          color: 'white',
-          padding: '5px',
-          borderRadius: '3px',
-          display: 'inline-block',
-          whiteSpace: 'pre-wrap',
-          textAlign: 'center'
-        }}>
-          {record.etat ? 'Payée' : 'Non\nPayée'}
-        </span>
+        record.etat ? (
+          <Tag color="success" icon={<CheckCircleOutlined />}>
+            Payée
+          </Tag>
+        ) : (
+          <Tag color="error" icon={<CloseCircleOutlined />}>
+            Non Payée
+          </Tag>
+        )
       ),
     },
     {
@@ -209,17 +238,9 @@ function ColisPourRamassage({ search }) {
       dataIndex: 'statut',
       key: 'statut',
       render: (text, record) => (
-        <span style={{
-          backgroundColor: record.statut.trim() === 'Livrée' ? 'green' : '#4096ff',
-          color: 'white',
-          padding: '5px',
-          borderRadius: '3px',
-          display: 'inline-block',
-          whiteSpace: 'pre-wrap',
-          textAlign: 'center'
-        }}>
+        <Tag icon={<SyncOutlined spin />} color="processing">
           {record.statut}
-        </span>
+        </Tag>
       ),
     },
     {

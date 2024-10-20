@@ -11,15 +11,14 @@ const FactureDetail = () => {
     const printRef = useRef();
     const dispatch = useDispatch();
     const facture = useSelector((state) => state.facture.detailFacture);
-    const user =useSelector((state)=>state.auth.user._id);
+    const user =useSelector((state)=>state.auth.user);
     const { code_facture } = useParams();
 
     useEffect(() => {
-        dispatch(getFactureDetailsByCode(code_facture , 'Client'));
-        dispatch(getFactureDetailsByClient(user,'Client'))
+        dispatch(getFactureDetailsByCode(code_facture));
         window.scrollTo(0, 0);
         console.log(facture);
-    }, [dispatch, user,code_facture]);
+    }, [dispatch]);
 
     // Function to generate PDF and download
     const handleDownloadPdf = async () => {

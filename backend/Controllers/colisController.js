@@ -12,7 +12,7 @@ const { Ville } = require("../Models/Ville");
 
 
 // Utility function to generate a unique code_suivi
-function generateCodeSuivi() {
+function generateCodeSuivi( code_ville ) {
   return crypto.randomBytes(8).toString('hex'); // Generates a 16-character hexadecimal string
 }
 
@@ -23,7 +23,7 @@ function generateCodeSuivi() {
  * @method   POST
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
- **/
+**/
 
 module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   // Check if request body is provided
@@ -105,6 +105,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     suiviColis: save_suivi,
   });
 });
+
 /**
  * -------------------------------------------------------------------
  * @desc     get all colis, optionally filter by statut
@@ -113,6 +114,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
 **/
+
 module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
   try {
     const { statut } = req.query; // Extract 'statut' from the query params
@@ -148,14 +150,13 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
  * @access   private (only logger in user )
  * -------------------------------------------------------------------
 **/
-module.exports.getColisByIdCtrl = asyncHandler(async (req, res) => {
-  const colis = await Colis.findById(req.params.id).populate('livreur');
-  if (!colis) {
-    return res.status(404).json({ message: "Colis not found" });
-  }
-  res.status(200).json(colis);
+module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
+    const colis = await Colis.findById(req.params.id).populate('livreur') ;
+    if(!colis){
+        return res.status(404).json({message:"Colis not found"});
+    }
+    res.status(200).json(colis);
 })
-
 
 /**
  * -------------------------------------------------------------------
@@ -165,12 +166,13 @@ module.exports.getColisByIdCtrl = asyncHandler(async (req, res) => {
  * @access   private (only logger in user )
  * -------------------------------------------------------------------
 **/
+
 exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
-  const colis = await Colis.findOne({ code_suivi: req.params.code_suivi }).populate('livreur');
-  if (!colis) {
-    return res.status(404).json({ message: "Colis not found" });
-  }
-  res.status(200).json(colis);
+    const colis = await Colis.findOne({ code_suivi: req.params.code_suivi }).populate('livreur') ;
+    if (!colis) {
+        return res.status(404).json({ message: "Colis not found" });
+    }
+    res.status(200).json(colis);
 });
 
 /**
