@@ -151,7 +151,11 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
 **/
 module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
-    const colis = await Colis.findById(req.params.id).populate('livreur') ;
+    const colis = await Colis.findById(req.params.id)
+    .populate('team')        // Populate the team details
+    .populate('livreur')     // Populate the livreur details
+    .populate('store')       // Populate the store details
+    .populate('ville') ;
     if(!colis){
         return res.status(404).json({message:"Colis not found"});
     }
@@ -168,7 +172,11 @@ module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
 **/
 
 exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
-    const colis = await Colis.findOne({ code_suivi: req.params.code_suivi }).populate('livreur') ;
+    const colis = await Colis.findOne({ code_suivi: req.params.code_suivi })
+      .populate('team')        // Populate the team details
+      .populate('livreur')     // Populate the livreur details
+      .populate('store')       // Populate the store details
+      .populate('ville')
     if (!colis) {
         return res.status(404).json({ message: "Colis not found" });
     }

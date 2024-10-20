@@ -11,6 +11,7 @@ import { Button, Select, Tabs } from 'antd';
 import ScanQrcode from '../components/ScanQrcode';
 import { CiBarcode } from "react-icons/ci";
 import { MdQrCodeScanner } from "react-icons/md";
+import ScanBarcode from '../components/ScanBarcode';
 
 const { Option } = Select;
 
@@ -40,7 +41,7 @@ function Scan() {
         {
           key: '1',
           label: <p className='title-tabs'> <CiBarcode size={20}/>bar code</p>,
-          children: 'Scan using bar code and scanning device',
+          children: <ScanBarcode />,
         },
         {
           key: '2',
@@ -102,7 +103,7 @@ function Scan() {
                             )}
                         </div>
 
-                        <Tabs defaultActiveKey="2" items={items} />
+                        <Tabs defaultActiveKey="1" items={items} />
                     </div>
                 </div>
             </main>

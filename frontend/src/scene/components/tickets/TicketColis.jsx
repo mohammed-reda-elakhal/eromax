@@ -17,7 +17,7 @@ function TicketColis({ colis }) {
               <Barcode value={colis.code_suivi} width={0.6} height={30} fontSize={12} />
             </div>
             <div className="qr-code">
-              <QRCode value="hey" size={50} />
+              <QRCode value={colis.code_suivi} size={50} />
             </div>
             <p>{colis.ville.nom}</p> {/* Ensure you're accessing the correct string property */}
           </div>

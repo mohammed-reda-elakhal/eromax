@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
 const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin, verifyTokenAndLivreur, verifyTokenAdminTeam, verifyTokenAndClient} = require("../Middlewares/VerifyToken"); 
-const { updateSuiviColis } = require("../Controllers/suivi_colisController");
+const { updateSuiviColis, updateMultipleSuiviColis } = require("../Controllers/suivi_colisController");
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
@@ -36,6 +36,10 @@ router.route('/code_suivi/:code_suivi')
 //router api/colis/St
 router.route("/St/:id")
         .put(updateSuiviColis)
+
+//router api/colis/St
+router.route("/St/multiple")
+        .post(updateMultipleSuiviColis)
 
 
 //router api/colis/St
