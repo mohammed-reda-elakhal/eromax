@@ -57,7 +57,9 @@ router.route("/livreur").post(verifyTokenAdminTeam,colisController.affecterLivre
 
 router.route("/getColisLiv/:id_livreur").get(verifyTokenAndLivreurOrAdmin,colisController.getColisByLivreur)
 router.route("/getColisTeam/:id_team").get(verifyTokenAndAdmin,colisController.getColisByTeam)
-router.route("/programme").post(colisController.colisProgramme);
+router.route("/programme").post(colisController.colisProgramme);//move to client route pour executer 
+router.route("/annule/:idColis").post(colisController.annulerColis);//move to client route pour executer 
+
 
 
 
