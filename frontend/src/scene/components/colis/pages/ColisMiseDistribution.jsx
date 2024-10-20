@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
-import { colisProgramme, getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { annulerColis, colisProgramme, getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 
@@ -66,7 +66,7 @@ useEffect(() => {
   };
 
   const handleAnnulée = (record) => {
-    setSelectedColis(record._id);
+    setSelectedColis(record);
     
     setIsAnnuléeModalVisible(true);
   };
@@ -77,16 +77,27 @@ useEffect(() => {
   };
 
   const handleAnnuléeOk = () => {
+    if (!selectedColis || !selectedColis._id) {
+      console.error('selectedColis is undefined or missing _id');
+      return;
+    }
     form.validateFields().then(values => {
+      const { comment } = values; // Récupérez le commentaire depuis les valeurs validées
+      dispatch(annulerColis(selectedColis._id, comment)); 
+      console.log('id colis annule',selectedColis._id);
+
       const newData = colisData.map(item => {
-        if (item.id === selectedColis._id) {
-          item.statut = 'Annulée';
-          item.comment = values.comment;
+        if (item._id === selectedColis._id) {
+          return {
+            ...item, // Spread the existing properties
+            statut: 'Annulée', // Update the statut
+            comment: comment // Update the deliveryTime
+          };
         }
         return item;
+        
       });
       setData(newData);  // Mets à jour l'état local `data`
-      dispatch(updateStatut(selectedColis._id, 'Annulée'));
       setIsAnnuléeModalVisible(false);  // Ferme la modal
       success(`Colis ${selectedColis._id} marqué comme annulée.`);
   
@@ -335,7 +346,7 @@ useEffect(() => {
             rules={[{ required: true, message: 'Veuillez sélectionner un temps de livraison!' }]}
           >
             <Select placeholder="Sélectionner un temps de livraison">
-              <Option value="Demain">Demain</Option>
+              <Option value="1 jours">Demain</Option>
               <Option value="2 jours">Dans 2 jours</Option>
               <Option value="3 jours">Dans 3 jours</Option>
               <Option value="4 jours">Dans 4 jours</Option>
