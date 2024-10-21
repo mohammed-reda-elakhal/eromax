@@ -1,12 +1,37 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import './ticket.css';
 import Barcode from 'react-barcode';
 import QRCode from "react-qr-code";
+import { Button } from 'antd';
+import { useReactToPrint } from 'react-to-print';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { IoMdDownload } from "react-icons/io";
+
 
 function TicketColis({ colis }) {
+  const componentRef = useRef();
+
+  // Function to handle print
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: `Ticket-${colis?.code_suivi}`,
+  });
+
+  // Function to handle download as PDF
+  const handleDownloadPdf = () => {
+    const input = componentRef.current;
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [450, 460] });
+      pdf.addImage(imgData, 'PNG', 0, 0, 450, 460);
+      pdf.save(`Ticket-${colis?.code_suivi}.pdf`);
+    });
+  };
+
   return (
     <>
-      <div className="ticket-colis">
+      <div ref={componentRef} className="ticket-colis">
         <div className="ticket-colis-header">
           <div className="ticket-colis-header-logo">
             <h2>Eromax Service</h2>
@@ -56,7 +81,9 @@ function TicketColis({ colis }) {
           </div>
         </div>
       </div>
-      <img src="/image/rotate_phone.gif" alt="" width="300px" className="rotate_phone_ticket" />
+      <div className="ticket-actions">
+        <Button onClick={handleDownloadPdf} icon={<IoMdDownload/>} type="primary"></Button>
+      </div>
     </>
   );
 }

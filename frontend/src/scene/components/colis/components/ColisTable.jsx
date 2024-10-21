@@ -15,6 +15,8 @@ import TableDashboard from '../../../global/TableDashboard';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { Tag } from 'antd';
 import { IoSearch } from "react-icons/io5";
+import { useNavigate } from 'react-router-dom';
+import { FaTicketAlt } from "react-icons/fa";
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
@@ -37,6 +39,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   const componentRef = useRef();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { colisData, user, store } = useSelector((state) => ({
     colisData: state.colis.colis || [],
@@ -250,18 +253,21 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     documentTitle: `Ticket-${state.selectedColis?.code_suivi}`,
   });
 
-  const handleDownloadPdf = () => {
-    const input = componentRef.current;
-    html2canvas(input, { scale: 2 }).then((canvas) => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [450, 460] });
-      pdf.addImage(imgData, 'PNG', 0, 0, 450, 460);
-      pdf.save(`Ticket-${state.selectedColis?.code_suivi}.pdf`);
-    });
+  const handleBatchTickets = () => {
+    if (state.selectedRows.length === 0) {
+      toast.error("Please select at least one colis.");
+      return;
+    }
+    navigate('/dashboard/tickets', { state: { selectedColis: state.selectedRows } });
   };
+
+
 
   return (
     <>
+      <div className="bar-action-data">
+        <Button icon={<FaTicketAlt />} type="primary" variant="filled" onClick={handleBatchTickets} style={{ marginBottom: 16 }}>Tickets </Button>
+      </div>
       <Input
         placeholder="Recherche ..."
         value={state.searchTerm}
@@ -284,7 +290,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
       <Modal title="Ticket Colis" open={state.ticketModalVisible} onCancel={handleCloseTicketModal} footer={null} width={600}>
         {state.selectedColis && <div ref={componentRef}><TicketColis colis={state.selectedColis} /></div>}
-        <Button onClick={handleDownloadPdf} style={{ marginLeft: '10px' }}>Télécharger en PDF</Button>
       </Modal>
 
       <Drawer title="Les données de colis suivre" onClose={() => setState({ ...state, drawerOpen: false })} open={state.drawerOpen}>

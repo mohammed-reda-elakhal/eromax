@@ -70,7 +70,7 @@ function DemandeRetraitTable() {
             dataIndex: 'store',
             key: 'store',
             render: (text, record) => (
-                <span>{record.id_store.storeName}</span>
+                <span>{record?.id_store?.storeName}</span>
             )
         },
         {
@@ -78,7 +78,7 @@ function DemandeRetraitTable() {
             dataIndex: 'tele',
             key: 'tele',
             render: (text, record) => (
-                <span>{record.id_store.id_client.tele}</span>
+                <span>{record?.id_store?.id_client?.tele}</span>
             )
         },
         {

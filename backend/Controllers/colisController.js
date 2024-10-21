@@ -172,15 +172,34 @@ module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
 **/
 
 exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
-  const colis = await Colis.findOne({ code_suivi: req.params.code_suivi })
-  .populate('team')        // Populate the team details
-  .populate('livreur')     // Populate the livreur details
-  .populate('store')       // Populate the store details
-  .populate('ville')
-if (!colis) {
-    return res.status(404).json({ message: "Colis not found" });
-}
-res.status(200).json(colis);
+  const { code_suivi } = req.params;
+
+  // Check if code_suivi is provided
+  if (!code_suivi) {
+    return res.status(400).json({ message: "Code suivi is required" });
+  }
+
+  try {
+    // Find the colis by code_suivi
+    const colis = await Colis.findOne({ code_suivi })
+      .populate('team')        // Populate the team details
+      .populate('livreur')     // Populate the livreur details
+      .populate('store')       // Populate the store details
+      .populate('ville');      // Populate the ville details
+
+    // If no colis found, return 404
+    if (!colis) {
+      return res.status(404).json({ message: "Colis not found" });
+    }
+
+    // Return the found colis
+    return res.status(200).json(colis);
+
+  } catch (error) {
+    // Handle any other errors (e.g. database issues)
+    console.error("Error fetching colis by code suivi:", error);
+    return res.status(500).json({ message: "An error occurred while fetching the colis." });
+  }
 });
 
 /**

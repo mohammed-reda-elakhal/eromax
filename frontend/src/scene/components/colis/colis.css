@@ -87,6 +87,18 @@
     font-size: 1.6rem;
 }
 
+
+.bar-action-data{
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    padding: 12px;
+    margin: 16px 0;
+    gap: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
 @media only screen and (max-width: 600px){
     .colis-form-header{
        flex-direction: column;

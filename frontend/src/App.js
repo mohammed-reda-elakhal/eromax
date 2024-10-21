@@ -49,6 +49,9 @@ import MethodePayemet from "./scene/components/payement/page/MethodePayemet";
 import MethodePayementOperation from "./scene/components/payement/page/MethodePayementOperation";
 import DemandeRetraitTable from "./scene/components/payement/page/DemandeRetraitTable";
 import TransactionTable from "./scene/components/payement/page/TransactionTable";
+import TicketBatch from "./scene/components/tickets/TicketBatch";
+import ScanRecherche from "./scene/components/scan/components/ScanRecherche";
+import ScanRamasser from "./scene/components/scan/components/ScanRamasser";
 
 function App() {
 
@@ -184,7 +187,13 @@ function App() {
             <Route path="gnotification" element={<Notification />} /> 
             <Route path="demande-retrait" element={<DemandeRetraitTable />} /> 
             <Route path="transaction" element={<TransactionTable />} /> 
+            <Route path="tickets" element={<TicketBatch />} /> 
             
+            <Route path="scan">
+              <Route path="recherche" element={<ScanRecherche/>}  />
+              <Route path="ramasser" element={<ScanRamasser/>}  />
+              
+            </Route>
 
             <Route path="compte">
               <Route path="client" element={<Client search = {getColumnSearchProps}  />}  />

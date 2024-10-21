@@ -6,6 +6,7 @@ import { decodeToken } from "../../utils/tokenUtils";
 import { jwtDecode } from "jwt-decode";
 
 
+
 // Fetch post
 export function getColis(statut) {
     return async (dispatch) => {
@@ -25,6 +26,28 @@ export function getColis(statut) {
         } catch (error) {
             console.error("Failed to fetch colis:", error);
             dispatch(colisActions.setError(error.message));
+        }
+    };
+}
+
+// Fetch a single colis by `code_suivi`
+export function getColisByCodeSuivi(code_suivi) {
+    return async (dispatch) => {
+        dispatch(colisActions.setLoading(true));  // Start loading
+        try {
+
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            const { data } = await request.get(`/api/colis/code_suivi/${code_suivi}`, config);
+            dispatch(colisActions.setSelectedColis(data)); // Dispatch the selected colis to the Redux state
+        } catch (error) {
+            console.error("Failed to fetch colis by code_suivi:", error);
+            dispatch(colisActions.setError(error.message));
+            toast.error('Failed to fetch colis by code_suivi');
         }
     };
 }
@@ -74,6 +97,20 @@ export const getColisForClient = (storeId , statut) => async (dispatch) => {
         dispatch(colisActions.setColis(data)); // Use action creator
     } catch (error) {
         console.error("Failed to fetch colis for client:", error);
+        dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
+    }
+};
+
+
+
+export const ramasserColis = (colisList) => async (dispatch) => {
+    dispatch(colisActions.setLoading(true));
+    try {
+        const { data } = await request.post(`/api/colis/St/multiple` , colisList);
+        toast.success(data.message)
+
+    } catch (error) {
+        toast.error("Failed to update statu:", error);
         dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
     }
 };
