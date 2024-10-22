@@ -40,6 +40,12 @@ const ColisSchema = new mongoose.Schema({
     commentaire: {
         type: String,
     },
+    comment_annule:{
+        type: String,
+    },
+    comment_refuse:{
+        type: String,
+    },
     prix: {
         type: Number,
         required: true,
