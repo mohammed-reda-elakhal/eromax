@@ -670,7 +670,34 @@ exports.colisProgramme = asyncHandler(async (req, res) => {
     return res.status(500).send("Something went wrong: " + error.message);
   }
 });
- exports.annulerColis = async (req, res) => {
+ 
+// Controller function to group by store and show data per day
+exports.createFactureByClient = async (req, res) => {
+  try {
+    // Query the database for colis where store is not null and statut is 'Livrée'
+    const colis = await Colis.find({
+      store: { $ne: null }, // Store should not be null
+      statut: 'Livrée',     // Statut should be 'Livrée'
+    })
+      .select('code_suivi store ville statut prix')  // Select only specific fields
+      .populate('store')  // Populate store to show its name field
+      .populate('ville'); // Populate ville to show its name field (assuming ville also has a name field)
+
+    // If no colis found
+    if (!colis.length) {
+      return res.status(404).json({ message: 'No delivered colis found' });
+    }
+
+    // Return the found colis
+    res.status(200).json(colis);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+
+  }
+};
+exports.annulerColis = async (req, res) => {
   try {
     const {idColis,commentaire}=req.body
     console.log('ID du colis recherché:', idColis); // Ajoutez ce log
@@ -685,13 +712,13 @@ exports.colisProgramme = asyncHandler(async (req, res) => {
     }
 
     // Vérification si le colis peut être annulé (par exemple, s'il n'est pas expédié ou livré)
-    if (colis.statut === 'Expédié' || colis.statut === 'Livré') {
+    /* if (colis.statut === 'Expédié' || colis.statut === 'Livré') {
       return res.status(400).json({ message: 'Impossible d\'annuler un colis déjà expédié ou livré' });
-    }
+    } */
 
     // Mise à jour du statut du colis à "Annulé"
     colis.statut = 'Annulé';
-    colis.commentaire=commentaire
+    colis.comment_annule=commentaire
     await colis.save();
     // **Mise à jour du Suivi_Colis avec le statut "Annulé"**
     let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
@@ -718,31 +745,294 @@ exports.colisProgramme = asyncHandler(async (req, res) => {
 };
 
 
-
-
-// Controller function to group by store and show data per day
-exports.createFactureByClient = async (req, res) => {
+exports.refuserColis = async (req, res) => {
   try {
-    // Query the database for colis where store is not null and statut is 'Livrée'
-    const colis = await Colis.find({
-      store: { $ne: null }, // Store should not be null
-      statut: 'Livrée',     // Statut should be 'Livrée'
-    })
-      .select('code_suivi store ville statut prix')  // Select only specific fields
-      .populate('store')  // Populate store to show its name field
-      .populate('ville'); // Populate ville to show its name field (assuming ville also has a name field)
+    const {idColis,commentaire}=req.body
+    console.log('ID du colis recherché:', idColis); // Ajoutez ce log
 
-    // If no colis found
-    if (!colis.length) {
-      return res.status(404).json({ message: 'No delivered colis found' });
+    // Recherche du colis dans la base de données
+    const colis = await Colis.findById(idColis);
+    console.log("Colis recherché:", colis); // Ajoutez ce log
+
+    // Vérification si le colis existe
+    if (!colis) {
+      return res.status(404).json({ message: 'Colis non trouvé' });
     }
 
-    // Return the found colis
-    res.status(200).json(colis);
+    // Vérification si le colis peut être annulé (par exemple, s'il n'est pas expédié ou livré)
+    if (colis.statut !== 'Expédié' || colis.statut !== 'Livré') {
+      return res.status(400).json({ message: 'Le colis ne peut être refusé que s\'il est expédié ou livré' });
+    }
+    // Retrieve the associated store
+    const store = await Store.findById(colis.store);
+    if (!store) {
+      return res.status(404).json({ message: 'Store non trouvé' });
+    }
+    store.solde -= store.tarif_refus;
+    await store.save(); // Save the updated store with the new balance
 
+    // Mise à jour du statut du colis à "Annulé"
+    colis.statut = 'Refusée';
+    colis.comment_refuse=commentaire
+    await colis.save();
+    // **Mise à jour du Suivi_Colis avec le statut "Annulé"**
+    let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+    if (!suivi_colis) {
+      // Créer une nouvelle entrée Suivi_Colis si elle n'existe pas
+      suivi_colis = new Suivi_Colis({
+        id_colis: colis._id,
+        code_suivi: colis.code_suivi,
+        status_updates: [{ status: 'Refusée', date: new Date() }],
+      });
+    } else {
+      // Ajouter une nouvelle mise à jour de statut
+      suivi_colis.status_updates.push({ status: 'Refusée', date: new Date() });
+    }
+
+    await suivi_colis.save();
+
+    // Réponse avec succès
+    return res.status(200).json({ message: 'Colis refusée avec succès', colis });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Erreur serveur lors de refus du colis' });
+  }
+};
 
+exports.countColisLivre = async (req, res) => {
+  try {
+    // Count the number of colis with the status "Livré"
+    const colisCount = await Colis.countDocuments({ statut: 'Livrée' });
+    
+    // Return the count in the response
+    return res.status(200).json({ message: 'Nombre de colis livrés', count: colisCount });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis livrés:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis livrés' });
+  }
+};
+
+
+exports.countColisLivreByClient = async (req, res) => {
+  try {
+    const { storeId } = req.params; // Get storeId from request parameters
+
+    // Aggregate query to count "Livré" colis for a specific store
+    const countForStore = await Colis.aggregate([
+      { $match: { statut: 'Livrée', store: storeId } }, // Filter by statut 'Livrée' and storeId
+      {
+        $group: {
+          _id: "$store", // Group by storeId
+          totalColis: { $count: {} }, // Count the total colis for this store
+        }
+      }
+    ]);
+
+    if (countForStore.length === 0) {
+      return res.status(404).json({ message: 'Aucun colis livré trouvé pour ce magasin' });
+    }
+
+    // Return the result
+    return res.status(200).json({
+      message: 'Nombre de colis livrés pour le magasin',
+      storeId: storeId,
+      totalColis: countForStore[0].totalColis // The total count for this store
+    });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis livrés pour le magasin:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis livrés pour le magasin' });
+  }
+};
+
+
+
+exports.countColisLivreByTeam = async (req, res) => {
+  try {
+    const { teamId } = req.params; // Get teamId from request parameters
+
+    // Aggregate query to count "Livré" colis for a specific team
+    const countForTeam = await Colis.aggregate([
+      { $match: { statut: 'Livré', team: teamId } }, // Filter by statut 'Livré' and teamId
+      {
+        $group: {
+          _id: "$team", // Group by team
+          totalColis: { $count: {} }, // Count the total colis for this team
+        }
+      }
+    ]);
+
+    if (countForTeam.length === 0) {
+      return res.status(404).json({ message: 'Aucun colis livré trouvé pour cette équipe' });
+    }
+
+    // Return the result
+    return res.status(200).json({
+      message: 'Nombre de colis livrés pour l\'équipe',
+      teamId: teamId,
+      totalColis: countForTeam[0].totalColis // The total count for this team
+    });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis livrés pour l\'équipe:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis livrés pour l\'équipe' });
+  }
+};
+
+
+exports.countColisLivreByLivreur = async (req, res) => {
+  try {
+    const { livreurId } = req.params; // Get livreurId from request parameters
+
+    // Aggregate query to count "Livré" colis for a specific livreur
+    const countForLivreur = await Colis.aggregate([
+      { $match: { statut: 'Livré', livreur: livreurId } }, // Filter by statut 'Livré' and livreurId
+      {
+        $group: {
+          _id: "$livreur", // Group by livreur
+          totalColis: { $count: {} }, // Count the total colis for this livreur
+        }
+      }
+    ]);
+
+    if (countForLivreur.length === 0) {
+      return res.status(404).json({ message: 'Aucun colis livré trouvé pour ce livreur' });
+    }
+
+    // Return the result
+    return res.status(200).json({
+      message: 'Nombre de colis livrés pour le livreur',
+      livreurId: livreurId,
+      totalColis: countForLivreur[0].totalColis // The total count for this livreur
+    });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis livrés pour le livreur:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis livrés pour le livreur' });
+  }
+};
+
+
+exports.countColis = async (req, res) => {
+  try {
+    // Aggregate query to count all colis except those with statut 'Livrée'
+    const count = await Colis.aggregate([
+      { $match: { statut: { $ne: 'Livrée' } } }, // Exclude colis that are delivered
+      {
+        $group: {
+          _id: null, // Grouping all results together
+          totalColis: { $count: {} } // Count the total colis
+        }
+      }
+    ]);
+
+    // If no colis found
+    if (count.length === 0) {
+      return res.status(200).json({ message: 'Aucun colis trouvé', totalColis: 0 });
+    }
+
+    // Return the result
+    return res.status(200).json({
+      message: 'Total de colis (excluant ceux livrés)',
+      totalColis: count[0].totalColis // The total count of colis excluding 'Livrée'
+    });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis' });
+  }
+};
+
+exports.countColisByClinet = async (req, res) => {
+  try {
+    const { storeId } = req.params; // Get storeId from request parameters
+
+    // Aggregate query to count colis for a specific store excluding those with statut 'Livrée'
+    const countForStore = await Colis.aggregate([
+      { $match: { statut: { $ne: 'Livrée' }, store: storeId } }, // Exclude delivered colis for the specific store
+      {
+        $group: {
+          _id: "$store", // Group by storeId
+          totalColis: { $count: {} } // Count the total colis for this store
+        }
+      }
+    ]);
+
+    // If no colis found
+    if (countForStore.length === 0) {
+      return res.status(200).json({ message: 'Aucun colis trouvé pour ce magasin', totalColis: 0 });
+    }
+
+    // Return the result
+    return res.status(200).json({
+      message: 'Total de colis (excluant ceux livrés) pour le magasin',
+      storeId: storeId,
+      totalColis: countForStore[0].totalColis // The total count for this store
+    });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis par magasin:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis par magasin' });
+  }
+};
+
+
+exports.countColisByTeam = async (req, res) => {
+  try {
+    const { teamId } = req.params; // Get teamId from request parameters
+
+    // Aggregate query to count colis for a specific team excluding those with statut 'Livrée'
+    const countForTeam = await Colis.aggregate([
+      { $match: { statut: { $ne: 'Livrée' }, team: teamId } }, // Exclude delivered colis for the specific team
+      {
+        $group: {
+          _id: "$team", // Group by teamId
+          totalColis: { $count: {} } // Count the total colis for this team
+        }
+      }
+    ]);
+
+    // If no colis found
+    if (countForTeam.length === 0) {
+      return res.status(200).json({ message: 'Aucun colis trouvé pour cette équipe', totalColis: 0 });
+    }
+
+    // Return the result
+    return res.status(200).json({
+      message: 'Total de colis (excluant ceux livrés) pour l\'équipe',
+      teamId: teamId,
+      totalColis: countForTeam[0].totalColis // The total count for this team
+    });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis par équipe:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis par équipe' });
+  }
+};
+
+
+exports.countColisByLivreur = async (req, res) => {
+  try {
+    const { livreurId } = req.params; // Get livreurId from request parameters
+
+    // Aggregate query to count colis for a specific livreur excluding those with statut 'Livrée'
+    const countForLivreur = await Colis.aggregate([
+      { $match: { statut: { $ne: 'Livrée' }, livreur: livreurId } }, // Exclude delivered colis for the specific livreur
+      {
+        $group: {
+          _id: "$livreur", // Group by livreurId
+          totalColis: { $count: {} } // Count the total colis for this livreur
+        }
+      }
+    ]);
+
+    // If no colis found
+    if (countForLivreur.length === 0) {
+      return res.status(200).json({ message: 'Aucun colis trouvé pour ce livreur', totalColis: 0 });
+    }
+
+    // Return the result
+    return res.status(200).json({
+      message: 'Total de colis (excluant ceux livrés) pour le livreur',
+      livreurId: livreurId,
+      totalColis: countForLivreur[0].totalColis // The total count for this livreur
+    });
+  } catch (error) {
+    console.error('Erreur lors du comptage des colis par livreur:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis par livreur' });
   }
 };

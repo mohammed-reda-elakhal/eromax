@@ -27,6 +27,10 @@ const StoreSchema = new mongoose.Schema({
     solde : {
         type : Number,
         default : 0 ,
+    },
+    tarif_refus:{
+        type : Number,
+        default : 15 ,
     }
 }, { timestamps: true });
 
