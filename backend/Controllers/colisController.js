@@ -10,6 +10,8 @@ const { Team } = require("../Models/Team");
 const schedule = require('node-schedule');
 const { Ville } = require("../Models/Ville");
 const Notification_User = require("../Models/Notification_User");
+const shortid = require('shortid');
+
 
 
 // Utility function to generate a unique code_suivi
@@ -94,7 +96,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     });
     await notification.save();  // Sauvegarder la notification
   // Create and save the new Suivi_Colis
-  
+
   const suivi_colis = new Suivi_Colis({
     id_colis: newColis._id,
     code_suivi: newColis.code_suivi,
