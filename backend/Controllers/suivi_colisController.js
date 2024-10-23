@@ -9,7 +9,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   const { new_status } = req.body;
   const validStatuses = [
     "Nouveau Colis",
-    "Attente de Ramassage",
+    "attente de ramassage",
     "Ramassée",
     "Expediée",
     "Reçu",

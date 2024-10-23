@@ -50,6 +50,10 @@ const ColisSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    prix_payer: {
+        type: Number,
+        default: 0,
+    },
     nature_produit: {
         type: String,
         required: true,
