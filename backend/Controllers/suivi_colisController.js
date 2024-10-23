@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
+const {Notification_User} =require('../Models/Notification_User')
 const { Colis } = require("../Models/Colis");
 const { Ville } = require("../Models/Ville"); // Import Ville model
 const { Store } = require("../Models/Store"); // Import Store model
@@ -41,6 +42,29 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   // Update the status in Colis
   colis.statut = new_status;
   await colis.save();
+
+  if (new_status === "Ramassée") {
+    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
+    const notification = new Notification_User({
+      storeId: colis.store,  // L'utilisateur à notifier (le client associé au colis)
+      clientId:colis.clientId,
+      title:'Colis Livrée',
+      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
+    });
+    await notification.save();
+  }
+
+  //Create Notif User when Satut ===Livrée
+  if (new_status === "Livrée") {
+    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
+    const notification = new Notification_User({
+      storeId: colis.store,  // L'utilisateur à notifier (le client associé au colis)
+      clientId:colis.clientId,
+      title:'Colis Livrée',
+      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
+    });
+    await notification.save();
+  }
 
   // **Special operation when status is "Livrée"**
 

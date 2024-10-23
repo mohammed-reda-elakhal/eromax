@@ -28,10 +28,7 @@ const StoreSchema = new mongoose.Schema({
         type : Number,
         default : 0 ,
     },
-    tarif_refus:{
-        type : Number,
-        default : 15 ,
-    }
+   
 }, { timestamps: true });
 
 const Store = mongoose.model('Store', StoreSchema);
