@@ -48,6 +48,21 @@
     color: #ccc;
 }
 
+.livreur_list_modal{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+}
+.livreur_list_modal h3{
+    color: var(--gray);
+    font-size: 16px;
+}
+
+.livreur_list_modal_card{
+    display: flex;
+    align-items: center;
+}
 
 .colis-form-header{
     width: 100%;

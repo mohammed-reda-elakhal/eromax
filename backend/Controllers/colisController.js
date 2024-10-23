@@ -12,12 +12,19 @@ const { Ville } = require("../Models/Ville");
 const Notification_User = require("../Models/Notification_User");
 const shortid = require('shortid');
 
-
-
 // Utility function to generate a unique code_suivi
+/*
 function generateCodeSuivi( code_ville ) {
   return crypto.randomBytes(8).toString('hex'); // Generates a 16-character hexadecimal string
 }
+*/
+
+const generateCodeSuivi = (refVille) => {
+  const currentDate = new Date(); // Get the current date
+  const formattedDate = currentDate.toISOString().slice(0, 10).replace(/-/g, ''); // Format date as YYYYMMDD
+  const randomNumber = shortid.generate().slice(0, 6).toUpperCase(); // Shorten and uppercase for readability
+  return `${refVille}${formattedDate}-${randomNumber}`;
+};
 
 /**
  * -------------------------------------------------------------------
@@ -59,7 +66,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   let code_suivi;
   let isUnique = false;
   while (!isUnique) {
-    code_suivi = generateCodeSuivi();
+    code_suivi = generateCodeSuivi(ville.ref);
     const existingColis = await Colis.findOne({ code_suivi });
     if (!existingColis) {
       isUnique = true;
@@ -247,35 +254,44 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
 **/
-exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
-  let colis;
-  let team = req.user.id;
-  let store = req.user.store;
-  let filter = {};
+exports.getColisByUserOrStore = asyncHandler(async (req, res) => {  
+  let colis;  
+  let team = req.user.id;  
+  let store = req.user.store;  
+  let filter = {};  
 
-  // Check if the optional 'statut' parameter is provided
-  const { statut } = req.query;
+  const { statut } = req.query;  
+  if (req.user.role === "team" || req.user.role === "admin") {    
+    filter.team = team;  
+  } else {    
+    filter.store = store;  
+  }  
 
-  if (req.user.role === "team" || req.user.role === "admin") {
-    filter.team = team;
-  } else {
-    filter.store = store;
-  }
+  if (statut) {    
+    filter.statut = statut;  
+  }  
 
-  // Add 'statut' to the filter if it's provided
-  if (statut) {
-    filter.statut = statut;
-  }
+  // Chaining populate to access id_client through store
+  colis = await Colis.find(filter)
+    .populate('team')
+    .populate('livreur')
+    .populate({
+      path: 'store',
+      populate: {
+        path: 'id_client',
+        select: '-password'  
+      }
+    })
+    .populate('ville')
+    .sort({ updatedAt: -1 });
 
-  // Find colis based on the constructed filter
-  colis = await Colis.find(filter).populate('team').populate('livreur').populate('store').populate('ville').sort({ updatedAt: -1 });;
-
-  if (!colis) {
-    return res.status(404).json({ message: "Colis not found" });
-  }
+  if (!colis) {    
+    return res.status(404).json({ message: "Colis not found" });  
+  }  
 
   res.status(200).json(colis);
 });
+
 
 
 /**
