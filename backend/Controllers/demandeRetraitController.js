@@ -1,5 +1,6 @@
 // controllers/demande_retour.controller.js
 const DemandeRetrait = require('../Models/Demande_Retrait');
+const Notification_User = require('../Models/Notification_User');
 const { Store } = require('../Models/Store');
 const Transaction = require('../Models/Transaction')
 
@@ -94,8 +95,14 @@ exports.verserDemandeRetrait = async (req, res) => {
         type: 'credit', // Transaction de type crédit
     });
     await transaction.save();
+    // Créer une notification pour l'utilisateur concernant le versement de la demande de retrait
 
- 
+    const notification = new Notification_User({
+      storeId: store._id,
+      clientId: store.id_client,  // Assuming `clientId` is a field in the `store` model representing the user
+      description: `Votre demande de retrait d'un montant de ${demandeRetrait.montant} MAD a été versée avec succès.`,
+    });
+    await notification.save();  // Sauvegarder la notification
 
     res.status(200).json({
         message: 'Versement effectué avec succès 💵🤑',

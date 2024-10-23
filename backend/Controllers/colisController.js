@@ -9,9 +9,8 @@ const { Livreur } = require("../Models/Livreur");
 const { Team } = require("../Models/Team");
 const schedule = require('node-schedule');
 const { Ville } = require("../Models/Ville");
+const Notification_User = require("../Models/Notification_User");
 const shortid = require('shortid');
-
-
 
 // Utility function to generate a unique code_suivi
 /*
@@ -96,8 +95,15 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     console.log("Error: code_suivi is null after saving Colis");
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
-
+    // Créer une notification pour l'utilisateur lors de l'ajout d'un nouveau colis
+    const notification = new Notification_User({
+      storeId: saveColis.store,
+      clientId:saveColis.clientId,
+      description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
+    });
+    await notification.save();  // Sauvegarder la notification
   // Create and save the new Suivi_Colis
+
   const suivi_colis = new Suivi_Colis({
     id_colis: newColis._id,
     code_suivi: newColis.code_suivi,
@@ -783,12 +789,19 @@ exports.refuserColis = async (req, res) => {
     if (colis.statut !== 'Expédié' || colis.statut !== 'Livré') {
       return res.status(400).json({ message: 'Le colis ne peut être refusé que s\'il est expédié ou livré' });
     }
+    // Recherche de la ville pour obtenir le tarif de refus
+    const ville = await Ville.findOne({ ref: colis.ville });
+    if (!ville) {
+      return res.status(404).json({ message: 'Ville non trouvée pour ce colis' });
+    }
+
     // Retrieve the associated store
     const store = await Store.findById(colis.store);
     if (!store) {
       return res.status(404).json({ message: 'Store non trouvé' });
     }
-    store.solde -= store.tarif_refus;
+    //Ajuster pour la facture !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    store.solde -=ville.tarif_refus;
     await store.save(); // Save the updated store with the new balance
 
     // Mise à jour du statut du colis à "Annulé"

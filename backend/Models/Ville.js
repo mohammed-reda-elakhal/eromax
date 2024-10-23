@@ -6,7 +6,11 @@ const VilleSchema = new mongoose.Schema({
   nom: String,
   tarif:{
     type:Number
-  }
+  },
+  tarif_refus:{
+    type : Number,
+    default : 15 ,
+}
 });
 
 const Ville = mongoose.model('Ville', VilleSchema);
