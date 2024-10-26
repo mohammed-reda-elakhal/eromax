@@ -2,10 +2,10 @@
 const mongoose = require('mongoose');
 
 const notificationUserSchema = new mongoose.Schema({
-  id_store: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+  id_store: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: false },
  
-  clientId: { 
-    type: mongoose.Schema.Types.ObjectId, ref: 'Client',required: true 
+  id_livreur: { 
+    type: mongoose.Schema.Types.ObjectId, ref: 'Livreur',required: false 
   },
   colisId: { 
     type: mongoose.Schema.Types.ObjectId,ref: 'Colis',required: true 

@@ -3,7 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const villeSlice = createSlice({
   name: "ville",
   initialState: {
-    villes: [],  // Ensure this is initialized as an empty array
+    villes: [],       // Array for storing all villes
+    selectedVille: null, // Object for storing a single ville by ID
     loading: false,
     error: null,
   },
@@ -13,6 +14,7 @@ const villeSlice = createSlice({
     },
     fetchVillesStart(state) {
       state.loading = true;
+      state.error = null;
     },
     fetchVillesSuccess(state, action) {
       state.villes = action.payload;
@@ -20,6 +22,10 @@ const villeSlice = createSlice({
     },
     fetchVillesFailure(state, action) {
       state.error = action.payload;
+      state.loading = false;
+    },
+    fetchVilleByIdSuccess(state, action) { // New reducer for single ville
+      state.selectedVille = action.payload;
       state.loading = false;
     },
   },

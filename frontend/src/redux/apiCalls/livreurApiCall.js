@@ -11,7 +11,6 @@ export function getLivreurList(){
     return async(dispatch)=>{
         try{
             const {data} = await request.get(`/api/livreur`);
-            console.log('Livreur List',data);
             dispatch(livreurActions.setLivreurList(data))
         }catch(error){
             toast.error(error.message || "Failed to fetch livreur List");

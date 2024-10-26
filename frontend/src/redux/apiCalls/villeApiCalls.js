@@ -15,3 +15,17 @@ export function getAllVilles() {
     }
   };
 }
+
+// Fetch a single ville by ID
+export function getVilleById(id) {
+  return async (dispatch) => {
+    dispatch(villeActions.fetchVillesStart());
+    try {
+      const { data } = await request.get(`/api/ville/${id}`);
+      dispatch(villeActions.fetchVilleByIdSuccess(data)); // Dispatching to the new action
+    } catch (error) {
+      dispatch(villeActions.fetchVillesFailure(error.message || "Failed to fetch ville by ID"));
+      toast.error(error.message || "Failed to fetch ville by ID");
+    }
+  };
+}

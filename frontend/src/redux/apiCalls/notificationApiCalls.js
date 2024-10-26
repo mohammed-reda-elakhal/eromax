@@ -21,6 +21,38 @@ export function getNotification(visibility) {
     };
 }
 
+// Get notifications with optional visibility filter
+export function getNotificationUserByStore() {
+    return async (dispatch) => {
+        try {
+
+            const token =Cookies.get('token'); // Retrieve token as a string
+            const config = {
+                headers: {
+                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+                    'Content-Type': 'application/json',
+                }
+            };
+            const { data } = await request.get(`/api/notification-user/user` , config);
+            dispatch(notificationActions.setNotificationUser(data));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch notifications");
+        }
+    };
+}
+
+// Get notifications with optional visibility filter
+export function notificationRead(id) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.patch(`/api/notification-user/read/${id}`);
+            toast.success(data.message)
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch notifications");
+        }
+    };
+}
+
 
 
 // Create a new notification

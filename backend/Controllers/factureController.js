@@ -172,7 +172,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 };
 
 // Schedule a job to create factures every day at midnight
-cron.schedule('4 1 * * *', async () => {
+cron.schedule('44 13 * * *', async () => {
     console.log('Running daily facture generation at 00:02');
     await createFacturesForClientsAndLivreurs();
 });

@@ -20,6 +20,11 @@ const suiviColisSchema = new mongoose.Schema({
       date: {
         type: Date,
         default: Date.now
+      },
+      livreur : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Livreur',
+        required: false , 
       }
     }
   ]

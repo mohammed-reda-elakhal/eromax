@@ -5,12 +5,15 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
-import { getColis, getColisForClient, getColisForLivreur, updateStatut , getColisByStatu} from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
+import axios from 'axios';
+import { FaBoxesStacked } from "react-icons/fa6";
+import { IoQrCodeSharp } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import {
   CheckCircleOutlined,
@@ -19,16 +22,21 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import { Tag } from 'antd';
+import request from '../../../../utils/request';
+import { IoMdRefresh } from 'react-icons/io';
 
-function ColisExpide({search}) {
-    const { theme } = useContext(ThemeContext);
+function ColisExpide({ search }) {
+  const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
-  const dispatch = useDispatch();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentColis, setCurrentColis] = useState(null);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate()
 
   const success = (text) => {
     messageApi.open({
@@ -50,145 +58,60 @@ function ColisExpide({search}) {
       content: text,
     });
   };
-  /**
-   * @desc API integration
-   * Get Expedie Colis 
-   * Update their stautus to 
-   */
-  //Get States
+
+  // Get Colis Data for the 'Expediée' status
   const { colisData, user, store } = useSelector((state) => ({
-    colisData: state.colis.colis || [],  // Corrected the casing of colisData
+    colisData: state.colis.colis || [],
     user: state.auth.user,
     store: state.auth.store,
   }));
-  //get Colis For each roles
-  useEffect(() => {
+
+  const getDataColis = ()=>{
     if (user?.role) {
       if (user.role === "admin" || user.role === "team") {
         dispatch(getColis("Expediée"));
       } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id , "Expediée"));
-      }else if (user.role === "livreur"){
-        dispatch(getColisForLivreur(user._id , "Expediée"));
-      }else if (user.role === "team") {
-        dispatch(getColisForClient(user._id,'Expediée'));  // Use getColisForLivreur for 'livreur'
+        dispatch(getColisForClient(store._id, "Expediée"));
+      } else if (user.role === "livreur") {
+        dispatch(getColisForLivreur(user._id, "Expediée"));
+      } else if (user.role === "team") {
+        dispatch(getColisForClient(user._id, 'Expediée'));
       }
     }
+  }
+  useEffect(() => {
+    getDataColis()
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
-  
-//Render Data 
+
   useEffect(() => {
-      setData(colisData); 
+    setData(colisData);
   }, [colisData]);
-  
 
-//---------------------------------------------
-
-const handleReçu = (colisId) => {
-  if (!colisId) {
-    warning("ID de colis manquant.");
-    return;
-  }
-  
-  console.log('id', colisId);
-  if (colisId) {
-    // Update the status to 'Reçu' and filter the item out of the data array
-    const newData = data.filter(item => item._id !== colisId); // Filter out the colis
-    setData(newData);
-
-    // Dispatch the updateStatut action to update the server
-    dispatch(updateStatut(colisId, 'Reçu')).then().catch(err => {
-      error('Erreur lors de la mise à jour du statut.');
-    });
-  } else if (selectedRowKeys.length > 0) {
-    const newData = data.filter(item => !selectedRowKeys.includes(item._id)); // Filter out all selected colis
-    setData(newData);
-    setSelectedRowKeys([]);
-
-    // Dispatch the updateStatut action for each selected colis
-    selectedRowKeys.forEach(colisId => {
-      dispatch(updateStatut(colisId, 'Reçu')).then().catch(err => {
-        error('Erreur lors de la mise à jour du statut.');
-      });
-    });
-  } else {
-    warning("Veuillez sélectionner une colonne");
-  }
-};
-
-//------------------------------------------------------
-
-  const showModal = (record) => {
-    setCurrentColis(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleModifier = () => {
-    if (selectedRowKeys.length === 1) {
-      const record = colisData.find(item => item._id === selectedRowKeys[0]);
-      showModal(record);
-    } else {
-      warning("Veuillez sélectionner une seule colonne.");
-    }
-  };
-
-  const confirmSuppression = () => {
-    const newData = colisData.filter(item => !selectedRowKeys.includes(item._id));
-    setData(newData);
-    setSelectedRowKeys([]);
-    success(`${selectedRowKeys.length} colis supprimés.`);
-  };
-
-  const handleSuppremer = () => {
+  // Handle Update of Colis Status to "Reçu" for selected colis
+  const handleReçu = async () => {
     if (selectedRowKeys.length > 0) {
-      Modal.confirm({
-        title: 'Confirmation de suppression',
-        content: `Êtes-vous sûr de vouloir supprimer ${selectedRowKeys.length} colis ?`,
-        okText: 'Oui',
-        cancelText: 'Non',
-        onOk: confirmSuppression,
-      });
+      setLoading(true);
+      try {
+        // Send a PUT request to update the status of selected colis
+        const response = await request.put('/api/colis/statu/update', {
+          colisCodes: selectedRowKeys,
+          new_status: 'Reçu'
+        });
+        setLoading(false);
+        success(`${selectedRowKeys.length} colis marqués comme reçus avec succès.`);
+        setSelectedRowKeys([]);
+        // Update the local data to remove the updated colis
+        const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
+        setData(newData);
+      } catch (err) {
+        setLoading(false);
+        error("Erreur lors de la mise à jour des colis.");
+      }
     } else {
-      warning("Veuillez sélectionner une colonne");
+      warning("Veuillez sélectionner au moins un colis.");
     }
   };
-
-  const handleOk = () => {
-    form.validateFields().then(values => {
-      const newData = colisData.map(item => {
-        if (item._id === currentColis._id) {
-          console.log('current colis in expedie ok',currentColis);
-          return { ...item, ...values };
-        }
-        return item;
-      });
-      setData(newData);
-      setIsModalVisible(false);
-      success("Colis modifié avec succès");
-    }).catch(info => {
-      console.log('Validate Failed:', info);
-    });
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-
-  const menu = (
-    <Menu>
-      <Menu.Item key="ramasse" onClick={() => handleReçu()}>
-        Reçu
-      </Menu.Item>
-      <Menu.Item key="modifier" onClick={handleModifier}>
-        Modifier
-      </Menu.Item>
-      <Menu.Item key="suppremer" onClick={handleSuppremer}>
-        Suppremer
-      </Menu.Item>
-    </Menu>
-  );
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -208,43 +131,24 @@ const handleReçu = (colisId) => {
       key: 'livreur',
       render: (text, record) => (
         <span>
-          {
-            record.livreur 
-            ? 
-            record.livreur.nom + ' - ' + record.livreur.tele 
-            : 
-            <Tag icon={<ClockCircleOutlined />} color="default">
-               Operation de Ramassage
-            </Tag>
-           
-          }
-        </span> // Check if 'livreur' exists, otherwise show default message
-      )
+          {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : (
+            <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>
+          )}
+        </span>
+      ),
     },
     { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
-    {
-      title: 'Destinataire',
-      dataIndex: 'nom',
-      key: 'nom',
-    },
-    {
-      title: 'Téléphone',
-      dataIndex: 'tele',
-      key: 'tele',
-    },
+    { title: 'Destinataire', dataIndex: 'nom', key: 'nom' },
+    { title: 'Téléphone', dataIndex: 'tele', key: 'tele' },
     {
       title: 'État',
       dataIndex: 'etat',
       key: 'etat',
       render: (text, record) => (
         record.etat ? (
-          <Tag color="success" icon={<CheckCircleOutlined />}>
-            Payée
-          </Tag>
+          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag>
         ) : (
-          <Tag color="error" icon={<CloseCircleOutlined />}>
-            Non Payée
-          </Tag>
+          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
         )
       ),
     },
@@ -258,55 +162,11 @@ const handleReçu = (colisId) => {
         </Tag>
       ),
     },
-    {
-      title: 'Date de Livraison',
-      dataIndex: 'date_livraison',
-      key: 'date_livraison',
-    },
-    {
-      title: 'Ville',
-      dataIndex: 'ville',
-      key: 'ville',
-      render: (text, record) => (
-        <span>
-          {record.ville.nom}
-        </span>
-      ),
-    },
-    {
-      title: 'Adress',
-      dataIndex: 'adresse',
-      key: 'adresse',
-    },
-    {
-      title: 'Prix',
-      dataIndex: 'prix',
-      key: 'prix',
-    },
-    {
-      title: 'Nature de Produit',
-      dataIndex: 'nature_produit',
-      key: 'nature_produit',
-    },
-    {
-      title: 'Option',
-      render: (text, record) => (
-        <Popconfirm
-          title="Ramassage Colis"
-          description="Tu es sûr de faire ramassage pour ce colis?"
-          onConfirm={() => handleReçu(record._id)}
-          okText="Oui"
-          cancelText="Non"
-        >
-          <Button
-            type="primary"
-            icon={<MdDeliveryDining />}
-          >
-            Reçu
-          </Button>
-        </Popconfirm>
-      ),
-    },
+    { title: 'Date de Livraison', dataIndex: 'date_livraison', key: 'date_livraison' },
+    { title: 'Ville', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.nom}</span> },
+    { title: 'Adresse', dataIndex: 'adresse', key: 'adresse' },
+    { title: 'Prix', dataIndex: 'prix', key: 'prix' },
+    { title: 'Nature de Produit', dataIndex: 'nature_produit', key: 'nature_produit' },
   ];
 
   return (
@@ -314,136 +174,28 @@ const handleReçu = (colisId) => {
       <Menubar />
       <main className="page-main">
         <Topbar />
-        <div
-          className="page-content"
-          style={{
-            backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
-            color: theme === 'dark' ? '#fff' : '#002242',
-          }}
-        >
+        <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
           <div className="page-content-header">
-            <Title nom='Colis attend de ramassage' />
-            <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
-              <PlusCircleFilled style={{ marginRight: "8px" }} />
-              Ajouter Colis
-            </Link>
+            <Title nom='Colis Expidée' />
           </div>
-          <div
-            className="content"
-            style={{
-              backgroundColor: theme === 'dark' ? '#001529' : '#fff',
-            }}
-          >
-            <h4>Colis attend de ramassage</h4>
+          <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
+            <h4>Colis Expidée</h4>
+            <div className="bar-action-data">
+              <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
+              <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleReçu} loading={loading}>Reçu</Button>
+              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+            </div>
             <TableDashboard
               column={columns}
               data={data}
-              id="_id"
+              id="code_suivi"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
             />
             {contextHolder}
-            <div className="control-option">
-              <div className="select-option">
-                <h3>Options :</h3>
-                <Dropdown overlay={menu}>
-                  <Button>
-                    Choisir une opération : <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </div>
-              <div className="scane-option">
-                <h3>Scan :</h3>
-                <Link
-                  to={`/dashboard/scan`}
-                >
-                  <Button 
-                    icon={<BsUpcScan />}
-                  >
-                    Scan Now
-                  </Button>
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </main>
-      <Modal
-        title="Modifier Colis"
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          name="form_in_modal"
-        >
-          <Form.Item
-            name="code_suivi"
-            label="Code Suivi"
-            rules={[{ required: true, message: 'Veuillez entrer le code suivi!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="nom"
-            label="Destinataire"
-            rules={[{ required: true, message: 'Veuillez entrer le nom du destinataire!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="tele"
-            label="Téléphone"
-            rules={[{ required: true, message: 'Veuillez entrer le téléphone!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="etat"
-            label="État"
-            rules={[{ required: true, message: 'Veuillez entrer l\'état!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="statut"
-            label="Statut"
-            rules={[{ required: true, message: 'Veuillez entrer le statut!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="date_livraison"
-            label="Date de Livraison"
-            rules={[{ required: false, message: 'Veuillez entrer la date de livraison!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="ville"
-            label="Ville"
-            rules={[{ required: true, message: 'Veuillez entrer la ville!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="prix"
-            label="Prix"
-            rules={[{ required: true, message: 'Veuillez entrer le prix!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="nature_produit"
-            label="Nature de Produit"
-            rules={[{ required: true, message: 'Veuillez entrer la nature du produit!' }]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 }

@@ -218,7 +218,7 @@ export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
     }
 
 }
-export const updateStatut = (colisId, newStatus) => async (dispatch) => {
+export const updateStatut = (colisId, newStatus , comment) => async (dispatch) => {
     if (!colisId) {
         toast.error('ID de colis manquant');
         return;
@@ -241,7 +241,8 @@ export const updateStatut = (colisId, newStatus) => async (dispatch) => {
 
     // Request body
     const body = {
-        new_status: newStatus
+        new_status: newStatus ,
+        comment
     };
 
     try {

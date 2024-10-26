@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { InfoCircleOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
-import { Input, Tooltip, Select, Col, Row, Checkbox } from 'antd';
+import { Input, Tooltip, Select, Col, Row, Checkbox, Alert } from 'antd';
 import { MdOutlineWidgets } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { createColis } from '../../../../redux/apiCalls/colisApiCalls';
-import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls'; // API call to fetch villes
+import { getAllVilles, getVilleById } from '../../../../redux/apiCalls/villeApiCalls';
 import { toast } from 'react-toastify';
 
 const { TextArea } = Input;
@@ -49,8 +49,8 @@ const NumericInput = ({ value, onChange }) => {
         onChange={handleChange}
         onBlur={handleBlur}
         placeholder="Numéro"
-        maxLength={10}
-        prefix={<PhoneOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+        maxLength={9}
+        prefix={<span style={{ color: 'rgba(0,0,0,.25)' }}>+212</span>}
         suffix={
           <Tooltip title="Entrer Numéro de téléphone de destinataire">
             <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
@@ -65,7 +65,7 @@ function ColisForm({ theme, type }) {
   const [formData, setFormData] = useState({
     nom: '',
     tele: '',
-    ville: '', // Ville will be selected from the fetched villes
+    ville: '',
     adress: '',
     commentaire: '',
     prix: '',
@@ -73,20 +73,19 @@ function ColisForm({ theme, type }) {
     colisType: ColisTypes[0].name,
     remplaceColis: false,
     ouvrirColis: true,
+    is_fragile: false,
   });
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   // Fetch villes from Redux store
-  const { villes } = useSelector((state) => state.ville);
+  const { villes, selectedVille } = useSelector((state) => state.ville);
 
   useEffect(() => {
-    // Fetch villes on component mount
     dispatch(getAllVilles());
   }, [dispatch]);
 
-  // Set the initial colis type based on the 'type' prop
   useEffect(() => {
     if (type === 'simple') {
       setFormData(prev => ({ ...prev, colisType: ColisTypes[0].name }));
@@ -100,27 +99,16 @@ function ColisForm({ theme, type }) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCleanData = () => {
-    setFormData({
-      nom: '',
-      tele: '',
-      ville: '', // Reset ville
-      adress: '',
-      commentaire: '',
-      prix: '',
-      produit: '',
-      colisType: ColisTypes[0].name,
-      remplaceColis: false,
-      ouvrirColis: true,
-    });
+  // Fetch data of selected ville
+  const handleVilleChange = (value) => {
+    handleInputChange('ville', value);
+    dispatch(getVilleById(value)); // Dispatch to getVilleById with selected ID
   };
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { nom, tele, ville, adress, commentaire, prix, produit, ouvrirColis, remplaceColis } = formData;
+    const { nom, tele, ville, adress, commentaire, prix, produit, ouvrirColis, remplaceColis, is_fragile } = formData;
 
-    // Ensure ville is selected
     if (!ville) {
       toast.error("Veuillez sélectionner une ville.");
       return;
@@ -128,14 +116,15 @@ function ColisForm({ theme, type }) {
 
     const colis = {
       nom,
-      tele,
-      ville, // This will now be the ville ID
+      tele: `+212${tele}`,
+      ville,
       adresse: adress,
       commentaire,
       prix,
       nature_produit: produit,
       ouvrir: ouvrirColis,
       is_remplace: remplaceColis,
+      is_fragile,
     };
 
     dispatch(createColis(colis));
@@ -168,6 +157,13 @@ function ColisForm({ theme, type }) {
         >
           Colis à remplacer
           <p>(Le colis sera remplacé avec l'ancien à la livraison.)</p>
+        </Checkbox>
+        <Checkbox
+          onChange={e => handleInputChange('is_fragile', e.target.checked)}
+          style={theme === 'dark' ? darkStyle : {}}
+          checked={formData.is_fragile}
+        >
+          Colis fragile
         </Checkbox>
         <Select
           options={ColisOuvrir.map(option => ({ value: option.value, label: option.name }))}
@@ -210,20 +206,31 @@ function ColisForm({ theme, type }) {
         </Row>
 
         <div className="colis-form-input">
-            <label htmlFor="ville">Ville <span className="etoile">*</span></label>
-            <Select
-                showSearch
-                placeholder="Rechercher une ville"
-                options={villes.map(ville => ({ value: ville._id, label: ville.nom }))}
-                value={formData.ville}
-                onChange={value => handleInputChange('ville', value)}
-                className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-                filterOption={(input, option) => 
-                option.label.toLowerCase().includes(input.toLowerCase())
-                }
-            />
+          <label htmlFor="ville">Ville <span className="etoile">*</span></label>
+          <Select
+            showSearch
+            placeholder="Rechercher une ville"
+            options={villes.map(ville => ({ value: ville._id, label: ville.nom }))}
+            value={formData.ville}
+            onChange={handleVilleChange} // Updated to handleVilleChange
+            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+            filterOption={(input, option) => 
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+          />
         </div>
 
+        {/* Display selected ville details if available */}
+        {selectedVille && (
+          <div className="selected-ville-info" style={{padding:"16px 0t"}}>
+            <Alert
+              message={`Tarif : ${selectedVille.tarif}`}
+              description={selectedVille.nom}
+              type="info"
+              showIcon
+            />
+          </div>
+        )}
 
         <div className="colis-form-input">
           <label htmlFor="adress">Adresse <span className="etoile">*</span></label>

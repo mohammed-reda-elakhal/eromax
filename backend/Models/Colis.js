@@ -25,7 +25,6 @@ const ColisSchema = new mongoose.Schema({
         type: String, // Change to String for better handling of leading zeros
         required: true,
         trim: true,
-        maxlength: 10,
     },
     ville: {
         type: mongoose.Schema.Types.ObjectId,

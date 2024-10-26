@@ -173,8 +173,7 @@ function ScanRecherche() {
                                         <Descriptions.Item label="Ouvrir">{selectedColis.ouvrir ? "Oui" : "Non"}</Descriptions.Item>
                                         <Descriptions.Item label="Fragile">{selectedColis.is_fragile ? "Oui" : "Non"}</Descriptions.Item>
                                         <Descriptions.Item label="Remplacer">{selectedColis.is_remplace ? "Oui" : "Non"}</Descriptions.Item>
-                                        <Descriptions.Item label="Store">{selectedColis.store.storeName}</Descriptions.Item>
-                                        <Descriptions.Item label="Store Solde">{selectedColis.store.solde} DH</Descriptions.Item>
+                                        <Descriptions.Item label="Store">{selectedColis.store?.storeName}</Descriptions.Item>
                                         <Descriptions.Item label="Créé le">{new Date(selectedColis.createdAt).toLocaleString()}</Descriptions.Item>
                                         <Descriptions.Item label="Mis à jour le">{new Date(selectedColis.updatedAt).toLocaleString()}</Descriptions.Item>
                                     </Descriptions>

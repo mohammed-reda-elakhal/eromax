@@ -19,6 +19,11 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import { Tag } from 'antd';
+import { FaBoxesStacked } from 'react-icons/fa6';
+import { IoQrCodeSharp } from 'react-icons/io5';
+import request from '../../../../utils/request';
+import { toast } from 'react-toastify';
+import { IoMdRefresh } from 'react-icons/io';
 
 
 
@@ -33,6 +38,8 @@ function ColisPourRamassage({ search }) {
   const [deliveryPerson, setDeliveryPerson] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate(); // Get history for redirection
+  const [loading, setLoading] = useState(false);
+
 
 
 
@@ -65,7 +72,7 @@ function ColisPourRamassage({ search }) {
 
  
   // Recuperation des colis selon le role
-  useEffect(() => {
+  const getDataColis = () =>{
     if (user?.role) {
       if (user.role === "admin") {
         dispatch(getColis("attente de ramassage"));
@@ -75,6 +82,9 @@ function ColisPourRamassage({ search }) {
         dispatch(getColisForClient(user._id,'attente de ramassage'));  // Use getColisForLivreur for 'livreur'
       }
     }
+  }
+  useEffect(() => {
+    getDataColis()
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
   
@@ -91,14 +101,27 @@ function ColisPourRamassage({ search }) {
   
 
 
-  const handleRamasse = (colisId) => {
-    if (colisId) {
+  const handleRamasse = async () => {
+    if (selectedRowKeys.length > 0) {
       // Dispatch the updateStatut action to update the server
-      dispatch(updateStatut(colisId, 'Ramassée')).then(() => {
-        // Filter out the colis with the changed status
-        const updatedData = data.filter(item => item._id !== colisId);
-        setData(updatedData); // Update the local state to reflect the new data without the modified colis
-      });
+      setLoading(true);
+      try {
+        // Send a PUT request to update the status of selected colis
+        const response = await request.put('/api/colis/statu/update', {
+          colisCodes: selectedRowKeys,
+          new_status: 'Ramassée'
+        });
+        setLoading(false);
+        setSelectedRowKeys([]);
+        toast.success(response.data.message)
+        // Update the local data to remove the updated colis
+        const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
+        setData(newData);
+      } catch (err) {
+        setLoading(false);
+        error("Erreur lors de la mise à jour des colis.");
+      }
+      
     } else {
       warning("Veuillez sélectionner une colonne");
     }
@@ -329,36 +352,26 @@ function ColisPourRamassage({ search }) {
             }}
           >
             <h4>Colis attend de ramassage</h4>
+            {
+              user?.role === "admin" 
+              ?
+              <div className="bar-action-data">
+                <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
+                <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleRamasse} loading={loading}>Rammaser</Button>
+                <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+              </div>
+              :
+              "" 
+            }
             <TableDashboard
               column={columns}
               data={data}
-              id="_id"
+              id="code_suivi"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
             />
             {contextHolder}
-            <div className="control-option">
-              <div className="select-option">
-                <h3>Options :</h3>
-                <Dropdown overlay={menu}>
-                  <Button>
-                    Choisir une opération : <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </div>
-              <div className="scane-option">
-                <h3>Scan :</h3>
-                <Link
-                  to={`/dashboard/scan`}
-                >
-                  <Button 
-                    icon={<BsUpcScan />}
-                  >
-                    Scan Now
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            
           </div>
         </div>
       </main>

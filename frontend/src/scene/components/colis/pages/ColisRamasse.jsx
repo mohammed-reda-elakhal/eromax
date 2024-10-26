@@ -5,7 +5,7 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled } from '@ant-design/icons';
 import { Button, Modal, Form, Input, message, Card, Divider } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +15,10 @@ import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutl
 import { Tag } from 'antd';
 import { toast } from 'react-toastify';
 import { BsFillInfoCircleFill } from "react-icons/bs";
+import { FaBoxesStacked } from 'react-icons/fa6';
+import { IoQrCodeSharp } from 'react-icons/io5';
+import request from '../../../../utils/request';
+import { IoMdRefresh } from 'react-icons/io';
 
 function ColisRamasse({ search }) {
   const { theme } = useContext(ThemeContext);
@@ -26,6 +30,9 @@ function ColisRamasse({ search }) {
   const [livreurId, setLivreurId] = useState(null);
   const [form] = Form.useForm();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+
   const { livreurList, colisData, user, store } = useSelector(state => ({
     livreurList: state.livreur.livreurList,
     colisData: state.colis.colis || [],
@@ -33,7 +40,7 @@ function ColisRamasse({ search }) {
     store: state.auth.store,
   }));
 
-  useEffect(() => {
+  const getDataColis = ()=>{
     if (user?.role) {
       if (user.role === "admin" || user.role === "team") {
         dispatch(getColis("Ramassée"));
@@ -43,6 +50,9 @@ function ColisRamasse({ search }) {
         dispatch(getColisForClient(user._id,'Ramassée'));
       }
     }
+  }
+  useEffect(() => {
+    getDataColis()
     dispatch(getLivreurList());
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id]);
@@ -55,26 +65,39 @@ function ColisRamasse({ search }) {
   const warning = (text) => messageApi.warning(text);
   const error = (text) => messageApi.error(text);
 
-  const showModal = (record) => {
-    setCurrentColis(record);
-    setLivreurId(null);
-    form.resetFields();
-    setIsModalVisible(true);
+  const showModal = () => {
+    if( selectedRowKeys.length > 0){
+      setLivreurId(null);
+      form.resetFields();
+      setIsModalVisible(true);
+    }else{
+      toast.warn("Selectionnée au moins une colis  !")
+    }
+    
   };
 
   const handleAffecterLivreur = async () => {
-    if (currentColis && livreurId) {
+    if (selectedRowKeys.length > 0)  {
+      setLoading(true);
       try {
-        await dispatch(affecterLivreur(currentColis._id, livreurId));
-        const updatedData = data.filter(item => item._id !== currentColis._id);
-        setData(updatedData);
+        // Send a PUT request to update the status of selected colis
+        const response = await request.put('/api/colis/statu/affecter', {
+          codesSuivi: selectedRowKeys,
+          livreurId
+        });
+        setLoading(false);
+        toast.success(response.data.message);
+        setSelectedRowKeys([]);
+        // Update the local data to remove the updated colis
+        const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
+        setData(newData);
+        setLivreurId(null)
         setIsModalVisible(false);
-        form.resetFields();
-        setCurrentColis(null);
-        setLivreurId(null);
       } catch (err) {
-        error('Erreur lors de l\'assignation du livreur');
+        setLoading(false);
+        toast.error("Erreur lors de la mise à jour des colis.");
       }
+      
     } else {
       warning('Veuillez sélectionner un livreur');
     }
@@ -137,11 +160,16 @@ function ColisRamasse({ search }) {
         <Topbar />
         <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
           <div className="page-content-header">
-            <Title nom='Colis attend de ramassage' />
+            <Title nom='Colis ramassée' />
           </div>
           <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
-            <h4>Colis attend de ramassage</h4>
-            <TableDashboard column={columns} data={data} id="_id" theme={theme} onSelectChange={setSelectedRowKeys} />
+            <h4>Colis ramassée</h4>
+            <div className="bar-action-data">
+              <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
+              <Button icon={<FaBoxesStacked/>} type="primary" onClick={() => showModal()} loading={loading}>Expidée</Button>
+              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+            </div>
+            <TableDashboard column={columns} data={data} id="code_suivi" theme={theme} onSelectChange={setSelectedRowKeys} />
             {contextHolder}
           </div>
         </div>
