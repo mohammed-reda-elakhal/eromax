@@ -11,6 +11,7 @@ const schedule = require('node-schedule');
 const { Ville } = require("../Models/Ville");
 const Notification_User = require("../Models/Notification_User");
 const shortid = require('shortid');
+const NotificationUser = require("../Models/Notification_User")
 
 // Utility function to generate a unique code_suivi
 /*
@@ -96,14 +97,15 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
     // Créer une notification pour l'utilisateur lors de l'ajout d'un nouveau colis
+   if(saveColis.store){
     const notification = new Notification_User({
-      id_store: saveColis.store,
+      storeId: saveColis.store,
       clientId:saveColis.clientId,
-      colisId:saveColis._id,
-      title:'Colis Ajouté',
       description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
     });
     await notification.save();  // Sauvegarder la notification
+   }
+    
   // Create and save the new Suivi_Colis
 
   const suivi_colis = new Suivi_Colis({
@@ -172,9 +174,10 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
 module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
   const colis = await Colis.findById(req.params.id)
   .populate('team')        // Populate the team details
-  .populate('livreur')     // Populate the livreur details
-  .populate('store')       // Populate the store details
-  .populate('ville') ;
+      .populate('livreur')     // Populate the livreur details
+      .populate('store')       // Populate the store details
+      .populate('ville')
+      .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
   if(!colis){
       return res.status(404).json({message:"Colis not found"});
   }
@@ -201,10 +204,11 @@ exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
   try {
     // Find the colis by code_suivi
     const colis = await Colis.findOne({ code_suivi })
-      .populate('team')        // Populate the team details
-      .populate('livreur')     // Populate the livreur details
-      .populate('store')       // Populate the store details
-      .populate('ville');      // Populate the ville details
+    .populate('team')        // Populate the team details
+    .populate('livreur')     // Populate the livreur details
+    .populate('store')       // Populate the store details
+    .populate('ville')
+    .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
     // If no colis found, return 404
     if (!colis) {
@@ -452,12 +456,25 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
  **/
 module.exports.getSuiviColis = asyncHandler(async (req, res) => {
-  const suivi_colis = await Suivi_Colis.findOne({ code_suivi: req.params.code_suivi });
-  if (!suivi_colis) {
-    return res.status(404).json({ message: "S'il vous pliz vérifier code de suivi" });
+  try {
+    // Find the tracking record by the code_suivi and populate the livreur field
+    const suivi_colis = await Suivi_Colis.findOne({ code_suivi: req.params.code_suivi })
+      .populate({
+        path: 'status_updates.livreur', // Populate the livreur field in status_updates
+        select: '-password -__v', // Exclude password and __v from the populated data
+      });
+
+    if (!suivi_colis) {
+      return res.status(404).json({ message: "S'il vous pliz vérifier code de suivi" });
+    }
+
+    res.status(200).json(suivi_colis);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur du serveur interne", error: error.message });
   }
-  res.status(200).json(suivi_colis);
 });
+
 
 
 /**
@@ -537,28 +554,44 @@ module.exports.affecterLivreur = async (req, res) => {
       return res.status(404).json({ message: "Livreur not found" });
     }
 
-    // Affecter le livreur  et le nouveau statut  au colis
+    // Affecter le livreur et mettre à jour le statut du colis
     colis.livreur = livreurId;
-    colis.statut = 'Expediée'
-    // Sauvegarder les modifications
+    colis.statut = 'Expediée';  // Update the status to 'Expediée'
+    
+    // Sauvegarder les modifications sur le colis
     await colis.save();
 
+    // Récupérer le suivi de colis, ou en créer un nouveau s'il n'existe pas
     let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+    
     if (!suivi_colis) {
       suivi_colis = new Suivi_Colis({
         id_colis: colisId,
         code_suivi: colis.code_suivi,
         status_updates: [
-          { status: 'Expediée', date: new Date() }  //ajouter le statut expediée
+          { status: 'Expediée', date: new Date(), livreur: livreurId }  // Add 'livreur' field here
         ]
       });
     } else {
-      // Ajouter la nouvelle mise à jour du statut
-      suivi_colis.status_updates.push({ status: 'Expediée', date: new Date() });
+      // Ajouter une nouvelle mise à jour du statut avec le livreur affecté
+      suivi_colis.status_updates.push({ status: 'Expediée', date: new Date(), livreur: livreurId });  // Add 'livreur' field here
     }
 
-    // Sauvegarder les mises à jour du suivi
+    // Sauvegarder les mises à jour du suivi de colis
     await suivi_colis.save();
+
+    // Créer une notification pour le livreur
+    const notification = new NotificationUser({
+      id_livreur: livreurId,
+      colisId: colisId,
+      title: 'Nouveau Colis',
+      description: `Bonjour, un nouveau colis a été affecté pour vous.`,
+    });
+
+    // Sauvegarder la notification
+    await notification.save();
+
+    // Envoyer une réponse avec les informations du livreur et du colis
     const dataLiv = {
       Nom: livreur.nom,
       Tele: livreur.tele
@@ -569,6 +602,88 @@ module.exports.affecterLivreur = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
+
+module.exports.affecterLivreurMultipleByCodeSuivi = asyncHandler(async (req, res) => {
+  const { codesSuivi, livreurId } = req.body;  // Assuming you pass an array of codesSuivi and a single livreurId
+
+  try {
+    // Find the livreur
+    const livreur = await Livreur.findById(livreurId);
+    if (!livreur) {
+      return res.status(404).json({ message: "Livreur not found" });
+    }
+
+    const results = [];
+
+    // Iterate over each code_suivi to assign it to the livreur
+    for (const codeSuivi of codesSuivi) {
+      // Récupérer le colis par son code_suivi
+      const colis = await Colis.findOne({ code_suivi: codeSuivi });
+      if (!colis) {
+        results.push({ codeSuivi, message: "Colis not found" });
+        continue;  // Skip to the next codeSuivi
+      }
+
+      // Vérifier si le statut est 'Ramassée'
+      if (colis.statut !== "Ramassée") {
+        results.push({ codeSuivi, message: "Colis is not in the 'Ramassé' status" });
+        continue;  // Skip to the next codeSuivi
+      }
+
+      // Affecter le livreur et mettre à jour le statut du colis
+      colis.livreur = livreurId;
+      colis.statut = 'Expediée';  // Update the status to 'Expediée'
+      await colis.save();  // Save the updated colis
+
+      // Récupérer le suivi de colis, ou en créer un nouveau s'il n'existe pas
+      let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+      if (!suivi_colis) {
+        suivi_colis = new Suivi_Colis({
+          id_colis: colis._id,
+          code_suivi: colis.code_suivi,
+          status_updates: [
+            { status: 'Expediée', date: new Date(), livreur: livreurId }
+          ]
+        });
+      } else {
+        // Ajouter une nouvelle mise à jour du statut avec le livreur affecté
+        suivi_colis.status_updates.push({ status: 'Expediée', date: new Date(), livreur: livreurId });
+      }
+      await suivi_colis.save();  // Save the updated suivi_colis
+
+      // Créer une notification pour le livreur
+      const notification = new NotificationUser({
+        id_livreur: livreurId,
+        colisId: colis._id,
+        title: 'Nouveau Colis',
+        description: `Bonjour, un nouveau colis a été affecté pour vous.`,
+      });
+      await notification.save();  // Save the notification
+
+      // Add result to response data
+      results.push({
+        codeSuivi,
+        message: "Livreur assigned successfully",
+        livreur: {
+          nom: livreur.nom,
+          tele: livreur.tele
+        },
+        colis: {
+          code_suivi: colis.code_suivi,
+          statut: colis.statut
+        }
+      });
+    }
+
+    // Send the response after processing all code_suivi
+    res.status(200).json({ message: "Colis assignments completed", results });
+  } catch (error) {
+    console.error("Error assigning Livreur:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+});
+
 module.exports.getColisByIdLivreur = asyncHandler(async (req, res) => {
   const id_livreur = req.params.id_livreur
   if (!id_livreur) {
@@ -604,7 +719,7 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
   let colis;
   let livreur = req.params.id_livreur;
   let filter = {};
-  const allowedStatuses = ["Expediée", "Mise en distribution", "Livrée"];
+  const allowedStatuses = ["Expediée", "Mise en distribution", "Livrée" , "Annulée" , "Reçu" , "Refusée" , "Programmée"];
 
   // Check if the optional 'statut' parameter is provided
   const { statut } = req.query;
@@ -622,7 +737,12 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
   }
 
   // Find colis based on the constructed filter
-  colis = await Colis.find(filter).populate('livreur').populate('ville');
+  colis = await Colis.find(filter)
+    .populate('team')        // Populate the team details
+    .populate('livreur')     // Populate the livreur details
+    .populate('store')       // Populate the store details
+    .populate('ville')
+    .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
   if (!colis) {
     return res.status(404).json({ message: "Colis not found" });

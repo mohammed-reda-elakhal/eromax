@@ -49,26 +49,25 @@ function TicketColis({ colis }) {
         </div>
         <div className="ticket-colis-main">
           <div className="ticket-colis-main-header">
-            <p>Ouvrir colis</p>
-            <p>Essayage : Oui</p>
-            <p>Remplacer</p>
-            <p>Fragille</p>
+            <p>{colis?.ouvrir ? "Ouvrir Colis" : ""}</p>
+            <p>{colis.is_remplace ? "Remplace" : ""}</p>
+            <p>{colis.is_fragile ? "Fragile" : ""}</p>
           </div>
           <div className="ticket-colis-main-content">
             <div className="ticket-colis-main-expedateur">
               <h5>Expedateur :</h5>
-              <img src="/image/logo-light.png" alt="" width="80px" />
-              <h3>Nom de Store</h3>
-              <p>06 03 22 41 78</p>
-              <p>2024/07/16 10:43</p>
+              <img src={colis?.store?.image?.url} alt="" width="80px" />
+              <h3>{colis?.store?.storeName}</h3>
+              <p>{colis?.store?.id_client?.tele}</p>
+              <p>{colis?.createdAt}</p>
             </div>
             <div className="ticket-colis-main-destinataire">
               <h5>Destinataire :</h5>
-              <p><strong>Nom :</strong> {colis.nom.nom}</p> {/* Access 'nom' field */}
-              <p><strong>Téléphone :</strong> {colis.tele}</p>
-              <p><strong>Ville :</strong> {colis.ville.nom}</p> {/* Access 'nom' field in 'ville' */}
-              <p><strong>Adresse :</strong> {colis.adresse}</p>
-              <h2>{colis.prix} DH</h2> {/* Ensure 'prix' is a valid number or string */}
+              <p><strong>Nom :</strong> {colis?.nom}</p> {/* Access 'nom' field */}
+              <p><strong>Téléphone :</strong> {colis?.tele}</p>
+              <p><strong>Ville :</strong> {colis?.ville?.nom}</p> {/* Access 'nom' field in 'ville' */}
+              <p><strong>Adresse :</strong> {colis?.adresse}</p>
+              <h2>{colis?.prix} DH</h2> {/* Ensure 'prix' is a valid number or string */}
             </div>
           </div>
           <div className="ticket-colis-footer">

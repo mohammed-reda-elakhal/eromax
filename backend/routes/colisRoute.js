@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
 const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin, verifyTokenAndLivreur, verifyTokenAdminTeam, verifyTokenAndClient} = require("../Middlewares/VerifyToken"); 
-const { updateSuiviColis, updateMultipleSuiviColis } = require("../Controllers/suivi_colisController");
+const { updateSuiviColis, updateMultipleSuiviColis, updateMultipleColisStatus } = require("../Controllers/suivi_colisController");
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
@@ -37,6 +37,12 @@ router.route('/code_suivi/:code_suivi')
 router.route("/St/:id")
         .put(updateSuiviColis)
 
+router.route("/statu/update")
+        .put(updateMultipleColisStatus)
+
+router.route("/statu/affecter")
+        .put(colisController.affecterLivreurMultipleByCodeSuivi)
+
 //router api/colis/St
 router.route("/St/multiple")
         .post(updateMultipleSuiviColis)
@@ -58,8 +64,8 @@ router.route("/livreur").post(verifyTokenAdminTeam,colisController.affecterLivre
 router.route("/getColisLiv/:id_livreur").get(verifyTokenAndLivreurOrAdmin,colisController.getColisByLivreur)
 router.route("/getColisTeam/:id_team").get(verifyTokenAndAdmin,colisController.getColisByTeam)
 router.route("/programme").post(colisController.colisProgramme);//move to client route pour executer 
-router.route("/annule/:idColis").post(colisController.annulerColis);//move to client route pour executer
-router.route("/annule/:idColis").post(colisController.refuserColis);//move to client route pour executer
+router.route("/annule").post(colisController.annulerColis);//move to client route pour executer
+router.route("/refuser").post(colisController.refuserColis);//move to client route pour executer
 router.get('/count/livres/livreur/:livreurId', colisController.countColisLivreByLivreur);
 router.get('/count/livres/client/:storeId', colisController.countColisLivreByClient);
 router.get('/count/livres/team/:teamId',colisController.countColisLivreByTeam);

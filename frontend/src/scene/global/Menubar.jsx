@@ -210,25 +210,7 @@ function Menubar() {
                 <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/colis-r">Colis Ramasse</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/colis-ex">Colis Expidie</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/colis-rc">Colis Reçu</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/colis-md">Colis Mise en Distribution</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/colis-l">Colis Livrée</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/import-colis">Import Colis</Link>
               </Menu.Item>
             </Menu.SubMenu>
           )
@@ -242,10 +224,10 @@ function Menubar() {
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
+                <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
+                <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/import-colis">Import Colis</Link>

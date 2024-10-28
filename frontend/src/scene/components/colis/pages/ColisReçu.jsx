@@ -17,7 +17,7 @@ import { message } from 'antd';
 import Popconfirm from 'antd/es/popconfirm';
 import Dropdown from 'antd/es/dropdown';
 import FloatButton from 'antd/es/float-button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
@@ -31,6 +31,10 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import { Tag } from 'antd';
+import request from '../../../../utils/request';
+import { FaBoxesStacked } from 'react-icons/fa6';
+import { IoQrCodeSharp } from 'react-icons/io5';
+import { IoMdRefresh } from 'react-icons/io';
 
 
 function ColisReçu({search}) {
@@ -42,6 +46,9 @@ function ColisReçu({search}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentColis, setCurrentColis] = useState(null);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate()
 
   const success = (text) => {
     messageApi.open({
@@ -68,7 +75,7 @@ function ColisReçu({search}) {
     user: state.auth.user,
     store: state.auth.store,
   }));
-  const getColisFunction = ()=>{
+  const getDataColis = ()=>{
     if (user?.role) {
       if (user.role === "admin" || user.role === "team") {
         dispatch(getColis("Reçu"));
@@ -82,7 +89,7 @@ function ColisReçu({search}) {
     }
   }
   useEffect(() => {
-    getColisFunction()
+    getDataColis()
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
 
@@ -92,23 +99,29 @@ useEffect(() => {
   }
 }, [colisData]);
 
-const handleDistribution = (colisId) => {
-  if (!colisId) {
-    warning("ID de colis manquant.");
-    return;
-  }
 
-  if (colisId) {
-    // Update the status to 'Mise en Distribution' and filter the item out of the data array
-    const updatedData = data.filter(item => item._id !== colisId); // Filter out the colis from the table
-    setData(updatedData); // Update the data state
 
-    // Dispatch the updateStatut action to update the server
-    dispatch(updateStatut(colisId, 'Mise en Distribution')).then().catch(err => {
-      error('Erreur lors de la mise à jour du statut.');
-    });
+const handleDistribution = async (colisId) => {
+  if (selectedRowKeys.length > 0) {
+    setLoading(true);
+    try {
+      // Send a PUT request to update the status of selected colis
+      const response = await request.put('/api/colis/statu/update', {
+        colisCodes: selectedRowKeys,
+        new_status: 'Mise en Distribution'
+      });
+      setLoading(false);
+      success(`${selectedRowKeys.length} colis marqués comme reçus avec succès.`);
+      setSelectedRowKeys([]);
+      // Update the local data to remove the updated colis
+      const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
+      setData(newData);
+    } catch (err) {
+      setLoading(false);
+      error("Erreur lors de la mise à jour des colis.");
+    }
   } else {
-    warning("Veuillez sélectionner une colonne");
+    warning("Veuillez sélectionner au moins un colis.");
   }
 };
 
@@ -149,26 +162,9 @@ const handleDistribution = (colisId) => {
     }
   };
 
-  const handleOk = () => {
-    form.validateFields().then(values => {
-      const newData = colisData.map(item => {
-        if (item._id === currentColis._id) {
-          return { ...item, ...values };
-        }
-        return item;
-      });
-      setData(newData);
-      
-      setIsModalVisible(false);
-      success("Colis modifié avec succès");
-    }).catch(info => {
-      console.log('Validate Failed:', info);
-    });
-  };
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
+
+
 
   const menu = (
     <Menu>
@@ -276,26 +272,7 @@ const handleDistribution = (colisId) => {
       title: 'Nature de Produit',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
-    },
-    {
-      title: 'Option',
-      render: (text, record) => (
-        <Popconfirm
-          title="Ramassage Colis"
-          description="Tu es sûr de faire ramassage pour ce colis?"
-          onConfirm={() => handleDistribution(record._id)}
-          okText="Oui"
-          cancelText="Non"
-        >
-          <Button
-            type="primary"
-            icon={<MdDeliveryDining />}
-          >
-            Mise en distribution
-          </Button>
-        </Popconfirm>
-      ),
-    },
+    }
   ];
 
   return (
@@ -311,11 +288,7 @@ const handleDistribution = (colisId) => {
           }}
         >
           <div className="page-content-header">
-            <Title nom='Colis attend de ramassage' />
-            <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
-              <PlusCircleFilled style={{ marginRight: "8px" }} />
-              Ajouter Colis
-            </Link>
+            <Title nom='Colis Reçu ' />
           </div>
           <div
             className="content"
@@ -323,116 +296,22 @@ const handleDistribution = (colisId) => {
               backgroundColor: theme === 'dark' ? '#001529' : '#fff',
             }}
           >
-            <h4>Colis attend de ramassage</h4>
+            <h4>Colis Reçu</h4>
+            <div className="bar-action-data">
+              <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
+              <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleDistribution} loading={loading}>Mise en Distribution</Button>
+              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+            </div>
             <TableDashboard
               column={columns}
               data={data} // Use the local data state, not the Redux state
-              id="id"
+              id="code_suivi"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
             />
-            {contextHolder}
-            <div className="control-option">
-              <div className="select-option">
-                <h3>Options :</h3>
-                <Dropdown overlay={menu}>
-                  <Button>
-                    Choisir une opération : <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </div>
-              <div className="scane-option">
-                <h3>Scan :</h3>
-                <Link
-                  to={`/dashboard/scan`}
-                >
-                  <Button 
-                    icon={<BsUpcScan />}
-                  >
-                    Scan Now
-                  </Button>
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </main>
-      <Modal
-        title="Modifier Colis"
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          name="form_in_modal"
-        >
-          <Form.Item
-            name="code_suivi"
-            label="Code Suivi"
-            rules={[{ required: true, message: 'Veuillez entrer le code suivi!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="nom"
-            label="Destinataire"
-            rules={[{ required: true, message: 'Veuillez entrer le nom du destinataire!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="tele"
-            label="Téléphone"
-            rules={[{ required: true, message: 'Veuillez entrer le téléphone!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="etat"
-            label="État"
-            rules={[{ required: true, message: 'Veuillez entrer l\'état!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="statut"
-            label="Statut"
-            rules={[{ required: true, message: 'Veuillez entrer le statut!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="date_livraison"
-            label="Date de Livraison"
-            rules={[{ required: false, message: 'Veuillez entrer la date de livraison!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="ville"
-            label="Ville"
-            rules={[{ required: true, message: 'Veuillez entrer la ville!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="prix"
-            label="Prix"
-            rules={[{ required: true, message: 'Veuillez entrer le prix!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="nature_produit"
-            label="Nature de Produit"
-            rules={[{ required: true, message: 'Veuillez entrer la nature du produit!' }]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 }

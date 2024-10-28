@@ -52,6 +52,7 @@ import TransactionTable from "./scene/components/payement/page/TransactionTable"
 import TicketBatch from "./scene/components/tickets/TicketBatch";
 import ScanRecherche from "./scene/components/scan/components/ScanRecherche";
 import ScanRamasser from "./scene/components/scan/components/ScanRamasser";
+import ScanUpdateStatu from "./scene/components/scan/page/ScanUpdateStatu";
 
 function App() {
 
@@ -191,7 +192,7 @@ function App() {
             
             <Route path="scan">
               <Route path="recherche" element={<ScanRecherche/>}  />
-              <Route path="ramasser" element={<ScanRamasser/>}  />
+              <Route path="statu/:statu" element={<ScanUpdateStatu/>}  />
               
             </Route>
 

@@ -26,7 +26,7 @@ export function getFactureDetailsByCode(codeFacture ) {
         try {
             // Send the type as a query parameter using 'params'
             const { data } = await request.get(`/api/facture/detail/${codeFacture}`);
-            dispatch(factureActions.setFactureDetail(data.list));
+            dispatch(factureActions.setFactureDetail(data.facture));
         } catch (error) {
             toast.error(error.message || "Failed to fetch facture details");
         }
@@ -42,6 +42,23 @@ export function getFactureDetailsByClient(id_client){
         
     }
 }
+
+export function setFactureEtat(id) {
+    return async (dispatch) => {
+        try {
+            // Send a PUT request to update the 'etat' field for the facture with the given ID
+            const { data } = await request.put(`/api/facture/pay/${id}`);
+
+            // Dispatch the action to update the Redux state with the new etat
+            dispatch(factureActions.setFactureEtat({ id, etat: data.facture.etat }));
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.message || "Failed to update facture status");
+        }
+    };
+}
+
+
 export function getFactureDetailsByLivreur(id){
     return async (dispatch)=>{
         try{const {data}=await request.get(`/api/facture/detail/livreur/${id}`);

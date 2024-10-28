@@ -20,6 +20,15 @@ const StoreSchema = new mongoose.Schema({
         minlength: 2,
         maxlength: 100
     },
+    adress: {
+        type: String,
+        trim: true,
+    },
+    message: {
+        type: String,
+        trim: true,
+        maxlength: 200
+    },
     default: {
         type: Boolean,
         default: false // This should only be defined once

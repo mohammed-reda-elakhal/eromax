@@ -77,7 +77,7 @@ const FactureDetail = () => {
     };
 
     // Calculate the sums for prix and tarif
-    const totalPrix = facture?.colis?.reduce((acc, col) => acc + (col.prix || 0), 0) || 0;
+    const totalPrix = facture?.colis?.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
     const totalTarif = facture?.colis?.reduce((acc, col) => acc + (col.tarif || 0), 0) || 0;
     const difference = totalPrix - totalTarif;
 
@@ -112,12 +112,21 @@ const FactureDetail = () => {
         {
             title: 'Statut',
             key: 'statut',
-            dataIndex: 'statu',
+            dataIndex: 'statut',
             render: (text, record) => (
                 <>
+                {
+                    record?.statut ==="Livrée" 
+                    ?
                     <Tag color='green'>
-                        {record.statu}
+                        {record?.statut}
                     </Tag>
+                    : 
+                    <Tag color='red'>
+                        {record?.statut}
+                    </Tag>
+                }
+                    
                 </>
             ),
         },
@@ -131,7 +140,12 @@ const FactureDetail = () => {
             dataIndex: 'prix',
             key: 'prix',
             render: (text) => text ? text.toFixed(2) : 'N/A', // Check if prix exists, otherwise return 'N/A'
-        }
+        },
+            {
+                title: 'Montant à Payer',
+                dataIndex: 'montant_a_payer',
+                key: 'montant_a_payer',
+            }
     ];
 
     // Define columns for the calculation table

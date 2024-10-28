@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Modal, Button, Input, Drawer, Steps } from 'antd';
+import { Table, Modal, Button, Input, Drawer, Typography,  Steps } from 'antd';
 import { FaWhatsapp, FaPrint, FaPenFancy } from 'react-icons/fa';
 import { Si1001Tracklists } from 'react-icons/si';
 import { TbPhoneCall } from 'react-icons/tb';
@@ -17,6 +17,8 @@ import { Tag } from 'antd';
 import { IoSearch } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
 import { FaTicketAlt } from "react-icons/fa";
+import TrackingColis from '../../../global/TrackingColis '; // Import TrackingColis component
+import { IoMdRefresh } from 'react-icons/io';
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
@@ -48,7 +50,11 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   }));
 
   // Load data based on user role
-  useEffect(() => {
+
+  function  getDataAy (){
+
+  }
+  const getDataColis = () => {
     if (user?.role) {
       if (user.role === 'admin') {
         dispatch(getColis(''));
@@ -60,6 +66,9 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         dispatch(getColisForClient(user._id, ''));
       }
     }
+  }
+  useEffect(() => {
+    getDataColis()
   }, [dispatch, user?.role, store?._id, user._id]);
 
   // Update state data when colisData changes
@@ -129,7 +138,20 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   // Columns definition
   const columnsColis = [
-    { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi', ...search('code_suivi') },
+    {
+      title: 'Code Suivi',
+      dataIndex: 'code_suivi',
+      key: 'code_suivi',
+      width: 200, // Set width to 200px
+      render: (text) => (
+        <Typography.Text
+          copyable
+          style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+        >
+          {text}
+        </Typography.Text>
+      ),
+    },
     {
       title: 'Livreur',
       dataIndex: 'livreur',
@@ -201,7 +223,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'action',
       render: (_, record) => (
         <div className="table-option">
-          <button className="btn-dashboard" onClick={() => setState({ ...state, drawerOpen: true })}>
+          <button className="btn-dashboard" onClick={() => setState({ ...state, drawerOpen: true, selectedColis: record })}>
             <Si1001Tracklists />
           </button>
           <button className="btn-dashboard" onClick={() => handleTicket(record)}>
@@ -261,11 +283,10 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     navigate('/dashboard/tickets', { state: { selectedColis: state.selectedRows } });
   };
 
-
-
   return (
     <>
       <div className="bar-action-data">
+        <Button icon={<IoMdRefresh />} type="primary" variant="filled" onClick={()=>getDataColis()} style={{ marginBottom: 16 }}>Refresh </Button>
         <Button icon={<FaTicketAlt />} type="primary" variant="filled" onClick={handleBatchTickets} style={{ marginBottom: 16 }}>Tickets </Button>
       </div>
       <Input
@@ -293,7 +314,9 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       </Modal>
 
       <Drawer title="Les données de colis suivre" onClose={() => setState({ ...state, drawerOpen: false })} open={state.drawerOpen}>
-        <Steps progressDot current={1} direction="vertical" items={[{ title: 'Finished', description: 'Description 1' }, { title: 'Finished', description: 'Description 2' }, { title: 'In Progress', description: 'Description 3' }, { title: 'Waiting', description: 'Description 4' }]} />
+        {state.selectedColis && (
+          <TrackingColis codeSuivi={state.selectedColis.code_suivi} /> 
+        )}
       </Drawer>
     </>
   );

@@ -78,8 +78,11 @@ const FactureDetailLivreur = () => {
     };
 
     // Calculate the sums for prix and tarif
-    const totalPrix = facture?.colis?.reduce((acc, col) => acc + (col.prix || 0), 0) || 0;
-    const totalTarif = facture?.livreur_tarif * (facture?.colis?.length || 0); 
+    const totalPrix = facture?.colis?.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
+    // Calculate totalTarif based on the count of 'Livrée' colis
+    const livreeColisCount = facture.colis.filter(col => col.statut === 'Livrée').length;
+    const totalTarif = facture?.livreur_tarif * livreeColisCount;
+ 
     const difference = totalPrix - totalTarif;
 
     // Define columns for TableDashboard
@@ -113,12 +116,21 @@ const FactureDetailLivreur = () => {
         {
             title: 'Statut',
             key: 'statut',
-            dataIndex: 'statu',
+            dataIndex: 'statut',
             render: (text, record) => (
                 <>
+                {
+                    record?.statut ==="Livrée" 
+                    ?
                     <Tag color='green'>
-                        {record.statu}
+                        {record?.statut}
                     </Tag>
+                    : 
+                    <Tag color='red'>
+                        {record?.statut}
+                    </Tag>
+                }
+                    
                 </>
             ),
         },
@@ -126,9 +138,12 @@ const FactureDetailLivreur = () => {
             title: 'Tarif',
             dataIndex: 'livreur',
             key: 'livreur', // Check if tarif exists, otherwise return 'N/A'
-            render: (text) => (
+            render: (text , record) => (
                 <span>
-                    {facture.livreur_tarif}
+                    {
+                        record?.statut === "Livrée" ? facture.livreur_tarif : 0
+                    }
+                    
                 </span>
             ),
         },
@@ -137,6 +152,11 @@ const FactureDetailLivreur = () => {
             dataIndex: 'prix',
             key: 'prix',
             render: (text) => text ? text.toFixed(2) : 'N/A', // Check if prix exists, otherwise return 'N/A'
+        },
+        {
+            title: 'Montant à Payer',
+            dataIndex: 'montant_a_payer',
+            key: 'montant_a_payer',
         }
     ];
 
