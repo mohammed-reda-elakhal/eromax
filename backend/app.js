@@ -46,6 +46,7 @@ app.use('/api/demande-retrait',require("./routes/demandeRoutes"));
 app.use('/api/transaction', require("./routes/transactionRoute"));
 app.use('/api/notification-user', require('./routes/notificationUserRoute'));
 app.use('/api/facture', require('./routes/factureRoute'));
+app.use('/api/Ramasserfacture', require('./routes/ramasserFactureRoute'));
 
 
 //Running server 

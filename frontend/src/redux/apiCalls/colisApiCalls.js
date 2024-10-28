@@ -288,28 +288,16 @@ export const colisProgramme=(colisId,daysToAdd)=>async(dispatch)=>{
 }
 export const annulerColis = (idColis, commentaire) => async (dispatch) => {
     try {
-        // Dispatch the loading action
-        dispatch(colisActions.setLoading(true));
-
         // Faire la requête API pour annuler le colis
         const response = await request.post(`http://localhost:8084/api/client/annuler`, {
             idColis,
             commentaire // Envoyer le commentaire avec la requête
         });
-
         // Supposons que la réponse contient le colis mis à jour
         dispatch(colisActions.updateColis(response.data.colis)); // Mettez à jour l'état avec le colis annulé
 
-        // Dispatch the success state to stop loading
-        dispatch(colisActions.setLoading(false));
     } catch (error) {
         console.error("Erreur lors de l'annulation du colis :", error);
-
-        // Dispatch the error action to set the error message
-        dispatch(colisActions.setError(error.response?.data?.message || "Erreur lors de l'annulation du colis"));
-
-        // Stop loading in case of failure
-        dispatch(colisActions.setLoading(false));
     }
 };
 
