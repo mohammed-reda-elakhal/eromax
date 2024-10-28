@@ -8,7 +8,7 @@ const notificationUserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, ref: 'Livreur',required: false 
   },
   colisId: { 
-    type: mongoose.Schema.Types.ObjectId,ref: 'Colis',required: true 
+    type: mongoose.Schema.Types.ObjectId,ref: 'Colis',required: false 
   },
   title: { type: String, required: true },
   description: { type: String, required: true },

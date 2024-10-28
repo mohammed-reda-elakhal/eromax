@@ -127,6 +127,7 @@ function ColisForm({ theme, type }) {
       is_fragile,
     };
 
+
     dispatch(createColis(colis));
     navigate('/dashboard/list-colis');
   };
@@ -222,7 +223,7 @@ function ColisForm({ theme, type }) {
 
         {/* Display selected ville details if available */}
         {selectedVille && (
-          <div className="selected-ville-info" style={{padding:"16px 0t"}}>
+          <div className="selected-ville-info" style={{padding:"16px 0"}}>
             <Alert
               message={`Tarif : ${selectedVille.tarif}`}
               description={selectedVille.nom}

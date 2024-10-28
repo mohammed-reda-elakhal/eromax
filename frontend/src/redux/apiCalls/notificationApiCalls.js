@@ -46,7 +46,7 @@ export function notificationRead(id) {
     return async (dispatch) => {
         try {
             const { data } = await request.patch(`/api/notification-user/read/${id}`);
-            toast.success(data.message)
+
         } catch (error) {
             toast.error(error.message || "Failed to fetch notifications");
         }

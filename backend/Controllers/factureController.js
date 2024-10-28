@@ -6,6 +6,7 @@ const { Suivi_Colis } = require('../Models/Suivi_Colis');
 const { Store } = require('../Models/Store');  // Import the Store model
 const cron = require('node-cron');
 const Transaction = require('../Models/Transaction');
+const NotificationUser = require('../Models/Notification_User')
 
 // Function to generate code_facture
 const generateCodeFacture = (date) => {
@@ -18,7 +19,7 @@ const generateCodeFacture = (date) => {
 const getDeliveryDate = async (code_suivi) => {
     const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
     if (suiviColis) {
-        const livraison = suiviColis.status_updates.find(status => status.status === 'Livrée');
+        const livraison = suiviColis.status_updates.find(status => ['Livrée', 'Refusée'].includes(status.status));
         return livraison ? livraison.date : null; // Return the delivery date if found
     }
     return null;
@@ -31,28 +32,27 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
         const todayStart = moment().startOf('day').toDate();
         const todayEnd = moment().endOf('day').toDate();
 
-        // Fetch all 'Livrée' colis with non-null store and livreur that were delivered today
+        // Fetch all 'Livrée' and 'Refusée' colis with non-null store and livreur
         const colisList = await Colis.find({
             store: { $ne: null },
             livreur: { $ne: null },
-            statut: 'Livrée'
-        }).populate('store').populate('livreur').populate('ville');  // Populate 'ville' to access tarif
+            statut: { $in: ['Livrée', 'Refusée'] },
+        }).populate('store').populate('livreur').populate('ville');
 
-        // Filter out the colis that were delivered today by checking `Suivi_Colis`
-        const deliveredTodayColis = [];
+        // Filter out the colis that were processed today
+        const processedTodayColis = [];
         for (const colis of colisList) {
             const dateLivraison = await getDeliveryDate(colis.code_suivi);
             if (dateLivraison && moment(dateLivraison).isBetween(todayStart, todayEnd)) {
                 // Check if this colis is already part of an existing facture
                 const existingFacture = await Facture.findOne({ colis: colis._id });
                 if (!existingFacture) {
-                    deliveredTodayColis.push(colis); // Include only today's deliveries and not already in a facture
+                    processedTodayColis.push(colis);
                 }
             }
         }
 
-        // If no deliveries happened today, send a message
-        if (deliveredTodayColis.length === 0) {
+        if (processedTodayColis.length === 0) {
             return res.status(200).json({ message: 'No factures to create for today.' });
         }
 
@@ -60,12 +60,12 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
         const facturesMapClient = {};
         const facturesMapLivreur = {};
 
-        deliveredTodayColis.forEach(colis => {
+        processedTodayColis.forEach(colis => {
             const storeId = colis.store._id.toString();
             const livreurId = colis.livreur._id.toString();
-            const dateKey = moment(colis.date_livraisant).format('YYYY-MM-DD'); // Group by day
+            const dateKey = moment(colis.date_livraisant).format('YYYY-MM-DD');
 
-            // Group for client factures
+            // Client Factures
             if (!facturesMapClient[storeId]) {
                 facturesMapClient[storeId] = {};
             }
@@ -76,15 +76,23 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     date: colis.date_livraisant,
                     colis: [],
                     totalPrix: 0,
-                    totalTarif: 0,  // Keep track of total tarif for the colis
+                    totalTarif: 0,
+                    totalFraisRefus: 0,
                 };
             }
 
             facturesMapClient[storeId][dateKey].colis.push(colis);
-            facturesMapClient[storeId][dateKey].totalPrix += colis.prix;
-            facturesMapClient[storeId][dateKey].totalTarif += colis.ville.tarif || 0;  // Use `ville.tarif` to calculate tarif
 
-            // Group for livreur factures
+            if (colis.statut === 'Livrée') {
+                facturesMapClient[storeId][dateKey].totalPrix += colis.prix;
+                facturesMapClient[storeId][dateKey].totalTarif += colis.ville.tarif || 0;
+            } else if (colis.statut === 'Refusée') {
+                const refusFee = colis.ville.tarif_refus || 0;
+                facturesMapClient[storeId][dateKey].totalFraisRefus += refusFee;
+                facturesMapClient[storeId][dateKey].totalTarif += refusFee;
+            }
+
+            // Livreur Factures
             if (!facturesMapLivreur[livreurId]) {
                 facturesMapLivreur[livreurId] = {};
             }
@@ -95,16 +103,24 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     date: colis.date_livraisant,
                     colis: [],
                     totalPrix: 0,
-                    totalTarif: 0,  // Keep track of total tarif for the colis
+                    totalTarif: 0,
+                    totalFraisRefus: 0,
                 };
             }
 
             facturesMapLivreur[livreurId][dateKey].colis.push(colis);
-            facturesMapLivreur[livreurId][dateKey].totalPrix += colis.prix;
-            facturesMapLivreur[livreurId][dateKey].totalTarif += colis.ville.tarif || 0;  // Use `ville.tarif`
+
+            if (colis.statut === 'Livrée') {
+                facturesMapLivreur[livreurId][dateKey].totalPrix += colis.prix;
+                facturesMapLivreur[livreurId][dateKey].totalTarif += colis.ville.tarif || 0;
+            } else if (colis.statut === 'Refusée') {
+                const refusFee = colis.ville.tarif_refus || 0;
+                facturesMapLivreur[livreurId][dateKey].totalFraisRefus += refusFee;
+                facturesMapLivreur[livreurId][dateKey].totalTarif += refusFee;
+            }
         });
 
-        // Prepare factures for clients
+        // Prepare and save client factures
         const facturesToInsertClient = [];
         for (const storeId in facturesMapClient) {
             for (const dateKey in facturesMapClient[storeId]) {
@@ -117,29 +133,38 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     date: factureData.date,
                     colis: factureData.colis.map(colis => colis._id),
                     totalPrix: factureData.totalPrix,
+                    totalTarif: factureData.totalTarif,
+                    totalFraisRefus: factureData.totalFraisRefus,
                 });
 
                 facturesToInsertClient.push(newFacture);
 
-                // Now calculate `prixTotal - sumTarif` and update the store's solde
-                const result = factureData.totalPrix - factureData.totalTarif;
+                // Update store solde
+                const result = (factureData.totalPrix - factureData.totalTarif) - factureData.totalFraisRefus;
 
                 const store = await Store.findById(factureData.store._id);
                 if (store) {
                     store.solde = (store.solde || 0) + (isNaN(result) ? 0 : result);
                     await store.save();
                 }
+
                 const transaction = new Transaction({
                     id_store: store._id,
                     montant: result,
-                    type: 'debit', // Transaction de type crédit
+                    type: 'debit',
                 });
                 await transaction.save();
-            
+
+                const notification = new NotificationUser({
+                    id_store:factureData.store._id,
+                    title: `+ ${result} DH`,
+                    description: `Votre argent a été ajouter dans votre portfeuille avec succès.`,
+                  });
+                await notification.save();
             }
         }
 
-        // Prepare factures for livreurs
+        // Prepare and save livreur factures
         const facturesToInsertLivreur = [];
         for (const livreurId in facturesMapLivreur) {
             for (const dateKey in facturesMapLivreur[livreurId]) {
@@ -152,16 +177,16 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     date: factureData.date,
                     colis: factureData.colis.map(colis => colis._id),
                     totalPrix: factureData.totalPrix,
+                    totalTarif: factureData.totalTarif,
+                    totalFraisRefus: factureData.totalFraisRefus,
                 });
 
                 facturesToInsertLivreur.push(newFacture);
             }
         }
 
-        // Combine both types of factures
-        const facturesToInsert = [...facturesToInsertClient, ...facturesToInsertLivreur];
-
         // Save all factures
+        const facturesToInsert = [...facturesToInsertClient, ...facturesToInsertLivreur];
         await Facture.insertMany(facturesToInsert);
 
         res.status(200).json({ message: 'Factures created successfully', factures: facturesToInsert });
@@ -171,8 +196,9 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
     }
 };
 
+
 // Schedule a job to create factures every day at midnight
-cron.schedule('44 13 * * *', async () => {
+cron.schedule('50 19 * * *', async () => {
     console.log('Running daily facture generation at 00:02');
     await createFacturesForClientsAndLivreurs();
 });
@@ -314,21 +340,62 @@ const getFacturesByStore = async (req, res) => {
     }
 };
 
+
+
+const setFacturePay = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find the facture by ID
+        const facture = await Facture.findById(id);
+
+        // If the facture doesn't exist, return a 404 error
+        if (!facture) {
+            return res.status(404).json({ message: 'Facture not found' });
+        }
+
+        // Check the current state of 'etat' and update if it is false
+        if (facture.etat === false) {
+            facture.etat = true; // Set etat of Facture to true
+            await facture.save(); // Save the updated facture
+
+            // Update etat of all related colis to true
+            await Colis.updateMany(
+                { _id: { $in: facture.colis } }, // Match all colis IDs in the facture
+                { etat: true } // Set etat to true for each matching colis
+            );
+
+            return res.status(200).json({
+                message: 'Facture etat updated to true and all related colis marked as paid',
+                facture,
+            });
+        } else {
+            // If etat is already true, return a message indicating no update was needed
+            return res.status(200).json({
+                message: 'Facture etat is already true, no update to colis needed',
+                facture,
+            });
+        }
+    } catch (error) {
+        console.error('Error updating facture etat:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+
 const getFactureByCode = async (req, res) => {
     try {
         const { code_facture } = req.params;
 
-        // Build the query object
-        const query = { code_facture };
-
-        // Find the facture by its code and type
-        const facture = await Facture.findOne(query)
+        // Find the facture by its code
+        const facture = await Facture.findOne({ code_facture })
             .populate({
                 path: 'store',
                 select: 'storeName id_client',
                 populate: {
-                    path: 'id_client',  // Populate the client details from store
-                    select: 'tele',  // Assuming 'tele' is the client's telephone field
+                    path: 'id_client',
+                    select: 'tele',
                 },
             })
             .populate({
@@ -338,8 +405,8 @@ const getFactureByCode = async (req, res) => {
             .populate({
                 path: 'colis',
                 populate: [
-                    { path: 'ville', select: 'nom key ref tarif' },  // Populate 'ville' details
-                    { path: 'store', select: 'storeName' },  // Populate 'store' details within 'colis'
+                    { path: 'ville', select: 'nom key ref tarif tarif_refus' },
+                    { path: 'store', select: 'storeName' },
                 ],
             })
             .lean();
@@ -350,130 +417,87 @@ const getFactureByCode = async (req, res) => {
         }
 
         // Function to fetch the delivery date for a given code_suivi
-        const getDeliveryDate = async (code_suivi) => {
+        const getDeliveryDate = async (code_suivi, statut) => {
             const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
             if (suiviColis) {
-                const livraison = suiviColis.status_updates.find(status => status.status === 'Livrée');
+                const livraison = suiviColis.status_updates.find(status => status.status === statut);
                 return livraison ? livraison.date : null; // Return the delivery date if found
             }
             return null;
         };
 
         // Prepare the response data
+        const colisDetails = await Promise.all(facture.colis.map(async col => {
+            const livraisonDate = await getDeliveryDate(col.code_suivi, col.statut); // Get delivery date from Suivi_Colis
+
+            // Determine tarif based on statut
+            let tarif = 0;
+            let montant_a_payer = 0;
+
+            if (col.statut === 'Livrée') {
+                tarif = col.ville?.tarif || 0;
+                montant_a_payer = col.prix; // montant_a_payer is the same as prix for 'Livrée' colis
+            } else if (col.statut === 'Refusée') {
+                tarif = col.ville?.tarif_refus || 0;
+                montant_a_payer = 0; // montant_a_payer is 0 for 'Refusée' colis
+            }
+
+            return {
+                code_suivi: col.code_suivi,
+                destinataire: col.nom,
+                telephone: col.tele,
+                ville: col.ville ? col.ville.nom : null,
+                adresse: col.adresse,
+                statut: col.statut,
+                prix: col.prix,
+                tarif: tarif,
+                montant_a_payer: montant_a_payer,
+                date_livraison: livraisonDate,
+            };
+        }));
+
+        // Calculate totals
+        let totalPrix = 0;
+        let totalTarif = 0;
+        let totalFraisRefus = 0;
+
+        colisDetails.forEach(col => {
+            if (col.statut === 'Livrée') {
+                totalPrix += col.prix;
+                totalTarif += col.tarif;
+            } else if (col.statut === 'Refusée') {
+                totalFraisRefus += col.tarif;
+                totalTarif += col.tarif;
+            }
+        });
+
+        // Prepare the final response
         const response = {
             code_facture: facture.code_facture,
-            date: facture.createdAt,
+            etat : facture.etat,
+            date_facture: facture.date,
             type: facture.type,
             store: facture.store ? facture.store.storeName : null,
-            client_tele: facture.store && facture.store.id_client ? facture.store.id_client.tele : null, // Get client telephone
+            client_tele: facture.store && facture.store.id_client ? facture.store.id_client.tele : null,
             livreur: facture.livreur ? facture.livreur.nom : null,
             livreur_tele: facture.livreur ? facture.livreur.tele : null,
             livreur_tarif: facture.livreur ? facture.livreur.tarif : null,
-            totalPrix: facture.totalPrix,
-            date: facture.date,
-            colis: await Promise.all(facture.colis.map(async col => {
-                const livraisonDate = await getDeliveryDate(col.code_suivi); // Get delivery date from Suivi_Colis
-                return {
-                    code_suivi: col.code_suivi,
-                    destinataire: col.nom,
-                    telephone: col.tele,
-                    ville: col.ville ? col.ville.nom : null,
-                    adresse: col.adresse,
-                    statu: col.statut,
-                    prix: col.prix,
-                    tarif: col.ville ? col.ville.tarif : null,
-                    date_livraison: livraisonDate // Add the delivery date
-                };
-            }))
+            totalPrix: totalPrix,
+            totalTarif: totalTarif,
+            totalFraisRefus: totalFraisRefus,
+            netAPayer: (totalPrix - totalTarif) - totalFraisRefus, // Calculate net amount
+            colis: colisDetails,
         };
 
         // Send the formatted response
-        res.status(200).json({ message: 'Facture details retrieved successfully', list: response });
+        res.status(200).json({ message: 'Facture details retrieved successfully', facture: response });
     } catch (error) {
         console.error('Error fetching facture by code:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-const getFactureByClient = async (req, res) => {
-    try {
-        const { client_id } = req.params; // Assuming the client ID is passed as a route parameter
 
-        // Build the query object
-        const query = { 'store.id_client': client_id }; // Search for factures with matching client_id
 
-        // Find factures for the specified client and populate necessary fields
-        const factures = await Facture.find(query)
-            .populate({
-                path: 'store',
-                select: 'storeName id_client',
-                populate: {
-                    path: 'id_client',  // Populate the client details from store
-                    select: 'tele',  // Assuming 'tele' is the client's telephone field
-                },
-            })
-            .populate({
-                path: 'livreur',
-                select: 'nom tele tarif',
-            })
-            .populate({
-                path: 'colis',
-                populate: [
-                    { path: 'ville', select: 'nom key ref tarif' },  // Populate 'ville' details
-                    { path: 'store', select: 'storeName' },  // Populate 'store' details within 'colis'
-                ],
-            })
-            .lean()
-            .sort({ createdAt: -1 })
-
-        // If no factures are found, return a 404 error
-        if (factures.length === 0) {
-            return res.status(404).json({ message: 'No factures found for this client' });
-        }
-
-        // Function to fetch the delivery date for a given code_suivi
-        const getDeliveryDate = async (code_suivi) => {
-            const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
-            if (suiviColis) {
-                const livraison = suiviColis.status_updates.find(status => status.status === 'Livrée');
-                return livraison ? livraison.date : null; // Return the delivery date if found
-            }
-            return null;
-        };
-
-        // Prepare the response data by mapping over all factures
-        const response = await Promise.all(factures.map(async (facture) => ({
-            code_facture: facture.code_facture,
-            date: facture.createdAt,
-            type: facture.type,
-            store: facture.store ? facture.store.storeName : null,
-            client_tele: facture.store && facture.store.id_client ? facture.store.id_client.tele : null, // Get client telephone
-            livreur: facture.livreur ? facture.livreur.nom : null,
-            livreur_tele: facture.livreur ? facture.livreur.tele : null,
-            livreur_tarif: facture.livreur ? facture.livreur.tarif : null,
-            totalPrix: facture.totalPrix,
-            colis: await Promise.all(facture.colis.map(async (col) => {
-                const livraisonDate = await getDeliveryDate(col.code_suivi); // Get delivery date from Suivi_Colis
-                return {
-                    code_suivi: col.code_suivi,
-                    destinataire: col.nom,
-                    telephone: col.tele,
-                    ville: col.ville ? col.ville.nom : null,
-                    adresse: col.adresse,
-                    statut: col.statut,
-                    prix: col.prix,
-                    tarif: col.ville ? col.ville.tarif : null,
-                    date_livraison: livraisonDate // Add the delivery date
-                };
-            }))
-        })));
-
-        // Send the formatted response
-        res.status(200).json({ message: 'Factures for the client retrieved successfully', list: response });
-    } catch (error) {
-        console.error('Error fetching factures by client:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
 const getFacturesByLivreur = async (req, res) => {
     try {
         // Destructure query parameters with default values
@@ -546,7 +570,7 @@ module.exports = {
     createFacturesForClientsAndLivreurs,
     getAllFacture ,
     getFactureByCode,
-    getFactureByClient,
     getFacturesByLivreur,
-    getFacturesByStore
+    getFacturesByStore,
+    setFacturePay
 };

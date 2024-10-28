@@ -98,9 +98,9 @@ exports.verserDemandeRetrait = async (req, res) => {
     // Créer une notification pour l'utilisateur concernant le versement de la demande de retrait
 
     const notification = new Notification_User({
-      storeId: store._id,
-      clientId: store.id_client,  // Assuming `clientId` is a field in the `store` model representing the user
-      description: `Votre demande de retrait d'un montant de ${demandeRetrait.montant} MAD a été versée avec succès.`,
+      id_store: store._id,
+      title : "Demande de retrait",
+      description: `Votre demande de retrait d'un montant de ${demandeRetrait.montant} MAD a été versée avec succès. 💵🤑`,
     });
     await notification.save();  // Sauvegarder la notification
 

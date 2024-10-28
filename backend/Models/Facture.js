@@ -36,6 +36,11 @@ const FactureSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    etat: {
+        type: Boolean,
+        required: false,
+        default : false,
+    },
     // Optional: Additional fields specific to each type
     clientDetails: {
         // Include any client-specific details if needed
