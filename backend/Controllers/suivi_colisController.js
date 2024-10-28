@@ -52,16 +52,30 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   colis.statut = new_status;
   await colis.save();
 
-  // Create Notification for the user when the package is delivered
-  if (new_status === "Livrée") {
-    const notification = new NotificationUser({
-      id_store: colis.store,
-      colisId: colis._id,
-      title: 'Colis Livrée',
+  if (new_status === "Ramassée") {
+    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
+    const notification = new Notification_User({
+      storeId: colis.store,  // L'utilisateur à notifier (le client associé au colis)
+      clientId:colis.clientId,
+      title:'Colis Livrée',
       description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
     });
     await notification.save();
   }
+
+  //Create Notif User when Satut ===Livrée
+  if (new_status === "Livrée") {
+    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
+    const notification = new Notification_User({
+      storeId: colis.store,  // L'utilisateur à notifier (le client associé au colis)
+      clientId:colis.clientId,
+      title:'Colis Livrée',
+      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
+    });
+    await notification.save();
+  }
+
+  // **Special operation when status is "Livrée"**
 
   // Update or create the Suivi_Colis entry (tracking record)
   let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
@@ -80,6 +94,29 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   }
 
   await suivi_colis.save();
+
+  if (new_status === "Ramassée") {
+    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
+    const notification = new Notification_User({
+      id_store: colis.store,  // L'utilisateur à notifier (le client associé au colis)
+      clientId:colis.clientId,
+      title:'Colis Ramassée',
+      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
+    });
+    await notification.save();
+  }
+
+  //Create Notif User when Satut ===Livrée
+  if (new_status === "Livrée") {
+    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
+    const notification = new Notification_User({
+      id_store: colis.store,  // L'utilisateur à notifier (le client associé au colis)
+      clientId:colis.clientId,
+      title:'Colis Livrée',
+      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
+    });
+    await notification.save();
+  }
 
   // Respond with updated status
   res.status(200).json({

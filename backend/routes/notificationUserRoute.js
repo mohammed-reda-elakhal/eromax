@@ -6,8 +6,13 @@ const { verifyToken } = require('../Middlewares/VerifyToken');
 
 router.post('/',createNotification);
 router.get('/',getAllNotifications);
-router.get('/user', verifyToken , getNotificationByStore);
-router.patch('/read/:id',markAsRead);
+router.patch('/:id/read',markAsRead);
+
+// Route pour notification de livraison de colis
+router.post('/notification/livraison', envoyerNotifLivraisonColis);
+
+// Route pour notification de versement de retrait
+router.post('/notification/retrait',envoyerNotifVersementRetrait);
 
 module.exports = router;
 

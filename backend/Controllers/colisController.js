@@ -99,9 +99,8 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     // Créer une notification pour l'utilisateur lors de l'ajout d'un nouveau colis
    if(saveColis.store){
     const notification = new Notification_User({
-      id_store : saveColis.store,  // L'utilisateur à notifier (le client associé au colis)
-      colisId: saveColis._id,
-      title: "Nouveau Colis",
+      storeId: saveColis.store,
+      clientId:saveColis.clientId,
       description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
     });
     await notification.save();  // Sauvegarder la notification
@@ -110,9 +109,9 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   // Create and save the new Suivi_Colis
 
   const suivi_colis = new Suivi_Colis({
-    id_colis: newColis._id,
-    code_suivi: newColis.code_suivi,
-    date_create: newColis.createdAt,
+    id_colis: saveColis._id,
+    code_suivi: saveColis.code_suivi,
+    date_create: saveColis.createdAt,
     status_updates: [
       { status: "Attente de Ramassage", date: new Date() }  // Statut initial
     ]
@@ -896,8 +895,8 @@ exports.annulerColis = async (req, res) => {
 
 exports.refuserColis = async (req, res) => {
   try {
-    const {idColis,commentaire}=req.body
-    console.log('ID du colis recherché:', idColis); // Ajoutez ce log
+    const { idColis, commentaire } = req.body;
+    console.log('ID du colis recherché:', idColis);
 
     // Recherche du colis dans la base de données
     const colis = await Colis.findById(idColis);
@@ -909,7 +908,7 @@ exports.refuserColis = async (req, res) => {
     }
 
     // Vérification si le colis peut être annulé (par exemple, s'il n'est pas expédié ou livré)
-    if (colis.statut !== 'Expédié' || colis.statut !== 'Livré') {
+    if (colis.statut !== 'Expediée'||colis.statut !== 'Livrée') {
       return res.status(400).json({ message: 'Le colis ne peut être refusé que s\'il est expédié ou livré' });
     }
     // Recherche de la ville pour obtenir le tarif de refus

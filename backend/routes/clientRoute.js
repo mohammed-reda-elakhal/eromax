@@ -24,6 +24,8 @@ router.get('/generate/:storeId/:date',generateFactureClientwithLiv);
 
 router.route("/programme").post(colisController.colisProgramme);
 router.route("/annuler").post(colisController.annulerColis);
+router.route("/refuser").post(colisController.refuserColis);//move to client route pour executer
+
 
 
 
