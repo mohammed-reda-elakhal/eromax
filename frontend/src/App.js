@@ -54,6 +54,10 @@ import ScanRecherche from "./scene/components/scan/components/ScanRecherche";
 import ScanRamasser from "./scene/components/scan/components/ScanRamasser";
 import ScanUpdateStatu from "./scene/components/scan/page/ScanUpdateStatu";
 import UpdateColis from "./scene/components/colis/components/UpdateColis";
+import StoreInfo from "./scene/components/profile/components/StoreInfo";
+import Store from "./scene/components/profile/page/Store";
+import PayementProfile from "./scene/components/profile/components/PayementProfile";
+import Pyements from "./scene/components/profile/page/Pyements";
 
 function App() {
 
@@ -179,6 +183,9 @@ function App() {
           
           <Route path='dashboard' element={<ProtectedRoute/>}>
             <Route path="home" element={<HomeDashboard />} />
+            <Route path="bussness" element={<Store />} />
+            <Route path="payement" element={<Pyements />} />
+
             
             <Route path="profile/:id" element={<Profile />} />
             <Route path="portfeuille" element={<Portfeuille />} />

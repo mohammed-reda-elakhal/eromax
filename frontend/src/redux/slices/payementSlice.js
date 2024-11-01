@@ -1,3 +1,5 @@
+// src/redux/slices/payementSlice.js
+
 import { createSlice } from "@reduxjs/toolkit";
 
 const payementSlice = createSlice({

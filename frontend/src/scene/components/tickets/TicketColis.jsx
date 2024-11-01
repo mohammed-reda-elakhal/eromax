@@ -72,7 +72,7 @@ function TicketColis({ colis }) {
           </div>
           <div className="ticket-colis-footer">
             <div className="ticket-colis-footer-store">
-              <p>Message store</p>
+              <p>{colis?.store?.message || "current message"}</p>
             </div>
             <div className="ticket-colis-footer-eromax">
               <p>Message Eromax</p>

@@ -73,17 +73,17 @@ function Topbar() {
         </Link>
       </Menu.Item>
       <Menu.Item key="store" icon={<FaStore  style={{ margin: '0 8px' }}/>}>
-        <Link className='link_topbar' to={`/dashboard/profile/${user._id}`}>
+        <Link className='link_topbar' to={`/dashboard/bussness`}>
           Bussness
         </Link>
       </Menu.Item>
       <Menu.Item key="payement" icon={<MdPayment style={{ margin: '0 8px' }} />}>
-        <Link className='link_topbar' to={`/dashboard/profile/${user._id}`}>
+        <Link className='link_topbar' to={`/dashboard/payement`}>
           Payement Methode
         </Link>
       </Menu.Item>
       <Menu.Item key="document" icon={<FaFileArchive style={{ margin: '0 8px' }} />}>
-        <Link className='link_topbar' to={`/dashboard/profile/${user._id}`}>
+        <Link className='link_topbar' to={`/dashboard/document`}>
           Documents
         </Link>
       </Menu.Item>

@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllStores, getStoreById, deleteStore, createStores, updateStore,storePhotoController } = require("../Controllers/storeController");
+const { getAllStores, getStoreById, deleteStore, createStores, updateStore,storePhotoController, getStoreByUser } = require("../Controllers/storeController");
 const {verifyTokenAndClient, verifyTokenAndStore, verifyToken} = require("../Middlewares/VerifyToken");
 const { route } = require("./clientRoute");
 const photoUpload = require("../Middlewares/photoUpload");
@@ -19,6 +19,9 @@ router.route('/:id')
         .put(updateStore)
         .delete(deleteStore)
         .get(getStoreById);
+
+router.route('/user/:id')
+        .get(getStoreByUser)
 
 // api/store/update-photo/:id
 router.route("/:id/photo").post(photoUpload.single("image"),storePhotoController);

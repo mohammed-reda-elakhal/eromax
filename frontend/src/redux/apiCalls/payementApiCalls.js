@@ -1,3 +1,5 @@
+// src/redux/apiCalls/payementApiCalls.js
+
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 import {
@@ -49,9 +51,11 @@ export function createPayement(payementData) {
       const { data } = await request.post("/api/payement", payementData); // API call to create a payment
       dispatch(addPayement(data));
       toast.success("Payment created successfully");
+      return data; // Return data to allow awaiting
     } catch (error) {
       dispatch(setError(error.message || "Failed to create payment"));
       toast.error(error.message || "Failed to create payment");
+      throw error; // Throw error to handle it in the component
     }
   };
 }
@@ -63,9 +67,11 @@ export function ModifierPayement(id, payementData) {
       const { data } = await request.put(`/api/payement/${id}`, payementData); // API call to update a payment
       dispatch(updatePayement(data));
       toast.success("Payment updated successfully");
+      return data; // Return data to allow awaiting
     } catch (error) {
       dispatch(setError(error.message || "Failed to update payment"));
       toast.error(error.message || "Failed to update payment");
+      throw error; // Throw error to handle it in the component
     }
   };
 }

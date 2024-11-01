@@ -55,6 +55,27 @@ const getStoreById = asyncHandler(async (req, res) => {
 
 
 /** -------------------------------------------
+ *@desc get store by user    
+ * @router /api/store/user/:id
+ * @method GET
+ * @access private  admin and client hem self
+ -------------------------------------------
+*/
+const getStoreByUser = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+
+  // Find the store where id_client matches the userId
+  const store = await Store.find({ id_client: userId }).populate('id_client');
+
+  if (!store) {
+      res.status(404).json({ message: 'Store not found' });
+      return;
+  }
+
+  res.status(200).json(store);
+});
+
+/** -------------------------------------------
  *@desc update store    
  * @router /api/store/:id
  * @method PUT
@@ -138,5 +159,6 @@ module.exports = {
   updateStore,
   deleteStore,
   createStores,
+  getStoreByUser,
   storePhotoController
 };

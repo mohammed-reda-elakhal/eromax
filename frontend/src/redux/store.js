@@ -11,6 +11,7 @@ import { meth_payementReducer } from "./slices/methPayementSlice";
 import { payementReducer } from "./slices/payementSlice";
 import { transactionReducer } from "./slices/transactionSlice";
 import { demandeRetraitReducer } from "./slices/demandeRetraitSlice";
+import { storeReducer } from "./slices/storeSlice";
 
 
 
@@ -27,7 +28,8 @@ const store = configureStore({
     meth_payement: meth_payementReducer,
     payement: payementReducer, // Add payement reducer to the store
     transaction:transactionReducer,
-    demandeRetrait:demandeRetraitReducer
+    demandeRetrait:demandeRetraitReducer,
+    store: storeReducer, // Add store reducer to the store
   },
 });
 
