@@ -190,62 +190,96 @@ export const ramasserColis = (colisList) => async (dispatch) => {
 /*  */
 
 // Create Colis function
-export function createColis(colis) {
+// redux/apiCalls/colisApiCalls.js
+// Existing functions...
+// Search Colis by code_suivi for replacement (single selection)
+export function searchColisByCodeSuivi(code_suivi) {
     return async (dispatch) => {
-        try {
-            // Get token and user data from cookies
-            const token =Cookies.get('token'); // Retrieve token as a string
-            const user = JSON.parse(Cookies.get('user')); // Parse user data from cookies
-            // Ensure both token and user data are available
-            if (!token || !user) {
-                throw new Error('Missing authentication token or user information.');
-            }
-
-            
-
-
-            const decodedToken = decodeToken(token);
-            console.log('Decoded Token:', decodedToken);
-            
-
-            // Determine if the user is a client, admin, or team member
-            let idToUse;
-            if (user.role === 'client') {
-                // For clients, use the store ID from cookies
-                const store = JSON.parse(Cookies.get('store')); // Parse store data from cookies
-                console.log(store);
-                if (!store?._id) {
-                    throw new Error('Store information is missing.');
-                }
-                idToUse = store._id; // Use store ID for clients
-            } else if (user.role === 'admin' || user.role === 'team') {
-                // For admin or team, use the user ID
-                idToUse = user._id; // Use user ID for admin or team
-            } else {
-                throw new Error('User role is not authorized to create a colis.');
-            }
-
-            // Set up headers with token in correct format
-            const config = {
-                headers: {
-                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
-                    'Content-Type': 'application/json',
-                }
-            };
-
-            // Make the POST request to create a colis with the determined ID
-            const { data } = await request.post(`/api/colis/user/${idToUse}`, colis, config);
-
-            // Show success notification
-            toast.success(data.message);
-        } catch (error) {
-            // Show error notification
-            toast.error(error.response?.data?.message || error.message || "Failed to create colis");
-            console.error(error);
+      try {
+        dispatch(colisActions.setSearchLoading(true));
+  
+        const token = Cookies.get('token');
+        if (!token) {
+          toast.error('Authentification token is missing');
+          dispatch(colisActions.setSearchLoading(false));
+          return;
         }
+  
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        };
+  
+        const { data } = await request.get(`/api/colis/code_suivi/${code_suivi}`, config);
+        
+        // Assume backend returns a single colis or null
+        const filteredData = data && data.statut === 'Livrée' && !data.is_remplace ? [data] : [];
+  
+        dispatch(colisActions.setSearchResults(filteredData));
+        
+        return { searchResults: filteredData };
+      } catch (error) {
+        console.error("Failed to search colis by code_suivi:", error);
+        dispatch(colisActions.setError(error.response?.data?.message || "Failed to search colis"));
+        toast.error('Failed to search colis by code_suivi');
+        return { searchResults: [] };
+      } finally {
+        dispatch(colisActions.setSearchLoading(false));
+      }
     };
-}
-
+  }
+  
+  // Create Colis function
+  export function createColis(colis) {
+    return async (dispatch) => {
+      try {
+        // Get token and user data from cookies
+        const token = Cookies.get('token');
+        const user = JSON.parse(Cookies.get('user'));
+  
+        // Check for token and user data
+        if (!token || !user) {
+          throw new Error('Missing authentication token or user information.');
+        }
+  
+        // Determine the correct ID to use for clients, admin, or team
+        let idToUse;
+        if (user.role === 'client') {
+          const store = JSON.parse(Cookies.get('store'));
+          if (!store?._id) {
+            throw new Error('Store information is missing.');
+          }
+          idToUse = store._id;
+        } else if (user.role === 'admin' || user.role === 'team') {
+          idToUse = user._id;
+        } else {
+          throw new Error('User role is not authorized to create a colis.');
+        }
+  
+        // Set up headers with the token
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+  
+        // Send a POST request to create a single colis with `replacedColis` if available
+        const { data } = await request.post(`/api/colis/user/${idToUse}`, colis, config);
+  
+        // Display success notification
+        toast.success(data.message);
+      } catch (error) {
+        // Error handling
+        toast.error(error.response?.data?.message || error.message || "Failed to create colis");
+        console.error("Error creating colis:", error);
+        dispatch(colisActions.setError(error.response?.data?.message || "Failed to create colis"));
+      }
+    };
+  }
+  
 export const getColisForLivreur = (userId,statut) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {

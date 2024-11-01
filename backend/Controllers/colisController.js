@@ -1,3 +1,5 @@
+// controllers/colisController.js
+
 const asyncHandler = require("express-async-handler");
 const { Colis, validateRegisterColis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
@@ -15,12 +17,6 @@ const NotificationUser = require("../Models/Notification_User");
 const { log } = require("console");
 
 // Utility function to generate a unique code_suivi
-/*
-function generateCodeSuivi( code_ville ) {
-  return crypto.randomBytes(8).toString('hex'); // Generates a 16-character hexadecimal string
-}
-*/
-
 const generateCodeSuivi = (refVille) => {
   const currentDate = new Date(); // Get the current date
   const formattedDate = currentDate.toISOString().slice(0, 10).replace(/-/g, ''); // Format date as YYYYMMDD
@@ -31,7 +27,7 @@ const generateCodeSuivi = (refVille) => {
 /**
  * -------------------------------------------------------------------
  * @desc     Create new colis
- * @route    /api/colis/
+ * @route    /api/colis/user/:id_user
  * @method   POST
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
@@ -75,17 +71,47 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     }
   }
 
-  // Create and save the new Colis
-  const newColis = new Colis({
+  // Prepare new Colis data
+  const colisData = {
     ...req.body,
     store,
     team,
     ville: ville._id,  // Add the ville reference
     code_suivi,
-  });
+  };
 
+  // If is_remplace is true, handle replacement
+  if (req.body.is_remplace) {
+    const { replacedColis } = req.body;
+
+    if (!replacedColis) { // Now expecting a single ID
+      return res.status(400).json({ message: "Aucun colis à remplacer sélectionné." });
+    }
+
+    // Validate that the replacedColis ID corresponds to a delivered Colis and not already replaced
+    const oldColis = await Colis.findOne({
+      _id: replacedColis,
+      statut: 'Livrée',
+      is_remplace: false,
+    });
+
+    if (!oldColis) {
+      return res.status(400).json({
+        message: "Le colis à remplacer est invalide (soit non livré, soit déjà remplacé).",
+      });
+    }
+
+    // Mark the old Colis as replaced
+    oldColis.is_remplace = true;
+    await oldColis.save();
+
+    // Link the old Colis to the new Colis
+    colisData.replacedColis = replacedColis;
+  }
+
+  // Create and save the new Colis
+  const newColis = new Colis(colisData);
   const saveColis = await newColis.save();
-
 
   // Populate store, team, and ville data
   await saveColis.populate('store');
@@ -97,31 +123,30 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     console.log("Error: code_suivi is null after saving Colis");
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
-    // Créer une notification pour l'utilisateur lors de l'ajout d'un nouveau colis
-   if(saveColis.store){
+
+  // Create a notification for the user when a new colis is added
+  if (saveColis.store) {
     try {
       const notification = new Notification_User({
         id_store: store,
         colisId: saveColis._id,
-        title:'Nouvelle colis',
+        title: 'Nouvelle colis',
         description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
       });
-      await notification.save();  // Sauvegarder la notification
+      await notification.save();  // Save the notification
     } catch (error) {
       console.log(error);
-      
+      // Continue without failing the request
     }
-   }
-    
-    
-  // Create and save the new Suivi_Colis
+  }
 
+  // Create and save the new Suivi_Colis
   const suivi_colis = new Suivi_Colis({
     id_colis: saveColis._id,
     code_suivi: saveColis.code_suivi,
     date_create: saveColis.createdAt,
     status_updates: [
-      { status: "Attente de Ramassage", date: new Date() }  // Statut initial
+      { status: "Attente de Ramassage", date: new Date() }  // Initial status
     ]
   });
 
@@ -134,6 +159,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     suiviColis: save_suivi,
   });
 });
+
 
 /**
  * -------------------------------------------------------------------

@@ -1,4 +1,5 @@
 // redux/slices/colisSlice.js
+
 import { createSlice } from "@reduxjs/toolkit";
 
 const colisSlice = createSlice({
@@ -8,6 +9,8 @@ const colisSlice = createSlice({
     selectedColis: null,  // Selected Colis for update
     loading: false,
     error: null,
+    searchResults: [], // To store search results for old colis
+    isLoadingSearch: false, // Loading state for search
     villes: {
       data: [],
       loading: false,
@@ -75,6 +78,18 @@ const colisSlice = createSlice({
         console.error("Invalid payload format for updateColis:", action.payload);
         state.error = "Invalid data format for updating colis.";
       }
+    },
+    // New reducers for search functionality
+    setSearchResults(state, action) {
+      if (Array.isArray(action.payload)) {
+        state.searchResults = action.payload;
+      } else {
+        state.searchResults = [];
+      }
+      state.isLoadingSearch = false;
+    },
+    setSearchLoading(state, action) {
+      state.isLoadingSearch = action.payload;
     },
     // Additional reducers for fetching options
     fetchVillesStart(state) {
