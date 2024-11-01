@@ -1,103 +1,136 @@
+// src/redux/apiCalls/profileApiCalls.js
+
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { profileActions } from "../slices/profileSlice";
 import Cookies from "js-cookie";
 
-
-
-
-// get data user 
-export function getProfile(userId , role){
-    return async (dispatch)=>{
+// Fetch Profile
+export function getProfile(userId, role) {
+    return async (dispatch) => {
         try {
             const { data } = await request.get(`/api/${role}/${userId}`);
-            dispatch(profileActions.setProfile(data));
+            dispatch(profileActions.fetchProfileSuccess(data));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch profile");
+            console.error('Fetch profile error:', error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to fetch profile";
+            dispatch(profileActions.fetchProfileFailure(errorMessage));
+            toast.error(errorMessage);
         }
-    }
+    };
 }
 
-// get list users 
+// Fetch Profile List
 export function getProfileList(role) {
     return async (dispatch) => {
+        dispatch(profileActions.fetchProfileStart());
         try {
             const { data } = await request.get(`/api/${role}`);
             dispatch(profileActions.setProfileList(data));
         } catch (error) {
-            console.error('Fetch error:', error); // Log the error for debugging
-            toast.error(error.message || "Failed to fetch profile List");
+            console.error('Fetch profile list error:', error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to fetch profile list";
+            dispatch(profileActions.fetchProfileFailure(errorMessage));
+            toast.error(errorMessage);
         }
     };
 }
 
-
-// get store data
-export function getStoreById(id){
-    return async(dispatch)=>{
+// Fetch Store Data
+export function getStoreById(id) {
+    return async (dispatch) => {
         try {
             const { data } = await request.get(`/api/store/${id}`);
             dispatch(profileActions.setStore(data));
         } catch (error) {
-            console.error('Fetch error:', error); // Log the error for debugging
-            toast.error(error.message || "Failed to fetch profile List");
-        }
-    }
-}
-
-
-// create user
-export function createProfile(role , user){
-    return async (dispatch ) =>{
-        try {
-            const {data} = await request.post(`/api/${role}` , user);
-            getProfileList(role)
-            toast.success(data.message);
-        } catch (error) {
-            toast.error(error.message || "Failed to create profile");
-            console.log(error.message);
-            
-        }
-    }
-}
-
-
-// update Profile function
-export function updateProfile(userId, role, user) {
-    return async (dispatch, getState) => {
-        try {
-            // Get the token from localStorage
-            const token = Cookies.get('token');
-            if (!token) {
-                throw new Error('No token found in localStorage');
-            }
-
-            // Send the request with the token in the Authorization header
-            const { data } = await request.put(`/api/${role}/${userId}`, user, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            // Dispatch update action and show success message
-            dispatch(profileActions.updateProfile(data.client));
-            toast.success(data.message);
-        } catch (error) {
-            console.error("Profile update error:", error);  // Log for debugging
-            toast.error(error.message || "Failed to update profile");
+            console.error('Fetch store error:', error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to fetch store data";
+            toast.error(errorMessage);
         }
     };
 }
 
-// delete user
-export function deleteProfile(role , userId){
-    return async (dispatch ) =>{
+// Create Profile
+export function createProfile(role, user) {
+    return async (dispatch) => {
         try {
-            const {data} = await request.delete(`/api/${role}/${userId}` );
+            const { data } = await request.post(`/api/${role}`, user);
+            dispatch(getProfileList(role)); // Refresh the profile list
             toast.success(data.message);
         } catch (error) {
-            toast.error(error.message || "Failed to create profile");
-            console.log(error.message); 
+            console.error('Create profile error:', error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to create profile";
+            toast.error(errorMessage);
         }
-    }
+    };
+}
+
+// Update Profile
+export function updateProfile(userId, role, user) {
+    return async (dispatch) => {
+        dispatch(profileActions.updateProfileStart());
+        try {
+            const token = Cookies.get('token');
+            if (!token) {
+                throw new Error('No token found');
+            }
+
+            const { data } = await request.put(`/api/${role}/${userId}`, user, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            dispatch(profileActions.updateProfileSuccess(data.client)); // Adjust based on API response
+            toast.success(data.message);
+        } catch (error) {
+            console.error("Update profile error:", error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to update profile";
+            dispatch(profileActions.updateProfileFailure(errorMessage));
+            toast.error(errorMessage);
+        }
+    };
+}
+
+// Update Profile Image
+export function updateProfileImage(userId, formData) {
+    return async (dispatch) => {
+        dispatch(profileActions.updateProfileImageStart());
+        try {
+            const token = Cookies.get('token');
+            if (!token) {
+                throw new Error('No token found');
+            }
+
+            const { data } = await request.put(`/api/profile/${userId}/image`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            dispatch(profileActions.updateProfileImageSuccess(data.image)); // Assuming API returns the updated image URL
+            toast.success(data.message || "Profile image updated successfully");
+        } catch (error) {
+            console.error("Update profile image error:", error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to update profile image";
+            dispatch(profileActions.updateProfileImageFailure(errorMessage));
+            toast.error(errorMessage);
+        }
+    };
+}
+
+// Delete Profile
+export function deleteProfile(role, userId) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.delete(`/api/${role}/${userId}`);
+            dispatch(profileActions.deleteProfileSuccess(userId));
+            toast.success(data.message);
+        } catch (error) {
+            console.error('Delete profile error:', error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to delete profile";
+            toast.error(errorMessage);
+        }
+    };
 }

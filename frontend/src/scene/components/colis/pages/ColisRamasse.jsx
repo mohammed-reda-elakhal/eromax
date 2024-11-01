@@ -3,16 +3,14 @@ import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
-import { PlusCircleFilled } from '@ant-design/icons';
-import { Button, Modal, Form, Input, message, Card, Divider } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, Modal, Form, message, Card, Divider, Tag } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
-import { affecterLivreur, getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
-import { Tag } from 'antd';
 import { toast } from 'react-toastify';
 import { BsFillInfoCircleFill } from "react-icons/bs";
 import { FaBoxesStacked } from 'react-icons/fa6';
@@ -26,7 +24,6 @@ function ColisRamasse({ search }) {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentColis, setCurrentColis] = useState(null);
   const [livreurId, setLivreurId] = useState(null);
   const [form] = Form.useForm();
   const dispatch = useDispatch();
@@ -40,17 +37,18 @@ function ColisRamasse({ search }) {
     store: state.auth.store,
   }));
 
-  const getDataColis = ()=>{
+  const getDataColis = () => {
     if (user?.role) {
       if (user.role === "admin" || user.role === "team") {
         dispatch(getColis("Ramassée"));
       } else if (user.role === "client" && store?._id) {
         dispatch(getColisForClient(store._id, "Ramassée"));
       } else if (user.role === "team") {
-        dispatch(getColisForClient(user._id,'Ramassée'));
+        dispatch(getColisForClient(user._id, 'Ramassée'));
       }
     }
   }
+
   useEffect(() => {
     getDataColis()
     dispatch(getLivreurList());
@@ -66,18 +64,17 @@ function ColisRamasse({ search }) {
   const error = (text) => messageApi.error(text);
 
   const showModal = () => {
-    if( selectedRowKeys.length > 0){
+    if (selectedRowKeys.length > 0) {
       setLivreurId(null);
       form.resetFields();
       setIsModalVisible(true);
-    }else{
-      toast.warn("Selectionnée au moins une colis  !")
+    } else {
+      toast.warn("Veuillez sélectionner au moins un colis !");
     }
-    
   };
 
   const handleAffecterLivreur = async () => {
-    if (selectedRowKeys.length > 0)  {
+    if (selectedRowKeys.length > 0 && livreurId) {
       setLoading(true);
       try {
         // Send a PUT request to update the status of selected colis
@@ -97,7 +94,7 @@ function ColisRamasse({ search }) {
         setLoading(false);
         toast.error("Erreur lors de la mise à jour des colis.");
       }
-      
+
     } else {
       warning('Veuillez sélectionner un livreur');
     }
@@ -106,7 +103,6 @@ function ColisRamasse({ search }) {
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setCurrentColis(null);
     setLivreurId(null);
   };
 
@@ -136,14 +132,21 @@ function ColisRamasse({ search }) {
       <Tag icon={<SyncOutlined spin />} color="processing">{record.statut}</Tag>
     ) },
     { title: 'Ville', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.nom}</span> },
-    { title: 'Option', render: (text, record) => (
-      <Button type="primary" icon={<MdDeliveryDining />} onClick={() => showModal(record)}>Expidée</Button>
-    ) },
   ];
 
+  // Collect unique villes from selected colis
+  const selectedColisVilles = data
+    .filter(colis => selectedRowKeys.includes(colis.code_suivi))
+    .map(colis => colis.ville.nom);
+
+  const uniqueSelectedColisVilles = [...new Set(selectedColisVilles)];
+
+  // Filter livreurs based on whether they cover all the selected colis villes
   const filteredLivreurs = livreurList.reduce(
     (acc, person) => {
-      if (person.villes.includes(currentColis?.ville.nom)) {
+      const personVilles = person.villes; // This should be an array of city names
+      const coversAllVilles = uniqueSelectedColisVilles.every(ville => personVilles.includes(ville));
+      if (coversAllVilles) {
         acc.preferred.push(person);
       } else {
         acc.other.push(person);
@@ -165,9 +168,9 @@ function ColisRamasse({ search }) {
           <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
             <h4>Colis ramassée</h4>
             <div className="bar-action-data">
-              <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
-              <Button icon={<FaBoxesStacked/>} type="primary" onClick={() => showModal()} loading={loading}>Expidée</Button>
-              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+              <Button icon={<IoMdRefresh />} type="primary" onClick={() => getDataColis()} >Rafraîchir</Button>
+              <Button icon={<FaBoxesStacked />} type="primary" onClick={() => showModal()} loading={loading}>Expédier</Button>
+              <Button icon={<IoQrCodeSharp />} type="primary" onClick={() => navigate("")} loading={loading}>Scanner</Button>
             </div>
             <TableDashboard column={columns} data={data} id="code_suivi" theme={theme} onSelectChange={setSelectedRowKeys} />
             {contextHolder}
@@ -183,7 +186,7 @@ function ColisRamasse({ search }) {
         width={"90vw"}
       >
         <div className='livreur_list_modal'>
-          <h3>Livreurs Proposer</h3>
+          <h3>Livreurs Préférés</h3>
           <div className="livreur_list_modal_card">
             {filteredLivreurs.preferred.length ? filteredLivreurs.preferred.map(person => (
               <Card
@@ -196,23 +199,22 @@ function ColisRamasse({ search }) {
                   title={
                     <div>
                       {person.username}
-                      
                     </div>
-                  } 
+                  }
                   description={
                     <>
                       {person.tele}
-                      <Button 
-                        icon={<BsFillInfoCircleFill />} 
-                        onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)} 
-                        type='primary' 
+                      <Button
+                        icon={<BsFillInfoCircleFill />}
+                        onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)}
+                        type='primary'
                         style={{ float: 'right' }}
                       />
                     </>
-                  } 
+                  }
                 />
               </Card>
-            )) : <p>No preferred livreurs available</p>}
+            )) : <p>Aucun livreur préféré disponible</p>}
           </div>
         </div>
         <Divider />
@@ -231,18 +233,18 @@ function ColisRamasse({ search }) {
                     <div>
                       {person.username}
                     </div>
-                  } 
+                  }
                   description={
                     <>
                       {person.tele}
-                      <Button 
-                        icon={<BsFillInfoCircleFill />} 
-                        onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)} 
-                        type='primary' 
+                      <Button
+                        icon={<BsFillInfoCircleFill />}
+                        onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)}
+                        type='primary'
                         style={{ float: 'right' }}
                       />
                     </>
-                  } 
+                  }
                 />
               </Card>
             ))}

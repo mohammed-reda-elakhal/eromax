@@ -124,30 +124,47 @@ ColisSchema.pre('save', function (next) {
 // Colis Model
 const Colis = mongoose.model("Colis", ColisSchema);
 
-// Joi Validation for Colis
-function validateRegisterColis(obj) {
+
+// Define validStatuses
+const validStatuses = [
+    "Nouveau Colis",
+    "attente de ramassage",
+    "Ramassée",
+    "Expediée",
+    "Reçu",
+    "Mise en Distribution",
+    "Livrée",
+    "Annulée",
+    "Programmée",
+    "Refusée",
+  ];
+  
+  // Joi Validation for Colis
+  function validateRegisterColis(obj) {
     const schema = Joi.object({
-        adresse: Joi.string().required(),
-        nom: Joi.string().required(),
-        ville: Joi.string().required(),
-        tele: Joi.string().required(), // Kept as string for phone number
-        prix: Joi.number().required(),
-        commentaire: Joi.string(),
-        etat: Joi.boolean(),
-        nature_produit: Joi.string().required(),
-        statut: Joi.string(),
-        ouvrir: Joi.boolean(),
-        is_simple: Joi.boolean(),
-        is_remplace: Joi.boolean(),
-        is_fragile: Joi.boolean(),
-        code_suivi: Joi.string(),
-        produits: Joi.array().items(Joi.object({
-            produit: Joi.string().required(),
-            variants: Joi.array().items(Joi.string())
-        }))
+      adresse: Joi.string().required(),
+      nom: Joi.string().required(),
+      ville: Joi.string().required(),
+      tele: Joi.string().required(),
+      prix: Joi.number().required(),
+      commentaire: Joi.string(),
+      etat: Joi.boolean(),
+      nature_produit: Joi.string().required(),
+      statut: Joi.string().valid(...validStatuses).required(),
+      ouvrir: Joi.boolean(),
+      is_simple: Joi.boolean(),
+      is_remplace: Joi.boolean(),
+      is_fragile: Joi.boolean(),
+      code_suivi: Joi.string(),
+      produits: Joi.array().items(
+        Joi.object({
+          produit: Joi.string().required(),
+          variants: Joi.array().items(Joi.string()),
+        })
+      ),
     });
     return schema.validate(obj);
-}
+  }
 
 module.exports = {
     Colis,

@@ -1,25 +1,74 @@
+// src/redux/slices/profileSlice.js
+
 import { createSlice } from "@reduxjs/toolkit";
 
 const profileSlice = createSlice({
     name: "profile",
     initialState: {
-        profile: null, // Initial state for profile
-        profileList : [],
-        store : null
+        profile: null, // Current user's profile
+        profileList: [], // List of profiles (e.g., for admin views)
+        store: null, // Store data if applicable
+        loading: false, // Loading state for async operations
+        error: null, // Error state for async operations
     },
     reducers: {
-        setProfile(state, action) {
-          state.profile = action.payload; // Update profile data
+        // Fetch Profile
+        fetchProfileStart(state) {
+            state.loading = true;
+            state.error = null;
         },
-        setStore(state , action){
-            state.store = action.payload
+        fetchProfileSuccess(state, action) {
+            state.profile = action.payload;
         },
-        setProfileList(state , action){
+        fetchProfileFailure(state, action) {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // Update Profile
+        updateProfileStart(state) {
+            state.loading = true;
+            state.error = null;
+        },
+        updateProfileSuccess(state, action) {
+            state.loading = false;
+            state.profile = action.payload;
+        },
+        updateProfileFailure(state, action) {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // Update Profile Image
+        updateProfileImageStart(state) {
+            state.loading = true;
+            state.error = null;
+        },
+        updateProfileImageSuccess(state, action) {
+            state.loading = false;
+            if (state.profile) {
+                state.profile.image = action.payload; // Assuming payload contains the updated image URL
+            }
+        },
+        updateProfileImageFailure(state, action) {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // Set Store
+        setStore(state, action) {
+            state.store = action.payload;
+        },
+
+        // Set Profile List
+        setProfileList(state, action) {
             state.profileList = action.payload;
         },
-        updateProfile(state , action){
-            state.profile = action.payload;
-        }
+
+        // Delete Profile (if needed)
+        deleteProfileSuccess(state, action) {
+            state.profileList = state.profileList.filter(profile => profile._id !== action.payload);
+        },
     },
 });
 

@@ -11,7 +11,8 @@ const schedule = require('node-schedule');
 const { Ville } = require("../Models/Ville");
 const Notification_User = require("../Models/Notification_User");
 const shortid = require('shortid');
-const NotificationUser = require("../Models/Notification_User")
+const NotificationUser = require("../Models/Notification_User");
+const { log } = require("console");
 
 // Utility function to generate a unique code_suivi
 /*
@@ -98,13 +99,20 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   }
     // Créer une notification pour l'utilisateur lors de l'ajout d'un nouveau colis
    if(saveColis.store){
-    const notification = new Notification_User({
-      storeId: saveColis.store,
-      clientId:saveColis.clientId,
-      description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
-    });
-    await notification.save();  // Sauvegarder la notification
+    try {
+      const notification = new Notification_User({
+        id_store: store,
+        colisId: saveColis._id,
+        title:'Nouvelle colis',
+        description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
+      });
+      await notification.save();  // Sauvegarder la notification
+    } catch (error) {
+      console.log(error);
+      
+    }
    }
+    
     
   // Create and save the new Suivi_Colis
 
@@ -121,7 +129,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
   // Respond with both the saved Colis and Suivi_Colis
   res.status(201).json({
-    message: 'Colis créé avec succès, merci ❤️',
+    message: 'Colis créé avec succès, merci ',
     colis: saveColis,
     suiviColis: save_suivi,
   });
@@ -351,26 +359,30 @@ module.exports.deleteColis = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Colis deleted succesfully" });
 });
 
+
 /**
  * -------------------------------------------------------------------
- * @desc     update colis 
+ * @desc     Update Colis by _id
  * @route    /api/colis/:id
  * @method   PUT
- * @access   private ( only admin )
+ * @access   Private (only admin)
  * -------------------------------------------------------------------
  **/
 module.exports.updateColis = asyncHandler(async (req, res) => {
-  //input validation 
-  const { error } = validateRegisterColis(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  const updatedColis = await Colis.findByIdAndUpdate(req.params.code_suivi, req.body, { new: true });
+ 
+
+  // Find and update Colis by _id
+  const updatedColis = await Colis.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    .populate('ville')
+    .populate('store')
+    .populate('livreur');
+
   if (!updatedColis) {
     return res.status(404).json({ message: "Colis not found" });
   }
+
   res.status(200).json(updatedColis);
-})
+});
 
 
 /**

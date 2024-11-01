@@ -230,7 +230,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             <FaPrint />
           </button>
           {user.role !== 'client' && user.role !== 'livreur' && (
-            <button className="btn-dashboard" onClick={() => setState({ ...state, drawerColisUpdate: true })}>
+            <button className="btn-dashboard" onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}>
               <FaPenFancy />
             </button>
           )}

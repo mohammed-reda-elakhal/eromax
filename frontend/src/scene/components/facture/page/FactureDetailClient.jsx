@@ -78,7 +78,7 @@ const FactureDetail = () => {
 
     // Calculate the sums for prix and tarif
     const totalPrix = facture?.colis?.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
-    const totalTarif = facture?.colis?.reduce((acc, col) => acc + (col.tarif || 0), 0) || 0;
+    const totalTarif = facture?.colis?.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
     const difference = totalPrix - totalTarif;
 
     // Define columns for TableDashboard
@@ -98,16 +98,13 @@ const FactureDetail = () => {
             title: 'Destinataire',
             dataIndex: 'destinataire',
             key: 'destinataire',
-        },
-        {
-            title: 'Téléphone',
-            dataIndex: 'telephone',
-            key: 'telephone',
-        },
-        {
-            title: 'Ville',
-            dataIndex: 'ville',
-            key: 'ville', // Check if ville exists, otherwise return 'N/A'
+            render:(text , record) =>(
+                <>
+                    <p>{record.destinataire}</p>
+                    <p>{record.telephone}</p>
+                    <p>{record.ville}</p>
+                </>
+            ),
         },
         {
             title: 'Statut',
@@ -131,9 +128,19 @@ const FactureDetail = () => {
             ),
         },
         {
-            title: 'Tarif',
-            dataIndex: 'tarif',
-            key: 'tarif', // Check if tarif exists, otherwise return 'N/A'
+            title: 'Tarif Livraison',
+            dataIndex: 'tarif_livraison',
+            key: 'tarif_livraison', // Check if tarif exists, otherwise return 'N/A'
+        },
+        {
+            title: 'Tarif Fragille',
+            dataIndex: 'tarif_fragile',
+            key: 'tarif_fragile', // Check if tarif exists, otherwise return 'N/A'
+        },
+        {
+            title: 'TTL',
+            dataIndex: 'tarif_total',
+            key: 'tarif_total', // Check if tarif exists, otherwise return 'N/A'
         },
         {
             title: 'Prix',

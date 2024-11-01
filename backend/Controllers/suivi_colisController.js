@@ -5,9 +5,11 @@ const { Colis } = require("../Models/Colis");
 const { Ville } = require("../Models/Ville"); // Import Ville model
 const { Store } = require("../Models/Store"); // Import Store model
 
+const { handleFactureRamasser } = require('./factureHelper');
+
 const updateSuiviColis = asyncHandler(async (req, res) => {
   const id_colis = req.params.id;
-  const { new_status, comment } = req.body;  // Expect the comment to be passed in the request body
+  const { new_status, comment } = req.body;
   const validStatuses = [
     "Nouveau Colis",
     "attente de ramassage",
@@ -25,100 +27,59 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   if (!id_colis || !new_status) {
     return res.status(400).json({ message: "id_colis and new_status are required" });
   }
-  
   if (!validStatuses.includes(new_status)) {
     return res.status(400).json({ message: "Invalid status value" });
   }
 
-  // Find the package (Colis)
-  const colis = await Colis.findById(id_colis)
-    .populate('ville')
-    .populate('store');
-
+  // Find the Colis
+  const colis = await Colis.findById(id_colis).populate('store');
   if (!colis) {
     return res.status(404).json({ message: "Colis not found" });
   }
 
-  // Check if the status is "Annulée" or "Refusée" and update the respective comment field
+  // Update comments if necessary
   if (new_status === "Annulée" && comment) {
-    colis.comment_annule = comment;  // Update cancellation comment
+    colis.comment_annule = comment;
+  } else if (new_status === "Refusée" && comment) {
+    colis.comment_refuse = comment;
   }
 
-  if (new_status === "Refusée" && comment) {
-    colis.comment_refuse = comment;  // Update refusal comment
-  }
-
-  // Update the status in Colis
+  // Update the Colis status
   colis.statut = new_status;
   await colis.save();
 
+  // Handle FactureRamasser if status is "Ramassée"
   if (new_status === "Ramassée") {
-    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
-    const notification = new Notification_User({
-      storeId: colis.store,  // L'utilisateur à notifier (le client associé au colis)
-      clientId:colis.clientId,
-      title:'Colis Livrée',
-      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
+    await handleFactureRamasser(colis.store, colis._id);
+  }
+
+  // Create Notification for specific statuses
+  if (["Ramassée", "Livrée"].includes(new_status)) {
+    const notificationTitle = new_status === "Ramassée" ? 'Colis Ramassée' : 'Colis Livrée';
+    const notificationDescription = `Votre colis avec le code de suivi ${colis.code_suivi} a été ${new_status.toLowerCase()} avec succès.`;
+    
+    const notification = new NotificationUser({
+      id_store: colis.store,
+      title: notificationTitle,
+      description: notificationDescription,
     });
     await notification.save();
   }
-
-  //Create Notif User when Satut ===Livrée
-  if (new_status === "Livrée") {
-    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
-    const notification = new Notification_User({
-      storeId: colis.store,  // L'utilisateur à notifier (le client associé au colis)
-      clientId:colis.clientId,
-      title:'Colis Livrée',
-      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
-    });
-    await notification.save();
-  }
-
-  // **Special operation when status is "Livrée"**
 
   // Update or create the Suivi_Colis entry (tracking record)
   let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
   if (!suivi_colis) {
-    // Create a new Suivi_Colis entry if not found
     suivi_colis = new Suivi_Colis({
       id_colis,
       code_suivi: colis.code_suivi,
-      status_updates: [
-        { status: new_status, date: new Date() }
-      ]
+      status_updates: [{ status: new_status, date: new Date() }]
     });
   } else {
-    // Append the new status update
     suivi_colis.status_updates.push({ status: new_status, date: new Date() });
   }
 
   await suivi_colis.save();
 
-  if (new_status === "Ramassée") {
-    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
-    const notification = new Notification_User({
-      id_store: colis.store,  // L'utilisateur à notifier (le client associé au colis)
-      clientId:colis.clientId,
-      title:'Colis Ramassée',
-      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
-    });
-    await notification.save();
-  }
-
-  //Create Notif User when Satut ===Livrée
-  if (new_status === "Livrée") {
-    // Créer une notification pour l'utilisateur lorsqu'un colis est livré
-    const notification = new Notification_User({
-      id_store: colis.store,  // L'utilisateur à notifier (le client associé au colis)
-      clientId:colis.clientId,
-      title:'Colis Livrée',
-      description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
-    });
-    await notification.save();
-  }
-
-  // Respond with updated status
   res.status(200).json({
     message: "Status, comment, and date updated successfully",
     colis,
@@ -129,7 +90,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
 
 
 const updateMultipleColisStatus = asyncHandler(async (req, res) => {
-  const { colisCodes, new_status, comment } = req.body; // Expect an array of `colisCodes` in the request body
+  const { colisCodes, new_status, comment } = req.body;
   const validStatuses = [
     "Nouveau Colis",
     "attente de ramassage",
@@ -154,61 +115,57 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid status value" });
   }
 
-  // Process each colis in the `colisCodes` array
   const updatedColisList = [];
   const trackingUpdates = [];
 
   for (const codeSuivi of colisCodes) {
-    // Find the package (Colis) by `code_suivi`
-    const colis = await Colis.findOne({ code_suivi: codeSuivi })
-      .populate('ville')
-      .populate('store');
-
+    const colis = await Colis.findOne({ code_suivi: codeSuivi }).populate('store');
     if (!colis) {
       console.log(`Colis with code_suivi ${codeSuivi} not found`);
-      continue; // Skip to the next colis if not found
+      continue;
     }
 
-    // Handle status-specific logic
     if (new_status === "Annulée" && comment) {
-      colis.comment_annule = comment;  // Update cancellation comment
-    }
-    if (new_status === "Refusée" && comment) {
-      colis.comment_refuse = comment;  // Update refusal comment
+      colis.comment_annule = comment;
+    } else if (new_status === "Refusée" && comment) {
+      colis.comment_refuse = comment;
     }
 
-    // Update the status in Colis
     colis.statut = new_status;
     await colis.save();
     updatedColisList.push(colis);
 
-    // Create Notification for the user when the package is delivered
-    if (new_status === "Livrée") {
+    if (new_status === "Ramassée") {
+      await handleFactureRamasser(colis.store, colis._id);
+    }
+
+    if (["Ramassée", "Livrée"].includes(new_status)) {
+      const notificationTitle = new_status === "Ramassée" ? 'Colis Ramassée' : 'Colis Livrée';
+      const notificationDescription = `Votre colis avec le code de suivi ${colis.code_suivi} a été ${new_status.toLowerCase()} avec succès.`;
+
       const notification = new NotificationUser({
-        id_store: colis.store,
-        colisId: colis._id,
-        title: 'Colis Livrée',
-        description: `Votre colis avec le code de suivi ${colis.code_suivi} a été livré avec succès.`,
+        storeId: colis.store,
+        clientId: colis.clientId,
+        title: notificationTitle,
+        description: notificationDescription,
       });
       await notification.save();
     }
 
-    // Update or create the Suivi_Colis entry (tracking record)
     let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
     if (!suivi_colis) {
-      // Create a new Suivi_Colis entry if not found
+      // If no Suivi_Colis entry exists, create a new one
       suivi_colis = new Suivi_Colis({
         id_colis: colis._id,
         code_suivi: colis.code_suivi,
-        status_updates: [
-          { status: new_status, date: new Date() }
-        ]
+        status_updates: [{ status: new_status, date: new Date() }]
       });
     } else {
-      // Append the new status update
+      // Append the new status update to the existing tracking record
       suivi_colis.status_updates.push({ status: new_status, date: new Date() });
     }
 
+    // Save the Suivi_Colis entry
     await suivi_colis.save();
     trackingUpdates.push(suivi_colis);
   }
@@ -217,13 +174,15 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "No colis found or updated" });
   }
 
-  // Respond with the list of updated colis and tracking information
+  // Respond with the list of updated colis and their tracking information
   res.status(200).json({
     message: "Colis status updated successfully",
     updatedColisList,
     trackingUpdates,
   });
 });
+
+
 
 
 

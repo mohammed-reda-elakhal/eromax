@@ -37,6 +37,8 @@ export function getNotificationUserByStore() {
             dispatch(notificationActions.setNotificationUser(data));
         } catch (error) {
             toast.error(error.message || "Failed to fetch notifications");
+            console.log(error);
+            
         }
     };
 }

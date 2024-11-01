@@ -31,26 +31,99 @@ export function getColis(statut) {
 }
 
 // Fetch a single colis by `code_suivi`
+// Fetch a single colis by `code_suivi`
 export function getColisByCodeSuivi(code_suivi) {
     return async (dispatch) => {
-        dispatch(colisActions.setLoading(true));  // Start loading
-        try {
-
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            };
-
-            const { data } = await request.get(`/api/colis/code_suivi/${code_suivi}`, config);
-            dispatch(colisActions.setSelectedColis(data)); // Dispatch the selected colis to the Redux state
-        } catch (error) {
-            console.error("Failed to fetch colis by code_suivi:", error);
-            dispatch(colisActions.setError(error.message));
-            toast.error('Failed to fetch colis by code_suivi');
+      dispatch(colisActions.setLoading(true));
+      try {
+        const token = Cookies.get('token');
+        if (!token) {
+          toast.error('Authentication token is missing');
+          dispatch(colisActions.setLoading(false));
+          return;
         }
+  
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        };
+  
+        const { data } = await request.get(`/api/colis/code_suivi/${code_suivi}`, config);
+        dispatch(colisActions.setSelectedColis(data));
+      } catch (error) {
+        console.error("Failed to fetch colis by code_suivi:", error);
+        dispatch(colisActions.setError(error.message));
+        toast.error('Failed to fetch colis by code_suivi');
+      } finally {
+        dispatch(colisActions.setLoading(false));
+      }
     };
-}
+  }
+  
+  // Update a Colis by _id
+  export function updateColisById(id, colisData) {
+    return async (dispatch) => {
+      dispatch(colisActions.setLoading(true));
+      try {
+        const token = Cookies.get('token');
+        if (!token) {
+          toast.error('Authentication token is missing');
+          dispatch(colisActions.setLoading(false));
+          return;
+        }
+  
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+  
+        const { data } = await request.put(`/api/colis/${id}`, colisData, config);
+        dispatch(colisActions.updateColis(data));
+        toast.success('Colis updated successfully');
+      } catch (error) {
+        console.error("Failed to update colis:", error);
+        dispatch(colisActions.setError(error.message));
+        toast.error('Failed to update colis');
+      } finally {
+        dispatch(colisActions.setLoading(false));
+      }
+    };
+  }
+  
+  // Fetch options for Select fields
+  export function fetchOptions() {
+    return async (dispatch) => {
+      dispatch(colisActions.setLoading(true));
+      try {
+        // Fetch Villes
+        const { data: villes } = await request.get(`/api/ville`);
+        dispatch(colisActions.fetchVillesSuccess(villes));
+  
+        // Fetch Stores
+        const { data: stores } = await request.get(`/api/store`);
+        dispatch(colisActions.fetchStoresSuccess(stores));
+  
+        // Fetch Livreurs
+        const { data: livreurs } = await request.get(`/api/livreur`);
+        dispatch(colisActions.fetchLivreursSuccess(livreurs));
+  
+        // Fetch Produits
+        const { data: produits } = await request.get(`/api/produit`);
+        dispatch(colisActions.fetchProduitsSuccess(produits));
+  
+      } catch (error) {
+        console.error("Failed to fetch options:", error);
+        dispatch(colisActions.setError(error.message));
+        toast.error('Failed to fetch options');
+      } finally {
+        dispatch(colisActions.setLoading(false));
+      }
+    };
+  }
 
 // Fetch post
 // Fix the request by appending `statu` as a query parameter
@@ -172,6 +245,7 @@ export function createColis(colis) {
         }
     };
 }
+
 export const getColisForLivreur = (userId,statut) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {

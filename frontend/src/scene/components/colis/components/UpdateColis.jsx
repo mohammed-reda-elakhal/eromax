@@ -1,193 +1,263 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Input, InputNumber, Checkbox, Button, Select } from 'antd';
+// components/ColisUpdateForm.js
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getColisByCodeSuivi, updateColisById, fetchOptions } from '../../../../redux/apiCalls/colisApiCalls';
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Checkbox,
+  Button,
+  Spin,
+  Alert,
+  Row,
+  Col,
+  DatePicker,
+} from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
+import moment from 'moment';
 
-const { TextArea } = Input;
 const { Option } = Select;
 
-function UpdateColis({ colis }) {
-  const [formData, setFormData] = useState(null);
+const UpdateColis = () => {
+  const dispatch = useDispatch();
+  const { selectedColis, loading, error, villes, stores, livreurs, produits } = useSelector((state) => state.colis);
+  const { data: villesData, loading: villesLoading } = villes;
+  const { data: storesData, loading: storesLoading } = stores;
+  const { data: livreursData, loading: livreursLoading } = livreurs;
+  const { data: produitsData, loading: produitsLoading } = produits;
+  const [form] = Form.useForm();
+  const { codeSuivi } = useParams();
+
+  // Define validStatuses
+const validStatuses = [
+  "Nouveau Colis",
+  "attente de ramassage",
+  "Ramassée",
+  "Expediée",
+  "Reçu",
+  "Mise en Distribution",
+  "Livrée",
+  "Annulée",
+  "Programmée",
+  "Refusée",
+];
 
   useEffect(() => {
-    if (colis) {
-      setFormData({ ...colis });
-    } else {
-      setFormData(null); // Reset formData when colis is null
+    dispatch(getColisByCodeSuivi(codeSuivi));
+    dispatch(fetchOptions());
+  }, [dispatch, codeSuivi]);
+
+  useEffect(() => {
+    if (selectedColis) {
+      form.setFieldsValue({
+        ...selectedColis,
+        ville: selectedColis.ville?._id,
+        store: selectedColis.store?._id,
+        livreur: selectedColis.livreur?._id,
+        date_programme: selectedColis.date_programme ? moment(selectedColis.date_programme) : null,
+        date_livraisant: selectedColis.date_livraisant ? moment(selectedColis.date_livraisant) : null,
+        produits: selectedColis.produits.map(p => p.produit),
+      });
     }
-  }, [colis]);
-  
-  if (!formData) {
-    return <p>Loading...</p>;
-  }
-  
+  }, [selectedColis, form]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value
-    }));
+  const onFinish = (values) => {
+    const updatedData = {
+      ...values,
+      ville: values.ville,
+      /*
+      store: values.store,
+      livreur: values.livreur,
+      date_programme: values.date_programme ? values.date_programme.toDate() : null,
+      date_livraisant: values.date_livraisant ? values.date_livraisant.toDate() : null,
+      produits: values.produits.map(produitId => ({
+        produit: produitId,
+        variants: [], // Adjust based on your requirements
+      })),
+      */
+    };
+    console.log();
+    
+  dispatch(updateColisById( selectedColis._id , updatedData));
   };
 
-  const handleCheckboxChange = (e) => {
-    const { name, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: checked
-    }));
-  };
-
-  const handleSelectChange = (value, name) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = () => {
-    // Handle form submission logic
-    console.log('Updated colis data:', formData);
-  };
-
-  if (!formData) {
-    return <p>Loading...</p>;
-  }
+  const loadingIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
   return (
-    <Form
-      layout="vertical"
-      onFinish={handleSubmit}
-      initialValues={formData}
-    >
-      <Form.Item label="Code Suivi" name="code_suivi">
-        <Input 
-          name="code_suivi" 
-          value={formData.code_suivi} 
-          onChange={handleInputChange} 
-        />
-      </Form.Item>
-      <Form.Item label="Nom" name="nom">
-        <Input 
-          name="nom" 
-          value={formData.nom} 
-          onChange={handleInputChange} 
-        />
-      </Form.Item>
-      <Form.Item label="Téléphone" name="tele">
-        <Input 
-          name="tele" 
-          value={formData.tele} 
-          onChange={handleInputChange} 
-        />
-      </Form.Item>
-      <Form.Item label="Ville" name="ville">
-        <Input 
-          name="ville" 
-          value={formData.ville} 
-          onChange={handleInputChange} 
-        />
-      </Form.Item>
-      <Form.Item label="Adresse" name="adresse">
-        <Input 
-          name="adresse" 
-          value={formData.adresse} 
-          onChange={handleInputChange} 
-        />
-      </Form.Item>
-      <Form.Item label="Commentaire" name="commentaire">
-        <TextArea 
-          name="commentaire" 
-          value={formData.commentaire} 
-          onChange={handleInputChange} 
-        />
-      </Form.Item>
-      <Form.Item label="Prix" name="prix">
-        <InputNumber 
-          name="prix" 
-          value={formData.prix} 
-          onChange={(value) => handleSelectChange(value, 'prix')} 
-        />
-      </Form.Item>
-      <Form.Item label="Nature du Produit" name="nature_produit">
-        <Input 
-          name="nature_produit" 
-          value={formData.nature_produit} 
-          onChange={handleInputChange} 
-        />
-      </Form.Item>
-      <Form.Item label="Statut" name="statut">
-        <Select
-          value={formData.statut}
-          onChange={(value) => handleSelectChange(value, 'statut')}
-        >
-          <Option value="Attente de Ramassage">Attente de Ramassage</Option>
-          <Option value="Ramassé">Ramassé</Option>
-          <Option value="Expédié">Expédié</Option>
-          <Option value="Reçu">Reçu</Option>
-          <Option value="Mise en Distribution">Mise en Distribution</Option>
-          <Option value="Livrée">Livrée</Option>
-          <Option value="Annulé">Annulé</Option>
-          <Option value="Refusée">Refusée</Option>
-        </Select>
-      </Form.Item>
-      <Form.Item name="etat" valuePropName="checked">
-        <Checkbox
-          name="etat"
-          checked={formData.etat}
-          onChange={handleCheckboxChange}
-        >
-          État
-        </Checkbox>
-      </Form.Item>
-      <Form.Item name="ouvrir" valuePropName="checked">
-        <Checkbox
-          name="ouvrir"
-          checked={formData.ouvrir}
-          onChange={handleCheckboxChange}
-        >
-          Ouvrir
-        </Checkbox>
-      </Form.Item>
-      <Form.Item name="is_simple" valuePropName="checked">
-        <Checkbox
-          name="is_simple"
-          checked={formData.is_simple}
-          onChange={handleCheckboxChange}
-        >
-          Simple
-        </Checkbox>
-      </Form.Item>
-      <Form.Item name="is_remplace" valuePropName="checked">
-        <Checkbox
-          name="is_remplace"
-          checked={formData.is_remplace}
-          onChange={handleCheckboxChange}
-        >
-          Remplace
-        </Checkbox>
-      </Form.Item>
-      <Form.Item name="is_fragile" valuePropName="checked">
-        <Checkbox
-          name="is_fragile"
-          checked={formData.is_fragile}
-          onChange={handleCheckboxChange}
-        >
-          Fragile
-        </Checkbox>
-      </Form.Item>
-      <Form.Item label="Remarque Livreur" name="remarque_livreur">
-        <TextArea
-          name="remarque_livreur"
-          value={formData.remarque_livreur}
-          onChange={handleInputChange}
-        />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Update Colis
-        </Button>
-      </Form.Item>
-    </Form>
+    <Row justify="center" style={{ marginTop: '20px' }}>
+      <Col xs={24} sm={20} md={16} lg={12}>
+        {loading && <Spin indicator={loadingIcon} />}
+        {error && <Alert message="Error" description={error} type="error" showIcon />}
+        {selectedColis && (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={{
+              ...selectedColis,
+              ouvrir: selectedColis.ouvrir,
+              is_simple: selectedColis.is_simple,
+              is_remplace: selectedColis.is_remplace,
+              is_fragile: selectedColis.is_fragile,
+            }}
+          >
+            <Form.Item
+              label="Store"
+              name="store"
+            >
+              <Select disabled>
+                <Option value={selectedColis.store._id}>
+                  {selectedColis.store.storeName}
+                </Option>
+              </Select>
+            </Form.Item>
+
+            {/* Code Suivi */}
+            <Form.Item label="Code Suivi" name="code_suivi">
+              <Input disabled />
+            </Form.Item>
+
+            {/* Nom */}
+            <Form.Item
+              label="Nom"
+              name="nom"
+              rules={[{ required: true, message: 'Please enter the name' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            {/* Téléphone */}
+            <Form.Item
+              label="Téléphone"
+              name="tele"
+              rules={[{ required: true, message: 'Please enter the phone number' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            {/* Ville */}
+            <Form.Item
+              label="Ville"
+              name="ville"
+              rules={[{ required: true, message: 'Please select a city' }]}
+            >
+              <Select
+                placeholder="Select a city"
+                loading={villesLoading}
+                allowClear
+              >
+                {villesData.map((ville) => (
+                  <Option key={ville._id} value={ville._id}>
+                    {ville.nom}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            {/* Adresse */}
+            <Form.Item
+              label="Adresse"
+              name="adresse"
+              rules={[{ required: true, message: 'Please enter the address' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            {/* Commentaire */}
+            <Form.Item
+              label="Commentaire"
+              name="commentaire"
+            >
+              <Input.TextArea rows={4} />
+            </Form.Item>
+
+            {/* Prix */}
+            <Form.Item
+              label="Prix"
+              name="prix"
+              rules={[{ required: true, message: 'Please enter the price' }]}
+            >
+              <InputNumber
+                prefix="DH"
+                min={0}
+                style={{ width: '100%' }}
+                formatter={value => `${value}`}
+                parser={value => value.replace(/\$\s?|(,*)/g, '')}
+              />
+            </Form.Item>
+
+            {/* Prix Payer */}
+            <Form.Item
+              label="Prix Payer"
+              name="prix_payer"
+              rules={[{ required: true, message: 'Please enter the paid price' }]}
+            >
+              <InputNumber
+                prefix="DH"
+                min={0}
+                style={{ width: '100%' }}
+                formatter={value => `${value}`}
+                parser={value => value.replace(/\$\s?|(,*)/g, '')}
+              />
+            </Form.Item>
+
+            {/* Nature Produit */}
+            <Form.Item
+              label="Nature Produit"
+              name="nature_produit"
+              rules={[{ required: true, message: 'Please enter the nature of the product' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            {/* Statut */}
+            <Form.Item
+              label="Statut"
+              name="statut"
+              rules={[{ required: true, message: 'Please select a status' }]}
+            >
+              <Select placeholder="Select status">
+                {validStatuses.map((status) => (
+                  <Option key={status} value={status}>
+                    {status}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            {/* Boolean Fields */}
+            <Form.Item name="ouvrir" valuePropName="checked">
+              <Checkbox>Ouvrir</Checkbox>
+            </Form.Item>
+            <Form.Item name="is_simple" valuePropName="checked">
+              <Checkbox>Simple</Checkbox>
+            </Form.Item>
+            <Form.Item name="is_remplace" valuePropName="checked">
+              <Checkbox>Remplace</Checkbox>
+            </Form.Item>
+            <Form.Item name="is_fragile" valuePropName="checked">
+              <Checkbox>Fragile</Checkbox>
+            </Form.Item>
+
+           
+
+           
+           
+
+            {/* Submit Button */}
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Update Colis
+              </Button>
+            </Form.Item>
+          </Form>
+        )}
+      </Col>
+    </Row>
   );
-}
+};
 
 export default UpdateColis;

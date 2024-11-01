@@ -53,6 +53,7 @@ import TicketBatch from "./scene/components/tickets/TicketBatch";
 import ScanRecherche from "./scene/components/scan/components/ScanRecherche";
 import ScanRamasser from "./scene/components/scan/components/ScanRamasser";
 import ScanUpdateStatu from "./scene/components/scan/page/ScanUpdateStatu";
+import UpdateColis from "./scene/components/colis/components/UpdateColis";
 
 function App() {
 
@@ -229,6 +230,7 @@ function App() {
             <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
             <Route path="ajouter-colis/:type" element={<AjouterColis />} />
             <Route path="import-colis" element={<ColisImport />} />
+            <Route path="colis/update/:codeSuivi" element={<UpdateColis />} />
 
             <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
             <Route path="ajouter-produit" element={<AjouterProduit />} />
