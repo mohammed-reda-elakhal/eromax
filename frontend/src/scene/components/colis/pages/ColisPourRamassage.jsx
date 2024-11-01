@@ -301,29 +301,6 @@ function ColisPourRamassage({ search }) {
       dataIndex: 'nature_produit',
       key: 'nature_produit',
     },
-    {
-      title: 'Option',
-      render: (text, record) => (
-        <>
-          {user.role !== 'client' && (
-            <Popconfirm
-              title="Ramassage Colis"
-              description="Tu es sûr de faire ramassage pour ce colis?"
-              onConfirm={() => handleRamasse(record._id)}
-              okText="Oui"
-              cancelText="Non"
-            >
-              <Button
-                type="primary"
-                icon={<MdDeliveryDining />}
-              >
-                Ramasse
-              </Button>
-            </Popconfirm>
-          )}
-        </>
-      ),
-    },
   ];
 
   return (

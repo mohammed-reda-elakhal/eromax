@@ -173,6 +173,7 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
     let store = await Store.create({
         id_client : client._id,
         storeName : req.body.storeName,
+        tele : client.tele ,
         default : true
     })
 

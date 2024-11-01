@@ -28,6 +28,19 @@ app.use(cookieParser());
 
 
 // Routes 
+
+
+/**
+ 
+
+    www.eromax.ma/dashboard/colis/list
+    
+    www.eromax.ma/api/colis 
+
+
+ * 
+ * 
+ */
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));
 app.use("/api/client", require("./routes/clientRoute"));

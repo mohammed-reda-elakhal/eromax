@@ -1,24 +1,21 @@
+// ColisTable.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Modal, Button, Input, Drawer, Typography,  Steps } from 'antd';
-import { FaWhatsapp, FaPrint, FaPenFancy } from 'react-icons/fa';
+import { Modal, Button, Input, Drawer, Typography, Tag } from 'antd';
+import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt } from 'react-icons/fa';
 import { Si1001Tracklists } from 'react-icons/si';
 import { TbPhoneCall } from 'react-icons/tb';
-import TicketColis from '../../tickets/TicketColis';
+import { IoSearch } from "react-icons/io5";
+import { IoMdRefresh } from 'react-icons/io';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+
+import TicketColis from '../../tickets/TicketColis';
+import TableDashboard from '../../../global/TableDashboard';
 import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
-import TableDashboard from '../../../global/TableDashboard';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
-import { Tag } from 'antd';
-import { IoSearch } from "react-icons/io5";
-import { useNavigate } from 'react-router-dom';
-import { FaTicketAlt } from "react-icons/fa";
-import TrackingColis from '../../../global/TrackingColis '; // Import TrackingColis component
-import { IoMdRefresh } from 'react-icons/io';
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
@@ -32,7 +29,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     infoModalVisible: false,
     ticketModalVisible: false,
     drawerOpen: false,
-    drawerColisUpdate: false,
     reclamationType: 'Type de reclamation',
     subject: '',
     message: '',
@@ -49,29 +45,33 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     store: state.auth.store,
   }));
 
-  // Load data based on user role
-
-  function  getDataAy (){
-
-  }
+  // Fetch data based on user role
   const getDataColis = () => {
     if (user?.role) {
-      if (user.role === 'admin') {
-        dispatch(getColis(''));
-      } else if (user.role === 'client') {
-        dispatch(getColisForClient(store._id, ''));
-      } else if (user.role === 'livreur') {
-        dispatch(getColisForLivreur(user._id, ''));
-      } else if (user.role === 'team') {
-        dispatch(getColisForClient(user._id, ''));
+      switch (user.role) {
+        case 'admin':
+          dispatch(getColis(''));
+          break;
+        case 'client':
+          dispatch(getColisForClient(store._id, ''));
+          break;
+        case 'livreur':
+          dispatch(getColisForLivreur(user._id, ''));
+          break;
+        case 'team':
+          dispatch(getColisForClient(user._id, ''));
+          break;
+        default:
+          break;
       }
     }
-  }
+  };
+
   useEffect(() => {
-    getDataColis()
+    getDataColis();
   }, [dispatch, user?.role, store?._id, user._id]);
 
-  // Update state data when colisData changes
+  // Update state when colisData changes
   useEffect(() => {
     setState(prevState => ({
       ...prevState,
@@ -106,7 +106,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   // Show info modal
   const handleInfo = (id) => {
-    const selectedColis = state.data.find(item => item.id === id);
+    const selectedColis = state.data.find(item => item._id === id);
     setState(prevState => ({
       ...prevState,
       selectedColis,
@@ -136,13 +136,13 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
-  // Columns definition
+  // Define important columns for the main table
   const columnsColis = [
     {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 200, // Set width to 200px
+      width: 200,
       render: (text) => (
         <Typography.Text
           copyable
@@ -153,91 +153,122 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       ),
     },
     {
-      title: 'Livreur',
-      dataIndex: 'livreur',
-      key: 'livreur',
-      render: (text, record) => (
-        <span>
-          {record.livreur 
-            ? `${record.livreur.nom} - ${record.livreur.tele}`
-            : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>
-          }
-        </span>
-      ),
+      title: 'Destinataire',
+      dataIndex: 'nom',
+      key: 'nom',
     },
-    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
-    { title: 'Destinataire', dataIndex: 'nom', key: 'nom', ...search('nom') },
-    { title: 'Téléphone', dataIndex: 'tele', key: 'tele' },
     {
-      title: 'État',
-      dataIndex: 'etat',
-      key: 'etat',
-      render: (text, record) => (
-        record.etat ? (
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag>
-        ) : (
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-        )
-      ),
+      title: 'Téléphone',
+      dataIndex: 'tele',
+      key: 'tele',
+    },
+    {
+      title: 'Ville',
+      dataIndex: ['ville', 'nom'],
+      key: 'ville',
+    },
+    {
+      title: 'Adresse',
+      dataIndex: 'adresse',
+      key: 'adresse',
+    },
+    {
+      title: 'Prix (DH)',
+      dataIndex: 'prix',
+      key: 'prix',
+      ...search('prix'),
     },
     {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
       render: (status) => {
-        if (status === 'Livrée') {
-          return <Tag icon={<CheckCircleOutlined />} color="success">{status}</Tag>;
-        } else if (status === 'Annulée' || status === 'Refusée') {
-          return <Tag icon={<CloseCircleOutlined />} color="error">{status}</Tag>;
-        } else if (status === 'Programme') {
-          return <Tag icon={<ClockCircleOutlined />} color="default">Programme</Tag>;
-        } else {
-          return <Tag icon={<SyncOutlined spin />} color="processing">{status}</Tag>;
+        switch (status) {
+          case 'Livrée':
+            return <Tag icon={<CheckCircleOutlined />} color="success">{status}</Tag>;
+          case 'Annulée':
+          case 'Refusée':
+            return <Tag icon={<CloseCircleOutlined />} color="error">{status}</Tag>;
+          case 'Programme':
+            return <Tag icon={<ClockCircleOutlined />} color="default">Programme</Tag>;
+          default:
+            return <Tag icon={<SyncOutlined spin />} color="processing">{status}</Tag>;
         }
       },
     },
-    { title: 'Date de Livraison', dataIndex: 'date_livraison', key: 'date_livraison' },
-    { title: 'Ville', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.nom}</span> },
-    { title: 'Tarif (DH)', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.tarif}</span> },
-    { title: 'Prix (DH)', dataIndex: 'prix', key: 'prix', ...search('prix') },
-    { title: 'Nature de Produit', dataIndex: 'nature_produit', key: 'nature_produit' },
-    {
-      title: 'Reclamations',
-      key: 'reclamations',
-      render: (_, record) => (
-        <div className="table-reclamation">
-          {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
-            <button className="btn-dashboard" onClick={() => openReclamationModal(record)}>
-              Reclamation
-            </button>
-          )}
-          <div className="table-option">
-            <button className="btn-dashboard" onClick={() => handleInfo(record.id)}><FaWhatsapp /></button>
-            <button className="btn-dashboard" onClick={() => console.log('More options for record with id:', record.id)}><TbPhoneCall /></button>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: 'ACTIONS',
-      key: 'action',
-      render: (_, record) => (
-        <div className="table-option">
-          <button className="btn-dashboard" onClick={() => setState({ ...state, drawerOpen: true, selectedColis: record })}>
-            <Si1001Tracklists />
-          </button>
-          <button className="btn-dashboard" onClick={() => handleTicket(record)}>
-            <FaPrint />
-          </button>
-          {user.role !== 'client' && user.role !== 'livreur' && (
-            <button className="btn-dashboard" onClick={() => setState({ ...state, drawerColisUpdate: true })}>
-              <FaPenFancy />
-            </button>
-          )}
-        </div>
-      ),
-    }
   ];
+
+  // Define expandable content
+  const expandedRowRender = (record) => (
+    <div style={{ padding: '10px 20px' }}>
+      <p><strong>Livreur:</strong> {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}</p>
+      <p><strong>Dernière Mise à Jour:</strong> {formatDate(record.updatedAt)}</p>
+      <p><strong>Commentaire:</strong> {record.commentaire}</p>
+      <p><strong>Nature de Produit:</strong> {record.nature_produit}</p>
+      <p><strong>État:</strong> {record.etat ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>}</p>
+      <p><strong>Ouvrir:</strong> {record.ouvrir ? 'Oui' : 'Non'}</p>
+      <p><strong>Is Simple:</strong> {record.is_simple ? 'Oui' : 'Non'}</p>
+      <p><strong>Is Remplace:</strong> {record.is_remplace ? 'Oui' : 'Non'}</p>
+      <p><strong>Is Fragile:</strong> {record.is_fragile ? 'Oui' : 'Non'}</p>
+      <p><strong>Store:</strong> {record.store && record.store.storeName}</p>
+      <p><strong>Team:</strong> {record.team || 'N/A'}</p>
+      <p><strong>Replaced Colis:</strong> {record.replacedColis || 'N/A'}</p>
+      <p><strong>ID Colis:</strong> {record.id_Colis}</p>
+      <p><strong>Produits:</strong> {record.produits && record.produits.length > 0 ? record.produits.join(', ') : 'N/A'}</p>
+      <p><strong>Date de Création:</strong> {formatDate(record.createdAt)}</p>
+      <p><strong>Date de Mise à Jour:</strong> {formatDate(record.updatedAt)}</p>
+      
+      {/* Action Buttons */}
+      <div className="expanded-actions" style={{ marginTop: '10px' }}>
+        {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+          <Button 
+            type="primary" 
+            icon={<FaWhatsapp />} 
+            onClick={() => handleInfo(record._id)} 
+            style={{ marginRight: '8px' }}
+          >
+            Info
+          </Button>
+        )}
+        <Button 
+          type="primary" 
+          icon={<TbPhoneCall />} 
+          onClick={() => console.log('More options for record with id:', record._id)} 
+          style={{ marginRight: '8px' }}
+        >
+          Call
+        </Button>
+        <Button 
+          type="primary" 
+          icon={<Si1001Tracklists />} 
+          onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
+          style={{ marginRight: '8px' }}
+        >
+          Track
+        </Button>
+        <Button 
+          type="primary" 
+          icon={<FaPrint />} 
+          onClick={() => handleTicket(record)} 
+          style={{ marginRight: '8px' }}
+        >
+          Print
+        </Button>
+        {user.role !== 'client' && user.role !== 'livreur' && (
+          <Button 
+            type="primary" 
+            icon={<FaPenFancy />} 
+            onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
+          >
+            Edit
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
+  // Columns for main table
+  const columns = columnsColis;
 
   const openReclamationModal = (colis) => {
     setState(prevState => ({
@@ -263,11 +294,20 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     };
 
     dispatch(createReclamation(reclamationData));
-    setState({ ...state, reclamationModalVisible: false, subject: '', message: '' });
+    setState(prevState => ({
+      ...prevState,
+      reclamationModalVisible: false,
+      subject: '',
+      message: '',
+    }));
   };
 
   const handleCloseTicketModal = () => {
-    setState({ ...state, ticketModalVisible: false, selectedColis: {} });
+    setState(prevState => ({
+      ...prevState,
+      ticketModalVisible: false,
+      selectedColis: null,
+    }));
   };
 
   const handlePrint = useReactToPrint({
@@ -285,38 +325,95 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   return (
     <>
-      <div className="bar-action-data">
-        <Button icon={<IoMdRefresh />} type="primary" variant="filled" onClick={()=>getDataColis()} style={{ marginBottom: 16 }}>Refresh </Button>
-        <Button icon={<FaTicketAlt />} type="primary" variant="filled" onClick={handleBatchTickets} style={{ marginBottom: 16 }}>Tickets </Button>
+      {/* Action Bar */}
+      <div className="bar-action-data" style={{ marginBottom: '16px' }}>
+        <Button 
+          icon={<IoMdRefresh />} 
+          type="primary" 
+          onClick={getDataColis} 
+          style={{ marginRight: '8px' }}
+        >
+          Refresh
+        </Button>
+        <Button 
+          icon={<FaTicketAlt />} 
+          type="primary" 
+          onClick={handleBatchTickets}
+        >
+          Tickets
+        </Button>
       </div>
+
+      {/* Search Input */}
       <Input
         placeholder="Recherche ..."
         value={state.searchTerm}
         onChange={handleSearch}
-        style={{ marginBottom: 16 , width : "50%" }}
+        style={{ marginBottom: '16px', width: "50%" }}
         size='large'
-        suffix = {<IoSearch />}
+        suffix={<IoSearch />}
       />
+
+      {/* Main Table with Expandable Rows */}
       <TableDashboard
-        column={columnsColis}
+        column={columns}
         data={state.filteredData}
         id="_id"
         onSelectChange={handleRowSelection}
+        expandable={{
+          expandedRowRender: expandedRowRender,
+          rowExpandable: (record) => true, // Allow all rows to be expandable
+        }}
       />
 
-      <Modal title="Reclamation" open={state.reclamationModalVisible} onOk={handleCreateReclamation} onCancel={() => setState({ ...state, reclamationModalVisible: false })}>
-        <Input placeholder="Subject" value={state.subject} onChange={(e) => setState({ ...state, subject: e.target.value })} style={{ marginBottom: '10px' }} />
-        <Input.TextArea placeholder="Message/Description" value={state.message} onChange={(e) => setState({ ...state, message: e.target.value })} rows={4} />
+      {/* Reclamation Modal */}
+      <Modal 
+        title="Reclamation" 
+        visible={state.reclamationModalVisible} 
+        onOk={handleCreateReclamation} 
+        onCancel={() => setState(prevState => ({ ...prevState, reclamationModalVisible: false }))}
+      >
+        <Input 
+          placeholder="Subject" 
+          value={state.subject} 
+          onChange={(e) => setState(prevState => ({ ...prevState, subject: e.target.value }))} 
+          style={{ marginBottom: '10px' }} 
+        />
+        <Input.TextArea 
+          placeholder="Message/Description" 
+          value={state.message} 
+          onChange={(e) => setState(prevState => ({ ...prevState, message: e.target.value }))} 
+          rows={4} 
+        />
       </Modal>
 
-      <Modal title="Ticket Colis" open={state.ticketModalVisible} onCancel={handleCloseTicketModal} footer={null} width={600}>
-        {state.selectedColis && <div ref={componentRef}><TicketColis colis={state.selectedColis} /></div>}
-      </Modal>
-
-      <Drawer title="Les données de colis suivre" onClose={() => setState({ ...state, drawerOpen: false })} open={state.drawerOpen}>
+      {/* Ticket Modal */}
+      <Modal 
+        title="Ticket Colis" 
+        visible={state.ticketModalVisible} 
+        onCancel={handleCloseTicketModal} 
+        footer={null} 
+        width={600}
+      >
         {state.selectedColis && (
-          <TrackingColis codeSuivi={state.selectedColis.code_suivi} /> 
+          <div ref={componentRef}>
+            <TicketColis colis={state.selectedColis} />
+          </div>
         )}
+      </Modal>
+
+      {/* Tracking Drawer */}
+      <Drawer 
+        title="Les données de colis suivre" 
+        onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))} 
+        visible={state.drawerOpen}
+      >
+        {/*
+        state.selectedColis && (
+          <TrackingColis codeSuivi={state.selectedColis.code_suivi} /> 
+        )
+        */
+        }
       </Drawer>
     </>
   );

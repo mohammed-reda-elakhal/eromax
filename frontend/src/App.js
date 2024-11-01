@@ -53,6 +53,11 @@ import TicketBatch from "./scene/components/tickets/TicketBatch";
 import ScanRecherche from "./scene/components/scan/components/ScanRecherche";
 import ScanRamasser from "./scene/components/scan/components/ScanRamasser";
 import ScanUpdateStatu from "./scene/components/scan/page/ScanUpdateStatu";
+import UpdateColis from "./scene/components/colis/components/UpdateColis";
+import StoreInfo from "./scene/components/profile/components/StoreInfo";
+import Store from "./scene/components/profile/page/Store";
+import PayementProfile from "./scene/components/profile/components/PayementProfile";
+import Pyements from "./scene/components/profile/page/Pyements";
 
 function App() {
 
@@ -178,6 +183,9 @@ function App() {
           
           <Route path='dashboard' element={<ProtectedRoute/>}>
             <Route path="home" element={<HomeDashboard />} />
+            <Route path="bussness" element={<Store />} />
+            <Route path="payement" element={<Pyements />} />
+
             
             <Route path="profile/:id" element={<Profile />} />
             <Route path="portfeuille" element={<Portfeuille />} />
@@ -229,6 +237,7 @@ function App() {
             <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
             <Route path="ajouter-colis/:type" element={<AjouterColis />} />
             <Route path="import-colis" element={<ColisImport />} />
+            <Route path="colis/update/:codeSuivi" element={<UpdateColis />} />
 
             <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
             <Route path="ajouter-produit" element={<AjouterProduit />} />

@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Layout, Avatar, Dropdown, Menu, Badge, Drawer, Divider, List, Card, Typography, Button } from 'antd';
 import { ThemeContext } from '../ThemeContext';
-import { UserOutlined, DeleteOutlined } from '@ant-design/icons';
-import { MdLightMode, MdNightlight } from "react-icons/md";
+import { SettingOutlined, DeleteOutlined } from '@ant-design/icons'; // Changed UserOutlined to SettingOutlined
+import { MdLightMode, MdNightlight, MdPayment } from "react-icons/md";
 import { Link, useNavigate } from 'react-router-dom';
 import { ImProfile, ImExit } from "react-icons/im";
 import { IoIosNotifications, IoMdWallet } from "react-icons/io"; // Correct import
-import { FaRegEyeSlash } from "react-icons/fa";
+import { FaFileArchive, FaRegEyeSlash, FaStore } from "react-icons/fa";
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../redux/apiCalls/authApiCalls';
@@ -21,7 +21,7 @@ const { Header } = Layout;
 
 const styleIcon = {
   color: 'var(--gray)',
-  fontSize: '24',
+  fontSize: '24px', // Added 'px' for proper sizing
   cursor: 'pointer',
 };
 
@@ -50,7 +50,7 @@ function Topbar() {
     if (user?.role === "client") {
       dispatch(getStoreById(store?._id));
       dispatch(getNotificationUserByStore());
-    }else if(user?.role === "livreur"){
+    } else if(user?.role === "livreur"){
       dispatch(getNotificationUserByStore());
     }
   }, [dispatch, user, store]);
@@ -61,16 +61,35 @@ function Topbar() {
   };
 
   menu = (
-    <Menu>
-      <Menu.Item style={{ width: "150px" }} key="ramasse">
+    <Menu
+      style={{
+        borderRadius: '8px',
+        overflow: 'hidden',
+      }}
+    >
+      <Menu.Item key="profile" icon={<ImProfile style={{ margin: '0 8px' }} />}>
         <Link className='link_topbar' to={`/dashboard/profile/${user._id}`}>
-          <ImProfile /> Profile
+          Profile
         </Link>
       </Menu.Item>
-      <Menu.Item style={{ width: "150px" }} key="exit">
-        <Link className='link_topbar' onClick={logoutFunction} to={'/login'}>
-          <ImExit /> Deconnecter
+      <Menu.Item key="store" icon={<FaStore  style={{ margin: '0 8px' }}/>}>
+        <Link className='link_topbar' to={`/dashboard/bussness`}>
+          Bussness
         </Link>
+      </Menu.Item>
+      <Menu.Item key="payement" icon={<MdPayment style={{ margin: '0 8px' }} />}>
+        <Link className='link_topbar' to={`/dashboard/payement`}>
+          Payement Methode
+        </Link>
+      </Menu.Item>
+      <Menu.Item key="document" icon={<FaFileArchive style={{ margin: '0 8px' }} />}>
+        <Link className='link_topbar' to={`/dashboard/document`}>
+          Documents
+        </Link>
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="logout" icon={<ImExit style={{ marginRight: '8px' }} />} onClick={logoutFunction}>
+        Deconnecter
       </Menu.Item>
     </Menu>
   );
@@ -94,7 +113,6 @@ function Topbar() {
       console.log(error);
     }
   };
-  
 
   return (
     <Header style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }} className='top-bar'>
@@ -143,8 +161,9 @@ function Topbar() {
           />
         </Drawer>
 
-        <Dropdown overlay={menu}>
-          <Avatar icon={<UserOutlined />} style={{ cursor: "pointer" }} />
+        {/* Updated Dropdown for Profile Settings */}
+        <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
+          <Avatar icon={<SettingOutlined />} style={{ cursor: "pointer" }} />
         </Dropdown>
       </div>
 

@@ -5,6 +5,8 @@ const FactureRamasser = require('../Models/FactureRamasser');
 const moment = require('moment');
 const { Colis } = require('../Models/Colis');
 const shortid = require('shortid');
+// controllers/factureController.js
+const asyncHandler = require("express-async-handler");
 
 
 
@@ -31,67 +33,33 @@ const getRamassageDate = async (code_suivi) => {
 
 //----------------------
 
-const getAllRamasserFacture = async (req, res) => {
+const getAllRamasserFacture = asyncHandler(async (req, res) => {
     try {
-        // Destructure query parameters with default values
-        const { page = 1, limit = 50, type, date, storeId, sortBy = 'date', order = 'desc' } = req.query;
-
-        // Build the filter object
-        const filter = {};
-
-        // Add type to filter if present in query
-        if (type) filter.type = type;
-
-        // Handle date filtering
-        if (date) {
-            const start = new Date(date);
-            const end = new Date(date);
-            end.setDate(end.getDate() + 1);
-            filter.date = { $gte: start, $lt: end };
-        }
-
-        // Filter by storeId if provided
-        if (storeId) filter.store = storeId;
-
-
-        // Sort options
-        const sortOptions = {};
-        sortOptions[sortBy] = order === 'asc' ? 1 : -1;
-
-        // Query the database
-        const factures = await FactureRamasser.find(filter)
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit))
-            .populate({
-                path: 'id_store',
-                select: 'storeName id_client'
-            })
-            .populate({
-                path: 'id_colis',
-                populate: [
-                    { path: 'ville', select: 'nom key ref tarif' },
-                    { path: 'store', select: 'storeName' },
-                ]
-            })
-            .sort(sortOptions)
-            .sort({ createdAt: -1 })
-            .lean();
-
-        // Count total documents matching the filter
-        const total = await FactureRamasser.countDocuments(filter);
-
-        // Send response with the selected factures and pagination data
-        res.status(200).json({
-            message: 'Factures selected',
-            factures,
-            totalPages: Math.ceil(total / limit),
-            currentPage: parseInt(page)
-        });
+      // Find all FactureRamasser records and populate store and colis details
+      const factures = await FactureRamasser.find()
+        .populate('id_store', 'storeName') // Populate store info with only the name field
+        .populate({
+          path: 'id_colis'
+        })
+        .sort({ createdAt: -1 }); // Sort by newest factures first
+  
+      // Check if factures were found
+      if (!factures || factures.length === 0) {
+        return res.status(404).json({ message: "No factures found" });
+      }
+  
+      // Respond with the list of factures
+      res.status(200).json({
+        message: "Factures retrieved successfully",
+        factures,
+      });
     } catch (error) {
-        console.error("Error fetching factures:", error);
-        res.status(500).json({ message: 'Internal server error' });
+      console.error("Error retrieving factures:", error);
+      res.status(500).json({ message: "Error retrieving factures" });
     }
-};
+  });
+  
+
 
 const getRamasserFacturesByStore = async (req, res) => {
     try {

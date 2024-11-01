@@ -17,7 +17,8 @@ router.route("/:id")
         .put(updateClient)
         .delete(deleteClient)
 
-router.route("/:id/photo").post(verifyTokenAndClient,photoUpload.single("image"),clientPhotoController);
+router.route("/photo/:id").post(verifyToken,photoUpload.single("image"),clientPhotoController);
+
 router.route("/files/:id").post(fileUpload.single('file'),UploadClientFiles);
 router.get('/generate/:colisId',generateFactureClient);
 router.get('/generate/:storeId/:date',generateFactureClientwithLiv);

@@ -1,3 +1,5 @@
+// models/Colis.js
+
 const mongoose = require("mongoose");
 const Joi = require("joi");
 const shortid = require('shortid');
@@ -22,15 +24,14 @@ const ColisSchema = new mongoose.Schema({
         required: true,
     },
     tele: {
-        type: String, // Change to String for better handling of leading zeros
+        type: String, // Changed to String for better handling of leading zeros
         required: true,
         trim: true,
     },
     ville: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Ville',
-        require:true
-
+        required: true
     },
     adresse: {
         type: String,
@@ -64,6 +65,18 @@ const ColisSchema = new mongoose.Schema({
     statut: {
         type: String,
         default: "attente de ramassage",
+        enum: [
+            "Nouveau Colis",
+            "attente de ramassage",
+            "Ramassée",
+            "Expediée",
+            "Reçu",
+            "Mise en Distribution",
+            "Livrée",
+            "Annulée",
+            "Programmée",
+            "Refusée",
+        ]
     },
     ouvrir: {
         type: Boolean,
@@ -108,7 +121,12 @@ const ColisSchema = new mongoose.Schema({
     },
     date_livraisant: {
         type: Date,
-    }
+    },
+    replacedColis: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Colis',
+        default: null, // Change from array to single reference
+    },
 }, {
     timestamps: true
 });
@@ -130,21 +148,35 @@ function validateRegisterColis(obj) {
         adresse: Joi.string().required(),
         nom: Joi.string().required(),
         ville: Joi.string().required(),
-        tele: Joi.string().required(), // Kept as string for phone number
+        tele: Joi.string().required(),
         prix: Joi.number().required(),
         commentaire: Joi.string(),
         etat: Joi.boolean(),
         nature_produit: Joi.string().required(),
-        statut: Joi.string(),
+        statut: Joi.string().valid(...[
+            "Nouveau Colis",
+            "attente de ramassage",
+            "Ramassée",
+            "Expediée",
+            "Reçu",
+            "Mise en Distribution",
+            "Livrée",
+            "Annulée",
+            "Programmée",
+            "Refusée",
+        ]),
         ouvrir: Joi.boolean(),
         is_simple: Joi.boolean(),
         is_remplace: Joi.boolean(),
         is_fragile: Joi.boolean(),
         code_suivi: Joi.string(),
-        produits: Joi.array().items(Joi.object({
-            produit: Joi.string().required(),
-            variants: Joi.array().items(Joi.string())
-        }))
+        produits: Joi.array().items(
+            Joi.object({
+                produit: Joi.string().required(),
+                variants: Joi.array().items(Joi.string()),
+            })
+        ),
+        replacedColis:Joi.string(), // New field for replaced colis
     });
     return schema.validate(obj);
 }

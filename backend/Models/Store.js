@@ -24,6 +24,14 @@ const StoreSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    Bio: {
+        type: String,
+        trim: true,
+    },
+    tele: {
+        type: String,
+        trim: true,
+    },
     message: {
         type: String,
         trim: true,
