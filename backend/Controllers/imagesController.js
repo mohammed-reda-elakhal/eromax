@@ -1,0 +1,362 @@
+const asyncHandler = require("express-async-handler");
+const path = require("path");
+const { cloudinaryUploadImage, cloudinaryRemoveImage } = require("../utils/cloudinary");
+const { Client } = require("../Models/Client");
+const { Admin } = require("../Models/Admin");
+const { Livreur } = require("../Models/Livreur");
+const { Team } = require("../Models/Team");
+const fs = require("fs");
+const { Store } = require("../Models/Store");
+const File = require("../Models/File");
+
+
+
+
+
+/** -------------------------------------------
+ * @desc Upload client photo
+ * @router /api/client/photo/:id
+ * @method POST
+ * @access private
+ -------------------------------------------
+*/
+const clientPhotoController = asyncHandler(async (req, res) => {
+    console.log('Inside clientPhotoController controller');
+    // Validation 
+    if (!req.file) {
+        return res.status(400).json({ message: "No file provided" });
+    }
+
+    // 2. get image path 
+    const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+    // 3. Upload to cloudinary
+    const result = await cloudinaryUploadImage(imagePath);
+    console.log(result);
+
+    const client = await Client.findById(req.params.id);
+    if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+    }
+    // 4. Get the store from db
+    // 5. Delete the old profile photo if exists 
+    if (client.profile.publicId !== null) {
+        await cloudinaryRemoveImage(client.profile.publicId);
+    }
+    // 6. change image url in DB
+    client.profile = {
+        url: result.secure_url,
+        publicId: result.public_id
+    };
+    await client.save();
+    // 7. send response to client 
+    res.status(200).json({ message: 'Photo successfully uploaded', image: client.profile });
+
+    // 8. Remove Image from the server 
+    fs.unlinkSync(imagePath);
+});
+
+
+/**
+ * @desc Update user profile photo
+ * @router PUT /api/:role/photo/:id
+ * @method PUT
+ * @access Private
+ */
+const updateProfilePhotoController = asyncHandler(async (req, res) => {
+    console.log('Inside updateProfilePhotoController');
+
+    const { role, id } = req.params;
+
+    // Validate role
+    const validRoles = ['client', 'livreur', 'team','admin'];
+    if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid user role" });
+    }
+
+    // Validate file presence
+    if (!req.file) {
+        return res.status(400).json({ message: "No file provided" });
+    }
+
+    // Define the image path
+    const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+
+    try {
+        // Upload to Cloudinary
+        const result = await cloudinaryUploadImage(imagePath);
+        console.log('Cloudinary upload result:', result);
+
+        // Find the user based on role
+        let user;
+        switch (role) {
+            case 'client':
+                user = await Client.findById(id);
+                break;
+            case 'livreur':
+                user = await Livreur.findById(id);
+                break;
+            case 'admin':
+                user=await Admin.findById(id);
+            case 'team':
+                user = await Team.findById(id);
+                break;
+            default:
+                // This case is already handled above, but added for completeness
+                return res.status(400).json({ message: "Invalid user role" });
+        }
+
+        if (!user) {
+            return res.status(404).json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} not found` });
+        }
+
+        // Remove old profile photo if exists
+        if (user.profile && user.profile.publicId) {
+            const removeResult = await cloudinaryRemoveImage(user.profile.publicId);
+            console.log('Cloudinary remove result:', removeResult);
+        }
+
+        // Update profile with new image
+        user.profile = {
+            url: result.secure_url,
+            publicId: result.public_id
+        };
+
+        await user.save();
+
+        // Respond with success and updated image data
+        res.status(200).json({ message: 'Photo successfully update', image: user.profile,user:user });
+
+    } catch (error) {
+        console.error('Error in updateProfilePhotoController:', error);
+        res.status(500).json({ message: "Server Error" });
+    } finally {
+        // Remove the uploaded file from server after processing
+        if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+        }
+    }
+});
+
+const uploadProfilePhotoController = asyncHandler(async (req, res) => {
+    console.log('Inside uploadProfilePhotoController');
+
+    const { id } = req.params;
+    const { role } = req.user; // Get role from token
+
+
+    // Valider le rôle
+    const validRoles = ['client', 'livreur', 'team','admin'];
+    if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid user role" });
+    }
+
+    // Validate file presence
+    if (!req.file) {
+        return res.status(400).json({ message: "No file provided" });
+    }
+
+        // Définir le chemin de l'image
+        const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+
+        try {
+            // Téléchargement sur Cloudinary
+            const result = await cloudinaryUploadImage(imagePath);
+            console.log('Cloudinary upload result:', result);
+
+            // Recherche de l'utilisateur en fonction du rôle
+            let user;
+            switch (role) {
+                case 'client':
+                    user = await Client.findById(id);
+                    break;
+                case 'admin':
+                    user= await Admin.findById(id)
+                case 'livreur':
+                    user = await Livreur.findById(id);
+                    break;
+                case 'team':
+                    user = await Team.findById(id);
+                    break;
+                default:
+                    return res.status(400).json({ message: "Invalid user role" });
+            }
+
+            if (!user) {
+                return res.status(404).json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} not found` });
+            }
+
+            // Supprimer l'ancienne photo de profil si elle existe
+            if (user.profile && user.profile.publicId) {
+                const removeResult = await cloudinaryRemoveImage(user.profile.publicId);
+                console.log('Cloudinary remove result:', removeResult);
+            }
+
+            // Mise à jour du profil avec la nouvelle image
+            user.profile = {
+                url: result.secure_url,
+                publicId: result.public_id
+            };
+
+            await user.save();
+
+            // Répondre avec succès et les données de la nouvelle image
+            res.status(200).json({ message: 'Photo successfully uploaded', image: user.profile });
+
+        } catch (error) {
+            console.error('Error in uploadProfilePhotoController:', error);
+            res.status(500).json({ message: "Server Error" });
+        } finally {
+            // Supprimer le fichier uploadé du serveur après le traitement
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+            }
+        }
+    });
+
+
+const storePhotoController= asyncHandler(async(req,res)=>{
+
+    console.log('Inside storePhotoController controller');
+    //Validation 
+    if(!req.file){
+        return req.status(400).json({message:"no file provided"});
+    }
+    //2. get image path 
+    const imagePath = path.join(__dirname,`../images/${req.file.filename}`);
+    //3. Upload to cloudinary
+    const result= await cloudinaryUploadImage(imagePath)
+    console.log(result);
+    //4. Get the store from db
+    const store= await Store.findById(req.params.id);
+    //5. Delete the old profile photo if exists 
+    if(store.image.publicId !== null){
+        await cloudinaryRemoveImage(store.image.publicId);
+    
+    }
+    //6. change image url in DB
+    store.image={
+        url:result.secure_url,
+        publicId : result.public_id
+    }
+    await store.save();
+    //7. send response to client 
+    res.status(200).json({ message: 'Photo successfully uploaded', image: store.image });
+    
+    
+    //8. Remove Image from the server 
+    fs.unlinkSync(imagePath);
+    
+    
+    });
+
+const updatePhotoStoreController = asyncHandler(async (req, res) => {
+    console.log('Inside updatePhotoStoreController');
+
+    // Check if a file is provided in the request
+    if (!req.file) {
+        return res.status(400).json({ message: "No file provided" });
+    }
+
+    // Define image path from the uploaded file
+    const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+
+    try {
+        // Upload the new image to Cloudinary
+        const result = await cloudinaryUploadImage(imagePath);
+        console.log('Uploaded image result:', result);
+
+        // Find the store by ID in the database
+        const store = await Store.findById(req.params.id);
+        if (!store) {
+            return res.status(404).json({ message: "Store not found" });
+        }
+
+        // Remove the old image from Cloudinary if it exists
+        if (store.image && store.image.publicId) {
+            await cloudinaryRemoveImage(store.image.publicId);
+        }
+
+        // Update the store's image details in the database
+        store.image = {
+            url: result.secure_url,
+            publicId: result.public_id,
+        };
+        await store.save();
+
+        // Send a successful response with the new image data
+        res.status(200).json({
+            message: 'Store photo successfully updated',
+            image: store.image,
+        });
+
+    } catch (error) {
+        console.error('Error updating store photo:', error);
+        return res.status(500).json({ message: 'Error updating store photo' });
+    } finally {
+        // Remove the image from the server
+        fs.unlinkSync(imagePath);
+    }
+});
+
+
+
+
+/** -------------------------------------------
+ * @desc Upload client files
+ * @router /api/client/file/:id
+ * @method POST
+ * @access private
+ -------------------------------------------
+*/
+const UploadClientFiles = asyncHandler(async (req, res) => {
+    console.log("Received file upload request");
+
+    if (!req.file) {
+        return res.status(400).json({ message: "No file provided" });
+    }
+
+    try {
+        const clientId = req.params.id;
+        const client = await Client.findById(clientId);
+
+        if (!client) {
+            return res.status(404).json({ message: "Client not found" });
+        }
+
+        const imagePath = path.join(__dirname, `../files/${req.file.filename}`);
+        const result = await cloudinaryUploadImage(imagePath);
+        console.log(result);
+        if (!result) {
+            console.error("Failed to upload file to Cloudinary:", JSON.stringify(result.error));
+            return res.status(500).json({ message: "Failed to upload file to Cloudinary", error: result.error });
+        }
+        const file = new File({
+            filename: req.file.filename,
+            contentType: req.file.mimetype,
+            path: result.secure_url,
+            publicId: result.public_id
+        });
+
+        await file.save();
+
+        // Add file reference to client
+        client.files.push(file._id);
+        await client.save();
+
+        // Remove file from server after uploading to Cloudinary
+        fs.unlinkSync(imagePath);
+        console.log("File uploaded to Cloudinary and saved to DB:", JSON.stringify(file));
+
+        res.status(200).json({ message: "File uploaded successfully", fileId: file._id });
+    } catch (err) {
+        console.error("Error uploading file", err);
+        res.status(500).json({ message: "Internal server error", error: err.message });
+    }
+});
+ module.exports={
+    uploadProfilePhotoController,
+    updateProfilePhotoController,
+    storePhotoController,
+    updatePhotoStoreController,
+    UploadClientFiles
+ }

@@ -60,6 +60,7 @@ app.use('/api/transaction', require("./routes/transactionRoute"));
 app.use('/api/notification-user', require('./routes/notificationUserRoute'));
 app.use('/api/facture', require('./routes/factureRoute'));
 app.use('/api/Ramasserfacture', require('./routes/ramasserFactureRoute'));
+app.use("/api/images", require("./routes/imageRoute"));
 
 
 //Running server 

@@ -4,12 +4,10 @@ const { getNotifications, getNotificationsByVisibility, createNotification, dele
 
 
 
-router.route('/')
-  .get(getNotifications)
+router.route('/').get(getNotifications)
   .post(createNotification);
 
-router.route('/visible')
-  .get(getNotificationsByVisibility);
+router.route('/visible').get(getNotificationsByVisibility);
 
 router.route('/:id')
   .delete(deleteNotification)
