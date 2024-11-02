@@ -5,7 +5,9 @@ const photoUpload = require('../Middlewares/photoUpload');
 const fileUpload = require('../Middlewares/fileUpload');
 const router = express.Router();
 
-// Route pour tester l'upload de la photo de profil, sécurisée avec verifyToken
+
+// api/images 
+
 router.route('/upload/:role/:id')
     .post(verifyToken, photoUpload.single('image'),uploadProfilePhotoController)
     .put(verifyToken, photoUpload.single('image'),updateProfilePhotoController)
