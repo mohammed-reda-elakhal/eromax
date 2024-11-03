@@ -76,6 +76,8 @@ const ColisSchema = new mongoose.Schema({
             "Annulée",
             "Programmée",
             "Refusée",
+            "En retour",
+            "Remplacée"
         ]
     },
     ouvrir: {
@@ -164,6 +166,8 @@ function validateRegisterColis(obj) {
             "Annulée",
             "Programmée",
             "Refusée",
+            "En retour",
+            "Remplacée"
         ]),
         ouvrir: Joi.boolean(),
         is_simple: Joi.boolean(),

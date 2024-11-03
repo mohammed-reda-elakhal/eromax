@@ -21,6 +21,9 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     "Annulée",
     "Programmée",
     "Refusée",
+    "En retour",
+    "Remplacée"
+
   ];
 
   // Validate inputs
@@ -102,6 +105,8 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
     "Annulée",
     "Programmée",
     "Refusée",
+    "En retour",
+    "Remplacée"
   ];
 
   // Validate inputs
