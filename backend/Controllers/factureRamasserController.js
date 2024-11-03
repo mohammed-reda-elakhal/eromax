@@ -11,11 +11,7 @@ const asyncHandler = require("express-async-handler");
 
 
 
-//--------------------Helper Function 
-cron.schedule('45 21 * * *', async () => {
-    console.log('Running daily facture generation at 00:02');
-    await createRamasserFacturesForClient();
-});
+
 const generateCodeFacture = (date) => {
     const formattedDate = moment(date).format('YYYYMMDD');
     const randomNumber = shortid.generate().slice(0, 6).toUpperCase(); // Shorten and uppercase for readability
@@ -32,34 +28,64 @@ const getRamassageDate = async (code_suivi) => {
 };
 
 //----------------------
-
 const getAllRamasserFacture = asyncHandler(async (req, res) => {
-    try {
-      // Find all FactureRamasser records and populate store and colis details
-      const factures = await FactureRamasser.find()
-        .populate('id_store', 'storeName') // Populate store info with only the name field
-        .populate({
-          path: 'id_colis'
-        })
-        .sort({ createdAt: -1 }); // Sort by newest factures first
-  
-      // Check if factures were found
-      if (!factures || factures.length === 0) {
-        return res.status(404).json({ message: "No factures found" });
-      }
-  
-      // Respond with the list of factures
-      res.status(200).json({
-        message: "Factures retrieved successfully",
-        factures,
-      });
-    } catch (error) {
-      console.error("Error retrieving factures:", error);
-      res.status(500).json({ message: "Error retrieving factures" });
-    }
-  });
-  
+    const { role, store: userStore } = req.user;
+    let query = {};
 
+    if (role === 'client') {
+        if (!userStore) {
+            return res.status(400).json({ message: "Store ID not found for client" });
+        }
+        query.id_store = userStore;
+    }
+
+    // Extract pagination parameters from query, set default values
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+        const factures = await FactureRamasser.find(query)
+            .select('_id code_facture id_store createdAt id_colis')
+            .populate({
+                path: 'id_store',
+                select: 'storeName tele'
+            })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await FactureRamasser.countDocuments(query);
+
+        if (!factures || factures.length === 0) {
+            return res.status(404).json({ message: "No factures found" });
+        }
+
+        const customizedFactures = factures.map(facture => ({
+            _id: facture._id,
+            code_facture: facture.code_facture,
+            count_colis: facture.id_colis.length,
+            storeName: facture.id_store.storeName,
+            tele: facture.id_store.tele,
+            createdAt: facture.createdAt
+        }));
+
+        res.status(200).json({
+            message: "Factures retrieved successfully",
+            factures: customizedFactures,
+            pagination: {
+                total,
+                page,
+                pages: Math.ceil(total / limit),
+            },
+        });
+    } catch (error) {
+        console.error("Error retrieving factures:", error);
+        res.status(500).json({ message: error.message || "Error retrieving factures" });
+    }
+});
+
+  
 
 const getRamasserFacturesByStore = async (req, res) => {
     try {

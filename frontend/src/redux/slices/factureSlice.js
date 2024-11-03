@@ -4,14 +4,22 @@ const factureSlice = createSlice({
     name: "facture",
     initialState: {
         facture: [],
+        factureRamasser: [],
         detailFacture: [],
+        detailFactureRamasser: [],
     },
     reducers: {
         setFacture(state, action) {
             state.facture = action.payload;
         },
+        setFactureRamasser(state, action) {
+            state.factureRamasser = action.payload;
+        },
         setFactureDetail(state, action) {
             state.detailFacture = action.payload;
+        },
+        setFactureDetailRamasser(state, action) {
+            state.detailFactureRamasser = action.payload;
         },
         addFacture(state, action) {
             state.facture.push(action.payload);
@@ -25,7 +33,7 @@ const factureSlice = createSlice({
         removeFacture(state, action) {
             state.facture = state.facture.filter(facture => facture.id !== action.payload);
         },
-        // New reducer to update 'etat' for a specific facture
+        // Reducer to update 'etat' for a specific facture
         setFactureEtat(state, action) {
             const index = state.facture.findIndex(facture => facture.id === action.payload.id);
             if (index !== -1) {

@@ -1,6 +1,6 @@
 // ColisTable.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, Button, Input, Drawer, Typography, Tag } from 'antd';
+import { Modal, Button, Input, Drawer, Typography, Tag, Descriptions } from 'antd';
 import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt } from 'react-icons/fa';
 import { Si1001Tracklists } from 'react-icons/si';
 import { TbPhoneCall } from 'react-icons/tb';
@@ -16,6 +16,7 @@ import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
 import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
+import TrackingColis from '../../../global/TrackingColis ';
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
@@ -144,12 +145,14 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'code_suivi',
       width: 200,
       render: (text) => (
-        <Typography.Text
-          copyable
-          style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-        >
-          {text}
-        </Typography.Text>
+        <>
+          <Typography.Text
+            copyable
+            style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          >
+            {text}
+          </Typography.Text>
+        </>
       ),
     },
     {
@@ -198,74 +201,97 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     },
   ];
 
-  // Define expandable content
-  const expandedRowRender = (record) => (
-    <div style={{ padding: '10px 20px' }}>
-      <p><strong>Livreur:</strong> {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}</p>
-      <p><strong>Dernière Mise à Jour:</strong> {formatDate(record.updatedAt)}</p>
-      <p><strong>Commentaire:</strong> {record.commentaire}</p>
-      <p><strong>Nature de Produit:</strong> {record.nature_produit}</p>
-      <p><strong>État:</strong> {record.etat ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>}</p>
-      <p><strong>Ouvrir:</strong> {record.ouvrir ? 'Oui' : 'Non'}</p>
-      <p><strong>Is Simple:</strong> {record.is_simple ? 'Oui' : 'Non'}</p>
-      <p><strong>Is Remplace:</strong> {record.is_remplace ? 'Oui' : 'Non'}</p>
-      <p><strong>Is Fragile:</strong> {record.is_fragile ? 'Oui' : 'Non'}</p>
-      <p><strong>Store:</strong> {record.store && record.store.storeName}</p>
-      <p><strong>Team:</strong> {record.team || 'N/A'}</p>
-      <p><strong>Replaced Colis:</strong> {record.replacedColis || 'N/A'}</p>
-      <p><strong>ID Colis:</strong> {record.id_Colis}</p>
-      <p><strong>Produits:</strong> {record.produits && record.produits.length > 0 ? record.produits.join(', ') : 'N/A'}</p>
-      <p><strong>Date de Création:</strong> {formatDate(record.createdAt)}</p>
-      <p><strong>Date de Mise à Jour:</strong> {formatDate(record.updatedAt)}</p>
-      
-      {/* Action Buttons */}
-      <div className="expanded-actions" style={{ marginTop: '10px' }}>
-        {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+ // Define expandable content with three segments
+ const expandedRowRender = (record) => (
+  <div style={{ padding: '10px 20px' }}>
+    {/* Colis Data Segment */}
+    <Descriptions title="Detail de Colis" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
+      <Descriptions.Item label="Dernière Mise à Jour">{formatDate(record.updatedAt)}</Descriptions.Item>
+      <Descriptions.Item label="Commentaire">{record.commentaire || 'N/A'}</Descriptions.Item>
+      <Descriptions.Item label="Nature de Produit">{record.nature_produit || 'N/A'}</Descriptions.Item>
+      <Descriptions.Item label="État">
+        {record.etat ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>}
+      </Descriptions.Item>
+      <Descriptions.Item label="Ouvrir">{record.ouvrir ? 'Oui' : 'Non'}</Descriptions.Item>
+      <Descriptions.Item label="Is Simple">{record.is_simple ? 'Oui' : 'Non'}</Descriptions.Item>
+      <Descriptions.Item label="Is Remplace">{record.is_remplace ? 'Oui' : 'Non'}</Descriptions.Item>
+      <Descriptions.Item label="Is Fragile">{record.is_fragile ? 'Oui' : 'Non'}</Descriptions.Item>
+      <Descriptions.Item label="Date de Création">{formatDate(record.createdAt)}</Descriptions.Item>
+    </Descriptions>
+
+    {/* Store Data Segment */}
+    <Descriptions title="Information de Bussness" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
+      <Descriptions.Item label="Store Name">{record.store?.storeName || 'N/A'}</Descriptions.Item>
+      <Descriptions.Item label="Adresse">{record.store?.adress || 'N/A'}</Descriptions.Item>
+      <Descriptions.Item label="Téléphone">{record.store?.tele || 'N/A'}</Descriptions.Item>
+    </Descriptions>
+
+    {/* Livreur Data Segment */}
+    <Descriptions title="Livreur" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
+      <Descriptions.Item label="Livreur">
+        {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
+      </Descriptions.Item>
+    </Descriptions>
+
+    {/* Action Buttons */}
+    <div className="expanded-actions" style={{ marginTop: '10px' }}>
+      {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+        <Button 
+          type="primary" 
+          icon={<FaWhatsapp />} 
+          onClick={() => handleInfo(record._id)} 
+          style={{ marginRight: '8px' }}
+        >
+          Info
+        </Button>
+      )}
+      <Button 
+        type="primary" 
+        icon={<TbPhoneCall />} 
+        onClick={() => console.log('More options for record with id:', record._id)} 
+        style={{ marginRight: '8px' }}
+      >
+        Call
+      </Button>
+      <Button 
+        type="primary" 
+        icon={<Si1001Tracklists />} 
+        onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
+        style={{ marginRight: '8px' }}
+      >
+        Track
+      </Button>
+      <Button 
+        type="primary" 
+        icon={<FaPrint />} 
+        onClick={() => handleTicket(record)} 
+        style={{ marginRight: '8px' }}
+      >
+        Print
+      </Button>
+      {user.role !== 'client' && user.role !== 'livreur' && (
+        <Button 
+          type="primary" 
+          icon={<FaPenFancy />} 
+          onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
+          style={{ marginRight: '8px' }}
+        >
+          Edit
+        </Button>
+      )}
+      {
+        user?.role === "client" && (
           <Button 
             type="primary" 
-            icon={<FaWhatsapp />} 
-            onClick={() => handleInfo(record._id)} 
-            style={{ marginRight: '8px' }}
+            onClick={() => openReclamationModal(record)} 
           >
-            Info
+            Reclamation
           </Button>
-        )}
-        <Button 
-          type="primary" 
-          icon={<TbPhoneCall />} 
-          onClick={() => console.log('More options for record with id:', record._id)} 
-          style={{ marginRight: '8px' }}
-        >
-          Call
-        </Button>
-        <Button 
-          type="primary" 
-          icon={<Si1001Tracklists />} 
-          onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
-          style={{ marginRight: '8px' }}
-        >
-          Track
-        </Button>
-        <Button 
-          type="primary" 
-          icon={<FaPrint />} 
-          onClick={() => handleTicket(record)} 
-          style={{ marginRight: '8px' }}
-        >
-          Print
-        </Button>
-        {user.role !== 'client' && user.role !== 'livreur' && (
-          <Button 
-            type="primary" 
-            icon={<FaPenFancy />} 
-            onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
-          >
-            Edit
-          </Button>
-        )}
-      </div>
+        )
+      }
     </div>
-  );
+  </div>
+);
 
   // Columns for main table
   const columns = columnsColis;
@@ -408,11 +434,11 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))} 
         visible={state.drawerOpen}
       >
-        {/*
+        {
         state.selectedColis && (
           <TrackingColis codeSuivi={state.selectedColis.code_suivi} /> 
         )
-        */
+      
         }
       </Drawer>
     </>
