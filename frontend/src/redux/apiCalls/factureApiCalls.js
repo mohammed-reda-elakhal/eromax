@@ -20,6 +20,31 @@ export function getFacture(type) {
     };
 }
 
+// get data user
+export function getFactureRamasser() {
+    return async (dispatch) => {
+        try {
+            
+            const token = Cookies.get('token');
+            if (!token) {
+                toast.error('Authentification token is missing');
+                return;
+            }
+    
+            const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            }
+            };
+            const { data } = await request.get(`/api/facture/ramasser` , config);
+            dispatch(factureActions.setFactureRamasser(data.factures));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch notifications");
+        }
+    };
+}
+
 // Get facture details by code with optional type filter
 export function getFactureDetailsByCode(codeFacture ) {
     return async (dispatch) => {

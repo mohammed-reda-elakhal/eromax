@@ -261,14 +261,21 @@ function Menubar() {
           {
             (userData.role === "client" || userData.role === "admin") && (
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/facture/client">Facture Client</Link>
+                <Link to="/dashboard/facture/globale">Facture</Link>
+              </Menu.Item>
+            )
+          }
+          {
+            (userData.role === "client" || userData.role === "admin") && (
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/client">Bon Livraison ( client )</Link>
               </Menu.Item>
             )
           }
           {
             (userData.role === "livreur" || userData.role === "admin") && (
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/facture/livreur">Facture Livreur</Link>
+                <Link to="/dashboard/facture/livreur">Bon Livraison ( Livreur )</Link>
               </Menu.Item>
             )
           }
