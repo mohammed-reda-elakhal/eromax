@@ -66,14 +66,6 @@ router.route("/getColisTeam/:id_team").get(verifyTokenAndAdmin,colisController.g
 router.route("/programme").post(colisController.colisProgramme);//move to client route pour executer 
 router.route("/annule").post(colisController.annulerColis);//move to client route pour executer
 router.route("/refuser").post(colisController.refuserColis);//move to client route pour executer
-router.get('/count/livres/livreur/:livreurId', colisController.countColisLivreByLivreur);
-router.get('/count/livres/client/:storeId', colisController.countColisLivreByClient);
-router.get('/count/livres/team/:teamId',colisController.countColisLivreByTeam);
-router.get('/count/livres',verifyTokenAdminTeam,colisController.countColisLivre);
-router.get('/count/colis',verifyTokenAdminTeam,colisController.countColis);
-router.get('/count/colis/client/:storeId',colisController.countColisByClinet);
-router.get('/count/colis/livreur/:livreurId',colisController.countColisByLivreur);
-router.get('/count/colis/team/:teamId',colisController.countColisByTeam);
 
 
 

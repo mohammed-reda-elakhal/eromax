@@ -68,3 +68,43 @@ exports.getTransactionsByClient = async (req, res) => {
   }
 };
 
+exports.countTotalGainsByRole = async (req, res) => {
+  try {
+    const { role, id } = req.params; // Get role and id from request parameters
+    const objectId = new mongoose.Types.ObjectId(id);
+
+    // Determine the field to match based on the role
+    let matchField;
+    if (role === 'client') {
+      matchField = 'id_store';
+    } else if (role === 'team') {
+      matchField = 'id_team';
+    } else if (role === 'livreur') {
+      matchField = 'id_livreur';
+    } else {
+      return res.status(400).json({ message: 'Role invalide fourni' });
+    }
+
+    // Aggregate query to calculate the total gains for debit transactions by role
+    const totalGainsResult = await Transaction.aggregate([
+      { $match: { type: 'debit', [matchField]: objectId } }, // Filter by debit type and dynamic role ID
+      {
+        $group: {
+          _id: null,
+          totalGains: { $sum: "$montant" } // Sum up the montant field for debit transactions
+        }
+      }
+    ]);
+
+    const totalGains = totalGainsResult[0]?.totalGains || 0;
+
+    return res.status(200).json({
+      message: `Total des gains pour le rôle ${role}`,
+      roleId: id,
+      totalGains: totalGains
+    });
+  } catch (error) {
+    console.error(`Erreur lors du calcul des gains pour le rôle ${role}:`, error);
+    return res.status(500).json({ message: `Erreur serveur lors du calcul des gains pour le rôle ${role}` });
+  }
+};
