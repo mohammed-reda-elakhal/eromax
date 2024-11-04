@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
-import { getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
+import { affectationColisAmeex, getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { toast } from 'react-toastify';
@@ -29,6 +29,8 @@ function ColisRamasse({ search }) {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate()
+  const [selectedLivreur, setSelectedLivreur] = useState(null);
+
 
   const { livreurList, colisData, user, store } = useSelector(state => ({
     livreurList: state.livreur.livreurList,
@@ -66,6 +68,7 @@ function ColisRamasse({ search }) {
   const showModal = () => {
     if (selectedRowKeys.length > 0) {
       setLivreurId(null);
+      setSelectedLivreur(null)
       form.resetFields();
       setIsModalVisible(true);
     } else {
@@ -74,35 +77,50 @@ function ColisRamasse({ search }) {
   };
 
   const handleAffecterLivreur = async () => {
-    if (selectedRowKeys.length > 0 && livreurId) {
-      setLoading(true);
-      try {
-        // Send a PUT request to update the status of selected colis
-        const response = await request.put('/api/colis/statu/affecter', {
-          codesSuivi: selectedRowKeys,
-          livreurId
-        });
-        setLoading(false);
-        toast.success(response.data.message);
+    if (selectedRowKeys.length > 0 && selectedLivreur) {
+      // Get the selected colis data
+      const selectedColisData = data.filter(item => selectedRowKeys.includes(item.code_suivi));
+  
+      if (selectedLivreur.nom === 'ameex') {
+        // Dispatch the custom function for "ameex"
+        dispatch(affectationColisAmeex(selectedColisData));
+        // Optionally reset selections and close modal
         setSelectedRowKeys([]);
-        // Update the local data to remove the updated colis
-        const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
-        setData(newData);
-        setLivreurId(null)
+        setSelectedLivreur(null);
         setIsModalVisible(false);
-      } catch (err) {
-        setLoading(false);
-        toast.error("Erreur lors de la mise à jour des colis.");
+      } else {
+        // Existing code for other livreurs
+        setLoading(true);
+        try {
+          // Send a PUT request to update the status of selected colis
+          const response = await request.put('/api/colis/statu/affecter', {
+            codesSuivi: selectedRowKeys,
+            livreurId: selectedLivreur._id
+          });
+          setLoading(false);
+          toast.success(response.data.message);
+          setSelectedRowKeys([]);
+          // Update the local data to remove the updated colis
+          const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
+          setData(newData);
+          setSelectedLivreur(null);
+          setIsModalVisible(false);
+        } catch (err) {
+          setLoading(false);
+          toast.error("Erreur lors de la mise à jour des colis.");
+        }
       }
-
     } else {
       warning('Veuillez sélectionner un livreur');
     }
   };
+  
+
 
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
+    setSelectedLivreur(null)
     setLivreurId(null);
   };
 
@@ -111,8 +129,8 @@ function ColisRamasse({ search }) {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
-  const selectLivreur = (id) => {
-    setLivreurId(id);
+  const selectLivreur = (livreur) => {
+    setSelectedLivreur(livreur)
   };
 
   const columns = [
@@ -190,30 +208,35 @@ function ColisRamasse({ search }) {
           <div className="livreur_list_modal_card">
             {filteredLivreurs.preferred.length ? filteredLivreurs.preferred.map(person => (
               <Card
-                key={person._id}
-                hoverable
-                style={{ width: 240, margin: '10px', border: livreurId === person._id ? '2px solid #1890ff' : '1px solid #f0f0f0' }}
-                onClick={() => selectLivreur(person._id)}
-              >
-                <Card.Meta
+              key={person._id}
+              hoverable
+              style={{
+                  width: 240,
+                  margin: '10px',
+                  border: selectedLivreur && selectedLivreur._id === person._id ? '2px solid #1890ff' : '1px solid #f0f0f0'
+              }}
+              onClick={() => selectLivreur(person)}
+          >
+              <Card.Meta
                   title={
-                    <div>
-                      {person.username}
-                    </div>
+                      <div>
+                          {person.username}
+                      </div>
                   }
                   description={
-                    <>
-                      {person.tele}
-                      <Button
-                        icon={<BsFillInfoCircleFill />}
-                        onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)}
-                        type='primary'
-                        style={{ float: 'right' }}
-                      />
-                    </>
+                      <>
+                          {person.tele}
+                          <Button
+                              icon={<BsFillInfoCircleFill />}
+                              onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)}
+                              type='primary'
+                              style={{ float: 'right' }}
+                          />
+                      </>
                   }
-                />
-              </Card>
+              />
+          </Card>
+          
             )) : <p>Aucun livreur préféré disponible</p>}
           </div>
         </div>

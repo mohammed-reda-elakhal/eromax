@@ -4,6 +4,7 @@ import { colisActions } from "../slices/colisSlice";
 import Cookies from "js-cookie";
 import { decodeToken } from "../../utils/tokenUtils";
 import { jwtDecode } from "jwt-decode";
+import axios from 'axios';
 
 
 
@@ -229,10 +230,9 @@ export function searchColisByCodeSuivi(code_suivi) {
         dispatch(colisActions.setSearchLoading(false));
       }
     };
-  }
-  
+}
   // Create Colis function
-  export function createColis(colis) {
+export function createColis(colis) {
     return async (dispatch) => {
       try {
         // Get token and user data from cookies
@@ -278,8 +278,7 @@ export function searchColisByCodeSuivi(code_suivi) {
         dispatch(colisActions.setError(error.response?.data?.message || "Failed to create colis"));
       }
     };
-  }
-  
+}
 export const getColisForLivreur = (userId,statut) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {
@@ -324,7 +323,6 @@ export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
         dispatch(colisActions.setError(error.message));
 
     }
-
 }
 export const updateStatut = (colisId, newStatus , comment) => async (dispatch) => {
     if (!colisId) {
@@ -366,7 +364,6 @@ export const updateStatut = (colisId, newStatus , comment) => async (dispatch) =
         console.error("Update status error:", error);
     }
 };
-
 export const colisProgramme=(colisId,daysToAdd)=>async(dispatch)=>{
     try {
         // Dispatch the loading action
@@ -411,3 +408,31 @@ export const annulerColis = (idColis, commentaire) => async (dispatch) => {
 };
 
   
+
+// redux/apiCalls/colisApiCalls.js
+
+export const affectationColisAmeex = (colisDataArray) => async (dispatch) => {
+  try {
+    
+    const codes_suivi = colisDataArray.map(colis => colis.code_suivi);
+    const response = await request.post('/api/livreur/ameex', { codes_suivi });
+
+    if (response.status === 200) {
+      const { success, errors } = response.data;
+
+      // Handle successes and errors
+      if (success.length > 0) {
+        toast.success(`${success.length} colis assigned to Ameex successfully`);
+      }
+      if (errors.length > 0) {
+        toast.error(`${errors.length} colis failed to assign to Ameex`);
+      }
+    } else {
+      toast.error(response.data.message || 'Erreur lors de l\'affectation à Ameex');
+    }
+  } catch (error) {
+    console.error('Error in affectationColisAmeex:', error);
+    dispatch(colisActions.setError(error.message));
+    toast.error('Erreur lors de l\'affectation à Ameex');
+  }
+};

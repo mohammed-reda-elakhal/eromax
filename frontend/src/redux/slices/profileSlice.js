@@ -49,7 +49,7 @@ const profileSlice = createSlice({
             if (state.profile) {
                 state.profile.image = action.payload; // Assuming payload contains the updated image URL
             }
-        },
+        },        
         updateProfileImageFailure(state, action) {
             state.loading = false;
             state.error = action.payload;

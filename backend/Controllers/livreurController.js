@@ -6,6 +6,215 @@ const { Suivi_Colis } = require("../Models/Suivi_Colis");
 const { Colis } = require("../Models/Colis");
 const { Client } = require("../Models/Client");
 const {Ville}= require('../Models/Ville')
+const axios = require('axios');
+
+
+
+// Function to convert phone number to required format
+function convertPhoneNumber(phoneNumber) {
+  // Remove any spaces or hyphens
+  let sanitizedNumber = phoneNumber.replace(/[\s-]/g, '');
+
+  // Check if the number starts with '+212'
+  if (sanitizedNumber.startsWith('+212')) {
+    // Remove '+212' and add '0' at the beginning
+    sanitizedNumber = '0' + sanitizedNumber.slice(4);
+  }
+  // If the number starts with '00212', handle that as well
+  else if (sanitizedNumber.startsWith('00212')) {
+    // Remove '00212' and add '0' at the beginning
+    sanitizedNumber = '0' + sanitizedNumber.slice(5);
+  }
+  // Now, ensure the number starts with '0'
+  if (!sanitizedNumber.startsWith('0')) {
+    // If it doesn't start with '0', add it
+    sanitizedNumber = '0' + sanitizedNumber;
+  }
+  return sanitizedNumber;
+}
+
+// Controller function to assign multiple colis to Ameex
+const assignColisToAmeex = asyncHandler(async (req, res) => {
+  try {
+    const { codes_suivi } = req.body; // Expecting an array of code_suivi in the request body
+
+    if (!Array.isArray(codes_suivi) || codes_suivi.length === 0) {
+      return res.status(400).json({ message: 'codes_suivi must be a non-empty array' });
+    }
+
+    // Retrieve colis data from the database using codes_suivi
+    const colisList = await Colis.find({ code_suivi: { $in: codes_suivi } }).populate('ville');
+
+    if (colisList.length === 0) {
+      return res.status(404).json({ message: 'No colis found for the provided codes_suivi' });
+    }
+
+    // Prepare authentication credentials
+    const authId = 3452;
+    const authKey = "9435a2-921aa4-67fc55-ced90c-1bafbc";
+
+    // Prepare headers
+    const headers = {
+      'X-AUTH-ID': authId,
+      'X-AUTH-KEY': authKey,
+      'Content-Type': 'application/json',
+    };
+
+    // Initialize arrays to collect results
+    const successList = [];
+    const errorList = [];
+
+    // Loop through each colis and process
+    for (const colis of colisList) {
+      try {
+        // Convert the phone number to the required format
+        const convertedPhone = convertPhoneNumber(colis.tele);
+
+        // Prepare the request body with the required data
+        const body = {
+          "ORDER_NUM": colis.code_suivi,
+          "RECEIVER": colis.nom,
+          "PHONE": convertedPhone,
+          "CITY": colis.ville.nom, // Assuming 'ville' is populated and has 'nom' field
+          "ADDRESS": colis.adresse, // Ensure this field matches your model
+          "COD": colis.prix,
+          "COMMENT": colis.commentaire || '', // Handle cases where 'commentaire' might be undefined
+          "NATURE_PRODUCT": colis.nature_produit || '',
+        };
+
+        // Make the PUT request to Ameex API
+        const ameexResponse = await axios.put(
+          'https://cdn.ameex.ma/app/api/customer/Parcels/AddParcel',
+          body,
+          { headers }
+        );
+
+        // Handle the response from Ameex
+        if (ameexResponse.status === 200) {
+          const responseData = ameexResponse.data;
+
+          // Check if the Ameex API response indicates success
+          if (responseData['ADD-PARCEL'] && responseData['ADD-PARCEL']['RESULT'] === 'SUCCESS') {
+            // Extract the TRACKING-NUMBER from the response
+            const trackingNumber = responseData['ADD-PARCEL']['NEW-PARCEL']['TRACKING-NUMBER'];
+
+            // Update colis fields
+            colis.expedation_type = 'ameex';
+            colis.code_suivi_ameex = trackingNumber;
+            colis.statut = 'Nouveau Colis'; // Update the status as needed
+
+            // Save the updated colis
+            await colis.save();
+
+            // Add to success list
+            successList.push({
+              code_suivi: colis.code_suivi,
+              trackingNumber,
+            });
+          } else {
+            // Handle case where Ameex response indicates failure
+            errorList.push({
+              code_suivi: colis.code_suivi,
+              message: 'Error assigning colis to Ameex',
+              details: responseData,
+            });
+          }
+        } else {
+          // Handle unexpected response statuses
+          errorList.push({
+            code_suivi: colis.code_suivi,
+            message: 'Error assigning colis to Ameex',
+            status: ameexResponse.status,
+            details: ameexResponse.data,
+          });
+        }
+      } catch (error) {
+        console.error(`Error assigning colis ${colis.code_suivi} to Ameex:`, error);
+
+        // Handle errors from the Ameex API call
+        if (error.response) {
+          errorList.push({
+            code_suivi: colis.code_suivi,
+            message: 'Ameex API error',
+            status: error.response.status,
+            details: error.response.data,
+          });
+        } else if (error.request) {
+          errorList.push({
+            code_suivi: colis.code_suivi,
+            message: 'No response received from Ameex API',
+            error: error.message,
+          });
+        } else {
+          errorList.push({
+            code_suivi: colis.code_suivi,
+            message: 'Server error',
+            error: error.message,
+          });
+        }
+      }
+    }
+
+    // Return the results
+    return res.status(200).json({
+      message: 'Assignment to Ameex completed',
+      success: successList,
+      errors: errorList,
+    });
+  } catch (error) {
+    console.error('Error assigning multiple colis to Ameex:', error);
+    return res.status(500).json({
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+});
+
+
+
+const findOrCreateLivreur = asyncHandler(async () => {
+
+ // Fetch all city names from the Ville collection
+ const allVilles = await Ville.find().select("nom"); // Fetch only the 'nom' field for efficiency
+ const villeNames = allVilles.map(ville => ville.nom); // Extract city names into an array
+
+ // Define default data for the 'ameex' livreur
+ const defaultLivreurData = {
+   nom: "ameex",
+   prenom: "ameex",
+   username: "ameex",
+   ville: "Casablanca",
+   adresse: "123 Default Street",
+   tele: "0612345678",
+   password: "ameex",
+   email: "ameex@gmail.com",
+   profile: {
+     url: "https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_1280.png",
+     publicId: null
+   },
+   active: true,
+   role: "livreur",
+   type: "company",
+   tarif: 100,
+   domaine: "https://api.ameex.app",
+   villes: villeNames, // Use the dynamically fetched list of cities
+ };
+
+  // Check if the 'ameex' livreur already exists
+  let livreur = await Livreur.findOne({ email: defaultLivreurData.email, type: "company" });
+
+  if (!livreur) {
+    // If not found, hash the password and create a new livreur entry
+    const hashedPassword = await bcrypt.hash(defaultLivreurData.password, 10);
+    livreur = new Livreur({ ...defaultLivreurData, password: hashedPassword });
+    await livreur.save();
+  } else {
+    console.log("'ameex' livreur already exists");
+  }
+
+  return livreur; // Return the found or newly created livreur
+});
+
 
 
 /** -------------------------------------------
@@ -339,5 +548,15 @@ const generateFactureLivreurMultiple = async (req, res) => {
 };
 
 module.exports = {
-  getAllLivreur,getLivreurById , createLivreur , updateLivreur , deleteLivreur,getLivreurbyVille,LivreurPhotoController,generateFactureLivreur,generateFactureLivreurMultiple
+  getAllLivreur,
+  getLivreurById , 
+  createLivreur ,
+  updateLivreur , 
+  deleteLivreur,
+  getLivreurbyVille,
+  LivreurPhotoController,
+  generateFactureLivreur,
+  generateFactureLivreurMultiple ,
+  findOrCreateLivreur,
+  assignColisToAmeex
 };

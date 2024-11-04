@@ -90,15 +90,15 @@ function ProfileInfo() {
             message.error('L\'image doit être inférieure à 2MB!');
             return Upload.LIST_IGNORE;
         }
-
+    
         const formData = new FormData();
         formData.append('image', file);
-
-        // Dispatch the action to upload the image
-        dispatch(updateProfileImage(profile._id, formData));
+    
+        dispatch(updateProfileImage(profile._id, user.role, formData));
         setIsModalVisible(false);
+        return false; // Prevent default upload behavior
     };
-
+    
     if (loading) {
         return (
             <div style={{ textAlign: 'center', padding: '50px 0' }}>

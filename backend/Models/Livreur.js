@@ -28,7 +28,7 @@ const LivreurSchema = new mongoose.Schema({
     // Add region attribute
     villes: {
         type: [String], 
-        required: true
+        required: false
     }
 }, { timestamps: true });
 

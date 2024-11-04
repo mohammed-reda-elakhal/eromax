@@ -88,10 +88,25 @@ function Livreur() {
             title: 'Region', // Adding the list of cities
             dataIndex: 'villes',
             key: 'villes',
-            render: (villes) => (
-                <span>{villes?.map(ville => ville).join('\n') || 'Aucune ville'}</span>
-            ),
-        },
+            render: (villes) => {
+                if (!villes || villes.length === 0) return <span>Aucune ville</span>;
+                
+                const displayedVilles = villes.slice(0, 6); // Show only the first 6 cities
+                const remainingCount = villes.length - displayedVilles.length;
+        
+                return (
+                    <>
+                        <p>
+                            {displayedVilles.join(', ')}
+                        </p>
+                        <p style={{color:"red"}}>
+                            {remainingCount > 0 ? `${remainingCount} Autres Villes` : ''}
+                        </p>
+                        
+                    </>
+                );
+            },
+        },        
         {
             title: 'Tarif',
             dataIndex: 'tarif',

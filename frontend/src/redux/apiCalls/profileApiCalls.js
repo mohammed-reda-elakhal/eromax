@@ -93,7 +93,7 @@ export function updateProfile(userId, role, user) {
 }
 
 // Update Profile Image
-export function updateProfileImage(userId, formData) {
+export function updateProfileImageOld(userId, formData) {
     return async (dispatch) => {
         dispatch(profileActions.updateProfileImageStart());
         try {
@@ -130,6 +130,35 @@ export function deleteProfile(role, userId) {
         } catch (error) {
             console.error('Delete profile error:', error);
             const errorMessage = error.response?.data?.message || error.message || "Failed to delete profile";
+            toast.error(errorMessage);
+        }
+    };
+}
+
+
+
+
+export function updateProfileImage(userId, role, formData) {
+    return async (dispatch) => {
+        dispatch(profileActions.updateProfileImageStart());
+        try {
+            const token = Cookies.get('token');
+            if (!token) {
+                throw new Error('No token found');
+            }
+
+            const { data } = await request.post(`/api/images/upload/${role}/${userId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            dispatch(profileActions.updateProfileImageSuccess(data.image));
+            toast.success(data.message || "Profile image updated successfully");
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message || "Failed to update profile image";
+            dispatch(profileActions.updateProfileImageFailure(errorMessage));
             toast.error(errorMessage);
         }
     };

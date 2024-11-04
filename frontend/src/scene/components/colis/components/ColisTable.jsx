@@ -144,7 +144,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       dataIndex: 'code_suivi',
       key: 'code_suivi',
       width: 200,
-      render: (text) => (
+      render: (text , record) => (
         <>
           <Typography.Text
             copyable
@@ -152,6 +152,10 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           >
             {text}
           </Typography.Text>
+          {
+              record.expedation_type ==="ameex" ? 
+              <p style={{color:"gray" , size:"10px"}}>{record.code_suivi_ameex}</p> : ""
+          }
         </>
       ),
     },

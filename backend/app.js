@@ -5,6 +5,7 @@ require('dotenv').config;
 
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const { findOrCreateLivreur } = require("./Controllers/livreurController");
 
 
 // Connection To DB
@@ -62,6 +63,11 @@ app.use('/api/facture', require('./routes/factureRoute'));
 app.use('/api/Ramasserfacture', require('./routes/ramasserFactureRoute'));
 app.use("/api/images", require("./routes/imageRoute"));
 
+
+// Run `findOrCreateLivreur` after database connection to ensure `livreur` user is created if it doesn't exist
+findOrCreateLivreur()
+  .then(() => console.log("'ameex' livreur verified or created successfully"))
+  .catch((error) => console.error("Error during 'ameex' livreur creation:", error));
 
 //Running server 
 const port =process.env.PORT || 8084;

@@ -40,7 +40,7 @@ export function createStore(userId, storeData, imageFile) {
         const imageFormData = new FormData();
         imageFormData.append('image', imageFile);
 
-        const uploadResult = await request.post(`/api/store/${data._id}/photo`, imageFormData, {
+        const uploadResult = await request.post(`/api/store/upload${data._id}`, imageFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -78,7 +78,7 @@ export function updateStore(storeId, storeData, imageFile) {
         const imageFormData = new FormData();
         imageFormData.append('image', imageFile);
 
-        const uploadResult = await request.post(`/api/store/${storeId}/photo`, imageFormData, {
+        const uploadResult = await request.put(`/api/store/upload/${storeId}`, imageFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -114,3 +114,5 @@ export function deleteStore(storeId) {
     }
   };
 }
+
+

@@ -129,6 +129,15 @@ const ColisSchema = new mongoose.Schema({
         ref: 'Colis',
         default: null, // Change from array to single reference
     },
+    code_suivi_ameex: {
+        type: String,
+        required : false 
+    },
+    expedation_type : {
+        type:String ,
+        required : false ,
+        default : 'eromax'
+    }
 }, {
     timestamps: true
 });
@@ -181,6 +190,9 @@ function validateRegisterColis(obj) {
             })
         ),
         replacedColis:Joi.string(), // New field for replaced colis
+        expedation_type : Joi.string(),
+        code_suivi_ameex : Joi.string(),
+
     });
     return schema.validate(obj);
 }
