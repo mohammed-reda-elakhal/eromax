@@ -59,7 +59,7 @@ const columns = [
     key: 'options',
     render: (text, record) => (
       <div style={{display:"flex" , gap:"10px"}}>
-        <Button icon={<FaRegFolderOpen/>} onClick={()=>console.log(factureRamasser) } type='primary'>
+        <Button icon={<FaRegFolderOpen/>} onClick={()=>navigate(`/dashboard/facture/globale/${record.code_facture}`) } type='primary'>
         </Button>
       </div>
     ),

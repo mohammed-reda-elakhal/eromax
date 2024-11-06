@@ -15,6 +15,7 @@ const Notification_User = require("../Models/Notification_User");
 const shortid = require('shortid');
 const NotificationUser = require("../Models/Notification_User");
 const { log } = require("console");
+const axios = require('axios');
 
 // Utility function to generate a unique code_suivi
 const generateCodeSuivi = (refVille) => {
@@ -163,13 +164,12 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
 /**
  * -------------------------------------------------------------------
- * @desc     get all colis, optionally filter by statut
+ * @desc     Get all colis, optionally filter by statut, and populate specific data of replacedColis
  * @route    /api/colis/
  * @method   GET
- * @access   private (only logged in user)
+ * @access   Private (only logged-in users)
  * -------------------------------------------------------------------
 **/
-
 module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
   try {
     const { statut } = req.query; // Extract 'statut' from the query params
@@ -185,7 +185,15 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       .populate('team')        // Populate the team details
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
-      .populate('ville')
+      .populate('ville')     
+      .populate({
+        path: 'replacedColis',
+        select: 'code_suivi prix statut', // Include the fields you want from replacedColis
+        populate: {
+          path: 'ville',
+          select: 'nom', // Include the ville name if needed
+        },
+      })
       .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
     res.status(200).json(colis);
@@ -194,6 +202,7 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Failed to fetch colis.", error: error.message });
   }
 });
+
 
 
 
@@ -210,7 +219,15 @@ module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
   .populate('team')        // Populate the team details
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
-      .populate('ville')
+      .populate('ville')     
+      .populate({
+        path: 'replacedColis',
+        select: 'code_suivi prix statut', // Include the fields you want from replacedColis
+        populate: {
+          path: 'ville',
+          select: 'nom', // Include the ville name if needed
+        },
+      })
       .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
   if(!colis){
       return res.status(404).json({message:"Colis not found"});
@@ -241,7 +258,15 @@ exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
     .populate('team')        // Populate the team details
     .populate('livreur')     // Populate the livreur details
     .populate('store')       // Populate the store details
-    .populate('ville')
+    .populate('ville')     
+    .populate({
+      path: 'replacedColis',
+      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
+      populate: {
+        path: 'ville',
+        select: 'nom', // Include the ville name if needed
+      },
+    })
     .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
     // If no colis found, return 404
@@ -272,7 +297,15 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
     .populate('livreur')
     .populate('store')
     .populate('team')
-    .populate('ville')
+    .populate('ville')     
+    .populate({
+      path: 'replacedColis',
+      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
+      populate: {
+        path: 'ville',
+        select: 'nom', // Include the ville name if needed
+      },
+    })
     .sort({ updatedAt: -1 });
 
 
@@ -322,7 +355,15 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
         select: '-password'  
       }
     })
-    .populate('ville')
+    .populate('ville')     
+    .populate({
+      path: 'replacedColis',
+      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
+      populate: {
+        path: 'ville',
+        select: 'nom', // Include the ville name if needed
+      },
+    })
     .sort({ updatedAt: -1 });
 
   if (!colis) {    
@@ -493,25 +534,122 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
  * @access   private ( only admin )
  * -------------------------------------------------------------------
  **/
+// controllers/colisController.js
+
 module.exports.getSuiviColis = asyncHandler(async (req, res) => {
   try {
-    // Find the tracking record by the code_suivi and populate the livreur field
-    const suivi_colis = await Suivi_Colis.findOne({ code_suivi: req.params.code_suivi })
-      .populate({
-        path: 'status_updates.livreur', // Populate the livreur field in status_updates
-        select: '-password -__v', // Exclude password and __v from the populated data
-      });
+    // Find the colis by code_suivi
+    const colis = await Colis.findOne({ code_suivi: req.params.code_suivi });
 
-    if (!suivi_colis) {
-      return res.status(404).json({ message: "S'il vous pliz vérifier code de suivi" });
+    if (!colis) {
+      return res.status(404).json({ message: "S'il vous plaît vérifier le code de suivi" });
     }
 
-    res.status(200).json(suivi_colis);
+    if (colis.expedation_type === 'ameex') {
+      // Use Ameex API to get tracking data
+      const code_suivi_ameex = colis.code_suivi_ameex;
+
+      // Prepare Ameex API request
+      const authId = process.env.AMEEX_API_ID || 3452;
+      const authKey = process.env.AMEEX_API_KEY || "9435a2-921aa4-67fc55-ced90c-1bafbc";
+      const headers = {
+        'C-Api-Id': authId,
+        'C-Api-Key': authKey,
+        'Content-Type': 'application/json',
+      };
+
+      try {
+        const ameexResponse = await axios.get(
+          `https://api.ameex.app/customer/Delivery/Parcels/Tracking?ParcelCode=${code_suivi_ameex}`,
+          { headers }
+        );
+
+        if (ameexResponse.status === 200) {
+          const responseData = ameexResponse.data;
+          if (responseData.api && responseData.api.type === 'success') {
+            const trackingData = responseData.api.tracking;
+
+            // Map the tracking data
+            const statusUpdates = [];
+
+            for (let key in trackingData) {
+              if (trackingData.hasOwnProperty(key)) {
+                const track = trackingData[key];
+                const status = track.statut_name || track.statut;
+                const timeInSeconds = parseInt(track.time);
+                const date = new Date(timeInSeconds * 1000).toISOString();
+
+                const statusUpdate = {
+                  status: status,
+                  date: date,
+                };
+
+                // If 'by_data' is present, include 'livreur' information
+                if (track.by_data) {
+                  const livreur = {
+                    nom: track.by_data.NAME || track.by_data.name,
+                    tele: track.by_data.PHONE || track.by_data.phone,
+                    // Add other fields if needed
+                  };
+                  statusUpdate.livreur = livreur;
+                }
+
+                statusUpdates.push(statusUpdate);
+              }
+            }
+
+            // Sort the statusUpdates by date
+            statusUpdates.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Construct the response object
+            const suivi_colis = {
+              id_colis: colis._id,
+              code_suivi: colis.code_suivi,
+              status_updates: statusUpdates,
+            };
+
+            res.status(200).json(suivi_colis);
+
+          } else {
+            return res.status(500).json({
+              message: 'Erreur lors de la récupération des données de suivi d\'Ameex',
+              details: responseData,
+            });
+          }
+        } else {
+          return res.status(500).json({
+            message: 'Erreur lors de la récupération des données de suivi d\'Ameex',
+            status: ameexResponse.status,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching tracking data from Ameex:', error.message);
+        return res.status(500).json({
+          message: 'Erreur lors de la récupération des données de suivi d\'Ameex',
+          error: error.message,
+        });
+      }
+    } else {
+      // Use existing logic to get tracking data from Suivi_Colis collection
+      const suivi_colis = await Suivi_Colis.findOne({ code_suivi: req.params.code_suivi })
+        .populate({
+          path: 'status_updates.livreur',
+          select: '-password -__v',
+        });
+
+      if (!suivi_colis) {
+        return res.status(404).json({ message: "S'il vous plaît vérifier le code de suivi" });
+      }
+
+      res.status(200).json(suivi_colis);
+    }
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Erreur du serveur interne", error: error.message });
   }
 });
+
 
 
 
@@ -1229,3 +1367,29 @@ exports.countColisByLivreur = async (req, res) => {
     return res.status(500).json({ message: 'Erreur serveur lors du comptage des colis par livreur' });
   }
 };
+
+// Controller function to delete all colis with expedation_type = 'ameex'
+exports.deleteAllAmeexColis = asyncHandler(async (req, res) => {
+  try {
+    // Optional: Check if the user is authorized to perform this action
+    // For example, ensure that the user has admin privileges
+    /*
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+      */
+
+    // Confirm the action (if called from frontend, you can implement a confirmation step)
+    // For API, ensure that the request is intentional
+
+    // Delete all colis with expedation_type = 'ameex'
+    const result = await Colis.deleteMany({ expedation_type: 'ameex' });
+
+    res.status(200).json({
+      message: `${result.deletedCount} colis with expedation_type 'ameex' have been deleted.`,
+    });
+  } catch (error) {
+    console.error('Error deleting colis:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});

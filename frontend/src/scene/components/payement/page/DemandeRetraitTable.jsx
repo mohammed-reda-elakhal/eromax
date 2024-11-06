@@ -5,8 +5,12 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAlldemandeRetrait, getdemandeRetraitByClient, validerDemandeRetrait } from '../../../../redux/apiCalls/demandeRetraitApiCall';
-import { CheckCircleOutlined, SyncOutlined, DollarOutlined } from '@ant-design/icons'; // Added DollarOutlined icon
+import { 
+    getAlldemandeRetrait, 
+    getdemandeRetraitByClient, 
+    validerDemandeRetrait 
+} from '../../../../redux/apiCalls/demandeRetraitApiCall';
+import { CheckCircleOutlined, SyncOutlined, DollarOutlined } from '@ant-design/icons';
 import { Button, Tag } from 'antd';
 import { toast } from 'react-toastify';
 
@@ -38,19 +42,12 @@ function DemandeRetraitTable() {
         setLoadingId(id_demande); // Set the loading state for this button
 
         try {
-            const updatedDemande = await dispatch(validerDemandeRetrait(id_demande));
+            await dispatch(validerDemandeRetrait(id_demande)).unwrap(); // Wait for the action to complete
 
-            // Immediately update the state to reflect the new status
-            const updatedDemandes = demandesRetraits.map(demande => 
-                demande._id === id_demande ? { ...demande, verser: true } : demande
-            );
-
-            // Optionally, you can dispatch the action to update the Redux store here
-            // dispatch(demandeRetraitActions.updateDemandeRetrait(updatedDemande));
-
+            // The Redux store will update 'demandesRetraits' via the slice's 'updateDemandeRetrait' reducer
             toast.success("Demande de retrait validée avec succès !");
         } catch (error) {
-            toast.error("Erreur lors de la validation de la demande de retrait");
+            toast.error(error.response?.data?.message || "Erreur lors de la validation de la demande de retrait");
         } finally {
             setLoadingId(null); // Reset loading state regardless of success or failure
         }
@@ -133,16 +130,8 @@ function DemandeRetraitTable() {
                             onClick={() => handleValiderDemandeRetrait(record._id)} 
                             loading={loadingId === record._id} // Show loading spinner
                             icon={<DollarOutlined />} // Add money icon
-                            style={{
-                                backgroundColor: '#4CAF50', // Green background
-                                color: 'white', // White text
-                                border: 'none', // No border
-                                borderRadius: '4px', // Rounded corners
-                                padding: '10px 20px', // Padding
-                                margin: '0 5px', // Margin for spacing
-                                display: 'flex', // Flexbox for icon alignment
-                                alignItems: 'center', // Center icon and text vertically
-                            }}
+                            className="verser-button"
+                            disabled={loadingId === record._id} // Disable button while loading
                         >
                             Verser
                         </Button>
@@ -174,7 +163,10 @@ function DemandeRetraitTable() {
                         }}
                     >
                         <TableDashboard
-                            theme={theme} id="_id" column={columns} data={demandesRetraits}
+                            theme={theme} 
+                            id="_id" 
+                            column={columns} 
+                            data={demandesRetraits}
                         />
                     </div>
                 </div>

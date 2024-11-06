@@ -1,245 +1,265 @@
 import React, { useEffect, useRef } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import html2pdf from 'html2pdf.js';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getFactureDetailsByClient, getFactureDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
+import { getFactureDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
 import { Table, Tag } from 'antd';
 
 const FactureDetail = () => {
-    const printRef = useRef();
-    const dispatch = useDispatch();
-    const facture = useSelector((state) => state.facture.detailFacture);
-    const user =useSelector((state)=>state.auth.user);
-    const { code_facture } = useParams();
+  const printRef = useRef();
+  const dispatch = useDispatch();
+  const facture = useSelector((state) => state.facture.detailFacture);
+  const { code_facture } = useParams();
 
-    useEffect(() => {
-        dispatch(getFactureDetailsByCode(code_facture));
-        window.scrollTo(0, 0);
-        console.log(facture);
-    }, [dispatch]);
+  useEffect(() => {
+    dispatch(getFactureDetailsByCode(code_facture));
+    window.scrollTo(0, 0);
+  }, [dispatch, code_facture]);
 
-    // Function to generate PDF and download
-    const handleDownloadPdf = async () => {
-        const element = printRef.current;
-    
-        // Optional: Temporarily remove padding or margins for accurate PDF generation
-        element.style.padding = '0';
-        element.style.margin = '0';
-    
-        const canvas = await html2canvas(element, { backgroundColor: '#fff' }); // Ensure white background is captured
-        const data = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'pt',
-            format: [595.28, 841.89], // A4 dimensions in points
-        });
-    
-        const width = pdf.internal.pageSize.getWidth();
-        const height = canvas.height * width / canvas.width;
-    
-        pdf.addImage(data, 'PNG', 0, 0, width, height);
-        pdf.save(`${facture?.code_facture}.pdf`);
-    
-        // Restore padding or margins after PDF generation
-        element.style.padding = '20px';
-        element.style.margin = 'auto';
+  // Function to generate PDF and download
+  const handleDownloadPdf = () => {
+    const element = printRef.current;
+
+    const opt = {
+      margin: [10, 10, 10, 10], // top, left, bottom, right
+      filename: `${facture?.code_facture}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
     };
-    
 
-    // Function to print the PDF
-    const handlePrintPdf = async () => {
-        const element = printRef.current;
-        const canvas = await html2canvas(element, { backgroundColor: '#fff' });
-        const data = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'pt',
-            format: [595.28, 841.89], // A4 dimensions in points
-        });
+    // Add page numbers
+    const worker = html2pdf()
+      .set(opt)
+      .from(element)
+      .toContainer()
+      .toCanvas()
+      .toImg()
+      .toPdf()
+      .get('pdf')
+      .then(function (pdf) {
+        const totalPages = pdf.internal.getNumberOfPages();
 
-        const width = pdf.internal.pageSize.getWidth();
-        const height = canvas.height * width / canvas.width;
+        for (let i = 1; i <= totalPages; i++) {
+          pdf.setPage(i);
+          pdf.setFontSize(10);
+          pdf.text(
+            `Page ${i} of ${totalPages}`,
+            pdf.internal.pageSize.getWidth() / 2,
+            pdf.internal.pageSize.getHeight() - 10,
+            { align: 'center' }
+          );
+        }
+      })
+      .save();
+  };
 
-        pdf.addImage(data, 'PNG', 0, 0, width, height);
-        const pdfBlob = pdf.output('blob');
-        const url = URL.createObjectURL(pdfBlob);
+  // Function to print the PDF
+  const handlePrintPdf = () => {
+    const element = printRef.current;
 
-        // Open the PDF in a new window and automatically trigger print
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: `${facture?.code_facture}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .outputPdf('bloburl')
+      .then(function (pdfUrl) {
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
-        iframe.src = url;
+        iframe.src = pdfUrl;
         document.body.appendChild(iframe);
         iframe.onload = function () {
+          setTimeout(() => {
             iframe.contentWindow.print();
+          }, 1);
         };
-    };
+      });
+  };
 
-    // Calculate the sums for prix and tarif
-    const totalPrix = facture?.colis?.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
-    const totalTarif = facture?.colis?.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
-    const difference = totalPrix - totalTarif;
+  // Calculate the sums for prix and tarif
+  const totalPrix = facture?.colis?.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
+  const totalTarif = facture?.colis?.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
+  const difference = totalPrix - totalTarif;
 
-    // Define columns for TableDashboard
-    const columns = [
-        {
-            title: 'Code Suivi',
-            dataIndex: 'code_suivi',
-            key: 'code_suivi',
-        },
-        {
-            title: 'Nom Store',
-            dataIndex: 'store',
-            key: 'store',
-            render: (text, record) => facture?.store || 'N/A', // Check if store exists, otherwise return 'N/A'
-        },
-        {
-            title: 'Destinataire',
-            dataIndex: 'destinataire',
-            key: 'destinataire',
-            render:(text , record) =>(
-                <>
-                    <p>{record.destinataire}</p>
-                    <p>{record.telephone}</p>
-                    <p>{record.ville}</p>
-                </>
-            ),
-        },
-        {
-            title: 'Statut',
-            key: 'statut',
-            dataIndex: 'statut',
-            render: (text, record) => (
-                <>
-                {
-                    record?.statut ==="Livrée" 
-                    ?
-                    <Tag color='green'>
-                        {record?.statut}
-                    </Tag>
-                    : 
-                    <Tag color='red'>
-                        {record?.statut}
-                    </Tag>
-                }
-                    
-                </>
-            ),
-        },
-        {
-            title: 'Tarif Livraison',
-            dataIndex: 'tarif_livraison',
-            key: 'tarif_livraison', // Check if tarif exists, otherwise return 'N/A'
-        },
-        {
-            title: 'Tarif Fragille',
-            dataIndex: 'tarif_fragile',
-            key: 'tarif_fragile', // Check if tarif exists, otherwise return 'N/A'
-        },
-        {
-            title: 'TTL',
-            dataIndex: 'tarif_total',
-            key: 'tarif_total', // Check if tarif exists, otherwise return 'N/A'
-        },
-        {
-            title: 'Prix',
-            dataIndex: 'prix',
-            key: 'prix',
-            render: (text) => text ? text.toFixed(2) : 'N/A', // Check if prix exists, otherwise return 'N/A'
-        },
-            {
-                title: 'Montant à Payer',
-                dataIndex: 'montant_a_payer',
-                key: 'montant_a_payer',
-            }
-    ];
+  // Define columns for TableDashboard
+  const columns = [
+    {
+      title: 'Code Suivi',
+      dataIndex: 'code_suivi',
+      key: 'code_suivi',
+    },
+    {
+      title: 'Nom Store',
+      dataIndex: 'store',
+      key: 'store',
+      render: (text, record) => facture?.store || 'N/A',
+    },
+    {
+      title: 'Destinataire',
+      dataIndex: 'destinataire',
+      key: 'destinataire',
+      render: (text, record) => (
+        <>
+          <p>{record.destinataire}</p>
+          <p>{record.telephone}</p>
+          <p>{record.ville}</p>
+        </>
+      ),
+    },
+    {
+      title: 'Statut',
+      key: 'statut',
+      dataIndex: 'statut',
+      render: (text, record) => (
+        <>
+          {record?.statut === 'Livrée' ? (
+            <Tag color='green'>{record?.statut}</Tag>
+          ) : (
+            <Tag color='red'>{record?.statut}</Tag>
+          )}
+        </>
+      ),
+    },
+    {
+      title: 'Tarif Livraison',
+      dataIndex: 'tarif_livraison',
+      key: 'tarif_livraison',
+    },
+    {
+      title: 'Tarif Fragile',
+      dataIndex: 'tarif_fragile',
+      key: 'tarif_fragile',
+    },
+    {
+      title: 'TTL',
+      dataIndex: 'tarif_total',
+      key: 'tarif_total',
+    },
+    {
+      title: 'Prix',
+      dataIndex: 'prix',
+      key: 'prix',
+      render: (text) => (text ? text.toFixed(2) : 'N/A'),
+    },
+    {
+      title: 'Montant à Payer',
+      dataIndex: 'montant_a_payer',
+      key: 'montant_a_payer',
+    },
+  ];
 
-    // Define columns for the calculation table
-    const calcColumns = [
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-        },
-        {
-            title: 'Total',
-            dataIndex: 'total',
-            key: 'total',
-            render: (text) => text ? text.toFixed(2) : '0.00',
-        }
-    ];
+  // Define columns for the calculation table
+  const calcColumns = [
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: 'Total',
+      dataIndex: 'total',
+      key: 'total',
+      render: (text) => (text ? text.toFixed(2) : '0.00'),
+    },
+  ];
 
-    // Data for the calculation table
-    const calcData = [
-        {
-            key: '1',
-            description: 'Total Prix',
-            total: totalPrix
-        },
-        {
-            key: '2',
-            description: 'Total Tarif',
-            total: totalTarif
-        },
-        {
-            key: '3',
-            description: 'Montant à payer',
-            total: difference
-        }
-    ];
+  // Data for the calculation table
+  const calcData = [
+    {
+      key: '1',
+      description: 'Total Prix',
+      total: totalPrix,
+    },
+    {
+      key: '2',
+      description: 'Total Tarif',
+      total: totalTarif,
+    },
+    {
+      key: '3',
+      description: 'Montant à payer',
+      total: difference,
+    },
+  ];
 
-    return (
-        <div>
-            {/* Buttons to download and print the PDF */}
-            <div className="facture-buttons">
-                <button onClick={handleDownloadPdf}>Télécharger PDF</button>
-                <button onClick={handlePrintPdf}>Imprimer PDF</button>
+  return (
+    <div>
+      {/* Buttons to download and print the PDF */}
+      <div className="facture-buttons">
+        <button onClick={handleDownloadPdf}>Télécharger PDF</button>
+        <button onClick={handlePrintPdf}>Imprimer PDF</button>
+      </div>
 
+      {/* Facture detail to be converted into PDF */}
+      <div className="facture-detail" ref={printRef}>
+        <div className="facture-header">
+          <div className="facture-title">
+            <h2>{facture?.code_facture}</h2>
+          </div>
+          <div className="facture-info">
+            <div className="expediteur">
+              <p>
+                <strong>Expéditeur:</strong>
+              </p>
+              <p>{facture?.store || 'N/A'}</p>
+              <p>{facture?.client_tele}</p>
             </div>
-
-            {/* Facture detail to be converted into PDF */}
-            <div className="facture-detail" ref={printRef}>
-                <div className="facture-header">
-                    <div className="facture-title">
-                        <h2>{facture?.code_facture}</h2>
-                    </div>
-                    <div className="facture-info">
-                        <div className="expediteur">
-                            <p><strong>Expéditeur:</strong></p>
-                            <p>{facture?.store || 'N/A'}</p>
-                            <p>{facture?.client_tele}</p> {/* Example phone number; adjust as needed */}
-                        </div>
-                        <div className="bon-livraison">
-                            <p><strong>Bon Livraison:</strong></p>
-                            <p>#{facture?.code_facture}</p>
-                            <p>{new Date(facture?.date).toLocaleString()}</p>
-                            <p>{facture?.colis?.length} Colis</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Table to display the colis details */}
-                <div className="table-facture">
-                    <Table className='table-data' columns={columns} dataSource={facture?.colis} pagination={false}/>
-                </div>
-
-                {/* Table to display the calculation of totals */}
-                <div className="table-calcul">
-                    <Table className='table-calc-data' columns={calcColumns} dataSource={calcData} pagination={false} />
-                </div>
-
-                <div className="facture-signatures">
-                    <div className="signature-client">
-                        <p><strong>Signature Client:</strong></p>
-                    </div>
-                    <div className="signature-livreur">
-                        <p><strong>Signature du livreur:</strong></p>
-                    </div>
-                </div>
+            <div className="bon-livraison">
+              <p>
+                <strong>Bon Livraison:</strong>
+              </p>
+              <p>#{facture?.code_facture}</p>
+              <p>{new Date(facture?.date).toLocaleString()}</p>
+              <p>{facture?.colis?.length} Colis</p>
             </div>
+          </div>
         </div>
-    );
+
+        {/* Table to display the colis details */}
+        <div className="table-facture">
+          <Table
+            className="table-data"
+            columns={columns}
+            dataSource={facture?.colis}
+            pagination={false}
+          />
+        </div>
+
+        {/* Table to display the calculation of totals */}
+        <div className="table-calcul">
+          <Table
+            className="table-calc-data"
+            columns={calcColumns}
+            dataSource={calcData}
+            pagination={false}
+          />
+        </div>
+
+        <div className="facture-signatures">
+          <div className="signature-client">
+            <p>
+              <strong>Signature Client:</strong>
+            </p>
+          </div>
+          <div className="signature-livreur">
+            <p>
+              <strong>Signature du livreur:</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default FactureDetail;

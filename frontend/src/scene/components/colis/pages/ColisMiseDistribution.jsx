@@ -4,7 +4,7 @@ import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled } from '@ant-design/icons';
-import { Button, Modal, Form, Input, Select, message, Card, Col, Row, Tag, Typography, Grid } from 'antd';
+import { Button, Modal, Form, Input, Select, message, Card, Col, Row, Tag, Typography, Grid, Space } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +20,7 @@ import { CgDanger } from "react-icons/cg";
 import { MdOutlineDangerous } from "react-icons/md";
 import { IoMdRefresh } from 'react-icons/io';
 import { IoQrCodeSharp } from 'react-icons/io5';
+import { FiRefreshCcw } from 'react-icons/fi';
 
 const { Option } = Select;
 const { Text, Title: TextTitle } = Typography;
@@ -177,7 +178,19 @@ function ColisMiseDistribution({ search }) {
                     bordered={false}
                     style={{ borderRadius: '10px', overflow: 'hidden' }}
                     loading={loading}
-                    title={<TextTitle level={4}> {item.code_suivi}</TextTitle>}
+                    title={
+                      <TextTitle level={4}> 
+                      {item.code_suivi}  
+                      <Space/>
+                      {
+                        item.replacedColis ? 
+                        <Tag icon={<FiRefreshCcw />}>
+                        </Tag>
+                        :
+                        ""
+                        }
+                      </TextTitle>
+                    }
                     actions={[
                       <Button
                         type="primary"

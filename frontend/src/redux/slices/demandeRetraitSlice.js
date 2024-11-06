@@ -13,7 +13,6 @@ const demandeRetraitSlice = createSlice({
             state.demandesRetraits.push(action.payload);
         },
         deletedemandeRetrait(state, action) {
-          
             state.demandesRetraits = state.demandesRetraits.filter(demandeRetrait => demandeRetrait._id !== action.payload);
         },
         updateDemandeRetrait(state, action) {
@@ -21,7 +20,7 @@ const demandeRetraitSlice = createSlice({
             state.demandesRetraits = state.demandesRetraits.map((demande) =>
               demande._id === updatedDemande._id ? updatedDemande : demande
             );
-          },
+        },
     },
 });
 

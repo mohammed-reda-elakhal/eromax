@@ -1,17 +1,17 @@
 // ColisTable.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, Button, Input, Drawer, Typography, Tag, Descriptions } from 'antd';
+import { Modal, Button, Input, Drawer, Typography, Tag, Descriptions, Divider } from 'antd';
 import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt } from 'react-icons/fa';
 import { Si1001Tracklists } from 'react-icons/si';
 import { TbPhoneCall } from 'react-icons/tb';
 import { IoSearch } from "react-icons/io5";
 import { IoMdRefresh } from 'react-icons/io';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-
+import { FiRefreshCcw } from "react-icons/fi";
 import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
 import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
@@ -146,12 +146,20 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       width: 200,
       render: (text , record) => (
         <>
+           {
+            record.replacedColis ? 
+            <Tag icon={<FiRefreshCcw />}>
+            </Tag>
+            :
+            ""
+            }
           <Typography.Text
             copyable
             style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
           >
             {text}
           </Typography.Text>
+         
           {
               record.expedation_type ==="ameex" ? 
               <p style={{color:"gray" , size:"10px"}}>{record.code_suivi_ameex}</p> : ""
@@ -198,6 +206,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             return <Tag icon={<CloseCircleOutlined />} color="error">{status}</Tag>;
           case 'Programme':
             return <Tag icon={<ClockCircleOutlined />} color="default">Programme</Tag>;
+          case 'Remplacée':
+            return <Tag icon={<ExclamationCircleOutlined  />} color="warning">{status}</Tag>;
           default:
             return <Tag icon={<SyncOutlined spin />} color="processing">{status}</Tag>;
         }
@@ -222,6 +232,19 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       <Descriptions.Item label="Is Fragile">{record.is_fragile ? 'Oui' : 'Non'}</Descriptions.Item>
       <Descriptions.Item label="Date de Création">{formatDate(record.createdAt)}</Descriptions.Item>
     </Descriptions>
+
+    {
+      record.replacedColis 
+      ?
+      <Descriptions title="Colis Remplacée" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
+        <Descriptions.Item label="Code suivi">{record?.replacedColis?.code_suivi || 'N/A'}</Descriptions.Item>
+        <Descriptions.Item label="Ville">{record?.replacedColis?.ville?.nom || 'N/A'}</Descriptions.Item>
+        <Descriptions.Item label="Prix">{record?.replacedColis?.prix || 'N/A'}</Descriptions.Item>
+      </Descriptions>
+      :
+      ""
+
+    }
 
     {/* Store Data Segment */}
     <Descriptions title="Information de Bussness" bordered size="small" column={1} style={{ marginBottom: '20px' }}>

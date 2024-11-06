@@ -59,6 +59,9 @@ import Store from "./scene/components/profile/page/Store";
 import PayementProfile from "./scene/components/profile/components/PayementProfile";
 import Pyements from "./scene/components/profile/page/Pyements";
 import FactureGlobale from "./scene/components/facture/page/FactureGlobale";
+import FactureGlobaleDetail from "./scene/components/facture/page/FactureGlobaleDetail";
+import FactureRetour from "./scene/components/facture/page/FactureRetour";
+import FactureRetourDetail from "./scene/components/facture/page/FactureRetourDetail";
 
 function App() {
 
@@ -222,6 +225,9 @@ function App() {
               <Route path="detail/client/:code_facture" element={<FactureDetail />}  />
               <Route path="detail/livreur/:code_facture" element={<FactureDetailLivreur />}  />
               <Route path="globale" element={<FactureGlobale />}  />
+              <Route path="globale/:code_facture" element={<FactureGlobaleDetail />}  />
+              <Route path="retour" element={<FactureRetour />}  />
+              <Route path="retour/:code_facture" element={<FactureRetourDetail />}  />
             </Route>
 
             <Route path='payement'>

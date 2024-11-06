@@ -78,7 +78,7 @@ export function updateStore(storeId, storeData, imageFile) {
         const imageFormData = new FormData();
         imageFormData.append('image', imageFile);
 
-        const uploadResult = await request.put(`/api/store/upload/${storeId}`, imageFormData, {
+        const uploadResult = await request.put(`/api/store/${storeId}/photo`, imageFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

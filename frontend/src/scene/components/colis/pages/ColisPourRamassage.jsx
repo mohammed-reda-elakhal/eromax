@@ -335,7 +335,7 @@ function ColisPourRamassage({ search }) {
               <div className="bar-action-data">
                 <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
                 <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleRamasse} loading={loading}>Rammaser</Button>
-                <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+                <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("/dashboard/scan/statu/Ramassée")} loading={loading}>Scan</Button>
               </div>
               :
               "" 

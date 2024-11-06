@@ -272,6 +272,10 @@ function Menubar() {
               </Menu.Item>
             )
           }
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/retour">Bon Retour</Link>
+              </Menu.Item>
+          
           {
             (userData.role === "livreur" || userData.role === "admin") && (
               <Menu.Item icon={<BiTagAlt />}>

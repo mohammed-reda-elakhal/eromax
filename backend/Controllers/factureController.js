@@ -6,14 +6,16 @@ const { Suivi_Colis } = require('../Models/Suivi_Colis');
 const { Store } = require('../Models/Store');  // Import the Store model
 const cron = require('node-cron');
 const Transaction = require('../Models/Transaction');
-const NotificationUser = require('../Models/Notification_User')
+const NotificationUser = require('../Models/Notification_User');
+const { generateFacturesRetour } = require('./factureRetourController');
 
 // Function to generate code_facture
 const generateCodeFacture = (date) => {
     const formattedDate = moment(date).format('YYYYMMDD');
     const randomNumber = shortid.generate().slice(0, 6).toUpperCase(); // Shorten and uppercase for readability
-    return `FCT${formattedDate}-${randomNumber}`;
+    return `FCTL${formattedDate}-${randomNumber}`;
 };
+
 
 // Helper function to get `date_livraison` from `Suivi_Colis`
 const getDeliveryDate = async (code_suivi) => {
@@ -24,6 +26,7 @@ const getDeliveryDate = async (code_suivi) => {
     }
     return null;
 };
+
 
 // Controller to create factures for clients and livreurs based on daily delivered packages
 const createFacturesForClientsAndLivreurs = async (req, res) => {
@@ -179,7 +182,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                 const transaction = new Transaction({
                     id_store: store._id,
                     montant: montant,
-                    type: 'credit', // Assuming 'credit' since we're adding to solde
+                    type: 'debit', // Assuming 'credit' since we're adding to solde
                 });
                 await transaction.save();
 
@@ -230,12 +233,11 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 };
 
 // Schedule a job to create factures every day at midnight (00:02)
-cron.schedule('2 0 * * *', async () => {
+cron.schedule('31 16 * * *', async () => {
     console.log('Running daily facture generation at 00:02');
     await createFacturesForClientsAndLivreurs();
+    await generateFacturesRetour()
 });
-
-
 
 
 const getAllFacture = async (req, res) => {

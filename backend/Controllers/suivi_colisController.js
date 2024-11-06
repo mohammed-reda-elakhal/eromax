@@ -4,7 +4,8 @@ const NotificationUser = require('../Models/Notification_User');  // Use Notific
 const { Colis } = require("../Models/Colis");
 const { Ville } = require("../Models/Ville"); // Import Ville model
 const { Store } = require("../Models/Store"); // Import Store model
-
+const axios = require('axios');
+const cron = require('node-cron');
 const { handleFactureRamasser } = require('./factureHelper');
 
 const updateSuiviColis = asyncHandler(async (req, res) => {
@@ -22,8 +23,8 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     "Programmée",
     "Refusée",
     "En retour",
-    "Remplacée"
-
+    "Remplacée",
+    "Fermée"
   ];
 
   // Validate inputs
@@ -51,6 +52,28 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   colis.statut = new_status;
   await colis.save();
 
+  // Handle special case when new_status is "Livrée" and colis has a replacedColis
+  if (new_status === "Livrée" && colis.replacedColis) {
+    const replacedColis = await Colis.findById(colis.replacedColis);
+    if (replacedColis) {
+      replacedColis.statut = "Remplacée";
+      await replacedColis.save();
+
+      // Update or create the Suivi_Colis entry for the replaced colis
+      let suiviReplacedColis = await Suivi_Colis.findOne({ id_colis: replacedColis._id });
+      if (!suiviReplacedColis) {
+        suiviReplacedColis = new Suivi_Colis({
+          id_colis: replacedColis._id,
+          code_suivi: replacedColis.code_suivi,
+          status_updates: [{ status: "Remplacée", date: new Date() }]
+        });
+      } else {
+        suiviReplacedColis.status_updates.push({ status: "Remplacée", date: new Date() });
+      }
+      await suiviReplacedColis.save();
+    }
+  }
+
   // Handle FactureRamasser if status is "Ramassée"
   if (new_status === "Ramassée") {
     await handleFactureRamasser(colis.store, colis._id);
@@ -69,7 +92,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     await notification.save();
   }
 
-  // Update or create the Suivi_Colis entry (tracking record)
+  // Update or create the Suivi_Colis entry (tracking record) for the main colis
   let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
   if (!suivi_colis) {
     suivi_colis = new Suivi_Colis({
@@ -92,6 +115,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
 
 
 
+
 const updateMultipleColisStatus = asyncHandler(async (req, res) => {
   const { colisCodes, new_status, comment } = req.body;
   const validStatuses = [
@@ -106,7 +130,8 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
     "Programmée",
     "Refusée",
     "En retour",
-    "Remplacée"
+    "Remplacée",
+    "Fermée"
   ];
 
   // Validate inputs
@@ -140,6 +165,28 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
     await colis.save();
     updatedColisList.push(colis);
 
+    // Handle special case when new_status is "Livrée" and colis has a replacedColis
+    if (new_status === "Livrée" && colis.replacedColis) {
+      const replacedColis = await Colis.findById(colis.replacedColis);
+      if (replacedColis) {
+        replacedColis.statut = "Remplacée";
+        await replacedColis.save();
+
+        // Update or create the Suivi_Colis entry for the replaced colis
+        let suiviReplacedColis = await Suivi_Colis.findOne({ id_colis: replacedColis._id });
+        if (!suiviReplacedColis) {
+          suiviReplacedColis = new Suivi_Colis({
+            id_colis: replacedColis._id,
+            code_suivi: replacedColis.code_suivi,
+            status_updates: [{ status: "Remplacée", date: new Date() }]
+          });
+        } else {
+          suiviReplacedColis.status_updates.push({ status: "Remplacée", date: new Date() });
+        }
+        await suiviReplacedColis.save();
+      }
+    }
+
     if (new_status === "Ramassée") {
       await handleFactureRamasser(colis.store, colis._id);
     }
@@ -149,8 +196,7 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
       const notificationDescription = `Votre colis avec le code de suivi ${colis.code_suivi} a été ${new_status.toLowerCase()} avec succès.`;
 
       const notification = new NotificationUser({
-        storeId: colis.store,
-        clientId: colis.clientId,
+        id_store: colis.store,
         title: notificationTitle,
         description: notificationDescription,
       });
@@ -253,9 +299,184 @@ const updateMultipleSuiviColis = asyncHandler(async (req, res) => {
   });
 });
 
+// controllers/ameexController.js
+// Function to map Ameex status to your own statuses
+function mapAmeexStatusToOurStatus(ameexStatus) {
+  const statusMapping = {
+    "DELIVERED": "Livrée",
+    "CANCEL": "Annulée",
+    "REFUSE": "Refusée",
+    "RETURNED": "En retour",
+    "SENT": "Expediée",
+    "RECEIVED": "Reçu",
+    "DISTRIBUTION": "Mise en Distribution",
+    "NEW_PARCEL": "Nouveau Colis",
+    "PICKED_UP": "Ramassée",
+    "WAITING_PICKUP": "attente de ramassage",
+  };
+
+  return statusMapping[ameexStatus] || "attente de ramassage"; // Default to 'attente de ramassage' if no mapping is found
+}
+
+// Function to handle special cases
+async function handleSpecialCases(colis, newStatus) {
+  // Handle FactureRamasser if status is "Ramassée"
+  if (newStatus === "Ramassée") {
+    await handleFactureRamasser(colis.store, colis._id);
+  }
+
+  // Create Notification for specific statuses
+  if (["Ramassée", "Livrée"].includes(newStatus)) {
+    const notificationTitle = newStatus === "Ramassée" ? 'Colis Ramassée' : 'Colis Livrée';
+    const notificationDescription = `Votre colis avec le code de suivi ${colis.code_suivi} a été ${newStatus.toLowerCase()} avec succès.`;
+
+    const notification = new NotificationUser({
+      id_store: colis.store,
+      title: notificationTitle,
+      description: notificationDescription,
+    });
+    await notification.save();
+  }
+}
+
+// Core Function to synchronize colis statuses with Ameex
+async function syncColisStatusWithAmeexCore() {
+  try {
+    // Step 1: Fetch all colis with expedation_type="ameex" created in the last two weeks
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+    const colisList = await Colis.find({
+      expedation_type: 'ameex',
+      createdAt: { $gte: twoWeeksAgo }
+    }).populate('store');
+
+    if (colisList.length === 0) {
+      console.log('No colis to update');
+      return { updatedColis: [], errors: [] };
+    }
+
+    // Prepare authentication headers for Ameex API
+    const authId = process.env.AMEEX_API_ID || 3452;
+    const authKey = process.env.AMEEX_API_KEY || "9435a2-921aa4-67fc55-ced90c-1bafbc";
+    const headers = {
+      'C-Api-Id': authId,
+      'C-Api-Key': authKey,
+      'Content-Type': 'application/json',
+    };
+
+    // Initialize arrays to keep track of updates and errors
+    const updatedColisList = [];
+    const errorList = [];
+
+    // Loop through each colis
+    for (const colis of colisList) {
+      try {
+        const code_suivi_ameex = colis.code_suivi_ameex;
+
+        // Make the API call to Ameex to get colis info
+        const response = await axios.get(
+          `https://api.ameex.app/customer/Delivery/Parcels/Info?ParcelCode=${code_suivi_ameex}`,
+          { headers }
+        );
+
+        if (response.status === 200) {
+          const responseData = response.data;
+          // Extract the 'statut' field
+          const ameexStatus = responseData.api.parcel.statut;
+
+          // Map Ameex status to your own statuses
+          const mappedStatus = mapAmeexStatusToOurStatus(ameexStatus);
+
+          // If the status has changed, update the colis and Suivi_Colis
+          if (colis.statut !== mappedStatus) {
+            const oldStatus = colis.statut; // Save the old status
+
+            // Update the colis status
+            colis.statut = mappedStatus;
+            await colis.save();
+
+            // Update or create the Suivi_Colis entry
+            let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+            if (!suivi_colis) {
+              suivi_colis = new Suivi_Colis({
+                id_colis: colis._id,
+                code_suivi: colis.code_suivi,
+                status_updates: [{ status: mappedStatus, date: new Date() }]
+              });
+            } else {
+              suivi_colis.status_updates.push({ status: mappedStatus, date: new Date() });
+            }
+            await suivi_colis.save();
+
+            // Handle special cases (e.g., create notifications)
+            await handleSpecialCases(colis, mappedStatus);
+
+            // Add to updated colis list
+            updatedColisList.push({
+              colis_id: colis._id,
+              code_suivi: colis.code_suivi,
+              old_status: oldStatus,
+              new_status: mappedStatus
+            });
+          }
+        } else {
+          // Handle unexpected response statuses
+          errorList.push({
+            colis_id: colis._id,
+            code_suivi: colis.code_suivi,
+            message: 'Failed to fetch colis info from Ameex',
+            status: response.status
+          });
+        }
+      } catch (error) {
+        console.error(`Error syncing colis ${colis.code_suivi}:`, error.message);
+        errorList.push({
+          colis_id: colis._id,
+          code_suivi: colis.code_suivi,
+          message: error.message
+        });
+      }
+    }
+
+    console.log('Colis status sync completed');
+    return { updatedColis: updatedColisList, errors: errorList };
+  } catch (error) {
+    console.error('Error syncing colis statuses:', error);
+    throw error;
+  }
+}
+
+// Controller function to be used as an Express route handler
+const syncColisStatusWithAmeex = asyncHandler(async (req, res) => {
+  try {
+    const { updatedColis, errors } = await syncColisStatusWithAmeexCore();
+    res.status(200).json({
+      message: 'Colis status sync completed',
+      updatedColis,
+      errors
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+cron.schedule('23 16,14,20 * * *', async () => {
+  console.log('Starting scheduled colis status synchronization with Ameex');
+  try {
+    await syncColisStatusWithAmeexCore();
+    console.log('Scheduled colis status synchronization completed successfully');
+  } catch (error) {
+    console.error('Scheduled colis status synchronization failed:', error.message);
+  }
+}, {
+  timezone: 'Africa/Casablanca' // Set your timezone accordingly
+});
 
 module.exports = {
   updateMultipleSuiviColis,
   updateSuiviColis , 
-  updateMultipleColisStatus
+  updateMultipleColisStatus,
+  syncColisStatusWithAmeex,
+  syncColisStatusWithAmeexCore,
 };

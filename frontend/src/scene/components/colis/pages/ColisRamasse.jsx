@@ -24,13 +24,11 @@ function ColisRamasse({ search }) {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [livreurId, setLivreurId] = useState(null);
   const [form] = Form.useForm();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [selectedLivreur, setSelectedLivreur] = useState(null);
-
 
   const { livreurList, colisData, user, store } = useSelector(state => ({
     livreurList: state.livreur.livreurList,
@@ -49,10 +47,10 @@ function ColisRamasse({ search }) {
         dispatch(getColisForClient(user._id, 'Ramassée'));
       }
     }
-  }
+  };
 
   useEffect(() => {
-    getDataColis()
+    getDataColis();
     dispatch(getLivreurList());
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id]);
@@ -67,8 +65,7 @@ function ColisRamasse({ search }) {
 
   const showModal = () => {
     if (selectedRowKeys.length > 0) {
-      setLivreurId(null);
-      setSelectedLivreur(null)
+      setSelectedLivreur(null);
       form.resetFields();
       setIsModalVisible(true);
     } else {
@@ -80,7 +77,7 @@ function ColisRamasse({ search }) {
     if (selectedRowKeys.length > 0 && selectedLivreur) {
       // Get the selected colis data
       const selectedColisData = data.filter(item => selectedRowKeys.includes(item.code_suivi));
-  
+
       if (selectedLivreur.nom === 'ameex') {
         // Dispatch the custom function for "ameex"
         dispatch(affectationColisAmeex(selectedColisData));
@@ -114,14 +111,11 @@ function ColisRamasse({ search }) {
       warning('Veuillez sélectionner un livreur');
     }
   };
-  
-
 
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setSelectedLivreur(null)
-    setLivreurId(null);
+    setSelectedLivreur(null);
   };
 
   const formatDate = (dateString) => {
@@ -130,7 +124,7 @@ function ColisRamasse({ search }) {
   };
 
   const selectLivreur = (livreur) => {
-    setSelectedLivreur(livreur)
+    setSelectedLivreur(livreur);
   };
 
   const columns = [
@@ -208,35 +202,35 @@ function ColisRamasse({ search }) {
           <div className="livreur_list_modal_card">
             {filteredLivreurs.preferred.length ? filteredLivreurs.preferred.map(person => (
               <Card
-              key={person._id}
-              hoverable
-              style={{
+                key={person._id}
+                hoverable
+                style={{
                   width: 240,
                   margin: '10px',
-                  border: selectedLivreur && selectedLivreur._id === person._id ? '2px solid #1890ff' : '1px solid #f0f0f0'
-              }}
-              onClick={() => selectLivreur(person)}
-          >
-              <Card.Meta
-                  title={
-                      <div>
-                          {person.username}
-                      </div>
-                  }
+                  border:
+                    selectedLivreur && selectedLivreur._id === person._id
+                      ? '2px solid #1890ff'
+                      : '1px solid #f0f0f0',
+                }}
+                onClick={() => selectLivreur(person)}
+              >
+                <Card.Meta
+                  title={<div>{person.username}</div>}
                   description={
-                      <>
-                          {person.tele}
-                          <Button
-                              icon={<BsFillInfoCircleFill />}
-                              onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)}
-                              type='primary'
-                              style={{ float: 'right' }}
-                          />
-                      </>
+                    <>
+                      {person.tele}
+                      <Button
+                        icon={<BsFillInfoCircleFill />}
+                        onClick={() =>
+                          toast.info(`Villes: ${person.villes.join(', ')}`)
+                        }
+                        type='primary'
+                        style={{ float: 'right' }}
+                      />
+                    </>
                   }
-              />
-          </Card>
-          
+                />
+              </Card>
             )) : <p>Aucun livreur préféré disponible</p>}
           </div>
         </div>
@@ -248,21 +242,26 @@ function ColisRamasse({ search }) {
               <Card
                 key={person._id}
                 hoverable
-                style={{ width: 240, margin: '10px', border: livreurId === person._id ? '2px solid #1890ff' : '1px solid #f0f0f0' }}
-                onClick={() => selectLivreur(person._id)}
+                style={{
+                  width: 240,
+                  margin: '10px',
+                  border:
+                    selectedLivreur && selectedLivreur._id === person._id
+                      ? '2px solid #1890ff'
+                      : '1px solid #f0f0f0',
+                }}
+                onClick={() => selectLivreur(person)}
               >
                 <Card.Meta
-                  title={
-                    <div>
-                      {person.username}
-                    </div>
-                  }
+                  title={<div>{person.username}</div>}
                   description={
                     <>
                       {person.tele}
                       <Button
                         icon={<BsFillInfoCircleFill />}
-                        onClick={() => toast.info(`Villes: ${person.villes.join(', ')}`)}
+                        onClick={() =>
+                          toast.info(`Villes: ${person.villes.join(', ')}`)
+                        }
                         type='primary'
                         style={{ float: 'right' }}
                       />
@@ -274,7 +273,6 @@ function ColisRamasse({ search }) {
           </div>
         </div>
       </Modal>
-
     </div>
   );
 }

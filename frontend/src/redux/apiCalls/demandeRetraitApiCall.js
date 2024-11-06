@@ -8,7 +8,7 @@ export function getAlldemandeRetrait() {
             const { data } = await request.get(`/api/demande-retrait/`);
             dispatch(demandeRetraitActions.setdemandeRetrait(data));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch demandeRetrait List");
+            toast.error(error.response?.data?.message || "Failed to fetch demandeRetrait List");
         }
     };
 }
@@ -19,7 +19,7 @@ export function getdemandeRetraitByClient(id) {
             const { data } = await request.get(`/api/demande-retrait/client/${id}`);
             dispatch(demandeRetraitActions.setdemandeRetrait(data));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch demandeRetrait List");
+            toast.error(error.response?.data?.message || "Failed to fetch demandeRetrait List");
         }
     };
 }
@@ -46,17 +46,17 @@ export function createDemandeRetrait(demandeRetraitData) {
         }
       }
     };
-  }
+}
+
 export function validerDemandeRetrait(id_demande) {
     return async (dispatch) => {
       try {
         const { data } = await request.post(`/api/demande-retrait/valide/${id_demande}`);
         
-        
         toast.success(data.message);
-        dispatch(demandeRetraitActions.updateDemandeRetrait(data)); 
+        dispatch(demandeRetraitActions.updateDemandeRetrait(data.demandeRetrait)); // Dispatch the updated demandeRetrait
       } catch (error) {
-        toast.error(error.message || "Échec de la validation de la demande de retrait");
+        toast.error(error.response?.data?.message || "Échec de la validation de la demande de retrait");
       }
     };
-  }
+}

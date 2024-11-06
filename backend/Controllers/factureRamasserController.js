@@ -147,81 +147,59 @@ const getRamasserFacturesByStore = async (req, res) => {
     }
 };
 
-
-const getRamasserFactureByCode = async (req, res) => {
+const getRamasserFactureByCode = asyncHandler(async (req, res) => {
     try {
-        const { code_facture } = req.params;
-
-        // Build the query object
-        const query = { code_facture };
-
-        // Find the facture by its code and type
-        const facture = await FactureRamasser.findOne(query)
-            .populate({
-                path: 'id_store',
-                select: 'storeName id_client',
-                populate: {
-                    path: 'id_client',  // Populate the client details from store
-                    select: 'tele',  // Assuming 'tele' is the client's telephone field
-                },
-            })
-            .populate({
-                path: 'id_colis',
-                populate: [
-                    { path: 'ville', select: 'nom key ref tarif' },  // Populate 'ville' details
-                    { path: 'store', select: 'storeName' },  // Populate 'store' details within 'colis'
-                ],
-            })
-            .lean();
-
-        // If the facture does not exist, return a 404 error
-        if (!facture) {
-            return res.status(404).json({ message: 'Facture not found' });
+      const { code_facture } = req.params;
+  
+      // Find the facture by its code and populate all data
+      const facture = await FactureRamasser.findOne({ code_facture })
+        .populate({
+          path: 'id_store',
+        })
+        .populate({
+          path: 'id_colis',
+          populate: [
+            { path: 'ville' }, // Populate all 'ville' details
+            { path: 'store' }, // Populate all 'store' details within 'colis'
+          ],
+        })
+        .lean(); // Convert to plain JavaScript object
+  
+      // If the facture does not exist, return a 404 error
+      if (!facture) {
+        return res.status(404).json({ message: 'Facture not found' });
+      }
+  
+      // Function to fetch the ramassage date for a given code_suivi
+      const getRamassageDate = async (code_suivi) => {
+        const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
+        if (suiviColis) {
+          const ramassage = suiviColis.status_updates.find(
+            (status) => status.status === 'Ramassée'
+          );
+          return ramassage ? ramassage.date : null; // Return the ramassage date if found
         }
-
-        // Function to fetch the delivery date for a given code_suivi
-        const getRamassageDate = async (code_suivi) => {
-            const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
-            if (suiviColis) {
-                const ramassage = suiviColis.status_updates.find(status => status.status === 'Ramassée');
-                return ramassage ? ramassage.date : null; // Return the delivery date if found
-            }
-            return null;
-        };
-
-        // Prepare the response data
-        const response = {
-            code_facture: facture.code_facture,
-            date: facture.createdAt,
-            type: facture.type,
-            store: facture.store ? facture.store.storeName : null,
-            client_tele: facture.store && facture.store.id_client ? facture.store.id_client.tele : null, // Get client telephone
-            totalPrix: facture.totalPrix,
-            date: facture.date,
-            colis: await Promise.all(facture.id_colis.map(async col => {
-                const ramassageDate = await getRamassageDate(col.code_suivi); // Get delivery date from Suivi_Colis
-                return {
-                    code_suivi: col.code_suivi,
-                    destinataire: col.nom,
-                    telephone: col.tele,
-                    ville: col.ville ? col.ville.nom : null,
-                    adresse: col.adresse,
-                    statu: col.statut,
-                    prix: col.prix,
-                    tarif: col.ville ? col.ville.tarif : null,
-                    ram_date: ramassageDate // Add the delivery date
-                };
-            }))
-        };
-
-        // Send the formatted response
-        res.status(200).json({ message: 'Facture details retrieved successfully', list: response });
+        return null;
+      };
+  
+      // For each colis, get the ramassage date and add it to the colis object
+      await Promise.all(
+        facture.id_colis.map(async (col) => {
+          const ramassageDate = await getRamassageDate(col.code_suivi); // Get ramassage date from Suivi_Colis
+          col.ram_date = ramassageDate; // Add the ramassage date
+        })
+      );
+  
+      // Send the formatted response
+      res.status(200).json({
+        message: 'Facture details retrieved successfully',
+        facture,
+      });
     } catch (error) {
-        console.error('Error fetching facture by code:', error);
-        res.status(500).json({ message: 'Internal server error' });
+      console.error('Error fetching facture by code:', error);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-};
-
+  });
 const createRamasserFacturesForClient = async (req, res) => {
     try {
         const todayStart = moment().startOf('day').toDate();

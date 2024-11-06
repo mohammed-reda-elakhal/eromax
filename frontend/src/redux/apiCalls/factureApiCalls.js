@@ -4,8 +4,6 @@ import { factureActions } from "../slices/factureSlice";
 import Cookies from "js-cookie";
 
 
-
-
 // get data user
 export function getFacture(type) {
     return async (dispatch) => {
@@ -57,6 +55,19 @@ export function getFactureDetailsByCode(codeFacture ) {
         }
     };
 }
+
+export function getFactureRamasserDetailsByCode(codeFacture ) {
+    return async (dispatch) => {
+        try {
+            // Send the type as a query parameter using 'params'
+            const { data } = await request.get(`/api/facture/ramasser/${codeFacture}`);
+            dispatch(factureActions.setFactureDetailRamasser(data.facture));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch facture details");
+        }
+    };
+}
+
 export function getFactureDetailsByClient(id_client){
     return async (dispatch)=>{
         try{const {data}=await request.get(`/api/facture/detail/client/${id_client}`);
@@ -95,3 +106,43 @@ export function getFactureDetailsByLivreur(id){
     }
 }
 
+
+// Fetch all FactureRetour with optional type filter
+export function getFactureRetour(type) {
+    return async (dispatch) => {
+        try {
+            const token = Cookies.get('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+            
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                params: { type } // Use 'params' for query parameters
+            };
+            
+            const { data } = await request.get(`/api/facture/retour`, config);
+            
+            // Process data to match specified structure
+            dispatch(factureActions.setFactureRetour(data.data));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch facture data");
+        }
+    };
+}
+
+export function getFactureRetourDetailsByCode(codeFacture ) {
+    return async (dispatch) => {
+        try {
+            // Send the type as a query parameter using 'params'
+            const { data } = await request.get(`/api/facture/retour/${codeFacture}`);
+            dispatch(factureActions.setFactureDetailRetour(data.facture));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch facture details");
+        }
+    };
+}

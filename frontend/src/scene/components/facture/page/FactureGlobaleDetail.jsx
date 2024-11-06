@@ -3,28 +3,26 @@ import html2pdf from 'html2pdf.js';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getFactureDetailsByCode, getFactureDetailsByLivreur } from '../../../../redux/apiCalls/factureApiCalls';
-import { Table, Tag } from 'antd';
+import { getFactureRamasserDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
+import { Table } from 'antd';
 
-const FactureDetailLivreur = () => {
+const FactureGlobaleDetail = () => {
   const printRef = useRef();
   const dispatch = useDispatch();
-  const facture = useSelector((state) => state.facture.detailFacture);
-  const livreur = useSelector((state) => state.auth.user._id);
+  const facture = useSelector((state) => state.facture.detailFactureRamasser);
   const { code_facture } = useParams();
 
   useEffect(() => {
-    dispatch(getFactureDetailsByCode(code_facture));
-    dispatch(getFactureDetailsByLivreur(livreur, 'Livreur'));
+    dispatch(getFactureRamasserDetailsByCode(code_facture));
     window.scrollTo(0, 0);
-  }, [dispatch, code_facture, livreur]);
+  }, [dispatch, code_facture]);
 
   // Function to generate PDF and download
   const handleDownloadPdf = () => {
     const element = printRef.current;
 
     const opt = {
-      margin: [10, 10, 10, 10], // top, left, bottom, right
+      margin: [10, 10, 10, 10], // Margins: [top, left, bottom, right]
       filename: `${facture?.code_facture}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
@@ -90,15 +88,23 @@ const FactureDetailLivreur = () => {
 
   // Calculate the sums for prix and tarif
   const totalPrix =
-    facture?.colis?.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
-
-  // Calculate totalTarif based on the count of 'Livrée' colis
-  const livreeColisCount = facture?.colis?.filter((col) => col.statut === 'Livrée').length || 0;
-  const totalTarif = (facture?.livreur_tarif || 0) * livreeColisCount;
-
+    facture?.id_colis?.reduce((acc, col) => acc + (col.prix || 0), 0) || 0;
+  const totalTarif =
+    facture?.id_colis?.reduce((acc, col) => acc + (col.ville?.tarif || 0), 0) || 0;
   const difference = totalPrix - totalTarif;
 
-  // Define columns for Table
+  // Prepare dataSource for the Table
+  const dataSource =
+    facture?.id_colis?.map((col, index) => ({
+      key: col._id || index,
+      code_suivi: col.code_suivi,
+      nom: col.nom,
+      tele: col.tele,
+      ville: col.ville?.nom || 'N/A',
+      prix: col.prix,
+    })) || [];
+
+  // Define columns for the colis table
   const columns = [
     {
       title: 'Code Suivi',
@@ -106,20 +112,14 @@ const FactureDetailLivreur = () => {
       key: 'code_suivi',
     },
     {
-      title: 'Nom Livreur',
-      dataIndex: 'livreur',
-      key: 'livreur',
-      render: () => facture?.livreur || 'N/A',
-    },
-    {
       title: 'Destinataire',
-      dataIndex: 'destinataire',
-      key: 'destinataire',
+      dataIndex: 'nom',
+      key: 'nom',
     },
     {
       title: 'Téléphone',
-      dataIndex: 'telephone',
-      key: 'telephone',
+      dataIndex: 'tele',
+      key: 'tele',
     },
     {
       title: 'Ville',
@@ -127,37 +127,10 @@ const FactureDetailLivreur = () => {
       key: 'ville',
     },
     {
-      title: 'Statut',
-      key: 'statut',
-      dataIndex: 'statut',
-      render: (text, record) => (
-        <>
-          {record?.statut === 'Livrée' ? (
-            <Tag color="green">{record?.statut}</Tag>
-          ) : (
-            <Tag color="red">{record?.statut}</Tag>
-          )}
-        </>
-      ),
-    },
-    {
-      title: 'Tarif',
-      dataIndex: 'livreur',
-      key: 'tarif',
-      render: (text, record) => (
-        <span>{record?.statut === 'Livrée' ? facture?.livreur_tarif : 0}</span>
-      ),
-    },
-    {
       title: 'Prix',
       dataIndex: 'prix',
       key: 'prix',
       render: (text) => (text ? text.toFixed(2) : 'N/A'),
-    },
-    {
-      title: 'Montant à Payer',
-      dataIndex: 'montant_a_payer',
-      key: 'montant_a_payer',
     },
   ];
 
@@ -183,16 +156,6 @@ const FactureDetailLivreur = () => {
       description: 'Total Prix',
       total: totalPrix,
     },
-    {
-      key: '2',
-      description: 'Total Tarif',
-      total: totalTarif,
-    },
-    {
-      key: '3',
-      description: 'Montant à payer',
-      total: difference,
-    },
   ];
 
   return (
@@ -214,16 +177,17 @@ const FactureDetailLivreur = () => {
               <p>
                 <strong>Expéditeur:</strong>
               </p>
-              <p>{facture?.livreur || 'N/A'}</p>
-              <p>{facture?.livreur_tele}</p>
+              <p>{facture?.id_store?.storeName || 'N/A'}</p>
+              <p>{facture?.id_store?.tele || 'N/A'}</p>
+              <p>{facture?.id_store?.adress || 'N/A'}</p>
             </div>
             <div className="bon-livraison">
               <p>
                 <strong>Bon Livraison:</strong>
               </p>
               <p>#{facture?.code_facture}</p>
-              <p>{new Date(facture?.date).toLocaleString()}</p>
-              <p>{facture?.colis?.length} Colis</p>
+              <p>{new Date(facture?.createdAt).toLocaleString()}</p>
+              <p>{facture?.id_colis?.length || 0} Colis</p>
             </div>
           </div>
         </div>
@@ -233,7 +197,7 @@ const FactureDetailLivreur = () => {
           <Table
             className="table-data"
             columns={columns}
-            dataSource={facture?.colis}
+            dataSource={dataSource}
             pagination={false}
           />
         </div>
@@ -265,4 +229,4 @@ const FactureDetailLivreur = () => {
   );
 };
 
-export default FactureDetailLivreur;
+export default FactureGlobaleDetail;

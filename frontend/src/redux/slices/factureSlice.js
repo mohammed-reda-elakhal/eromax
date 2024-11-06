@@ -5,8 +5,10 @@ const factureSlice = createSlice({
     initialState: {
         facture: [],
         factureRamasser: [],
+        factureRetour: [],
         detailFacture: [],
         detailFactureRamasser: [],
+        detailFactureRetour: [],
     },
     reducers: {
         setFacture(state, action) {
@@ -15,11 +17,17 @@ const factureSlice = createSlice({
         setFactureRamasser(state, action) {
             state.factureRamasser = action.payload;
         },
+        setFactureRetour(state, action) {
+            state.factureRetour = action.payload;
+        },
         setFactureDetail(state, action) {
             state.detailFacture = action.payload;
         },
         setFactureDetailRamasser(state, action) {
             state.detailFactureRamasser = action.payload;
+        },
+        setFactureDetailRetour(state, action) {
+            state.detailFactureRetour = action.payload;
         },
         addFacture(state, action) {
             state.facture.push(action.payload);
