@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import StatisBox from './StatisBox';
 import { MdDomainVerification } from "react-icons/md";
 import { SiStreamrunners } from "react-icons/si";
 import { TbPlayerEjectFilled } from "react-icons/tb";
 import { MdAttachMoney } from "react-icons/md";
 import { IoIosNotifications } from "react-icons/io";
+import { useDispatch, useSelector } from 'react-redux';
+import { countColisAnnuleByRole, countColisLivre } from '../../../../redux/apiCalls/staticsApiCalls';
+
 
 const data = [
     {
@@ -43,6 +46,28 @@ const argent = [
 ];
 
 function StatsColis({theme}) {
+    const dispatch = useDispatch();
+    const {setAllColis, setAllColisLivre, setColisLivreByRole,setColisCancealByRole} = useSelector((state) => state.statics);
+    useEffect(() => {
+        const fetchData = async () => {
+          try {    
+            // Fetch each statistic
+            const deliveredData = await countColisLivre();
+            dispatch(setAllColisLivre(deliveredData.count));
+    
+            const canceledData = await countColisAnnuleByRole("role", "id"); // Replace with the actual role and ID
+            dispatch(setColisCancealByRole(canceledData.count));
+    
+    
+    
+          } catch (err) {
+            //dispatch(setError(err.message || "Failed to load statistics"));
+            //dispatch(setLoading(false));
+          }
+        };
+    
+        fetchData();
+      }, [dispatch]);
   return (
     <div className="statistic-boxes">
         <div className="statistic-argent">

@@ -7,10 +7,13 @@ const router = express.Router();
 //router.get('/livres/client/:storeId',countColisLivreByClient);
 //router.get('/livres/team/:teamId',countColisLivreByTeam);
 
+// /api/count/
 router.get('/livres/:role/:id', countColisLivreByRole);
 router.get('/annules/:role/:id', countCanceledColisByRole);
 router.get('/livres',verifyTokenAdminTeam,countColisLivre);
-router.get('/colis',verifyTokenAdminTeam,countColis);
+//router.get('/colis',verifyTokenAdminTeam,countColis);
+router.get('/colis',countColis);
+
 router.get('/gains/total', countTotalGains);
 router.get('/colis/client/:storeId',countColisByClinet);
 router.get('/colis/livreur/:livreurId',countColisByLivreur);
