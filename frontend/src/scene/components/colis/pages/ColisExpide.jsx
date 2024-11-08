@@ -183,7 +183,7 @@ function ColisExpide({ search }) {
             <div className="bar-action-data">
               <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
               <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleReçu} loading={loading}>Reçu</Button>
-              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("/dashboard/scan/statu/Reçu")} loading={loading}>Scan</Button>
             </div>
             <TableDashboard
               column={columns}

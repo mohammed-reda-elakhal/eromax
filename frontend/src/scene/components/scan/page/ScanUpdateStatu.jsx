@@ -18,9 +18,7 @@ const { Meta } = Card;
 function ScanUpdateStatu() {
     const { theme } = useContext(ThemeContext);
     const { user } = useSelector(state => state.auth);
-    const {statu} = useParams()
-    
-
+    const {statu} = useParams();
     const navigate = useNavigate();
 
     return (
@@ -46,7 +44,7 @@ function ScanUpdateStatu() {
                         }} 
                     >
                         <h4>Scan Pour Modifier statu</h4>
-                        <ScanRamasser statu= {statu} />
+                        <ScanRamasser />
                     </div>
                 </div>
             </main>

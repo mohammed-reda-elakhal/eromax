@@ -23,8 +23,10 @@ router.route('/:id')
 router.route('/user/:id')
         .get(getStoreByUser)
 
-// api/store/update-photo/:id
-router.route("/:id/photo").post(photoUpload.single("image"),storePhotoController);
+// api/store/:id/photo
+router.route("/:id/photo")
+  .post(photoUpload.single("image"), storePhotoController)
+  .put(photoUpload.single("image"), storePhotoController); // Added PUT handler
 
 
 module.exports= router;

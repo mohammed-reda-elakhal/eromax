@@ -6,11 +6,12 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { Button, Row, Col, Card } from 'antd';
 import { CiBarcode } from "react-icons/ci";
-import { MdOutlineQrCodeScanner } from "react-icons/md";
+import { MdFeedback, MdOutlineQrCodeScanner } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { CarOutlined, CheckCircleOutlined, DeliveredProcedureOutlined, SearchOutlined, DeploymentUnitOutlined } from '@ant-design/icons';
 import { toast } from 'react-toastify';
+import { IoLockClosed } from 'react-icons/io5';
 
 const Scan = () => {
     const { theme } = useContext(ThemeContext);
@@ -22,6 +23,8 @@ const Scan = () => {
         { name: 'Reçu', icon: <CheckCircleOutlined /> },
         { name: 'Mise en Distribution', icon: <DeploymentUnitOutlined /> },
         { name: 'Livrée', icon: <DeliveredProcedureOutlined /> },
+        { name: 'En Retour', icon: <MdFeedback /> },
+        { name: 'Fermée', icon: <IoLockClosed  /> },
         { name: 'Recherche', icon: <SearchOutlined /> },
     ];
 

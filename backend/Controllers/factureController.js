@@ -471,7 +471,7 @@ const getFactureByCode = async (req, res) => {
             if (col.statut === 'Livrée') {
                 tarif_livraison = col.ville?.tarif || 0;
                 montant_a_payer = col.prix; // montant_a_payer is the same as prix for 'Livrée' colis
-            } else if (col.statut === 'Refusée') {
+            } else if (col.statut === 'Refusée' || 'En Retour' || 'Fermée') {
                 tarif_livraison = col.ville?.tarif_refus || 0;
                 montant_a_payer = 0; // montant_a_payer is 0 for 'Refusée' colis
             }
@@ -512,7 +512,7 @@ const getFactureByCode = async (req, res) => {
                 totalTarifLivraison += col.tarif_livraison;
                 totalTarifFragile += col.tarif_fragile;
                 totalTarif += col.tarif_total;
-            } else if (col.statut === 'Refusée') {
+            } else if (col.statut === 'Refusée' || 'En Retour' || 'Fermée') {
                 totalFraisRefus += col.tarif_livraison;
                 totalTarifLivraison += col.tarif_livraison;
                 totalTarifFragile += col.tarif_fragile;

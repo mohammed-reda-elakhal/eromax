@@ -111,46 +111,58 @@ const deleteStore = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc Update-photo-Controller
- * @router /api/store/:id/photo
- * @method POST
- * @access private client
+ * @desc Upload and update store image
+ * @route PUT /api/store/:id/photo
+ * @method PUT
+ * @access Private (client)
  */
- 
- const storePhotoController= asyncHandler(async(req,res)=>{
-
+const storePhotoController = asyncHandler(async (req, res) => {
   console.log('Inside storePhotoController controller');
-  //Validation 
-  if(!req.file){
-    return req.status(400).json({message:"no file provided"});
+
+  // Validation 
+  if (!req.file) {
+    return res.status(400).json({ message: "No file provided" });
   }
-  //2. get image path 
-  const imagePath = path.join(__dirname,`../images/${req.file.filename}`);
-  //3. Upload to cloudinary
-  const result= await cloudinaryUploadImage(imagePath)
-  console.log(result);
-  //4. Get the store from db
-  const store= await Store.findById(req.params.id);
-  //5. Delete the old profile photo if exists 
-  if(store.image.publicId !== null){
-    await cloudinaryRemoveImage(store.image.publicId);
 
+  try {
+    // 2. Get image path 
+    const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+
+    // 3. Upload to Cloudinary
+    const result = await cloudinaryUploadImage(imagePath);
+    console.log(result);
+
+    // 4. Get the store from DB
+    const store = await Store.findById(req.params.id);
+    if (!store) {
+      // Remove uploaded image from Cloudinary if store not found
+      await cloudinaryRemoveImage(result.public_id);
+      return res.status(404).json({ message: "Store not found" });
+    }
+
+    // 5. Delete the old profile photo if exists 
+    if (store.image && store.image.publicId) {
+      await cloudinaryRemoveImage(store.image.publicId);
+    }
+
+    // 6. Change image URL in DB
+    store.image = {
+      url: result.secure_url,
+      publicId: result.public_id
+    };
+    await store.save();
+
+    // 7. Send response to client 
+    res.status(200).json({ message: 'Photo successfully uploaded', store });
+
+    // 8. Remove Image from the server 
+    fs.unlinkSync(imagePath);
+
+  } catch (error) {
+    console.error('Error in storePhotoController:', error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-  //6. change image url in DB
-  store.image={
-    url:result.secure_url,
-    publicId : result.public_id
-  }
-  await store.save();
-  //7. send response to client 
-  res.status(200).json({ message: 'Photo successfully uploaded', image: store.image });
-
-
-  //8. Remove Image from the server 
-  fs.unlinkSync(imagePath);
-
-
- });
+});
 
 
 module.exports = {
