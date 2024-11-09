@@ -22,6 +22,8 @@ const staticsSlice = createSlice({
             state.setColisCancealByRole = action.payload;
         },setTotalGains(state, action) {
             state.setTotalGains = action.payload;
+        },setColisRetour(state,action){
+            state.setColisRetour = action.payload;
         }
     }
 

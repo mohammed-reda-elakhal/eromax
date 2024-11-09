@@ -3,17 +3,6 @@ import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { staticsActions } from "../slices/StaticsSlice";
 
-export function countColis() {
-    return async (dispatch) => {
-        try {
-            const { data } = await request.get(`/api/count/colis`, {
-            });
-            dispatch(staticsActions.setAllColis(data));
-        } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
-        }
-    };
-}
 
 export function countColisLivre() {
     return async (dispatch) => {
@@ -48,6 +37,20 @@ export function countColisLivreByRole(role,id) {
             console.log("Data from countColisLivreByRole:",data.totalColis); // Debug line
 
             dispatch(staticsActions.setColisLivreByRole(data.totalColis));
+
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch reclamations");
+        }
+    };
+}
+export function countColisRetourByRole(role,id) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/count/retour/${role}/${id}`, {
+            });
+            console.log("Data from countColisRetour ByRole:",data.totalColis); // Debug line
+
+            dispatch(staticsActions.setColisRetour(data.totalColis));
 
         } catch (error) {
             toast.error(error.message || "Failed to fetch reclamations");
