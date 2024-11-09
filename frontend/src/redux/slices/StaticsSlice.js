@@ -1,3 +1,4 @@
+// statics slice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState={
@@ -19,6 +20,8 @@ const staticsSlice = createSlice({
             state.setColisLivreByRole = action.payload;
         }, setColisCancealByRole(state, action) {
             state.setColisCancealByRole = action.payload;
+        },setTotalGains(state, action) {
+            state.setTotalGains = action.payload;
         }
     }
 

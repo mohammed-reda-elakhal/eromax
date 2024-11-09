@@ -1,3 +1,4 @@
+// statics Api call 
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { staticsActions } from "../slices/StaticsSlice";
@@ -13,6 +14,7 @@ export function countColis() {
         }
     };
 }
+
 export function countColisLivre() {
     return async (dispatch) => {
         try {
@@ -24,13 +26,29 @@ export function countColisLivre() {
         }
     };
 }
+export function countColisByRole(role,id) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/count/colis/${role}/${id}`, {
+            });
+            console.log("Data from countColisByRole:",data.totalColis); // Debug line
 
+            dispatch(staticsActions.setAllColis(data.totalColis));
+
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch reclamations");
+        }
+    };
+}
 export function countColisLivreByRole(role,id) {
     return async (dispatch) => {
         try {
             const { data } = await request.get(`/api/count/livres/${role}/${id}`, {
             });
-            dispatch(staticsActions.setColisLivreByRole(data));
+            console.log("Data from countColisLivreByRole:",data.totalColis); // Debug line
+
+            dispatch(staticsActions.setColisLivreByRole(data.totalColis));
+
         } catch (error) {
             toast.error(error.message || "Failed to fetch reclamations");
         }
@@ -41,7 +59,20 @@ export function countColisAnnuleByRole(role,id) {
         try {
             const { data } = await request.get(`/api/count/annules/${role}/${id}`, {
             });
-            dispatch(staticsActions.setColisCancealByRole(data));
+            console.log("Data from countColis Annule bt Role:",data.totalColis); // Debug line
+            dispatch(staticsActions.setColisCancealByRole(data.totalColis));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch reclamations");
+        }
+    };
+}
+export function countGainsByRole(role,id) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/count/gains/total/${role}/${id}`, {
+            });
+            console.log("Total Gains:",data.totalGains); // Debug line
+            dispatch(staticsActions.setTotalGains(data.totalGains));
         } catch (error) {
             toast.error(error.message || "Failed to fetch reclamations");
         }
