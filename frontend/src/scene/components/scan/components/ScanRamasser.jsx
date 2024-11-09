@@ -4,25 +4,27 @@ import BarcodeReader from 'react-barcode-reader';
 import QrScanner from 'react-qr-scanner';
 import request from '../../../../utils/request';
 import { useDispatch } from 'react-redux';
-import axios from 'axios';
-import { ramasserColis } from '../../../../redux/apiCalls/colisApiCalls';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const { Option } = Select;
 const { Title } = Typography;
 
-function ScanRamasser({ statu }) {
+function ScanRamasser() {
+  const { statu } = useParams(); // Declare 'statu' first
+
+  // If 'status' state is not used elsewhere, you can remove it
+  // const [status, setStatus] = useState(statu); 
+
   const [scannedItems, setScannedItems] = useState([]);
   const [currentBarcode, setCurrentBarcode] = useState('');
-  const [status, setStatus] = useState(statu); // Use the passed 'statu' prop
   const [scanMethod, setScanMethod] = useState('barcode'); // Toggle between barcode and QR code scanner
   const [scannerEnabled, setScannerEnabled] = useState(true); // Control scanner visibility
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Function to fetch the colis by code_suivi
-  const fetchColisByCodeSuivi = async (barcode) => {
+  const fetchColisByCodeSuivi = async (barcode) => { // Removed 'statu' parameter
     // Check if the barcode is already scanned
     if (scannedItems.some(item => item.barcode === barcode)) {
       notification.warning({
@@ -36,22 +38,32 @@ function ScanRamasser({ statu }) {
       const response = await request.get(`/api/colis/code_suivi/${barcode}`);
       const colisData = response.data; // Get the data from the Axios response
 
-      // Map of required previous status for each 'statu' prop value
+      // Map of required previous statuses for each 'statu' prop value
       const requiredStatusMap = {
-        'Ramassée': 'attente de ramassage',
-        'Reçu': 'Expediée',
-        'Mise en Distribution': 'Reçu',
-        'Livrée': 'Mise en Distribution',
+        'Ramassée': ['attente de ramassage'],
+        'Reçu': ['Expediée'],
+        'Mise en Distribution': ['Reçu'],
+        'Livrée': ['Mise en Distribution'],
+        'Fermée': ['En Retour'], // Assuming 'Fermée' should follow 'Livrée'
+        'En Retour': ['Reçu', 'Annulée', 'Refusée', 'Remplacée'], // Multiple statuses for "En Retour"
       };
 
-      // Get the required previous status based on 'statu' prop
-      const requiredStatus = requiredStatusMap[statu];
+      // Get the required previous statuses based on 'statu' prop
+      const requiredStatuses = requiredStatusMap[statu];
 
-      // Check if the colis has the required previous status
-      if (colisData.statut !== requiredStatus) {
+      if (!requiredStatuses) {
+        notification.error({
+          message: 'Statut inconnu',
+          description: `Le statut "${statu}" n'est pas reconnu.`,
+        });
+        return;
+      }
+
+      // Check if the colis has one of the required previous statuses
+      if (!requiredStatuses.includes(colisData.statut)) {
         notification.warning({
           message: 'Statut de colis invalide',
-          description: `Seuls les colis avec le statut "${requiredStatus}" peuvent être scannés pour "${statu}".`,
+          description: `Seuls les colis avec le statut "${requiredStatuses.join(', ')}" peuvent être scannés pour "${statu}".`,
         });
         return; // Exit the function if the status does not match
       }
@@ -119,25 +131,41 @@ function ScanRamasser({ statu }) {
     setScannerEnabled(true); // Enable scanner when switching
   };
 
- // Function to handle the action (e.g., ramasser)
-const handleAction = async () => {
-  // Map scannedItems to an array of barcode strings
-  const codeSuiviList = scannedItems.map(item => item.barcode);
-  console.log('Code Suivi List:', codeSuiviList);
-  try {
-    // Send a PUT request to update the status of selected colis
-    const response = await request.put('/api/colis/statu/update', {
-      colisCodes: codeSuiviList,
-      new_status: statu
-    });
-    toast.success(response.data.message);
-    // Update the local data to remove the updated colis
-    navigate('/dashboard/list-colis');
-  } catch (err) {
-    toast.error("Erreur lors de la mise à jour des colis.");
-  }
-};
-
+  // Function to handle the action (e.g., ramasser)
+  const handleAction = async () => {
+    const codeSuiviList = scannedItems.map(item => item.barcode);
+    console.log('Code Suivi List:', codeSuiviList);
+    try {
+      const response = await request.put('/api/colis/statu/update', {
+        colisCodes: codeSuiviList,
+        new_status: statu
+      });
+      toast.success(response.data.message);
+      
+      // Handle failed updates if any
+      if (response.data.failedUpdates && response.data.failedUpdates.length > 0) {
+        response.data.failedUpdates.forEach(failure => {
+          toast.error(`Erreur pour ${failure.codeSuivi}: ${failure.error}`);
+        });
+      }
+  
+      navigate('/dashboard/list-colis');
+    } catch (err) {
+      // If the backend returns a 500 error with a message
+      if (err.response && err.response.data && err.response.data.message) {
+        toast.error(`Erreur: ${err.response.data.message}`);
+        // Optionally display details about failed updates
+        if (err.response.data.failedUpdates) {
+          err.response.data.failedUpdates.forEach(failure => {
+            toast.error(`Erreur pour ${failure.codeSuivi}: ${failure.error}`);
+          });
+        }
+      } else {
+        toast.error("Erreur lors de la mise à jour des colis.");
+      }
+    }
+  };
+  
 
   // Define columns for the table
   const columns = [
@@ -163,7 +191,10 @@ const handleAction = async () => {
         {/* Barcode Reader */}
         {scanMethod === 'barcode' && scannerEnabled && (
           <>
-            <BarcodeReader onError={handleError} onScan={handleBarcodeScan} />
+            <BarcodeReader
+              onError={handleError}
+              onScan={(barcode) => fetchColisByCodeSuivi(barcode)}
+            />
             <Input
               placeholder="Entrez ou scannez le code barre..."
               value={currentBarcode}

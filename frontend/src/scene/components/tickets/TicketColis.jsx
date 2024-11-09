@@ -44,7 +44,7 @@ function TicketColis({ colis }) {
             <div className="qr-code">
               <QRCode value={colis.code_suivi} size={50} />
             </div>
-            <p>{colis.ville.nom}</p> {/* Ensure you're accessing the correct string property */}
+            <p>{colis.ville.ref}</p> {/* Ensure you're accessing the correct string property */}
           </div>
         </div>
         <div className="ticket-colis-main">

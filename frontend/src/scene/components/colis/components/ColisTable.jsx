@@ -6,7 +6,7 @@ import { Si1001Tracklists } from 'react-icons/si';
 import { TbPhoneCall } from 'react-icons/tb';
 import { IoSearch } from "react-icons/io5";
 import { IoMdRefresh } from 'react-icons/io';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, MinusCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -208,6 +208,11 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             return <Tag icon={<ClockCircleOutlined />} color="default">Programme</Tag>;
           case 'Remplacée':
             return <Tag icon={<ExclamationCircleOutlined  />} color="warning">{status}</Tag>;
+          case 'En Retour':
+              return <Tag icon={<ExclamationCircleOutlined  />} color="warning">{status}</Tag>;
+          case 'Fermée':
+            return <Tag icon={<MinusCircleOutlined   />} color="default">{status}</Tag>;
+          
           default:
             return <Tag icon={<SyncOutlined spin />} color="processing">{status}</Tag>;
         }

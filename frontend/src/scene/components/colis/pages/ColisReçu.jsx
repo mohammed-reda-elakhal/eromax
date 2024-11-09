@@ -300,7 +300,7 @@ const handleDistribution = async (colisId) => {
             <div className="bar-action-data">
               <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
               <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleDistribution} loading={loading}>Mise en Distribution</Button>
-              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("/dashboard/scan/statu/Mise en Distribution")} loading={loading}>Scan</Button>
             </div>
             <TableDashboard
               column={columns}

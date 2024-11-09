@@ -1,8 +1,10 @@
+// StoreForm.js
+
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
-import { createStore , updateStore } from '../../../../redux/apiCalls/storeApiCalls';
+import { createStore, updateStore } from '../../../../redux/apiCalls/storeApiCalls';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 
@@ -36,7 +38,7 @@ function StoreForm({ onClose, initialValues = {}, isEdit = false }) {
 
   const onFinish = async (values) => {
     try {
-      const { storeName, adress, tele, Bio , message } = values;
+      const { storeName, adress, tele, Bio, message } = values;
 
       const storeData = {
         storeName,
@@ -49,6 +51,7 @@ function StoreForm({ onClose, initialValues = {}, isEdit = false }) {
       if (isEdit) {
         // Dispatch updateStore
         await dispatch(updateStore(initialValues._id, storeData, imageFile));
+        toast.success("Store updated successfully");
       } else {
         // Dispatch createStore
         const userCookie = Cookies.get('user');
@@ -58,6 +61,7 @@ function StoreForm({ onClose, initialValues = {}, isEdit = false }) {
           return;
         }
         await dispatch(createStore(userId, storeData, imageFile));
+        toast.success("Store created successfully");
       }
       onClose();
       form.resetFields();
@@ -113,7 +117,7 @@ function StoreForm({ onClose, initialValues = {}, isEdit = false }) {
       </Form.Item>
 
       <Form.Item
-        label="message"
+        label="Message"
         name="message"
       >
         <Input.TextArea placeholder="Enter Message afficher sur ticket ....." />

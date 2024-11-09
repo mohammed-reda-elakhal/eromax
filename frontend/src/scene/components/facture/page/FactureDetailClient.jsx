@@ -151,11 +151,7 @@ const FactureDetail = () => {
       key: 'prix',
       render: (text) => (text ? text.toFixed(2) : 'N/A'),
     },
-    {
-      title: 'Montant à Payer',
-      dataIndex: 'montant_a_payer',
-      key: 'montant_a_payer',
-    },
+
   ];
 
   // Define columns for the calculation table

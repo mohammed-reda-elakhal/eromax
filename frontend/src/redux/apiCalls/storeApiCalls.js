@@ -1,3 +1,5 @@
+// storeApiCalls.js
+
 import { storeActions } from "../slices/storeSlice";
 import { toast } from "react-toastify";
 import request from "../../utils/request";
@@ -40,13 +42,15 @@ export function createStore(userId, storeData, imageFile) {
         const imageFormData = new FormData();
         imageFormData.append('image', imageFile);
 
-        const uploadResult = await request.post(`/api/store/upload${data._id}`, imageFormData, {
+        // Corrected URL
+        const uploadResult = await request.post(`/api/store/${data._id}/photo`, imageFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
           withCredentials: true,
         });
-        dispatch(storeActions.updateStoreSuccess(uploadResult.data));
+        // Ensure the backend sends back the updated store
+        dispatch(storeActions.updateStoreSuccess(uploadResult.data.store));
         toast.success("Store image uploaded successfully");
       }
     } catch (error) {
@@ -84,7 +88,8 @@ export function updateStore(storeId, storeData, imageFile) {
           },
           withCredentials: true,
         });
-        dispatch(storeActions.updateStoreSuccess(uploadResult.data));
+        // Ensure the backend sends back the updated store
+        dispatch(storeActions.updateStoreSuccess(uploadResult.data.store));
         toast.success("Store image updated successfully");
       }
     } catch (error) {
@@ -114,5 +119,3 @@ export function deleteStore(storeId) {
     }
   };
 }
-
-
