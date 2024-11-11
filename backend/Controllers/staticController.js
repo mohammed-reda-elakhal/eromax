@@ -189,15 +189,11 @@ try {
     }
   ]);
 
-  if (countForRole.length === 0) {
-    return res.status(404).json({ message: `Aucun colis annulé trouvé pour ce ${role}` });
-  }
-
   // Return the result
   return res.status(200).json({
     message: `Nombre de colis annulés pour le ${role}`,
     roleId: id,
-    totalColis: countForRole[0].totalColis // The total count for this role
+    totalColis: countForRole[0]?.totalColis // The total count for this role
   });
 } catch (error) {
   console.error(`Erreur lors du comptage des colis annulés pour le rôle ${role}:`, error);
@@ -267,7 +263,7 @@ exports.countRetourColisByRole = async (req, res) => {
     console.error(`Erreur lors du comptage des colis annulés pour le rôle ${role}:`, error);
     return res.status(500).json({ message: `Erreur serveur lors du comptage des colis annulés pour le rôle ${role}` });
   }
-  };
+};
 exports.countTotalGains = async (req, res) => {
   try {
     // Aggregate query to calculate the total gains for debit transactions
@@ -338,4 +334,51 @@ exports.countTotalGainsByRole = async (req, res) => {
   }
 };
 
+exports.countTopVilleForClient = async (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+    const objectId = new mongoose.Types.ObjectId(clientId);
 
+    const top10Villes = await Colis.aggregate([
+      { $match: { clientId: objectId } }, // Filter by client ID
+      { $group: { _id: "$ville", count: { $sum: 1 } } }, // Group by city and count occurrences
+      { $sort: { count: -1 } }, // Sort by count in descending order
+      { $limit: 10 } // Limit to the top 10 cities
+    ]);
+
+    if (top10Villes.length === 0) {
+      return res.status(404).json({ message: "Aucun colis trouvé pour ce client" });
+    }
+
+    // Return the result
+    res.status(200).json({
+      message: "Top 10 villes avec le plus de colis pour ce client",
+      clientId,
+      top10Villes
+    });
+  } catch (error) {
+    console.error("Erreur lors du comptage des villes:", error);
+    res.status(500).json({ message: "Erreur serveur lors du comptage des villes" });
+  }
+};
+
+exports.getLatestTransactionForClient = async (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+    const latestTransaction = await Transaction.findOne({ clientId })
+      .sort({ createdAt: -1 }) // Sort by date in descending order
+      .exec();
+
+    if (!latestTransaction) {
+      return res.status(404).json({ message: "Aucune transaction trouvée pour ce client" });
+    }
+
+    res.status(200).json({
+      message: "Dernière transaction pour le client",
+      transaction: latestTransaction,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la dernière transaction:", error);
+    res.status(500).json({ message: "Erreur serveur lors de la récupération de la dernière transaction" });
+  }
+};

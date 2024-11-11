@@ -4,17 +4,7 @@ import request from "../../utils/request";
 import { staticsActions } from "../slices/StaticsSlice";
 
 
-export function countColisLivre() {
-    return async (dispatch) => {
-        try {
-            const { data } = await request.get(`/api/count/livres`, {
-            });
-            dispatch(staticsActions.setAllColisLivre(data));
-        } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
-        }
-    };
-}
+
 export function countColisByRole(role,id) {
     return async (dispatch) => {
         try {
