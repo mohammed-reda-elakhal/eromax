@@ -13,6 +13,7 @@ import {
 import { CheckCircleOutlined, SyncOutlined, DollarOutlined } from '@ant-design/icons';
 import { Button, Tag } from 'antd';
 import { toast } from 'react-toastify';
+import { IoMdRefresh } from 'react-icons/io';
 
 function DemandeRetraitTable() {
     const { theme } = useContext(ThemeContext);
@@ -27,13 +28,16 @@ function DemandeRetraitTable() {
     // Loading state for the button
     const [loadingId, setLoadingId] = useState(null); // Track which button is loading
 
-    useEffect(() => {
+    const getDataDR = () =>{
         if (user.role === "admin") {
             dispatch(getAlldemandeRetrait());
         } else if (user.role === "client") {
             dispatch(getdemandeRetraitByClient(store?._id));
         }
 
+    }
+    useEffect(() => {
+        getDataDR()
         window.scrollTo(0, 0);
     }, [dispatch, user.role, store?._id]);
 
@@ -47,11 +51,16 @@ function DemandeRetraitTable() {
             // The Redux store will update 'demandesRetraits' via the slice's 'updateDemandeRetrait' reducer
             toast.success("Demande de retrait validée avec succès !");
         } catch (error) {
-            toast.error(error.response?.data?.message || "Erreur lors de la validation de la demande de retrait");
+            console.error(error.response?.data?.message || "Erreur lors de la validation de la demande de retrait");
         } finally {
             setLoadingId(null); // Reset loading state regardless of success or failure
         }
     };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+      };
 
     const columns = [
         {
@@ -60,6 +69,14 @@ function DemandeRetraitTable() {
             key: 'nom',
             render: (text, record) => (
                 <span>{record?.id_store?.id_client?.nom}</span>
+            )
+        },
+        {
+            title: 'Date',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            render: (text, record) => (
+                <span>{formatDate(record.createdAt)}</span>
             )
         },
         {
@@ -86,6 +103,16 @@ function DemandeRetraitTable() {
                 <div>
                     <p>{record?.id_payement?.idBank?.Bank}</p>
                     <p><span>RIB : </span><strong>{record?.id_payement?.rib}</strong></p>
+                </div>
+            )
+        },
+        {
+            title: 'Tarif',
+            dataIndex: 'tarif',
+            key: 'tarif',
+            render: (text, record) => (
+                <div>
+                    <strong>{record?.tarif} </strong> DH
                 </div>
             )
         },
@@ -162,6 +189,16 @@ function DemandeRetraitTable() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
+                        <div className="bar-action-data" style={{ marginBottom: '16px' }}>
+                            <Button 
+                                icon={<IoMdRefresh />} 
+                                type="primary" 
+                                onClick={getDataDR} 
+                                style={{ marginRight: '8px' }}
+                            >
+                                Refresh
+                            </Button>
+                        </div>
                         <TableDashboard
                             theme={theme} 
                             id="_id" 

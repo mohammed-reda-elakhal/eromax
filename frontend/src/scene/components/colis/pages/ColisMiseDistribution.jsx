@@ -3,28 +3,91 @@ import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
-import { PlusCircleFilled } from '@ant-design/icons';
-import { Button, Modal, Form, Input, Select, message, Card, Col, Row, Tag, Typography, Grid, Space } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
-import { MdDeliveryDining } from "react-icons/md";
-import { useDispatch, useSelector } from 'react-redux';
-import { annulerColis, colisProgramme, getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import {
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  CloseCircleOutlined,
-  SyncOutlined,
-} from '@ant-design/icons';
-import { MdAccessTimeFilled } from "react-icons/md";
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
+  Card,
+  Col,
+  Row,
+  Tag,
+  Typography,
+  Grid,
+  Space,
+} from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { MdAccessTimeFilled, MdOutlineDangerous } from "react-icons/md";
 import { CgDanger } from "react-icons/cg";
-import { MdOutlineDangerous } from "react-icons/md";
 import { IoMdRefresh } from 'react-icons/io';
-import { IoQrCodeSharp } from 'react-icons/io5';
+import { IoQrCodeSharp } from 'react-icons/io5'; // Corrected import path
 import { FiRefreshCcw } from 'react-icons/fi';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  colisProgramme,
+  getColisForLivreur,
+  updateStatut,
+} from '../../../../redux/apiCalls/colisApiCalls';
 
 const { Option } = Select;
 const { Text, Title: TextTitle } = Typography;
 const { useBreakpoint } = Grid;
+
+// List of allowed statuses for the modal
+
+const allowedStatuses = [
+  "Livrée",
+  "Annulée",
+  "Programmée",
+  "Refusée",
+  "Boite vocale",
+  "Pas de reponse jour 1",
+  "Pas de reponse jour 2",
+  "Pas de reponse jour 3",
+  "Pas reponse + sms / + whatsap",
+  "En voyage",
+  "Injoignable",
+  "Hors-zone",
+  "Intéressé",
+  "Numéro Incorrect",
+  "Reporté",
+  "Confirmé Par Livreur",
+  "Endomagé",
+];
+
+const allowedStatusesGet = [
+  "Boite vocale",
+  "Pas de reponse jour 1",
+  "Pas de reponse jour 2",
+  "Pas de reponse jour 3",
+  "Pas reponse + sms / + whatsap",
+  "En voyage",
+  "Injoignable",
+  "Hors-zone",
+  "Intéressé",
+  "Numéro Incorrect",
+  "Reporté",
+  "Confirmé Par Livreur",
+  "Endomagé",
+  "Mise en Distribution",
+];
+
+// Predefined comments for specific statuses
+const statusComments = {
+  "Annulée": [
+    "Client a annulé la commande",
+    "Le produit n'est plus disponible",
+    "Erreur dans la commande",
+  ],
+  "Refusée": [
+    "Le client a refusé la livraison",
+    "Le destinataire était absent",
+    "Le produit était endommagé",
+  ],
+  // Add more statuses with predefined comments if needed
+};
 
 function ColisMiseDistribution({ search }) {
   const { theme } = useContext(ThemeContext);
@@ -33,14 +96,11 @@ function ColisMiseDistribution({ search }) {
   const dispatch = useDispatch();
   const [selectedColis, setSelectedColis] = useState(null);
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
-  const [isProgrammeModalVisible, setIsProgrammeModalVisible] = useState(false);
   const [statusType, setStatusType] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
-  const [programmeForm] = Form.useForm();  
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
 
   const { colisData, user, store } = useSelector((state) => ({
     colisData: state.colis.colis || [],
@@ -49,18 +109,18 @@ function ColisMiseDistribution({ search }) {
   }));
 
   const getDataColis = () => {
-    setLoading(true)
-    if (user?.role) {
-      if (user.role === "admin") {
-        dispatch(getColis("Mise en Distribution"));
-      } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id, 'Mise en Distribution'));
-      } else if (user.role === "livreur") {
-        dispatch(getColisForLivreur(user._id, "Mise en Distribution"));
-      }
+    setLoading(true);
+    if (user?.role === "livreur") {
+      // Fetch colis for livreur with allowed statuses
+      dispatch(getColisForLivreur(user._id, allowedStatusesGet))
+        .then(() => {
+          setLoading(false);
+        })
+        .catch(() => {
+          setLoading(false);
+        });
     }
-    setLoading(false)
-
+    // Handle other roles if needed
   };
 
   useEffect(() => {
@@ -68,59 +128,53 @@ function ColisMiseDistribution({ search }) {
     setData(colisData);
   }, [colisData]);
 
-  const handleLivrée = (record) => {
-    dispatch(updateStatut(record._id, 'Livrée', ""));
-    success(`Colis ${record._id} marqué comme Livrée.`);
-  };
-
-  const handleStatusChange = (record, status) => {
+  // Function to handle opening the Change Status modal
+  const handleChangeStatus = (record) => {
     setSelectedColis(record);
-    setStatusType(status);
+    setStatusType(""); // Reset status type
     setIsStatusModalVisible(true);
   };
 
+  // Function to handle confirming the status change
   const handleStatusOk = () => {
     form.validateFields().then(values => {
-      const { comment } = values;
-      dispatch(updateStatut(selectedColis._id, statusType, comment));
+      const { status, comment, deliveryTime } = values;
+
+      // If status is 'Programmée', ensure deliveryTime is provided
+      if (status === "Programmée" && !deliveryTime) {
+        message.error("Veuillez sélectionner un temps de livraison pour une livraison programmée.");
+        return;
+      }
+
+      // Dispatch updateStatut with or without deliveryTime
+      if (status === "Programmée") {
+        dispatch(updateStatut(selectedColis._id, status, comment, deliveryTime));
+      } else {
+        dispatch(updateStatut(selectedColis._id, status, comment));
+      }
 
       const newData = colisData.map(item => {
         if (item._id === selectedColis._id) {
-          return { ...item, statut: statusType, comment };
+          return { ...item, statut: status, comment, deliveryTime };
         }
         return item;
       });
       setData(newData);
       setIsStatusModalVisible(false);
-      success(`Colis ${selectedColis._id} marqué comme ${statusType}.`);
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
   };
 
-  const handleProgramme = (record) => {
-    setSelectedColis(record);
-    setIsProgrammeModalVisible(true);
+  // Function to handle cancelling the status change
+  const handleStatusCancel = () => {
+    setIsStatusModalVisible(false);
+    setSelectedColis(null);
+    setStatusType("");
+    form.resetFields();
   };
 
-  const handleProgrammeOk = () => {
-    programmeForm.validateFields().then(values => {
-      const deliveryTime = parseInt(values.deliveryTime.replace(/\D/g, ''), 10);
-      const newData = colisData.map(item => {
-        if (item._id === selectedColis._id) {
-          return { ...item, statut: 'Programmé', deliveryTime };
-        }
-        return item;
-      });
-      setData(newData);
-      setIsProgrammeModalVisible(false);
-      dispatch(colisProgramme(selectedColis._id, deliveryTime));
-      success(`Colis ${selectedColis._id} programmé pour livraison dans ${values.deliveryTime}.`);
-    }).catch(info => {
-      console.log('Validation Failed:', info);
-    });
-  };
-
+  // Function to display success messages
   const success = (text) => {
     messageApi.open({
       type: 'success',
@@ -128,14 +182,51 @@ function ColisMiseDistribution({ search }) {
     });
   };
 
+  // Function to format date strings
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
-  const popularComments = statusType === 'Annulée'
-    ? ['Client a annulé la commande', 'Le produit n\'est plus disponible', 'Erreur dans la commande']
-    : ['Le client a refusé la livraison', 'Le destinataire était absent', 'Le produit était endommagé'];
+  // Function to determine Tag color based on status
+  const getStatusTagColor = (status) => {
+    switch (status) {
+      case "Livrée":
+        return "green";
+      case "Annulée":
+        return "volcano";
+      case "Programmée":
+        return "geekblue";
+      case "Refusée":
+        return "red";
+      case "Boite vocale":
+        return "purple";
+      case "Pas de reponse jour 1":
+      case "Pas de reponse jour 2":
+      case "Pas de reponse jour 3":
+      case "Pas reponse + sms / + whatsap":
+        return "gold";
+      case "En voyage":
+        return "cyan";
+      case "Injoignable":
+        return "magenta";
+      case "Hors-zone":
+        return "red";
+      case "Intéressé":
+        return "blue";
+      case "Numéro Incorrect":
+        return "orange";
+      case "Reporté":
+        return "geekblue";
+      case "Confirmé Par Livreur":
+        return "blue";
+      case "Endomagé":
+        return "red";
+      default:
+        return "default";
+    }
+  };
 
   return (
     <div className='page-dashboard'>
@@ -161,13 +252,28 @@ function ColisMiseDistribution({ search }) {
             }}
           >
             <h4>Colis Mise en Distribution</h4>
-            <div className="bar-action-data">
-              <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} loading={loading}>Refresh </Button>
-              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("")} loading={loading}>Scan</Button>
+            <div className="bar-action-data" style={{ marginBottom: '20px' }}>
+              <Button
+                icon={<IoMdRefresh />}
+                type="primary"
+                onClick={() => getDataColis()}
+                loading={loading}
+                style={{ marginRight: '10px' }}
+              >
+                Refresh
+              </Button>
+              <Button
+                icon={<IoQrCodeSharp />}
+                type="primary"
+                onClick={() => navigate("/scan")} // Adjust the route as needed
+                loading={loading}
+              >
+                Scan
+              </Button>
             </div>
 
             {/* Responsive Cards for Colis */}
-            <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
+            <Row gutter={[16, 16]}>
               {data.map(item => (
                 <Col
                   xs={24} sm={12} md={8} lg={6} xl={6}
@@ -179,39 +285,26 @@ function ColisMiseDistribution({ search }) {
                     style={{ borderRadius: '10px', overflow: 'hidden' }}
                     loading={loading}
                     title={
-                      <TextTitle level={4}> 
-                      {item.code_suivi}  
-                      <Space/>
-                      {
-                        item.replacedColis ? 
-                        <Tag icon={<FiRefreshCcw />}>
-                        </Tag>
-                        :
-                        ""
+                      <TextTitle level={4}>
+                        {item.code_suivi}
+                        <Space />
+                        {
+                          item.replacedColis &&
+                            <Tag icon={<FiRefreshCcw />} color="geekblue">
+                              Remplacée
+                            </Tag>
                         }
                       </TextTitle>
                     }
                     actions={[
                       <Button
-                        type="primary"
-                        icon={<MdDeliveryDining />}
-                        onClick={() => handleLivrée(item)}
+                        type="default"
+                        icon={<CgDanger />}
+                        onClick={() => handleChangeStatus(item)}
+                        style={{ backgroundColor: '#f5222d', borderColor: '#f5222d', color: '#fff' }}
+                        title="Changer Statut"
                       >
-                        L
-                      </Button>,
-                      <Button icon={<CgDanger/>} danger onClick={() => handleStatusChange(item, 'Annulée')}>
-                        A
-                      </Button>,
-                      <Button icon={<MdOutlineDangerous/>} danger onClick={() => handleStatusChange(item, 'Refusée')}>
-                        R
-                      </Button>,
-                      <Button
-                        icon={<MdAccessTimeFilled />}
-                        type="primary"
-                        style={{ backgroundColor: '#FFD700', borderColor: '#FFD700', color: '#000' }}
-                        onClick={() => handleProgramme(item)}
-                      >
-                        P
+                        Changer Statut
                       </Button>
                     ]}
                   >
@@ -219,6 +312,18 @@ function ColisMiseDistribution({ search }) {
                     <p><Text strong>Ville:</Text> {item.ville.nom}</p>
                     <p><Text strong>Adresse:</Text> {item.adresse}</p>
                     <p><Text strong>Prix:</Text> {item.prix} DH</p>
+                    <p>
+                      <Text strong>Statut:</Text>{' '}
+                      <Tag
+                        color={getStatusTagColor(item.statut)}
+                      >
+                        {item.statut}
+                      </Tag>
+                    </p>
+                    {/* Display Delivery Time if status is 'Programmée' */}
+                    {item.statut === "Programmée" && item.deliveryTime && (
+                      <p><Text strong>Temps de Livraison:</Text> {item.deliveryTime}</p>
+                    )}
                   </Card>
                 </Col>
               ))}
@@ -228,48 +333,80 @@ function ColisMiseDistribution({ search }) {
       </main>
       {contextHolder}
 
+      {/* Change Status Modal */}
       <Modal
-        title={`Colis ${statusType}`}
+        title={`Changer le Statut de ${selectedColis ? selectedColis.code_suivi : ''}`}
         visible={isStatusModalVisible}
         onOk={handleStatusOk}
-        onCancel={() => setIsStatusModalVisible(false)}
+        onCancel={handleStatusCancel}
+        okText="Confirmer"
+        cancelText="Annuler"
       >
         <Form form={form} layout="vertical" name="form_status">
           <Form.Item
-            name="comment"
-            label="Commentaire"
-            rules={[{ required: true, message: 'Veuillez sélectionner un commentaire!' }]}
+            name="status"
+            label="Nouveau Statut"
+            rules={[{ required: true, message: 'Veuillez sélectionner un statut!' }]}
           >
-            <Select placeholder={`Sélectionner un commentaire pour ${statusType}`}>
-              {popularComments.map((comment, index) => (
-                <Option key={index} value={comment}>
-                  {comment}
-                </Option>
+            {/* Display statuses as a list of clickable Tags */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {allowedStatuses.map((status, index) => (
+                <Tag.CheckableTag
+                  key={index}
+                  checked={statusType === status}
+                  onChange={() => {
+                    form.setFieldsValue({ status, comment: undefined, deliveryTime: undefined });
+                    setStatusType(status);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  color={getStatusTagColor(status)}
+                >
+                  {status}
+                </Tag.CheckableTag>
               ))}
-            </Select>
+            </div>
           </Form.Item>
-        </Form>
-      </Modal>
 
-      <Modal
-        title="Programmer Livraison"
-        visible={isProgrammeModalVisible}
-        onOk={handleProgrammeOk}
-        onCancel={() => setIsProgrammeModalVisible(false)}
-      >
-        <Form form={programmeForm} layout="vertical" name="form_programme">
-          <Form.Item
-            name="deliveryTime"
-            label="Temps de Livraison"
-            rules={[{ required: true, message: 'Veuillez sélectionner un temps de livraison!' }]}
-          >
-            <Select placeholder="Sélectionner un temps de livraison">
-              <Option value="1 jours">Demain</Option>
-              <Option value="2 jours">Dans 2 jours</Option>
-              <Option value="3 jours">Dans 3 jours</Option>
-              <Option value="4 jours">Dans 4 jours</Option>
-            </Select>
-          </Form.Item>
+          {/* Conditionally render comment field based on selected status */}
+          {statusType && (statusComments[statusType] ? (
+            <Form.Item
+              name="comment"
+              label="Commentaire"
+              rules={[{ required: true, message: 'Veuillez sélectionner un commentaire!' }]}
+            >
+              <Select placeholder="Sélectionner un commentaire">
+                {statusComments[statusType].map((comment, idx) => (
+                  <Option key={idx} value={comment}>
+                    {comment}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          ) : (
+            <Form.Item
+              name="comment"
+              label="Commentaire"
+              rules={[{ required: false, message: 'Ajouter un commentaire (facultatif)' }]}
+            >
+              <Input.TextArea placeholder="Ajouter un commentaire" rows={3} />
+            </Form.Item>
+          ))}
+
+          {/* Conditionally render deliveryTime field if status is 'Programmée' */}
+          {statusType === "Programmée" && (
+            <Form.Item
+              name="deliveryTime"
+              label="Temps de Livraison"
+              rules={[{ required: true, message: 'Veuillez sélectionner un temps de livraison!' }]}
+            >
+              <Select placeholder="Sélectionner un temps de livraison">
+                <Option value="1 jours">Demain</Option>
+                <Option value="2 jours">Dans 2 jours</Option>
+                <Option value="3 jours">Dans 3 jours</Option>
+                <Option value="4 jours">Dans 4 jours</Option>
+              </Select>
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </div>

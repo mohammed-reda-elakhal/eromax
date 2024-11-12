@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getNotifications, getNotificationsByVisibility, createNotification, deleteNotification, updateNotification } = require('../Controllers/notificationController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
-const { getNotificationByStore } = require('../Controllers/notificationUserController');
+const { getNotificationByStore, markAsRead } = require('../Controllers/notificationUserController');
 
 
 
@@ -19,5 +19,8 @@ router.route('/visible')
 router.route('/:id')
   .delete(deleteNotification)
   .put(updateNotification);
+
+router.route('/read/:id')
+  .patch(markAsRead)
 
 module.exports = router;

@@ -285,21 +285,6 @@ function Menubar() {
           }
         </Menu.SubMenu>
 
-        
-        <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/list-produit">Produit</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/ajouter-colis/stock">Ajouter Colis</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-stock">Colis Stock</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/import-colis">Import Colis (Stock)</Link>
-          </Menu.Item>
-        </Menu.SubMenu>
       </Menu>
       
     </div>

@@ -56,7 +56,7 @@ export function validerDemandeRetrait(id_demande) {
         toast.success(data.message);
         dispatch(demandeRetraitActions.updateDemandeRetrait(data.demandeRetrait)); // Dispatch the updated demandeRetrait
       } catch (error) {
-        toast.error(error.response?.data?.message || "Échec de la validation de la demande de retrait");
+        console.error(error.response?.data?.message || "Échec de la validation de la demande de retrait");
       }
     };
 }

@@ -893,34 +893,69 @@ module.exports.getColisByTeam = asyncHandler(async (req, res) => {
 
 exports.getColisByLivreur = asyncHandler(async (req, res) => {
   let colis;
-  let livreur = req.params.id_livreur;
+  const livreurId = req.params.id_livreur;
   let filter = {};
-  const allowedStatuses = ["Expediée", "Mise en distribution", "Livrée" , "Annulée" , "Reçu" , "Refusée" , "Programmée"];
+  
+  // Define the allowed statuses
+  const allowedStatuses = [
+    "Expediée",
+    "Mise en Distribution",
+    "Livrée",
+    "Annulée",
+    "Reçu",
+    "Refusée",
+    "Programmée",
+    "En Retour",
+    "Remplacée",
+    "Fermée",
+    "Boite vocale",
+    "Pas de reponse jour 1",
+    "Pas de reponse jour 2",
+    "Pas de reponse jour 3",
+    "Pas reponse + sms / + whatsap",
+    "En voyage",
+    "Injoignable",
+    "Hors-zone",
+    "Intéressé",
+    "Numéro Incorrect",
+    "Reporté",
+    "Confirmé Par Livreur",
+    "Endomagé",
+  ];
 
-  // Check if the optional 'statut' parameter is provided
+  // Extract 'statut' from query parameters
   const { statut } = req.query;
 
   if (req.user.role === "livreur") {
-    filter.livreur = livreur;
-    filter.statut = { $in: allowedStatuses };
+    filter.livreur = livreurId;
+
+    if (statut) {
+      if (Array.isArray(statut)) {
+        // If multiple 'statut' parameters are provided as an array
+        filter.statut = { $in: statut };
+      } else if (typeof statut === 'string' && statut.includes(',')) {
+        // If 'statut' is a comma-separated string
+        const statutArray = statut.split(',').map(s => s.trim());
+        filter.statut = { $in: statutArray };
+      } else {
+        // If a single 'statut' is provided
+        filter.statut = statut;
+      }
+    } else {
+      // If no 'statut' is provided, use the allowed statuses
+      filter.statut = { $in: allowedStatuses };
+    }
   }
 
-
-
-  // Add 'statut' to the filter if it's provided
-  if (statut) {
-    filter.statut = statut;
-  }
-
-  // Find colis based on the constructed filter
+  // Fetch colis based on the constructed filter
   colis = await Colis.find(filter)
     .populate('team')        // Populate the team details
     .populate('livreur')     // Populate the livreur details
     .populate('store')       // Populate the store details
-    .populate('ville')
-    .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
+    .populate('ville')       // Populate the ville (city) details
+    .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order
 
-  if (!colis) {
+  if (!colis || colis.length === 0) {
     return res.status(404).json({ message: "Colis not found" });
   }
 

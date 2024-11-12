@@ -3,11 +3,12 @@ const Facture = require('../Models/Facture');
 const moment = require('moment');
 const shortid = require('shortid');
 const { Suivi_Colis } = require('../Models/Suivi_Colis');
-const { Store } = require('../Models/Store');  // Import the Store model
+const { Store } = require('../Models/Store');
 const cron = require('node-cron');
 const Transaction = require('../Models/Transaction');
 const NotificationUser = require('../Models/Notification_User');
 const { generateFacturesRetour } = require('./factureRetourController');
+const Promotion = require('../Models/Promotion'); // Import the Promotion model
 
 // Function to generate code_facture
 const generateCodeFacture = (date) => {
@@ -15,7 +16,6 @@ const generateCodeFacture = (date) => {
     const randomNumber = shortid.generate().slice(0, 6).toUpperCase(); // Shorten and uppercase for readability
     return `FCTL${formattedDate}-${randomNumber}`;
 };
-
 
 // Helper function to get `date_livraison` from `Suivi_Colis`
 const getDeliveryDate = async (code_suivi) => {
@@ -26,7 +26,6 @@ const getDeliveryDate = async (code_suivi) => {
     }
     return null;
 };
-
 
 // Controller to create factures for clients and livreurs based on daily delivered packages
 const createFacturesForClientsAndLivreurs = async (req, res) => {
@@ -56,8 +55,21 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
         }
 
         if (processedTodayColis.length === 0) {
-            return res.status(200).json({ message: 'No factures to create for today.' });
+            if (res) {
+                return res.status(200).json({ message: 'No factures to create for today.' });
+            } else {
+                console.log('No factures to create for today.');
+                return;
+            }
         }
+
+        // Fetch active promotions
+        const now = new Date();
+        const activePromotions = await Promotion.find({
+            isActive: true,
+            startDate: { $lte: now },
+            endDate: { $gte: now },
+        });
 
         // Group colis by store and date for client factures
         const facturesMapClient = {};
@@ -86,15 +98,41 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     totalTarifFragile: 0,
                     totalTarif: 0,
                     totalFraisRefus: 0,
+                    promotionApplied: null, // To store promotion details
+                    originalTarifLivraison: 0, // To store the original tarif livraison
                 };
             }
 
-            // Calculate tarif_livraison based on statut
-            let tarif_livraison = 0;
+            // Determine if a promotion applies to this client
+            let applicablePromotion = null;
+
+            for (const promo of activePromotions) {
+                if (
+                    promo.appliesTo === 'all' ||
+                    (promo.appliesTo === 'specific' && promo.clients.includes(colis.store._id))
+                ) {
+                    applicablePromotion = promo;
+                    break; // Assuming only one promotion can apply
+                }
+            }
+
+            // Calculate original tarif_livraison based on statut
+            let originalTarifLivraison = 0;
             if (colis.statut === 'Livrée') {
-                tarif_livraison = colis.ville?.tarif || 0;
+                originalTarifLivraison = colis.ville?.tarif || 0;
             } else if (colis.statut === 'Refusée') {
-                tarif_livraison = colis.ville?.tarif_refus || 0;
+                originalTarifLivraison = colis.ville?.tarif_refus || 0;
+            }
+
+            // Apply promotion if applicable
+            let tarif_livraison = originalTarifLivraison;
+
+            if (applicablePromotion) {
+                if (applicablePromotion.type === 'fixed_tarif') {
+                    tarif_livraison = applicablePromotion.value;
+                } else if (applicablePromotion.type === 'percentage_discount') {
+                    tarif_livraison = originalTarifLivraison * (1 - applicablePromotion.value / 100);
+                }
             }
 
             // Calculate tarif_fragile based on is_fragile
@@ -110,6 +148,14 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
             clientFacture.totalTarifLivraison += tarif_livraison;
             clientFacture.totalTarifFragile += tarif_fragile;
             clientFacture.totalTarif += tarif_total;
+
+            // Store the original tarif livraison
+            clientFacture.originalTarifLivraison += originalTarifLivraison;
+
+            // Store promotion details if not already stored
+            if (applicablePromotion && !clientFacture.promotionApplied) {
+                clientFacture.promotionApplied = applicablePromotion;
+            }
 
             // Update totalFraisRefus if statut is 'Refusée'
             if (colis.statut === 'Refusée') {
@@ -138,12 +184,12 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
             const livreurFacture = facturesMapLivreur[livreurId][dateKey];
             livreurFacture.colis.push(colis._id);
             livreurFacture.totalPrix += colis.prix;
-            livreurFacture.totalTarifLivraison += tarif_livraison;
+            livreurFacture.totalTarifLivraison += originalTarifLivraison; // Livreurs get the original tarif
             livreurFacture.totalTarifFragile += tarif_fragile;
-            livreurFacture.totalTarif += tarif_total;
+            livreurFacture.totalTarif += originalTarifLivraison + tarif_fragile;
 
             if (colis.statut === 'Refusée') {
-                livreurFacture.totalFraisRefus += tarif_livraison;
+                livreurFacture.totalFraisRefus += originalTarifLivraison;
             }
         }
 
@@ -164,6 +210,8 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     totalTarifFragile: factureData.totalTarifFragile,
                     totalTarif: factureData.totalTarif,
                     totalFraisRefus: factureData.totalFraisRefus,
+                    promotionApplied: factureData.promotionApplied ? factureData.promotionApplied._id : null,
+                    originalTarifLivraison: factureData.originalTarifLivraison,
                 });
 
                 facturesToInsertClient.push(newFacture);
@@ -182,7 +230,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                 const transaction = new Transaction({
                     id_store: store._id,
                     montant: montant,
-                    type: 'debit', // Assuming 'credit' since we're adding to solde
+                    type: 'debit', // Adding to the store's balance
                 });
                 await transaction.save();
 
@@ -213,6 +261,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     totalTarifFragile: factureData.totalTarifFragile,
                     totalTarif: factureData.totalTarif,
                     totalFraisRefus: factureData.totalFraisRefus,
+                    // No promotionApplied for livreur
                 });
 
                 facturesToInsertLivreur.push(newFacture);
@@ -225,19 +274,28 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
         const facturesToInsert = [...facturesToInsertClient, ...facturesToInsertLivreur];
         await Facture.insertMany(facturesToInsert);
 
-        res.status(200).json({ message: 'Factures created successfully', factures: facturesToInsert });
+        if (res) {
+            res.status(200).json({ message: 'Factures created successfully', factures: facturesToInsert });
+        } else {
+            console.log('Factures created successfully');
+        }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
+        if (res) {
+            res.status(500).json({ message: 'Internal server error', error: error.message });
+        } else {
+            console.error('Internal server error:', error.message);
+        }
     }
 };
 
-// Schedule a job to create factures every day at midnight (00:02)
-cron.schedule('31 16 * * *', async () => {
-    console.log('Running daily facture generation at 00:02');
+// Schedule a job to create factures every day at the specified time
+cron.schedule('14 19 * * *', async () => {
+    console.log('Running daily facture generation at 16:31');
     await createFacturesForClientsAndLivreurs();
-    await generateFacturesRetour()
+    await generateFacturesRetour();
 });
+
 
 
 const getAllFacture = async (req, res) => {
@@ -417,10 +475,12 @@ const setFacturePay = async (req, res) => {
     }
 };
 
-
 const getFactureByCode = async (req, res) => {
     try {
         const { code_facture } = req.params;
+
+        // Current date for potential future use (not used in promotion verification)
+        const currentDate = new Date();
 
         // Find the facture by its code
         const facture = await Facture.findOne({ code_facture })
@@ -450,7 +510,26 @@ const getFactureByCode = async (req, res) => {
             return res.status(404).json({ message: 'Facture not found' });
         }
 
-        // Function to fetch the delivery date for a given code_suivi
+        // Check if the facture is eligible for promotion (unpaid and type 'client')
+        const isEligibleForPromotion = facture.etat === false && facture.type === 'client';
+
+        let activePromotion = null;
+
+        if (isEligibleForPromotion) {
+            // Fetch promotions that are active, apply to 'all', and are of type 'fixed_tarif'
+            const applicablePromotions = await Promotion.find({
+                isActive: true,       // Promotion must be active
+                appliesTo: 'all',     // Only promotions that apply to all clients
+                type: 'fixed_tarif',  // Only promotions of type 'fixed_tarif'
+            })
+                .sort({ startDate: 1 }) // Sort to get the earliest promotion
+                .lean();
+
+            // Select the first applicable promotion, if any
+            activePromotion = applicablePromotions.length > 0 ? applicablePromotions[0] : null;
+        }
+
+        // Function to fetch the delivery date for a given code_suivi and statut
         const getDeliveryDate = async (code_suivi, statut) => {
             const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
             if (suiviColis) {
@@ -460,27 +539,35 @@ const getFactureByCode = async (req, res) => {
             return null;
         };
 
-        // Prepare the response data
+        // Prepare the response data for colis
         const colisDetails = await Promise.all(facture.colis.map(async col => {
             const livraisonDate = await getDeliveryDate(col.code_suivi, col.statut); // Get delivery date from Suivi_Colis
 
-            // Determine tarif based on statut
-            let tarif_livraison = 0;
+            // Initialize tarif_livraison and montant_a_payer based on statut
+            let old_tarif_livraison = 0;
+            let new_tarif_livraison = 0;
             let montant_a_payer = 0;
 
             if (col.statut === 'Livrée') {
-                tarif_livraison = col.ville?.tarif || 0;
+                old_tarif_livraison = col.ville?.tarif || 0;
                 montant_a_payer = col.prix; // montant_a_payer is the same as prix for 'Livrée' colis
-            } else if (col.statut === 'Refusée' || 'En Retour' || 'Fermée') {
-                tarif_livraison = col.ville?.tarif_refus || 0;
+            } else if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
+                old_tarif_livraison = col.ville?.tarif_refus || 0;
                 montant_a_payer = 0; // montant_a_payer is 0 for 'Refusée' colis
             }
 
-            // Determine trif_fragile
+            // Apply the active promotion, if available
+            if (activePromotion) {
+                new_tarif_livraison = activePromotion.value; // Replace tarif_livraison with promotion value
+            } else {
+                new_tarif_livraison = old_tarif_livraison; // No promotion applied
+            }
+
+            // Determine tarif_fragile
             const tarif_fragile = col.is_fragile ? 5 : 0;
 
             // Calculate total tarif for this colis
-            const tarif_total = tarif_livraison + tarif_fragile;
+            const tarif_total = new_tarif_livraison + tarif_fragile;
 
             return {
                 code_suivi: col.code_suivi,
@@ -490,7 +577,8 @@ const getFactureByCode = async (req, res) => {
                 adresse: col.adresse,
                 statut: col.statut,
                 prix: col.prix,
-                tarif_livraison: tarif_livraison,
+                old_tarif_livraison: old_tarif_livraison, // Original delivery fee
+                new_tarif_livraison: new_tarif_livraison, // Delivery fee after promotion
                 tarif_fragile: tarif_fragile,
                 tarif_total: tarif_total,
                 montant_a_payer: montant_a_payer,
@@ -501,7 +589,8 @@ const getFactureByCode = async (req, res) => {
 
         // Calculate totals
         let totalPrix = 0;
-        let totalTarifLivraison = 0;
+        let totalOldTarifLivraison = 0;
+        let totalNewTarifLivraison = 0;
         let totalTarifFragile = 0;
         let totalTarif = 0;
         let totalFraisRefus = 0;
@@ -509,22 +598,37 @@ const getFactureByCode = async (req, res) => {
         colisDetails.forEach(col => {
             if (col.statut === 'Livrée') {
                 totalPrix += col.prix;
-                totalTarifLivraison += col.tarif_livraison;
+                totalOldTarifLivraison += col.old_tarif_livraison;
+                totalNewTarifLivraison += col.new_tarif_livraison;
                 totalTarifFragile += col.tarif_fragile;
                 totalTarif += col.tarif_total;
-            } else if (col.statut === 'Refusée' || 'En Retour' || 'Fermée') {
-                totalFraisRefus += col.tarif_livraison;
-                totalTarifLivraison += col.tarif_livraison;
+            } else if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
+                totalFraisRefus += col.old_tarif_livraison;
+                totalOldTarifLivraison += col.old_tarif_livraison;
+                totalNewTarifLivraison += col.new_tarif_livraison;
                 totalTarifFragile += col.tarif_fragile;
                 totalTarif += col.tarif_total;
             }
         });
 
-        // Prepare the final response
-        const response = {
+        // Prepare promotion details if available
+        let promotionDetails = null;
+        if (activePromotion) {
+            promotionDetails = {
+                type: activePromotion.type,
+                value: activePromotion.value,
+                startDate: activePromotion.startDate,
+                endDate: activePromotion.endDate,
+                appliesTo: activePromotion.appliesTo,
+                // Include other relevant fields as needed
+            };
+        }
+
+        // Prepare the facture response
+        const factureResponse = {
             code_facture: facture.code_facture,
             etat: facture.etat,
-            date_facture: facture.date,
+            date_facture: facture.date_facture,
             type: facture.type,
             store: facture.store ? facture.store.storeName : null,
             client_tele: facture.store && facture.store.id_client ? facture.store.id_client.tele : null,
@@ -532,7 +636,8 @@ const getFactureByCode = async (req, res) => {
             livreur_tele: facture.livreur ? facture.livreur.tele : null,
             livreur_tarif: facture.livreur ? facture.livreur.tarif : null,
             totalPrix: totalPrix,
-            totalTarifLivraison: totalTarifLivraison,
+            totalOldTarifLivraison: totalOldTarifLivraison, // Total before promotion
+            totalNewTarifLivraison: totalNewTarifLivraison, // Total after promotion
             totalTarifFragile: totalTarifFragile,
             totalTarif: totalTarif,
             totalFraisRefus: totalFraisRefus,
@@ -540,14 +645,22 @@ const getFactureByCode = async (req, res) => {
             colis: colisDetails,
         };
 
+        // Prepare the promotions response
+        const promotionsResponse = {
+            activePromotion: promotionDetails, // Include only the active promotion
+        };
+
         // Send the formatted response
-        res.status(200).json({ message: 'Facture details retrieved successfully', facture: response });
+        res.status(200).json({
+            message: 'Facture details retrieved successfully',
+            facture: factureResponse,
+            promotions: promotionsResponse,
+        });
     } catch (error) {
         console.error('Error fetching facture by code:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-
 
 
 const getFacturesByLivreur = async (req, res) => {

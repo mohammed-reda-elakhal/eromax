@@ -11,7 +11,7 @@ export function countColisLivre() {
             });
             dispatch(staticsActions.setAllColisLivre(data));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -25,7 +25,7 @@ export function countColisByRole(role,id) {
             dispatch(staticsActions.setAllColis(data.totalColis));
 
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -39,7 +39,7 @@ export function countColisLivreByRole(role,id) {
             dispatch(staticsActions.setColisLivreByRole(data.totalColis));
 
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -53,7 +53,7 @@ export function countColisRetourByRole(role,id) {
             dispatch(staticsActions.setColisRetour(data.totalColis));
 
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -65,7 +65,7 @@ export function countColisAnnuleByRole(role,id) {
             console.log("Data from countColis Annule bt Role:",data.totalColis); // Debug line
             dispatch(staticsActions.setColisCancealByRole(data.totalColis));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -77,7 +77,7 @@ export function countGainsByRole(role,id) {
             console.log("Total Gains:",data.totalGains); // Debug line
             dispatch(staticsActions.setTotalGains(data.totalGains));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }

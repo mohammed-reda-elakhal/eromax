@@ -62,6 +62,7 @@ import FactureGlobale from "./scene/components/facture/page/FactureGlobale";
 import FactureGlobaleDetail from "./scene/components/facture/page/FactureGlobaleDetail";
 import FactureRetour from "./scene/components/facture/page/FactureRetour";
 import FactureRetourDetail from "./scene/components/facture/page/FactureRetourDetail";
+import Promotions from "./scene/components/promotion/page/Promotion";
 
 function App() {
 
@@ -251,6 +252,9 @@ function App() {
             <Route path="ajouter-produit" element={<AjouterProduit />} />
             <Route path="ajouter-produit-colis" element={<ProduitColis search = {getColumnSearchProps}/>} />
             <Route path="colis-stock" element={<ColisStock />} />
+
+
+            <Route path="promotion" element={<Promotions />} />
           
         </Route>
       </Routes>
