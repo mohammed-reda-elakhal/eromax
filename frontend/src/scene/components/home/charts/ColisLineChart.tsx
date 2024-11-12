@@ -62,7 +62,7 @@ function ColisLineChart({data}) {
     labels: getLast30DaysLabels(),
     datasets: [
       {
-        label: 'Colis Liverées',
+        label: 'Colis Livrées',
         data: generateRandomData(30),
         borderColor: 'green',
         backgroundColor: 'green',

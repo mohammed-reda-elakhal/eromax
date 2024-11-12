@@ -7,6 +7,10 @@ function StatisBox({icon , num , desc , theme , color}) {
         className='statistic-colis-box'
         style={{
             backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
+            borderRadius: '8px', // Add rounded corners for a modern look
+                padding: '16px', // Add padding for spacing
+                margin: '8px', // Add margin for separation
+                textAlign: 'center', // Center align content
         }}
     >
         <Avatar 

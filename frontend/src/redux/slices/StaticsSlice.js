@@ -24,6 +24,9 @@ const staticsSlice = createSlice({
             state.setTotalGains = action.payload;
         },setColisRetour(state,action){
             state.setColisRetour = action.payload;
+        },
+        setLastTransac(state,action){
+            state.setLastTransac=action.payload
         }
     }
 
