@@ -5,7 +5,7 @@ import { Doughnut } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const data = {
-  labels: ['Liverée', 'Encours', 'Echouée'],
+  labels: ['Livrée', 'En cours', 'Echouée'],
   datasets: [
     {
       label: '# of Votes',
