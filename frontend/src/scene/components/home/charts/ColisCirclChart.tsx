@@ -63,14 +63,14 @@ const chartData = {
         ColisRetourByRole||0, // Replace this with a dynamic value if available
       ],
       backgroundColor: [
-        'green',
-        'yellow',
-        'red',
+        '#008B8B',
+        '#FFC72C',
+        '#fd5c63',
       ],
       borderColor: [
-        'green',
-        'yellow',
-        'red',
+        '#008B8B',
+        '#FFC72C',
+        '#fd5c63',
       ],
       borderWidth: 1,
     },
