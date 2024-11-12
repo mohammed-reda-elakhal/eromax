@@ -129,7 +129,6 @@ try {
   return res.status(500).json({ message: `Erreur serveur lors du comptage des colis livrés pour le ${role}` });
 }
 };
-
 exports.countCanceledColisByRole = async (req, res) => {
 try {
   const { role, id } = req.params; // Get role and id from request parameters
