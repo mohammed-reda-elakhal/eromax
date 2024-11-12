@@ -70,6 +70,13 @@ function StatsColis({theme}) {
             desc: "Colis Annullée",
 
         },
+        {
+            id: 4,
+            icon: <TbPlayerEjectFilled />,
+            num: totalColisAnnule ||0 , // Use totalColisLivre.count if it exists, otherwise show 'Chargement...'
+            desc: "Colis Annullée",
+
+        }
         
     ];
     const argent = [
