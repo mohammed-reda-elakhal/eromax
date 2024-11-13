@@ -8,20 +8,24 @@
 }
 .statistic-colis{
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
 }
 
 .statistic-colis-box{
+    width: 200px; /* Ajustez la largeur ici */
+    height: 100px; /* Ajustez la hauteur ici */
+    background-color: var(--gray1);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3rem;
-    background: gray;
-    width: 100%;
-    border-radius: 4px;
-    padding: 16px;
 }
 .box-content{
     display: flex;
@@ -38,11 +42,10 @@
 }
 
 .statistic-argent{
-    width: 80%;
-    margin: 1em auto;
     display: flex;
-    align-items: center;
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
 }
 .statistic-chart{
     display: flex;
@@ -130,3 +133,23 @@
         text-align: center;
     }
   }
+
+  .table-container .ant-table-title {
+    width: 100%; /* Assure que le titre prend toute la largeur du conteneur */
+    padding: 10px; /* Supprime le padding par défaut */
+    text-align: center;
+    border-bottom: 2px solid #d9d9d9; /* Ajoute la bordure */
+    font-weight: bold;
+    font-size: 15px;
+    color: #333;
+}
+.table-title {
+    font-size: 15px;
+    width: 100%; /* S'assurer que le titre prend toute la largeur du conteneur */
+    font-weight: bold;
+    padding: 8px;
+    text-align: center;
+    border-bottom: 2px solid #d9d9d9; /* Bordure sous le titre */
+    color: #333; /* Couleur du texte */
+    margin-bottom: 8px;
+}

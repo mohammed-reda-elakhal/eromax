@@ -77,3 +77,25 @@ export function getLastTransaction(store) {
         }
     };
 }
+export function getBigTransaction(store) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/count/big-transaction/${store}`, {
+            });
+            dispatch(staticsActions.setBigTransac(data.transaction));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch last Transaction ");
+        }
+    };
+}
+export function getTopVille(store) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.get(`/api/count/topVille/${store}`, {
+            });
+            dispatch(staticsActions.setTopVille(data.top10Villes));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch last Transaction ");
+        }
+    };
+}

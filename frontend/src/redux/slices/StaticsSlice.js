@@ -5,7 +5,9 @@ const initialState={
     setAllColis: 0,
     setAllColisLivre: 0,
     setColisLivreByRole:0,
-    setColisCancealByRole:0
+    setColisCancealByRole:0,
+    topVilles: [],
+
 };
 const staticsSlice = createSlice({
     name: "statics",
@@ -27,6 +29,12 @@ const staticsSlice = createSlice({
         },
         setLastTransac(state,action){
             state.setLastTransac=action.payload
+        },
+        setBigTransac(state,action){
+            state.setBigTransac=action.payload
+        },
+        setTopVille(state,action){
+            state.topVilles=action.payload
         }
     }
 
