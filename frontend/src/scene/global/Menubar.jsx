@@ -17,6 +17,7 @@ import { useDispatch , useSelector } from 'react-redux';
 import { FaUserFriends } from "react-icons/fa"
 import { FaFileInvoiceDollar } from "react-icons/fa6";
 import { MdPayment } from "react-icons/md";
+import { RiDiscountPercentLine } from "react-icons/ri";
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -97,6 +98,15 @@ function Menubar() {
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
+
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<RiDiscountPercentLine />}>
+              <Link to="/dashboard/promotion">Promotions</Link>
+            </Menu.Item>
+          )
+        }
+
         {
           userData.role ==="admin" && (
             <Menu.SubMenu icon={<CgDanger />} title="Reclamations">
@@ -165,6 +175,8 @@ function Menubar() {
             </Menu.Item>
           )
         }
+
+        
 
         {
           userData.role ==="client" && (

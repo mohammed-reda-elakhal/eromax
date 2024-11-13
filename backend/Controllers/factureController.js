@@ -1,6 +1,7 @@
 const { Colis } = require('../Models/Colis'); 
 const Facture = require('../Models/Facture');
 const moment = require('moment');
+const asyncHandler = require('express-async-handler');
 const shortid = require('shortid');
 const { Suivi_Colis } = require('../Models/Suivi_Colis');
 const { Store } = require('../Models/Store');
@@ -475,7 +476,7 @@ const setFacturePay = async (req, res) => {
     }
 };
 
-const getFactureByCode = async (req, res) => {
+const getFactureByCode = asyncHandler(async (req, res) => {
     try {
         const { code_facture } = req.params;
 
@@ -551,16 +552,23 @@ const getFactureByCode = async (req, res) => {
             if (col.statut === 'Livrée') {
                 old_tarif_livraison = col.ville?.tarif || 0;
                 montant_a_payer = col.prix; // montant_a_payer is the same as prix for 'Livrée' colis
+
+                // Apply the active promotion, if available
+                if (activePromotion) {
+                    new_tarif_livraison = activePromotion.value; // Replace tarif_livraison with promotion value
+                } else {
+                    new_tarif_livraison = old_tarif_livraison; // No promotion applied
+                }
             } else if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
                 old_tarif_livraison = col.ville?.tarif_refus || 0;
-                montant_a_payer = 0; // montant_a_payer is 0 for 'Refusée' colis
-            }
+                montant_a_payer = 0; // montant_a_payer is 0 for these statuses
 
-            // Apply the active promotion, if available
-            if (activePromotion) {
-                new_tarif_livraison = activePromotion.value; // Replace tarif_livraison with promotion value
+                new_tarif_livraison = old_tarif_livraison; // Do not apply promotion
             } else {
-                new_tarif_livraison = old_tarif_livraison; // No promotion applied
+                // Handle any other statuses if necessary
+                old_tarif_livraison = col.ville?.tarif || 0; // Default to regular tarif
+                new_tarif_livraison = activePromotion ? activePromotion.value : old_tarif_livraison;
+                montant_a_payer = col.prix;
             }
 
             // Determine tarif_fragile
@@ -660,7 +668,7 @@ const getFactureByCode = async (req, res) => {
         console.error('Error fetching facture by code:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-};
+});
 
 
 const getFacturesByLivreur = async (req, res) => {

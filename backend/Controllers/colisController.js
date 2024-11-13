@@ -162,6 +162,165 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 });
 
 
+// controllers/colisController.js
+
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Create multiple colis without transactions
+ * @route    /api/colis/multiple
+ * @method   POST
+ * @access   Private (only logged-in users)
+ * -------------------------------------------------------------------
+**/
+module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
+  try {
+    // 1. Validate Request Body
+    if (!req.body || !Array.isArray(req.body) || req.body.length === 0) {
+      return res.status(400).json({ message: "Les données de vos colis sont manquantes ou invalides." });
+    }
+
+    // 2. Validate User and Extract Store & Team Information
+    if (!req.user) {
+      return res.status(400).json({ message: "Informations sur l'utilisateur manquantes." });
+    }
+
+    const store = req.user.store || null;  // Assuming req.user.store contains the store ObjectId
+    const team = req.user.id;  // Assuming 'team' is the user ID
+
+    const colisToInsert = [];
+    const suiviColisToInsert = [];
+    const notificationsToInsert = [];
+
+    for (const [index, colisInput] of req.body.entries()) {
+      // 3. Validate Each Colis Individually
+      const { error } = validateRegisterColis(colisInput);
+      if (error) {
+        return res.status(400).json({ message: `Erreur de validation dans le colis à l'index ${index}: ${error.details[0].message}` });
+      }
+
+      // 4. Lookup Ville by Name
+      const ville = await Ville.findOne({ nom: colisInput.ville });
+      if (!ville) {
+        return res.status(400).json({ message: `Ville avec le nom "${colisInput.ville}" non trouvée dans le colis à l'index ${index}.` });
+      }
+
+      // 5. Generate Unique code_suivi
+      let code_suivi;
+      let isUnique = false;
+      let attempts = 0;
+      const maxAttempts = 5; // Prevent infinite loops
+
+      while (!isUnique && attempts < maxAttempts) {
+        code_suivi = generateCodeSuivi(ville.ref);
+        const existingColis = await Colis.findOne({ code_suivi });
+        if (!existingColis) {
+          isUnique = true;
+        }
+        attempts++;
+      }
+
+      if (!isUnique) {
+        return res.status(500).json({ message: `Impossible de générer un code_suivi unique pour le colis à l'index ${index}. Veuillez réessayer.` });
+      }
+
+      // 6. Prepare Colis Data
+      const colisData = {
+        ...colisInput,
+        store,
+        team,
+        ville: ville._id,  // Store Ville ObjectId
+        code_suivi,
+      };
+
+      // 7. Handle Colis Replacement if is_remplace is true
+      if (colisInput.is_remplace) {
+        const replacedCodeSuivi = colisInput.replacedColis; // Now expecting code_suivi
+
+        if (!replacedCodeSuivi) {
+          return res.status(400).json({ message: `Aucun code_suivi de colis à remplacer fourni pour le colis à l'index ${index}.` });
+        }
+
+        // Validate that the replacedColis code_suivi corresponds to a delivered Colis and not already replaced
+        const oldColis = await Colis.findOne({
+          code_suivi: replacedCodeSuivi,
+          statut: 'Livrée',
+          is_remplace: false,
+        });
+
+        if (!oldColis) {
+          return res.status(400).json({
+            message: `Le colis à remplacer avec le code_suivi "${replacedCodeSuivi}" est invalide (soit non livré, soit déjà remplacé) pour le colis à l'index ${index}.`,
+          });
+        }
+
+        // Mark the old Colis as replaced
+        oldColis.is_remplace = true;
+        await oldColis.save();
+
+        // Link the old Colis to the new Colis
+        colisData.replacedColis = oldColis._id;
+      }
+
+      colisToInsert.push(colisData);
+
+      // 8. Prepare Suivi_Colis Data
+      suiviColisToInsert.push({
+        id_colis: null, // To be updated after insertion
+        code_suivi: code_suivi,
+        date_create: new Date(),
+        status_updates: [
+          { status: "Attente de Ramassage", date: new Date() }
+        ]
+      });
+
+      // 9. Prepare Notifications Data
+      if (store) {
+        notificationsToInsert.push({
+          id_store: store,
+          colisId: null, // To be updated after insertion
+          title: 'Nouvelle colis',
+          description: `Un nouveau colis avec le code de suivi ${code_suivi} est en attente de Ramassage.`,
+          read: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+    }
+
+    // 10. Insert Colis
+    const insertedColis = await Colis.insertMany(colisToInsert);
+
+    // 11. Update Suivi_Colis and Notifications with Colis IDs
+    insertedColis.forEach((colis, idx) => {
+      suiviColisToInsert[idx].id_colis = colis._id;
+      // Update notification's colisId
+      if (notificationsToInsert[idx]) {
+        notificationsToInsert[idx].colisId = colis._id;
+      }
+    });
+
+    // 12. Insert Suivi_Colis
+    const insertedSuiviColis = await Suivi_Colis.insertMany(suiviColisToInsert);
+
+    // 13. Insert Notifications
+    const insertedNotifications = await Notification_User.insertMany(notificationsToInsert);
+
+    // 14. Respond with All Created Colis and Suivi_Colis
+    res.status(201).json({
+      message: 'Colis créés avec succès.',
+      colis: insertedColis,
+      suiviColis: insertedSuiviColis,
+      notifications: insertedNotifications,
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la création multiple des colis:', error);
+    res.status(500).json({ message: 'Erreur interne du serveur.' });
+  }
+});
+
+
 /**
  * -------------------------------------------------------------------
  * @desc     Get all colis, optionally filter by statut, and populate specific data of replacedColis

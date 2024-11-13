@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
-const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin, verifyTokenAndLivreur, verifyTokenAdminTeam, verifyTokenAndClient} = require("../Middlewares/VerifyToken"); 
+const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin, verifyTokenAndLivreur, verifyTokenAdminTeam, verifyTokenAndClient, verifyToken} = require("../Middlewares/VerifyToken"); 
 const { updateSuiviColis, updateMultipleSuiviColis, updateMultipleColisStatus } = require("../Controllers/suivi_colisController");
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
@@ -9,6 +9,7 @@ const { ajoutVille } = require("../Controllers/villeCtrl");
 //Router api/colis
 router.route('/')
         .get( verifyTokenAndAdmin , colisController.getAllColisCtrl)
+        .post(verifyToken , colisController.CreateMultipleColisCtrl)
 
 //Router api/colis/select/status
 router.route('/select/status')

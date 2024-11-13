@@ -49,11 +49,20 @@ const colisSlice = createSlice({
       state.error = null;
     },
     addColis(state, action) {
-      if (action.payload && typeof action.payload === 'object') {
+      if (action.payload && typeof action.payload === 'object' && !Array.isArray(action.payload)) {
         state.colis.push(action.payload);
       } else {
         console.error("Invalid payload format for addColis:", action.payload);
         state.error = "Invalid data format for adding colis.";
+      }
+    },
+    addMultipleColis(state, action) {
+      if (Array.isArray(action.payload)) {
+        state.colis.push(...action.payload);
+        state.error = null;
+      } else {
+        console.error("Invalid payload format for addMultipleColis:", action.payload);
+        state.error = "Invalid data format for adding multiple colis.";
       }
     },
     setLoading(state, action) {

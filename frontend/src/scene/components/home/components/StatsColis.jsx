@@ -47,6 +47,7 @@ function StatsColis({theme}) {
             }
         }
     }, [dispatch, user, store]);
+    
     const data = [
         {
             id: 1,

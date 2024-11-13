@@ -4,17 +4,7 @@ import request from "../../utils/request";
 import { staticsActions } from "../slices/StaticsSlice";
 
 
-export function countColisLivre() {
-    return async (dispatch) => {
-        try {
-            const { data } = await request.get(`/api/count/livres`, {
-            });
-            dispatch(staticsActions.setAllColisLivre(data));
-        } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
-        }
-    };
-}
+
 export function countColisByRole(role,id) {
     return async (dispatch) => {
         try {
@@ -24,7 +14,7 @@ export function countColisByRole(role,id) {
             dispatch(staticsActions.setAllColis(data.totalColis));
 
         } catch (error) {
-            console.error(error.message || "Failed to fetch reclamations");
+            toast.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -37,7 +27,7 @@ export function countColisLivreByRole(role,id) {
             dispatch(staticsActions.setColisLivreByRole(data.totalColis));
 
         } catch (error) {
-            console.error(error.message || "Failed to fetch reclamations");
+            toast.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -50,7 +40,7 @@ export function countColisRetourByRole(role,id) {
             dispatch(staticsActions.setColisRetour(data.totalColis));
 
         } catch (error) {
-            console.error(error.message || "Failed to fetch reclamations");
+            toast.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -61,7 +51,7 @@ export function countColisAnnuleByRole(role,id) {
             });
             dispatch(staticsActions.setColisCancealByRole(data.totalColis));
         } catch (error) {
-            console.error(error.message || "Failed to fetch reclamations");
+            toast.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -72,7 +62,7 @@ export function countGainsByRole(role,id) {
             });
             dispatch(staticsActions.setTotalGains(data.totalGains));
         } catch (error) {
-            console.error(error.message || "Failed to fetch reclamations");
+            toast.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
