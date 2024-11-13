@@ -63,6 +63,7 @@ app.use('/api/facture', require('./routes/factureRoute'));
 app.use('/api/Ramasserfacture', require('./routes/ramasserFactureRoute'));
 app.use("/api/images", require("./routes/imageRoute"));
 app.use("/api/count", require("./routes/staticRoute"));
+app.use('/api/promotions', require('./routes/promotionRoutes'));
 
 
 // Run `findOrCreateLivreur` after database connection to ensure `livreur` user is created if it doesn't exist

@@ -7,30 +7,44 @@ const Transaction = require('../Models/Transaction')
 
 exports.createDemandeRetrait = async (req, res) => {
   try {
-    const { id_store } = req.body; // Assuming the store ID is tied to the user
-    const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const { id_store, id_payement, montant } = req.body;
 
-    // Find the latest demande retrait by this store (or user)
-    const lastDemande = await DemandeRetrait.findOne({
-      id_store: id_store, // Filter by store/user
-      createdAt: { $gte: oneDayAgo }, // Only consider demandes created within the last 24 hours
-    });
+    // Declare tarif
+    const tarif = 5; // Tariff in DH
 
-    // If a demande exists within the last 24 hours, prevent the new creation
-    if (lastDemande) {
+    // Calculate the adjusted montant
+    const montantStocked = montant - tarif;
+
+    // Ensure that the montant after deduction is not negative
+    if (montantStocked < 0) {
       return res.status(400).json({
-        message: 'Vous ne pouvez soumettre qu\'une seule demande de retrait toutes les 24 heures.',
+        message: "Le montant après déduction du tarif ne peut pas être négatif.",
       });
     }
 
-    // Create a new demande retrait
-    const demandeRetrait = new DemandeRetrait(req.body);
-    await demandeRetrait.save();
-    res.status(201).json( {message : "Votre demande est bien reçu attendez pour effectuer votre verment" , data : demandeRetrait});
+    // Create a new DemandeRetrait instance
+    const newDemandeRetrait = new DemandeRetrait({
+      id_store,
+      id_payement,
+      montant: montantStocked, // Store the adjusted montant
+      tarif,
+      verser: false,
+    });
 
+    // Save the new demandeRetrait to the database
+    const savedDemandeRetrait = await newDemandeRetrait.save();
+
+    // Send a success response
+    res.status(201).json({
+      message: 'Demande de retrait créée avec succès!',
+      data: savedDemandeRetrait,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    // Handle errors
+    res.status(500).json({
+      message: 'Erreur lors de la création de la demande de retrait.',
+      error: error.message,
+    });
   }
 };
 
@@ -45,7 +59,8 @@ exports.getAllDemandesRetrait = async (req, res) => {
       .populate({
         path: 'id_payement',        // Populate id_payement (Payment)
         populate: { path: 'idBank' }    // Then populate idBank from Payment
-      });
+      })
+      .sort({ updatedAt: -1 }) // -1 for descending order
 
     res.status(200).json(demandes);
   } catch (error) {
@@ -64,7 +79,8 @@ exports.getDemandesRetraitByClient = async (req, res) => {
     .populate({
       path: 'id_payement',        // Populate id_payement (Payment)
       populate: { path: 'idBank' }    // Then populate idBank from Payment
-    });
+    })
+    .sort({ updatedAt: -1 }) // -1 for descending order
     res.status(200).json(demandes);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -75,41 +91,56 @@ exports.verserDemandeRetrait = async (req, res) => {
   const { id } = req.params;
 
   try {
-      const demandeRetrait = await DemandeRetrait.findById(id).populate('id_store');
-      const storeId=demandeRetrait.id_store
-      if (!demandeRetrait) {
-          return res.status(404).json({ message: 'Demande de retrait non trouvée' });
-      }
+    // Find the DemandeRetrait by ID and populate 'id_store'
+    const demandeRetrait = await DemandeRetrait.findById(id).populate('id_store');
 
-      // Met à jour le statut "verser" à true
-      demandeRetrait.verser = true;
-      await demandeRetrait.save();
-      
-      const store= await Store.findById(storeId);
-      store.solde -= demandeRetrait.montant;
-      await store.save();
+    if (!demandeRetrait) {
+      return res.status(404).json({ message: 'Demande de retrait non trouvée' });
+    }
 
-      const transaction = new Transaction({
-        id_store: demandeRetrait.id_store,
-        montant: demandeRetrait.montant,
-        type: 'credit', // Transaction de type crédit
+    // Check if 'verser' is already true
+    if (demandeRetrait.verser) {
+      return res.status(400).json({ message: 'La demande de retrait a déjà été versée.' });
+    }
+
+    // Update 'verser' status to true
+    demandeRetrait.verser = true;
+    await demandeRetrait.save();
+
+    // Retrieve the associated store
+    const store = await Store.findById(demandeRetrait.id_store);
+
+    // Deduct the montant from the store's solde
+    store.solde -= demandeRetrait.montant;
+    await store.save();
+
+    // Create a new Transaction
+    const transaction = new Transaction({
+      id_store: demandeRetrait.id_store,
+      montant: demandeRetrait.montant,
+      type: 'credit', // Transaction of type 'credit'
     });
     await transaction.save();
-    // Créer une notification pour l'utilisateur concernant le versement de la demande de retrait
 
+    // Create a notification for the user about the successful withdrawal
     const notification = new Notification_User({
       id_store: store._id,
-      title : "Demande de retrait",
+      title: 'Demande de retrait',
       description: `Votre demande de retrait d'un montant de ${demandeRetrait.montant} MAD a été versée avec succès. 💵🤑`,
     });
-    await notification.save();  // Sauvegarder la notification
+    await notification.save(); // Save the notification
 
+    // Send a success response
     res.status(200).json({
-        message: 'Versement effectué avec succès 💵🤑',
-        data: { demandeRetrait, transaction }
+      message: 'Versement effectué avec succès 💵🤑',
+      data: { demandeRetrait, transaction },
     });
-
   } catch (error) {
-      res.status(500).json({ message: 'Erreur lors de la mise à jour du versement', error: error.message });
+    // Handle errors
+    res.status(500).json({
+      message: 'Erreur lors de la mise à jour du versement',
+      error: error.message,
+    });
   }
 };
+

@@ -10,15 +10,17 @@ const { handleFactureRamasser } = require('./factureHelper');
 
 
 /*
-boite vocale
-pas de reponse ( 3 jours )
-pas reponse + sms / + whatsap 
+Boite vocale
+Pas de reponse jour 1
+Pas de reponse jour 2
+Pas de reponse jour 3
+Pas reponse + sms / + whatsap 
 En voyage 
 Injoignable
 Hors-zone
 Intéressé
 Numéro Incorrect
-reporté
+Reporté
 Confirmé Par Livreur
 Endomagé
 */
@@ -41,7 +43,20 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     "Refusée",
     "En Retour",
     "Remplacée",
-    "Fermée"
+    "Fermée",
+    "Boite vocale",
+    "Pas de reponse jour 1",
+    "Pas de reponse jour 2",
+    "Pas de reponse jour 3",
+    "Pas reponse + sms / + whatsap",
+    "En voyage",
+    "Injoignable",
+    "Hors-zone",
+    "Intéressé",
+    "Numéro Incorrect",
+    "Reporté",
+    "Confirmé Par Livreur",
+    "Endomagé",
   ];
 
   // Validate inputs
@@ -148,7 +163,20 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
     "Refusée",
     "En Retour",
     "Remplacée",
-    "Fermée"
+    "Fermée",
+    "Boite vocale",
+    "Pas de reponse jour 1",
+    "Pas de reponse jour 2",
+    "Pas de reponse jour 3",
+    "Pas reponse + sms / + whatsap",
+    "En voyage",
+    "Injoignable",
+    "Hors-zone",
+    "Intéressé",
+    "Numéro Incorrect",
+    "Reporté",
+    "Confirmé Par Livreur",
+    "Endomagé",
   ];
 
   // Validate inputs

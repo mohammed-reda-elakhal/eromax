@@ -4,7 +4,11 @@
     gap: 10px;
     margin-bottom: 20px;
 }
-
+.old_price{
+    color: red;
+    font-size: 11px;
+    text-decoration-line: line-through; 
+}
 .facture-buttons button {
     background-color: #008cba;
     color: white;

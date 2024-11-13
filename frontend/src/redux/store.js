@@ -13,6 +13,7 @@ import { transactionReducer } from "./slices/transactionSlice";
 import { demandeRetraitReducer } from "./slices/demandeRetraitSlice";
 import { storeReducer } from "./slices/storeSlice";
 import { staticsReducer } from "./slices/StaticsSlice";
+import { promotionReducer } from "./slices/promotionSlice";
 
 
 
@@ -31,7 +32,8 @@ const store = configureStore({
     transaction:transactionReducer,
     demandeRetrait:demandeRetraitReducer,
     store: storeReducer, // Add store reducer to the store
-    statics:staticsReducer
+    statics:staticsReducer,
+    promotion: promotionReducer,
   },
 });
 

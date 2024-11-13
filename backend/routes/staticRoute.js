@@ -22,4 +22,3 @@ router.get('/colis/countParLiv', countColisParLivreur);
 
 
 module.exports= router;
-

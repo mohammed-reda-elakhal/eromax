@@ -113,6 +113,7 @@ const FactureDetail = () => {
           <p>{record.destinataire}</p>
           <p>{record.telephone}</p>
           <p>{record.ville}</p>
+          <p> <strong>Prix :</strong> {record.prix}</p>
         </>
       ),
     },
@@ -131,14 +132,13 @@ const FactureDetail = () => {
       ),
     },
     {
-      title: 'Tarif Livraison',
-      dataIndex: 'tarif_livraison',
-      key: 'tarif_livraison',
-    },
-    {
-      title: 'Tarif Fragile',
-      dataIndex: 'tarif_fragile',
-      key: 'tarif_fragile',
+      title: 'Tarif',
+      render: (text , record) => (
+        <div>
+          <p> <strong>Livraison : </strong>{record.new_tarif_livraison} <span className='old_price'>{record.old_tarif_livraison}</span></p>
+          <p> <strong>Fragile : </strong>{record.tarif_fragile}</p>
+        </div>
+      ),
     },
     {
       title: 'TTL',
@@ -146,10 +146,12 @@ const FactureDetail = () => {
       key: 'tarif_total',
     },
     {
-      title: 'Prix',
-      dataIndex: 'prix',
-      key: 'prix',
-      render: (text) => (text ? text.toFixed(2) : 'N/A'),
+      title: 'Montant à Payer',
+      render: (text , record) => (
+        <div>
+          {record.prix - record.tarif_total}
+        </div>
+      ),
     },
 
   ];
@@ -215,7 +217,7 @@ const FactureDetail = () => {
                 <strong>Bon Livraison:</strong>
               </p>
               <p>#{facture?.code_facture}</p>
-              <p>{new Date(facture?.date).toLocaleString()}</p>
+              <p>{facture?.date}</p>
               <p>{facture?.colis?.length} Colis</p>
             </div>
           </div>

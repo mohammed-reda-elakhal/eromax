@@ -36,6 +36,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     loading: false,
   });
 
+  const phoneNumber = '+212664201873';
+
   const componentRef = useRef();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -218,6 +220,72 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         }
       },
     },
+    {
+      title: 'Support',
+      render : (text , record) => (
+        <div className="expanded-actions" style={{ marginTop: '10px' }}>
+          {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+            <Button 
+              type="primary" 
+              icon={<FaWhatsapp />} 
+              onClick={() => window.open(`https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}`, '_blank')}
+              style={{ marginRight: '8px' }}
+            >
+            </Button>
+          )}
+          <Button 
+            type="primary" 
+            icon={<TbPhoneCall />} 
+            onClick={() => window.location.href = `tel:${phoneNumber}`}
+            style={{ marginRight: '8px' }}
+          >
+          </Button>
+        </div>
+      )
+    },
+    {
+      title: 'Options',
+      render : (text , record) => (
+        <div className="expanded-actions" style={{ marginTop: '10px' }}>
+          <Button 
+            type="primary" 
+            icon={<Si1001Tracklists />} 
+            onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
+            style={{ marginRight: '8px' }}
+          >
+            Track
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<FaPrint />} 
+            onClick={() => handleTicket(record)} 
+            style={{ marginRight: '8px' }}
+          >
+            Print
+          </Button>
+          {user.role !== 'client' && user.role !== 'livreur' && (
+            <Button 
+              type="primary" 
+              icon={<FaPenFancy />} 
+              onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
+              style={{ marginRight: '8px' }}
+            >
+              Edit
+            </Button>
+          )}
+          {
+            user?.role === "client" && (
+              <Button 
+                type="primary" 
+                onClick={() => openReclamationModal(record)} 
+              >
+                Reclamation
+              </Button>
+            )
+          }
+      </div>
+      )
+    }
   ];
 
  // Define expandable content with three segments

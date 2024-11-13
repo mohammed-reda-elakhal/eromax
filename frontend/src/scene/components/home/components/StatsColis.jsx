@@ -42,7 +42,6 @@ function StatsColis({ theme }) {
             
         }
     }, [dispatch, user, store]);
-
     const data = [
         { id: 1, icon: <MdDomainVerification />, num: totalColisLivreByRole || 0, desc: "Totale de Colis Livrée", color: '#4CAF50' },
         { id: 2, icon: <GrInProgress />, num: totalColisEncours || 0, desc: "Totale de Colis En cours", color: '#FFC72C' },

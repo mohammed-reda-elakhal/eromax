@@ -17,6 +17,7 @@ import { useDispatch , useSelector } from 'react-redux';
 import { FaUserFriends } from "react-icons/fa"
 import { FaFileInvoiceDollar } from "react-icons/fa6";
 import { MdPayment } from "react-icons/md";
+import { RiDiscountPercentLine } from "react-icons/ri";
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -97,6 +98,15 @@ function Menubar() {
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
+
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<RiDiscountPercentLine />}>
+              <Link to="/dashboard/promotion">Promotions</Link>
+            </Menu.Item>
+          )
+        }
+
         {
           userData.role ==="admin" && (
             <Menu.SubMenu icon={<CgDanger />} title="Reclamations">
@@ -165,6 +175,8 @@ function Menubar() {
             </Menu.Item>
           )
         }
+
+        
 
         {
           userData.role ==="client" && (
@@ -285,21 +297,6 @@ function Menubar() {
           }
         </Menu.SubMenu>
 
-        
-        <Menu.SubMenu icon={<BsFillInboxesFill />} title="Stock">
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/list-produit">Produit</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/ajouter-colis/stock">Ajouter Colis</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/colis-stock">Colis Stock</Link>
-          </Menu.Item>
-          <Menu.Item icon={<BiTagAlt />}>
-            <Link to="/dashboard/import-colis">Import Colis (Stock)</Link>
-          </Menu.Item>
-        </Menu.SubMenu>
       </Menu>
       
     </div>

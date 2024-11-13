@@ -44,7 +44,7 @@ export function getNotificationUserByStore() {
 }
 
 // Get notifications with optional visibility filter
-export function notificationRead(id) {
+    export function notificationRead(id) {
     return async (dispatch) => {
         try {
             const { data } = await request.patch(`/api/notification-user/read/${id}`);
@@ -54,7 +54,6 @@ export function notificationRead(id) {
         }
     };
 }
-
 
 
 // Create a new notification

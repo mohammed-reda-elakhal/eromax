@@ -7,6 +7,48 @@ import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
 
 
+// Create Multiple Colis Function
+export function createMultipleColis(colisList) {
+  return async (dispatch) => {
+      try {
+          // Get token from cookies
+          const token = Cookies.get('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+          // Send POST request to create multiple colis
+          const { data } = await request.post('/api/colis', colisList, config);
+
+          // Check if data and data.colis exist
+          if (data && Array.isArray(data.colis)) {
+              // Dispatch addMultipleColis with the array of colis
+              dispatch(colisActions.addMultipleColis(data.colis));
+              toast.success(data.message || 'Colis créés avec succès');
+          } else {
+              // Handle unexpected response structure
+              toast.error('Structure de réponse inattendue lors de la création des colis');
+              dispatch(colisActions.setError('Structure de réponse inattendue lors de la création des colis'));
+          }
+
+      } catch (error) {
+          console.error("Failed to create multiple colis:", error);
+          // Extract error message from response if available
+          const errorMessage = error.response?.data?.message || error.message || "Échec de la création des colis";
+          toast.error(errorMessage);
+          dispatch(colisActions.setError(errorMessage));
+      }
+  };
+}
 
 // Fetch post
 export function getColis(statut) {
@@ -279,24 +321,35 @@ export function createColis(colis) {
       }
     };
 }
-export const getColisForLivreur = (userId,statut) => async (dispatch) => {
-    dispatch(colisActions.setLoading(true));
-    try {
-        const token =Cookies.get('token'); // Retrieve token as a string
-        const config = {
-            headers: {
-                'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
-                'Content-Type': 'application/json',
-            }
-        };
-        // Fetch the data from the API
-        const { data } = await request.get(`/api/colis/getColisLiv/${userId}?statut=${statut}`,config);
-        dispatch(colisActions.setColis(data)); // Use action creator
-    } catch (error) {
-        console.error("Failed to fetch colis for client:", error);
-        dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
-    }
+
+export const getColisForLivreur = (userId, statuts = []) => async (dispatch) => {
+  dispatch(colisActions.setLoading(true));
+  try {
+      const token = Cookies.get('token'); // Retrieve token as a string
+      const config = {
+          headers: {
+              'Authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+              'Content-Type': 'application/json',
+          },
+          params: {}
+      };
+
+      if (statuts.length > 0) {
+          config.params.statut = statuts; // Axios handles array parameters correctly
+      }
+
+      // Fetch the data from the API
+      const { data } = await request.get(`/api/colis/getColisLiv/${userId}`, config);
+      dispatch(colisActions.setColis(data)); // Use action creator
+  } catch (error) {
+      console.error("Failed to fetch colis for livreur:", error);
+      dispatch(colisActions.setError("Failed to fetch colis: " + error.message));
+  } finally {
+      dispatch(colisActions.setLoading(false));
+  }
 };
+
+
 export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
     try{
         const token = Cookies.get('token');

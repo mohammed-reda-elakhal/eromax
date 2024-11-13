@@ -16,7 +16,12 @@
 .colis-select-ville.dark-mode .ant-select-selection-placeholder {
     color: gray;
 }
-
+.expanded-actions{
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 20px;
+}
 .colis-select-ville.dark-mode .ant-select-selection-item {
     color: #fff;
 }
