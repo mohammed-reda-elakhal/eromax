@@ -10,6 +10,12 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import {
+  countColisAnnuleByRole,
+  countColisLivreByRole,
+  countColisRetourByRole
+} from '../../../../redux/apiCalls/staticsApiCalls';
+import { useDispatch, useSelector } from 'react-redux';
 
 ChartJS.register(
   CategoryScale,
@@ -58,19 +64,43 @@ const getLast30DaysLabels = () => {
 };
 
 function ColisLineChart({data}) {
+  const dispatch = useDispatch();
+  const user = useSelector(state => state.auth.user);
+  const store = useSelector(state => state.auth.store);
+
+  // Sélection des données du Redux store
+  const colisLivrees = useSelector((state) => state.statics.setColisLivreByRole);
+  const colisRetournees = useSelector((state) => state.statics.setColisRetour);
+
+  useEffect(() => {
+    if (user && store && user.role) {
+      const roleId = user.role === "client" ? store._id : user._id;
+            dispatch(countColisRetourByRole(user.role, roleId));
+            dispatch(countColisLivreByRole(user.role, roleId));
+      
+            
+    }
+  }, [dispatch, user, store]);
+
+
+
+
+
+
+
   const [chartData, setChartData] = useState({
     labels: getLast30DaysLabels(),
     datasets: [
       {
         label: 'Colis Livrées',
-        data: generateRandomData(30),
+        data: Array(30).fill(colisLivrees), // Utilisation des données Redux
         borderColor: 'green',
         backgroundColor: 'green',
         yAxisID: 'y',
       },
       {
         label: 'Colis Retournées',
-        data: generateRandomData(30),
+        data: Array(30).fill(colisRetournees), // Utilisation des données Redux
         borderColor: 'red',
         backgroundColor: 'red',
         yAxisID: 'y',

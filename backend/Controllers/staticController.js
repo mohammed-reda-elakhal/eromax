@@ -13,7 +13,7 @@ exports.countColisByRole = async (req, res) => {
       // If role is admin, count all colis excluding "Livrée" and "Annulée" statuses
       if (role === 'admin') {
           const countAllColis = await Colis.aggregate([
-              { $match: { statut: { $nin: ['Livrée', 'Annulée'] } } }, // Exclude 'Livrée' and 'Annulée'
+              { $match: { statut: { $nin: ['Livrée', 'Annulée','Fermée','Refusée'] } } }, // Exclude 'Livrée' and 'Annulée'
               {
                   $group: {
                       _id: null, // Group all results together
@@ -48,7 +48,7 @@ exports.countColisByRole = async (req, res) => {
       const countForRole = await Colis.aggregate([
           { 
               $match: { 
-                  statut: { $nin: ['Livrée', 'Annulée'] }, // Exclude 'Livrée' and 'Annulée'
+                statut: { $nin: ['Livrée', 'Annulée','Fermée','Refusée'] }, // Exclude 'Livrée' and 'Annulée'
                   [matchField]: objectId // Match by the specific role field and ID
               } 
           },
@@ -136,7 +136,7 @@ try {
   // If role is admin, count all "Annulée" colis
   if (role === 'admin') {
     const countAllCanceled = await Colis.aggregate([
-      { $match: { statut: 'Annulée' } }, // Match all colis with "Annulée" status
+      { $match: { statut: {$in: ['Annulée','Fermée','Refusée'] }} }, // Match all colis with "Annulée" status
       {
         $group: {
           _id: null, // Group all results together
@@ -169,7 +169,7 @@ try {
 
   // Aggregate query to count "Annulée" colis for the specified role
   const countForRole = await Colis.aggregate([
-    { $match: { statut: 'Annulée', [matchField]: objectId } }, // Use dynamic match field and id
+    { $match: { statut: {$in: ['Annulée','Fermée','Refusée'] }, [matchField]: objectId } }, // Use dynamic match field and id
     {
       $group: {
         _id: `$${matchField}`, // Group by the dynamic field
@@ -185,7 +185,7 @@ try {
     totalColis: countForRole[0]?.totalColis // The total count for this role
   });
 } catch (error) {
-  console.error(`Erreur lors du comptage des colis annulés pour le rôle ${role}:`, error);
+  console.error(`Erreur lors du comptage des colis annulés pour le rôle`, error);
   return res.status(500).json({ message: `Erreur serveur lors du comptage des colis annulés pour le rôle ${role}` });
 }
 };
@@ -245,8 +245,8 @@ exports.countRetourColisByRole = async (req, res) => {
       totalColis: countForRole[0].totalColis // The total count for this role
     });
   } catch (error) {
-    console.error(`Erreur lors du comptage des colis annulés pour le rôle :`, error);
-    return res.status(500).json({ message: `Erreur serveur lors du comptage des colis annulés pour le rôle` });
+    console.error(`Erreur lors du comptage des colis annulés pour le rôle ${role}:`, error);
+    return res.status(500).json({ message: `Erreur serveur lors du comptage des colis annulés pour le rôle ${role}` });
   }
 };
 exports.countTotalGains = async (req, res) => {
@@ -314,7 +314,7 @@ exports.countTotalGainsByRole = async (req, res) => {
           totalGains: totalGains
       });
   } catch (error) {
-      console.error(`Erreur lors du calcul des gains pour le rôle ${role}:`, error);
+      console.error(`Erreur lors du calcul des gains pour le rôle`, error);
       return res.status(500).json({ message: `Erreur serveur lors du calcul des gains pour le rôle ${role}` });
   }
 };
@@ -395,7 +395,7 @@ exports.getBigTransByStore = async (req, res) => {
       id_store: objectId,    // Filter by store ID
       type: 'debit'       // Filter by transaction type
     })
-    .sort({ amount: -1 }) // Sort by amount in descending order to get the largest
+    .sort({ montant: -1 }) // Sort by amount in descending order to get the largest
     .limit(1);            // Limit to the highest transaction
 
     // Return the largest debit transaction
@@ -404,7 +404,7 @@ exports.getBigTransByStore = async (req, res) => {
       transaction: bigDebitTransaction.montant,
     });
   } catch (error) {
-    console.error(`Erreur lors de la récupération de la plus grande transaction de débit pour le magasin ${req.params.storeId}:`, error);
+    console.error(`Erreur lors de la récupération de la plus grande transaction de débit pour le magasin`, error);
     return res.status(500).json({ message: 'Erreur serveur lors de la récupération de la plus grande transaction de débit.' });
   }
 };
