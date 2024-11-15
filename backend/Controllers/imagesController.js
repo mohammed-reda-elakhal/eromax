@@ -356,10 +356,98 @@ const UploadClientFiles = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: err.message });
     }
 });
+
+
+const uploadFiles = asyncHandler(async (req, res) => {
+    console.log("Received file upload request");
+  
+    // Check if both files are present
+    if (!req.files || !req.files.cinRecto || !req.files.cinVerso) {
+      return res.status(400).json({ message: "Both CIN recto and verso are required." });
+    }
+  
+    const { role, id } = req.params;
+  
+    try {
+      // Verify user based on role
+      let user;
+      if (role === "client") {
+        user = await Client.findById(id);
+      } else if (role === "livreur") {
+        user = await Livreur.findById(id);
+      } else {
+        return res.status(400).json({ message: "Invalid user type. Must be 'Client' or 'Livreur'." });
+      }
+  
+      if (!user) {
+        return res.status(404).json({ message: `${role} not found` });
+      }
+  
+      // File paths
+      const cinRectoPath = path.resolve(__dirname, "../files", req.files.cinRecto[0].filename);
+      const cinVersoPath = path.resolve(__dirname, "../files", req.files.cinVerso[0].filename);
+  
+      // Cloudinary upload
+      const cinRectoResult = await cloudinaryUploadImage(cinRectoPath);
+      const cinVersoResult = await cloudinaryUploadImage(cinVersoPath);
+  
+      if (!cinRectoResult.secure_url || !cinVersoResult.secure_url) {
+        console.error("Cloudinary upload failed for one or both files.");
+        if (fs.existsSync(cinRectoPath)) fs.unlinkSync(cinRectoPath);
+        if (fs.existsSync(cinVersoPath)) fs.unlinkSync(cinVersoPath);
+        return res.status(500).json({ message: "Failed to upload files to Cloudinary" });
+      }
+  
+      // Save to DB
+      const newFile = new File({
+        type: req.body.type || "CIN",
+        userType: role,
+        userId: id,
+        cinRecto: {
+          url: cinRectoResult.secure_url,
+          publicId: cinRectoResult.public_id,
+        },
+        cinVerso: {
+          url: cinVersoResult.secure_url,
+          publicId: cinVersoResult.public_id,
+        },
+      });
+  
+      await newFile.save();
+      user.files.push(newFile._id);
+        await user.save();
+  
+      // Cleanup local files
+      fs.unlinkSync(cinRectoPath);
+      fs.unlinkSync(cinVersoPath);
+  
+      console.log("Files uploaded and saved to DB:", newFile);
+  
+      res.status(201).json({
+        message: "Files uploaded successfully",
+        file: newFile,
+      });
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      
+      // Cleanup files in case of error
+      if (req.files) {
+        const cinRectoPath = path.resolve(__dirname, "../files", req.files.cinRecto[0].filename);
+        const cinVersoPath = path.resolve(__dirname, "../files", req.files.cinVerso[0].filename);
+  
+        if (fs.existsSync(cinRectoPath)) fs.unlinkSync(cinRectoPath);
+        if (fs.existsSync(cinVersoPath)) fs.unlinkSync(cinVersoPath);
+      }
+  
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+
  module.exports={
     uploadProfilePhotoController,
     updateProfilePhotoController,
     storePhotoController,
     updatePhotoStoreController,
-    UploadClientFiles
+    UploadClientFiles,
+    uploadFiles
  }

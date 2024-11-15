@@ -19,16 +19,17 @@ const storage = multer.diskStorage({
 // Initialize upload variable
 const fileUpload = multer({
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB file size limit
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
-// Check file type
-    if(file.mimetype.startsWith("file")){
-      cb(null , true)
-  }else{
-      cb({message : "Unsupported this file type"} , false)
+    if (file.mimetype.startsWith("image")) {
+      cb(null, true);
+    } else {
+      cb({ message: "Unsupported file type" }, false);
+    }
   }
-    
-  }
-});
+}).fields([
+  { name: 'cinRecto', maxCount: 1 },
+  { name: 'cinVerso', maxCount: 1 }
+]);
 
 module.exports = fileUpload

@@ -8,6 +8,7 @@
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "mongoose": "^8.4.0",
+    "react-dropzone": "^14.3.5",
     "react-redux": "^9.1.2",
     "react-swipeable": "^7.0.1",
     "redux-persist": "^6.0.0",
