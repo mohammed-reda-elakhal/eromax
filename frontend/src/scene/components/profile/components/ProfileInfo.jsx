@@ -99,14 +99,6 @@ function ProfileInfo() {
         return false; // Prevent default upload behavior
     };
     
-    if (loading) {
-        return (
-            <div style={{ textAlign: 'center', padding: '50px 0' }}>
-                <Spin size="large" />
-            </div>
-        );
-    }
-
     if (error) {
         return (
             <div style={{ textAlign: 'center', padding: '50px 0' }}>

@@ -10,6 +10,11 @@
     tarif_refus:{
       type : Number,
       default : 15 ,
+  },
+  disponibility: {
+    type: [String], // Array of strings representing days of the week
+    enum: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Demanche'], // restrict to valid days
+    default: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'] // Default availability, if any
   }
   });
 

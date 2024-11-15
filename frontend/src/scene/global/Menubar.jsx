@@ -146,9 +146,6 @@ function Menubar() {
                 <Link to="/dashboard/compte/livreur">Livreur</Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/compte/Team">Team</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/compte/admin">Admin</Link>
               </Menu.Item>
             </Menu.SubMenu>

@@ -245,8 +245,8 @@ exports.countRetourColisByRole = async (req, res) => {
       totalColis: countForRole[0].totalColis // The total count for this role
     });
   } catch (error) {
-    console.error(`Erreur lors du comptage des colis annulés pour le rôle ${role}:`, error);
-    return res.status(500).json({ message: `Erreur serveur lors du comptage des colis annulés pour le rôle ${role}` });
+    console.error(`Erreur lors du comptage des colis annulés pour le rôle:`, error);
+    return res.status(500).json({ message: `Erreur serveur lors du comptage des colis annulés pour le rôle` });
   }
 };
 exports.countTotalGains = async (req, res) => {

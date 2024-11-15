@@ -36,6 +36,8 @@ export function loginUser(user, role, navigate) {
 export function registerUser(role , user){
     return async (dispatch ) =>{
         try {
+            console.log(`user : ${user}`);
+            
             const {data} = await request.post(`/api/auth/register/${role}` , user);
             toast.success(data.message);
         } catch (error) {

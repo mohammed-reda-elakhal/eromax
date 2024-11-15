@@ -31,7 +31,7 @@ const profileSlice = createSlice({
             state.error = null;
         },
         updateProfileSuccess(state, action) {
-            state.loading = false;
+        state.loading = false;
             state.profile = action.payload;
         },
         updateProfileFailure(state, action) {
@@ -69,6 +69,18 @@ const profileSlice = createSlice({
         deleteProfileSuccess(state, action) {
             state.profileList = state.profileList.filter(profile => profile._id !== action.payload);
         },
+        toggleActiveClient(state, action) {
+            state.profileList = state.profileList.map(profile => {
+                if (profile._id === action.payload._id) {
+                    return { ...profile, active: action.payload.active };
+                }
+                return profile;
+            });
+        
+            if (state.profile && state.profile._id === action.payload._id) {
+                state.profile.active = action.payload.active;
+            }
+        }
     },
 });
 

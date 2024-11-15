@@ -11,10 +11,10 @@ const generateToken = (id, role, store) => {
     return jwt.sign({ id, role, store }, process.env.JWT_SECRET, { expiresIn: '1y' });
 };
 
-/**  
+/**
  * @desc Login Profile
  * @route POST /api/auth/login/:role
- * @access public
+ * @access Public
  */
 module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
     // Validation
@@ -24,24 +24,35 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
     }
 
     const { role } = req.params;
-    const { email, password ,username} = req.body;
+    const { email, password } = req.body;
     let user;
     let token;
 
     // Fetch the user based on the role
     if (role === "staf") {
-        if(username){
-            user = await Admin.findOne({ email , username });
-        }else{
-            user = await Team.findOne({ email });
+        user = await Admin.findOne({ email });
+
+        // Admin can login without active check
+        if (!user) {
+            return res.status(400).json({ message: "Invalid email or password" });
         }
     }
     else if (role === "client") {
         user = await Client.findOne({ email });
-    } 
+
+        // Check if the user is active
+        if (!user || !user.active) {
+            return res.status(400).json({ message: "Account is not active" });
+        }
+    }
     else if (role === "livreur") {
         user = await Livreur.findOne({ email });
-    } 
+
+        // Check if the user is active
+        if (!user || !user.active) {
+            return res.status(400).json({ message: "Account is not active" });
+        }
+    }
     else {
         return res.status(400).json({ message: "Invalid role" });
     }
@@ -61,11 +72,10 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
     if (role === "client") {
         const store = await Store.findOne({ id_client: user._id, default: true });
         if (!store) {
-            return res.status(400).json({ message: "Aucun store trouvée pour cet client" });
+            return res.status(400).json({ message: "No default store found for this client" });
         }
-        
+       
         token = generateToken(user._id, user.role, store._id);
-
         // Respond with token and user profile
         return res.status(200).json({
             message: "Login successful",
@@ -75,7 +85,6 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
         });
     } else {
         token = generateToken(user._id, user.role, "");
-
         // Respond with token and user profile for non-client roles
         return res.status(200).json({
             message: "Login successful",
@@ -181,17 +190,14 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
     store = await store.populate('id_client',  ["-password"]);
 
     res.status(201).json({
-        message : `Welcom ${client.prenom} to your account EROMAX`,
+        message : `Bonjour ${client.prenom} , votre compte sera active sur 24H`,
         role: client.role,
         store
     });
 });
 
 module.exports.registerLivreur = asyncHandler(async (req, res) => {
-    const { error } = livreurValidation(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
+   
 
     const { email, password , ...rest } = req.body;
 
@@ -207,7 +213,7 @@ module.exports.registerLivreur = asyncHandler(async (req, res) => {
     await livreur.save();
 
     res.status(201).json({
-        message : `Welcom ${livreur.prenom} to your account EROMAX`,
+        message : `Bonjour ${livreur.prenom} , Votre compte sera activée sur 24H  `,
         _id: livreur._id,
         email: livreur.email,
         role: livreur.role,

@@ -1,112 +1,91 @@
 import React, { useState } from 'react';
-import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
-import { Input, Button } from 'antd';
-import { Link , useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { Input, Button, Radio } from 'antd';
+import { LockOutlined, MailOutlined } from '@ant-design/icons';
 
+import './login.css';
 import { loginUser } from '../redux/apiCalls/authApiCalls';
 
-function Login() {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
   const [role, setRole] = useState('client');
-  const [rememberMe, setRememberMe] = useState(false);
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Prepare form data
-    const formData = {
-      email,
-      password,
-    };
-
-    // Include username if role is 'staf' and username is not empty
-    if (role === 'staf' && username.trim() !== '') {
-      formData.username = username;
-    }
-
-    // Dispatch login action
-    dispatch(loginUser(formData, role, navigate)); // Uncomment this when ready to use
-    console.log('Form Data:', formData);
+    const formData = { email, password };
+    dispatch(loginUser(formData, role, navigate));
     clearData();
   };
 
   const clearData = () => {
     setEmail('');
     setPassword('');
-    setUsername('');
   };
 
   return (
-    <div className='login-section'>
-      <div className="login-section-main">
-        <div className="login-section-toplogo">
-          <img src="/image/logo_2.png" alt="" style={{ width: "80px" }} />
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <img 
+            src="/image/logo-light.png" 
+            onClick={()=>navigate('/')} 
+            style={{cursor:"pointer"}} 
+            alt="Landino" 
+            className="login-logo" 
+          />
+          <h2>Login</h2>
         </div>
-        <div className="login-section-role">
-          <p
-           style={role === 'client' ? {color:"var(--limon)"} : {color:"black"}}
-            onClick={() => setRole('client')}
-          >
-            Client
-          </p>
-          <p
-           style={role === 'livreur' ? {color:"var(--limon)"} : {color:"black"}}
-            onClick={() => setRole('livreur')}
-          >
-            Livreur
-          </p>
-          <p
-            style={role === 'staf' ? {color:"var(--limon)"} : {color:"black"}}
-            onClick={() => setRole('staf')}
-          >
-            Staf
-          </p>
-        </div>
-        <div className="login-section-main-header">
-          <h3>Bienvenue sur EROMAX</h3>
-          <p>Ne partagez pas vos données de connexion pour votre sécurité</p>
-        </div>
-        <form onSubmit={handleSubmit}>
-          {role === "staf" && (
-            <Input
-              size="large"
-              placeholder="Username"
-              className='login-input'
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          )}
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="login-role-container">
+            <Radio.Group
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="login-role-group"
+            >
+              <Radio.Button value="client" className="login-role-button">
+                Client
+              </Radio.Button>
+              <Radio.Button value="livreur" className="login-role-button">
+                Livreur
+              </Radio.Button>
+              <Radio.Button value="staf" className="login-role-button">
+                Staf
+              </Radio.Button>
+            </Radio.Group>
+          </div>
           <Input
             size="large"
             placeholder="Email"
-            className='login-input'
+            prefix={<MailOutlined className="login-input-icon" />}
+            className="login-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <Input.Password
             size="large"
-            className='login-input'
-            placeholder="Mot de passe"
+            placeholder="Password"
+            prefix={<LockOutlined className="login-input-icon" />}
+            className="login-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
           />
-          <Button type="primary" block htmlType="submit">
+          <Button type="primary" htmlType="submit" className="login-button">
             Log in
           </Button>
-          <p className='footer-link-form'>
-            <span>Nouveau sur EROMAX ?</span>
-            <Link to='register' className='footer-link-form-link'>Créer votre compte</Link>
-          </p>
         </form>
+        <div className="login-footer">
+          <span>No account yet?</span>
+          <Link to="/register" className="login-footer-link">
+            Register
+          </Link>
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default Login;

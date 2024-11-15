@@ -18,10 +18,10 @@ const LivreurSchema = new mongoose.Schema({
             publicId: null,
         }
     },
-    active: { type: Boolean, default: false },
+    active: { type: Boolean, default: true },
     role: { type: String, required: true, default: 'livreur' },
-    type: { type: String, required: true, default: 'simple' },
-    tarif:{type :Number , required:true},
+    type: { type: String, required: false, default: 'simple' },
+    tarif:{type :Number , required:false},
     domaine:{type : String , required : false},
     file: { type: mongoose.Schema.Types.ObjectId, ref: 'file' },
 
@@ -38,32 +38,31 @@ const livreurValidation = (obj) => {
     const livreurJoiSchema = Joi.object({
         nom: Joi.string().trim().min(2).max(100).required(),
         prenom: Joi.string().trim().min(2).required(),
-        username: Joi.string().trim().min(2),
+        username: Joi.string().trim().min(2).optional(),
         ville: Joi.string().required(),
         adresse: Joi.string().required(),
         tele: Joi.string().required(),
-        type: Joi.string().required().default('simple'),
-        domaine: Joi.string(),
-        cin: Joi.string(),
+        type: Joi.string().default('simple').optional(),
+        domaine: Joi.string().optional(),
+        cin: Joi.string().optional(),
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
         profile: Joi.object({
-            url: Joi.string().uri(),
-            publicId: Joi.string().allow(null)
+            url: Joi.string().uri().optional(),
+            publicId: Joi.string().allow(null).optional()
         }).default({
             url: "https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_1280.png",
             publicId: null
         }),
-        active: Joi.boolean().default(false),
-        role: Joi.string().default("livreur"),
-        tarif:Joi.allow(),
-
-        // Joi validation for region
-        villes: Joi.array().items(Joi.string()) // Region is optional but must follow this structure if provided
+        active: Joi.boolean().default(true).optional(),
+        role: Joi.string().default("livreur").optional(),
+        tarif: Joi.number().optional(),
+        villes: Joi.array().items(Joi.string()).optional() // Optional and allows array of strings
     });
     
     return livreurJoiSchema.validate(obj);
 };
+
 
 module.exports = {
     Livreur,

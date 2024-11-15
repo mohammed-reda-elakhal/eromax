@@ -22,6 +22,7 @@ function ScanRamasser() {
   const [scannerEnabled, setScannerEnabled] = useState(true); // Control scanner visibility
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
 
   // Function to fetch the colis by code_suivi
   const fetchColisByCodeSuivi = async (barcode) => { // Removed 'statu' parameter
@@ -41,6 +42,7 @@ function ScanRamasser() {
       // Map of required previous statuses for each 'statu' prop value
       const requiredStatusMap = {
         'Ramassée': ['attente de ramassage'],
+        'Expediée': ['Ramassée'],
         'Reçu': ['Expediée'],
         'Mise en Distribution': ['Reçu'],
         'Livrée': ['Mise en Distribution'],
@@ -134,7 +136,6 @@ function ScanRamasser() {
   // Function to handle the action (e.g., ramasser)
   const handleAction = async () => {
     const codeSuiviList = scannedItems.map(item => item.barcode);
-    console.log('Code Suivi List:', codeSuiviList);
     try {
       const response = await request.put('/api/colis/statu/update', {
         colisCodes: codeSuiviList,

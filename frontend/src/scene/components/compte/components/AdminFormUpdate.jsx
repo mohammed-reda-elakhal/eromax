@@ -106,7 +106,7 @@ function AdminFormUpdate() {
             {/* Active status (Switch) */}
             <Form.Item>
                 <Button type="primary" htmlType="submit">
-                    Modifier Team
+                    Modifier Admin
                 </Button>
             </Form.Item>
         </Form>

@@ -1,55 +1,81 @@
-import React from 'react';
-import { Form, Input, InputNumber, Button } from 'antd';
+import React, { useEffect } from 'react';
+import { Form, Input, InputNumber, Button, Select } from 'antd';
 
-function VilleForm({theme}) {
-  const [form] = Form.useForm();
+const { Option } = Select;
 
-  const handleSubmit = (values) => {
-    console.log('Form values:', values);
-    // Here you would typically handle form submission, e.g., sending data to an API.
-  };
+function VilleForm({ theme, onSubmit, initialValues }) {
+    const [form] = Form.useForm();
 
-  return (
-    <div style={{ maxWidth: 600, margin: 'auto' }}>
-      <h2>Ville Form</h2>
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-      >
+    useEffect(() => {
+        if (initialValues) {
+            form.setFieldsValue(initialValues);
+        } else {
+            form.resetFields();
+        }
+    }, [initialValues, form]);
 
-        <Form.Item
-          label="Ref"
-          name="ref"
-          rules={[{ required: true, message: 'Please input the reference!' }]}
-        >
-          <Input />
-        </Form.Item>
+    const handleSubmit = (values) => {
+        onSubmit(values);
+        form.resetFields();
+    };
 
-        <Form.Item
-          label="Nom"
-          name="nom"
-          rules={[{ required: true, message: 'Please input the name!' }]}
-        >
-          <Input />
-        </Form.Item>
-
-        <Form.Item
-          label="Tarif"
-          name="tarif"
-          rules={[{ required: true, message: 'Please input the tariff!' }]}
-        >
-          <InputNumber min={0} />
-        </Form.Item>
-
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
-        </Form.Item>
-      </Form>
-    </div>
-  );
+    return (
+        <Form form={form} onFinish={handleSubmit} layout="vertical">
+            <Form.Item
+                name="ref"
+                label="Ref"
+                rules={[{ required: true, message: "Ref is required" }]}
+            >
+                <Input />
+            </Form.Item>
+            <Form.Item
+                name="nom"
+                label="Nom"
+                rules={[{ required: true, message: "Nom is required" }]}
+            >
+                <Input />
+            </Form.Item>
+            <Form.Item
+                name="tarif"
+                label="Tarif"
+                rules={[{ required: true, message: "Tarif is required" }]}
+            >
+                <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+                name="tarif_refus"
+                label="Tarif Refus"
+                initialValue={15}
+            >
+                <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+                name="disponibility"
+                label="Disponibility"
+                rules={[{ required: true, message: "Please select at least one day" }]}
+            >
+                <Select
+                    mode="multiple"
+                    placeholder="Choisir disponibility de la ville"
+                    allowClear
+                    style={{ width: '100%' }}
+                >
+                    <Option value="Lundi">Lundi</Option>
+                    <Option value="Mardi">Mardi</Option>
+                    <Option value="Mercredi">Mercredi</Option>
+                    <Option value="Jeudi">Jeudi</Option>
+                    <Option value="Vendredi">Vendredi</Option>
+                    <Option value="Samedi">Samedi</Option>
+                    <Option value="Dimanche">Dimanche</Option>
+                </Select>
+            </Form.Item>
+            <Form.Item>
+                <Button type="primary" htmlType="submit">
+                    Submit
+                </Button>
+            </Form.Item>
+        </Form>
+    );
 }
 
 export default VilleForm;

@@ -67,11 +67,16 @@ function Topbar() {
         overflow: 'hidden',
       }}
     >
+      <Menu.Item onClick={toggleTheme} icon={ theme  === 'dark'  ?  <MdNightlight />: <MdLightMode /> }>
+        {theme === 'dark' ? "Dark Mode" : "Light Mode"}
+      </Menu.Item>
       <Menu.Item key="profile" icon={<ImProfile style={{ margin: '0 8px' }} />}>
         <Link className='link_topbar' to={`/dashboard/profile/${user._id}`}>
           Profile
         </Link>
       </Menu.Item>
+      {user?.role === 'client' && (
+        <>
       <Menu.Item key="store" icon={<FaStore  style={{ margin: '0 8px' }}/>}>
         <Link className='link_topbar' to={`/dashboard/bussness`}>
           Bussness
@@ -87,10 +92,14 @@ function Topbar() {
           Documents
         </Link>
       </Menu.Item>
+      </>
+      )
+    }
       <Menu.Divider />
       <Menu.Item key="logout" icon={<ImExit style={{ marginRight: '8px' }} />} onClick={logoutFunction}>
         Deconnecter
       </Menu.Item>
+      
     </Menu>
   );
 
@@ -133,7 +142,7 @@ function Topbar() {
         )}
       </div>
       <div className="control-topbar">
-        {theme === 'dark' ? <MdNightlight onClick={toggleTheme} style={styleIcon} /> : <MdLightMode onClick={toggleTheme} style={styleIcon} />}
+      
         <Badge count={notificationUser.length} onClick={showDrawer} style={{ cursor: "pointer" }}>
           <Avatar icon={<IoIosNotifications />} style={{ cursor: "pointer" }} />
         </Badge>

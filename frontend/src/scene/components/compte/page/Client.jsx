@@ -7,7 +7,7 @@ import { FaPenFancy, FaInfoCircle, FaPlus } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import {  Drawer } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteProfile, getProfileList } from '../../../../redux/apiCalls/profileApiCalls';
+import { deleteProfile, getProfileList, toggleActiveClient } from '../../../../redux/apiCalls/profileApiCalls';
 import { getStoreByUser } from '../../../../redux/apiCalls/storeApiCalls'; // Import the store API call
 import { useNavigate } from 'react-router-dom';
 import ClientFormAdd from '../components/ClientFormAdd';
@@ -73,6 +73,11 @@ function Client({ search }) {
         }
     }, [stores, isModalStoreOpen]);
 
+    const toggleActiveCompte = (id)=>{
+        dispatch(toggleActiveClient(id))
+        dispatch(getProfileList("client"));
+    }
+
     const handleOk = () => {
         setIsModalStoreOpen(false);
         setSelectedStores([]);
@@ -92,6 +97,10 @@ function Client({ search }) {
         dispatch(deleteProfile("client", id));
     };
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+      };
     // Define table columns
     const columns = [
         {
@@ -99,6 +108,13 @@ function Client({ search }) {
             dataIndex: 'profile',
             render: (text, record) => (
                 <Avatar src={record.profile?.url || '/image/user.png'} className='profile_image_user' />
+            ),
+        },
+        {
+            title: 'Register Date',
+            dataIndex: 'createdAt',
+            render: (text, record) => (
+                <>{formatDate(record.createdAt)}</>
             ),
         },
         {
@@ -113,9 +129,10 @@ function Client({ search }) {
             title: 'Username',
             dataIndex: 'username',
             key: 'username',
+            ...search('username'),
         },
         {
-            title: 'Store',
+            title: 'N° Store',
             dataIndex: 'stores', // Adjusted to match the data structure
             render: (text, record) => (
                 <Button onClick={()=>openStoresModal(record)}>{(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}</Button>
@@ -125,16 +142,19 @@ function Client({ search }) {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
+            ...search('email'),
         },
         {
             title: 'Téléphone',
             dataIndex: 'tele',
             key: 'tele',
+            ...search('tele'),
         },
         {
             title: 'Ville',
             dataIndex: 'ville',
             key: 'ville',
+            ...search('ville'),
         },
         {
             title: 'Adresse',
@@ -150,20 +170,34 @@ function Client({ search }) {
             title: 'Activation de compte',
             dataIndex: 'active',
             key: 'active',
-            render: (active) => (
-                <span style={{
-                    backgroundColor: active ? 'green' : 'red',
-                    color: 'white',
-                    padding: '5px',
-                    borderRadius: '3px',
-                    display: 'inline-block',
-                    whiteSpace: 'pre-wrap',
-                    textAlign: 'center'
-                }}>
-                    {active ? 'Activée' : 'Non Activée'}
-                </span>
-            ),
-        },
+            render: (active, record) => (
+                <Button
+                    type={active ? 'primary' : 'danger'}
+                    onClick={() => toggleActiveCompte(record._id)}
+                    style={{
+                        backgroundColor: active ? '#28a745' : '#dc3545',
+                        borderColor: active ? '#28a745' : '#dc3545',
+                        color: '#fff',
+                        borderRadius: '20px',
+                        padding: '6px 12px',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {active ? (
+                            <i className="fas fa-lock-open mr-2"></i>
+                        ) : (
+                            <i className="fas fa-lock mr-2"></i>
+                        )}
+                        {active ? 'Désactiver' : 'Activer'}
+                    </div>
+                </Button>
+            )
+         },
         {
             title: 'Action',
             dataIndex: 'action',
@@ -233,8 +267,6 @@ const closeStoreForm = () => {
                         </Button>
                         <TableDashboard theme={theme} column={columns} id="_id" data={profileList} />
                         
-                        // Client.js
-
                         <Modal
                             title="Stores"
                             open={isModalStoreOpen}
@@ -320,10 +352,10 @@ const closeStoreForm = () => {
                                                         </Col>
                                                         <Col span={24}>
                                                             <Typography.Text strong>
-                                                                Ville:
+                                                                Adresse :
                                                             </Typography.Text>
                                                             <Typography.Text style={{ marginLeft: '8px' }}>
-                                                                {store.ville}
+                                                                {store.adress}
                                                             </Typography.Text>
                                                         </Col>
                                                     </Row>
@@ -334,8 +366,6 @@ const closeStoreForm = () => {
                                 </>
                             )}
                         </Modal>
-
-                        // Client.js
 
                         <Drawer
                             title={storeToEdit ? "Edit Store" : "Add Store"}

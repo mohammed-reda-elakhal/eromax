@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllClients, getClientById, createClient, updateClient, deleteClient, clientPhotoController, UploadClientfiles, UploadClientFiles, generateFactureClient, generateFactureClientwithLiv } = require("../Controllers/clientControllers");
+const { getAllClients, getClientById, createClient, updateClient, deleteClient, clientPhotoController, UploadClientfiles, UploadClientFiles, generateFactureClient, generateFactureClientwithLiv, toggleActiveClient } = require("../Controllers/clientControllers");
 const photoUpload = require("../Middlewares/photoUpload");
 const { verifyToken, verifyTokenAndStore, verifyTokenAndClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin } = require("../Middlewares/VerifyToken");
 const fileUpload = require("../Middlewares/fileUpload");
@@ -16,6 +16,11 @@ router.route("/:id")
         .get(getClientById)
         .put(updateClient)
         .delete(deleteClient)
+   
+// api/client/active/:id
+router.route("/active/:id")
+        .patch(toggleActiveClient)
+
 
 router.get('/generate/:colisId',generateFactureClient);
 router.get('/generate/:storeId/:date',generateFactureClientwithLiv);

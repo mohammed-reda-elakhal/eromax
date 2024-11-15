@@ -143,6 +143,28 @@ const getClientById = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Client updated Successfully", client });
 });
 
+/**
+ * @desc Activate/Deactivate client account
+ * @route /api/client/:id/toggle-active
+ * @method PATCH
+ * @access Private (client only)
+ */
+const toggleActiveClient = asyncHandler(async (req, res) => {
+  const clientId = req.params.id;
+  const client = await Client.findById(clientId);
+
+  if (!client) {
+    return res.status(404).json({ message: 'Client not found' });
+  }
+
+  client.active = !client.active;
+  await client.save();
+
+  res.status(200).json({
+    message: `Cette compte est ${client.active ? 'active' : 'desactive'}`,
+    client
+  });
+});
 
 /** -------------------------------------------
  * @desc delete client
@@ -396,4 +418,5 @@ module.exports = {
     generateFactureClient,
     generateFactureClientwithLiv,
     generateFactureClientMultiple ,
+    toggleActiveClient
 };

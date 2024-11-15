@@ -163,3 +163,20 @@ export function updateProfileImage(userId, role, formData) {
         }
     };
 }
+
+// Toggle Active/Inactive Client Account
+export function toggleActiveClient(clientId) {
+    return async (dispatch) => {
+      try {
+        const { data } = await request.patch(`/api/client/active/${clientId}`);
+   
+        dispatch(profileActions.toggleActiveClient(data.client));
+        toast.success(data.message);
+      } catch (error) {
+        console.error('Toggle active client error:', error);
+        const errorMessage = error.response?.data?.message || error.message || "Failed to toggle client account status";
+        toast.error(errorMessage);
+      }
+    };
+   }
+

@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { CarOutlined, CheckCircleOutlined, DeliveredProcedureOutlined, SearchOutlined, DeploymentUnitOutlined } from '@ant-design/icons';
 import { toast } from 'react-toastify';
 import { IoLockClosed } from 'react-icons/io5';
+import { MdDeliveryDining } from "react-icons/md";
 
 const Scan = () => {
     const { theme } = useContext(ThemeContext);
@@ -20,6 +21,7 @@ const Scan = () => {
     // Dynamic data for card content
     const cardData1 = [
         { name: 'Ramassée', icon: <CarOutlined /> },
+        { name: 'Expediée', icon: <MdDeliveryDining /> },
         { name: 'Reçu', icon: <CheckCircleOutlined /> },
         { name: 'Mise en Distribution', icon: <DeploymentUnitOutlined /> },
         { name: 'Livrée', icon: <DeliveredProcedureOutlined /> },

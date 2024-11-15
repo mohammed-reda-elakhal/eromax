@@ -145,6 +145,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
+      ...search('code_suivi'),
       width: 200,
       render: (text , record) => (
         <>
@@ -173,16 +174,19 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',
+      ...search('nom'),
     },
     {
       title: 'Téléphone',
       dataIndex: 'tele',
       key: 'tele',
+      ...search('tele'),
     },
     {
       title: 'Ville',
       dataIndex: ['ville', 'nom'],
       key: 'ville',
+      ...search('ville'),
     },
     {
       title: 'Adresse',
@@ -332,64 +336,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
       </Descriptions.Item>
     </Descriptions>
-
-    {/* Action Buttons */}
-    <div className="expanded-actions" style={{ marginTop: '10px' }}>
-      {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
-        <Button 
-          type="primary" 
-          icon={<FaWhatsapp />} 
-          onClick={() => handleInfo(record._id)} 
-          style={{ marginRight: '8px' }}
-        >
-          Info
-        </Button>
-      )}
-      <Button 
-        type="primary" 
-        icon={<TbPhoneCall />} 
-        onClick={() => console.log('More options for record with id:', record._id)} 
-        style={{ marginRight: '8px' }}
-      >
-        Call
-      </Button>
-      <Button 
-        type="primary" 
-        icon={<Si1001Tracklists />} 
-        onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
-        style={{ marginRight: '8px' }}
-      >
-        Track
-      </Button>
-      <Button 
-        type="primary" 
-        icon={<FaPrint />} 
-        onClick={() => handleTicket(record)} 
-        style={{ marginRight: '8px' }}
-      >
-        Print
-      </Button>
-      {user.role !== 'client' && user.role !== 'livreur' && (
-        <Button 
-          type="primary" 
-          icon={<FaPenFancy />} 
-          onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
-          style={{ marginRight: '8px' }}
-        >
-          Edit
-        </Button>
-      )}
-      {
-        user?.role === "client" && (
-          <Button 
-            type="primary" 
-            onClick={() => openReclamationModal(record)} 
-          >
-            Reclamation
-          </Button>
-        )
-      }
-    </div>
   </div>
 );
 

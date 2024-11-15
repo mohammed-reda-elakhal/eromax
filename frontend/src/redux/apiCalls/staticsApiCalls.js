@@ -14,7 +14,7 @@ export function countColisByRole(role,id) {
             dispatch(staticsActions.setAllColis(data.totalColis));
 
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -27,7 +27,7 @@ export function countColisLivreByRole(role,id) {
             dispatch(staticsActions.setColisLivreByRole(data.totalColis));
 
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -40,7 +40,7 @@ export function countColisRetourByRole(role,id) {
             dispatch(staticsActions.setColisRetour(data.totalColis));
 
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -51,7 +51,7 @@ export function countColisAnnuleByRole(role,id) {
             });
             dispatch(staticsActions.setColisCancealByRole(data.totalColis));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -62,7 +62,7 @@ export function countGainsByRole(role,id) {
             });
             dispatch(staticsActions.setTotalGains(data.totalGains));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch reclamations");
+            console.error(error.message || "Failed to fetch reclamations");
         }
     };
 }
@@ -73,7 +73,7 @@ export function getLastTransaction(store) {
             });
             dispatch(staticsActions.setLastTransac(data.transaction));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch last Transaction ");
+            console.error(error.message || "Failed to fetch last Transaction ");
         }
     };
 }
@@ -84,7 +84,7 @@ export function getBigTransaction(store) {
             });
             dispatch(staticsActions.setBigTransac(data.transaction));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch last Transaction ");
+            console.error(error.message || "Failed to fetch last Transaction ");
         }
     };
 }
@@ -95,7 +95,7 @@ export function getTopVille(store) {
             });
             dispatch(staticsActions.setTopVille(data.top10Villes));
         } catch (error) {
-            toast.error(error.message || "Failed to fetch last Transaction ");
+            console.error(error.message || "Failed to fetch last Transaction ");
         }
     };
 }
