@@ -18,11 +18,19 @@ function Home() {
         <Cover/>
         <Track/>
         <FloatButton.BackTop />
-        <Service/>
-        <About/>
-        <Avantage/>
-        <Contact/>
-        <Tarif/>
+        <div id="about">
+          <About />
+        </div>
+        <div id="service">
+          <Service />
+        </div>
+        <Avantage />
+        <div id="contact">
+          <Contact />
+        </div>
+        <div id="tarif">
+          <Tarif />
+        </div>
         <Map/>
         <Footer/>
     </div>  

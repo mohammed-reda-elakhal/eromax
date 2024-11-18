@@ -1,204 +1,173 @@
 import React, { useState } from 'react';
 import { UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Flex, Input, Tooltip, Button, Radio, Space } from 'antd';
-import type { RadioChangeEvent } from 'antd';
-import { Link } from 'react-router-dom';
-
-const formatNumber = (value) => new Intl.NumberFormat().format(value);
-const NumericInput = (props) => {
-  const { value, onChange } = props;
-  const handleChange = (e) => {
-    const { value: inputValue } = e.target;
-    const reg = /^-?\d*(\.\d*)?$/;
-    if (reg.test(inputValue) || inputValue === '' || inputValue === '-') {
-      onChange(inputValue);
-    }
-  };
-
-  const handleBlur = () => {
-    let valueTemp = value;
-    if (value.charAt(value.length - 1) === '.' || value === '-') {
-      valueTemp = value.slice(0, -1);
-    }
-    onChange(valueTemp.replace(/0*(\d+)/, '$1'));
-  };
-  const title = value ? (
-    <span className="numeric-input-title">{value !== '-' ? formatNumber(Number(value)) : '-'}</span>
-  ) : (
-    'Tél Exemple : 0655124822 '
-  );
-  return (
-    <Tooltip trigger={['focus']} title={title} placement="topLeft" overlayClassName="numeric-input">
-      <Input
-        {...props}
-        size="large"
-        onChange={handleChange}
-        onBlur={handleBlur}
-        placeholder="Numéro"
-        maxLength={10}
-        suffix={
-          <Tooltip title="Entrer votre Numéro de telephone">
-            <InfoCircleOutlined
-              style={{
-                color: 'rgba(0,0,0,.45)',
-              }}
-            />
-          </Tooltip>
-        }
-      />
-    </Tooltip>
-  );
-};
+import { Tooltip, Input, Button, Radio, Space } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { registerUser } from '../redux/apiCalls/authApiCalls';
 
 function Register() {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [city, setCity] = useState('');
+  const [nom, setNom] = useState('');
   const [storeName, setStoreName] = useState('');
+  const [prenom, setPrenom] = useState('');
+  const [email, setEmail] = useState('');
+  const [tele, setTele] = useState('');
+  const [ville, setVille] = useState('');
+  const [password, setPassword] = useState('');
   const [startDate, setStartDate] = useState('');
   const [numberColis, setNumberColis] = useState('');
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const clearData = () => {
-    setName('');
+    setNom('');
+    setPrenom('');
     setEmail('');
-    setCity('');
-    setNumber('');
+    setTele('');
+    setVille('');
+    setPassword('');
     setStartDate('');
-    setStoreName('');
     setNumberColis('');
+    setStoreName('');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = {
-      name,
-      number,
+      nom,
+      prenom,
       email,
-      city,
-      storeName,
-      startDate,
-      numberColis,
+      tele,
+      ville,
+      password,
+      start_date: startDate,
+      number_colis: numberColis,
+      storeName
     };
-    console.log('Form Data:', formData);
+    dispatch(registerUser('client' , formData))
     clearData();
-  };
-
-  const onChangeStartDate = (e: RadioChangeEvent) => {
-    setStartDate(e.target.value);
-  };
-
-  const onChangeParcelsPerDay = (e: RadioChangeEvent) => {
-    setNumberColis(e.target.value);
+    navigate('/')
   };
 
   return (
     <div className="register-section">
       <Link to="/" className="register-section-logo">
-        <img src="/image/logo-light.png" alt="" />
+        <img src="/image/logo-light.png" alt="Logo" />
       </Link>
       <div className="register-section-main">
         <div className="register-main-title">
           <div className="register-main-title-icon">
             <UserOutlined />
           </div>
-          <p>Creér votre compte sur EROMAX</p>
+          <p>Créer votre compte sur EROMAX</p>
         </div>
-        <form onSubmit={handleSubmit}>
-          <Flex vertical gap={12}>
-            <Input
-              size="large"
-              placeholder="Nom et Prénom"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              suffix={
-                <Tooltip title="Entrer votre nom complet">
-                  <InfoCircleOutlined
-                    style={{
-                      color: 'rgba(0,0,0,.45)',
-                    }}
-                  />
-                </Tooltip>
-              }
-            />
-            <NumericInput size="large" value={number} onChange={setNumber} />
-            <Input
-              size="large"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              suffix={
-                <Tooltip title="Entrer votre adresse Email">
-                  <InfoCircleOutlined
-                    style={{
-                      color: 'rgba(0,0,0,.45)',
-                    }}
-                  />
-                </Tooltip>
-              }
-            />
-            <Input
-              size="large"
-              placeholder="Ville"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              suffix={
-                <Tooltip title="Entrer votre Ville">
-                  <InfoCircleOutlined
-                    style={{
-                      color: 'rgba(0,0,0,.45)',
-                    }}
-                  />
-                </Tooltip>
-              }
-            />
-            <Input
-              size="large"
-              placeholder="Nom de Store"
-              value={storeName}
-              onChange={(e) => setStoreName(e.target.value)}
-              suffix={
-                <Tooltip title="Entrer votre nom de store">
-                  <InfoCircleOutlined
-                    style={{
-                      color: 'rgba(0,0,0,.45)',
-                    }}
-                  />
-                </Tooltip>
-              }
-            />
-            <div>
-              <p>Date de Debut :</p>
-              <Radio.Group onChange={onChangeStartDate} value={startDate}>
-                <Space direction="vertical">
-                  <Radio value="Maintenant">Maintenant</Radio>
-                  <Radio value="Aprés Semaine">Aprés Semaine</Radio>
-                  <Radio value="Aprés Mois">Aprés Mois</Radio>
-                  <Radio value="More">
-                    More...
-                    {startDate === 'More' ? <Input style={{ width: 100, marginLeft: 10 }} /> : null}
-                  </Radio>
-                </Space>
-              </Radio.Group>
-            </div>
-            <div>
-              <p>Nombre de colis par jours :</p>
-              <Radio.Group onChange={onChangeParcelsPerDay} value={numberColis}>
-                <Space direction="vertical">
-                  <Radio value="1 - 5">1 - 5</Radio>
-                  <Radio value="5 - 10">5 - 10</Radio>
-                  <Radio value="10 - 50">10 - 50</Radio>
-                  <Radio value="More">
-                    More...
-                    {numberColis === 'More' ? <Input style={{ width: 100, marginLeft: 10 }} /> : null}
-                  </Radio>
-                </Space>
-              </Radio.Group>
-            </div>
-            <Button type="primary" htmlType="submit">
-              Créer compte
-            </Button>
-          </Flex>
+        <form onSubmit={handleSubmit} className='form_inputs'>
+          <Input
+            size="large"
+            placeholder="Nom"
+            value={nom}
+            onChange={(e) => setNom(e.target.value)}
+            suffix={
+              <Tooltip title="Entrer votre nom">
+                <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+              </Tooltip>
+            }
+          />
+          <Input
+            size="large"
+            placeholder="Prénom"
+            value={prenom}
+            onChange={(e) => setPrenom(e.target.value)}
+            suffix={
+              <Tooltip title="Entrer votre prénom">
+                <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+              </Tooltip>
+            }
+          />
+          <Input
+            size="large"
+            placeholder="Nom de Store"
+            value={storeName}
+            onChange={(e) => setStoreName(e.target.value)}
+            suffix={
+              <Tooltip title="Entrer le nom de votre store">
+                <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+              </Tooltip>
+            }
+          />
+          <Input
+            size="large"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            suffix={
+              <Tooltip title="Entrer votre email">
+                <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+              </Tooltip>
+            }
+          />
+          <Input
+            size="large"
+            placeholder="Téléphone"
+            value={tele}
+            onChange={(e) => setTele(e.target.value)}
+            suffix={
+              <Tooltip title="Entrer votre numéro de téléphone">
+                <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+              </Tooltip>
+            }
+          />
+          <Input
+            size="large"
+            placeholder="Ville"
+            value={ville}
+            onChange={(e) => setVille(e.target.value)}
+            suffix={
+              <Tooltip title="Entrer votre ville">
+                <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+              </Tooltip>
+            }
+          />
+          <Input.Password
+            size="large"
+            placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div>
+            <p>Date de début :</p>
+            <Radio.Group onChange={(e) => setStartDate(e.target.value)} value={startDate}>
+              <Space direction="vertical">
+                <Radio value="Maintenant">Maintenant</Radio>
+                <Radio value="Après Semaine">Après Semaine</Radio>
+                <Radio value="Après Mois">Après Mois</Radio>
+                <Radio value="More">
+                  More...
+                  {startDate === 'More' ? (
+                    <Input style={{ width: 100, marginLeft: 10 }} onChange={(e) => setStartDate(e.target.value)} />
+                  ) : null}
+                </Radio>
+              </Space>
+            </Radio.Group>
+          </div>
+          <div>
+            <p>Nombre de colis par jour :</p>
+            <Radio.Group onChange={(e) => setNumberColis(e.target.value)} value={numberColis}>
+              <Space direction="vertical">
+                <Radio value="1-5">1-5</Radio>
+                <Radio value="5-10">5-10</Radio>
+                <Radio value="10-50">10-50</Radio>
+                <Radio value="More">
+                  More...
+                  {numberColis === 'More' ? (
+                    <Input style={{ width: 100, marginLeft: 10 }} onChange={(e) => setNumberColis(e.target.value)} />
+                  ) : null}
+                </Radio>
+              </Space>
+            </Radio.Group>
+          </div>
+          <Button type="primary" htmlType="submit">
+            Créer compte
+          </Button>
         </form>
       </div>
     </div>

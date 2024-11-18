@@ -37,7 +37,7 @@ const services = [
 
 function Service() {
   return (
-    <section className='service'>
+    <section className='service' id='service'>
          <HeaderSection
             nom={`service`}
             title={`Que Pouvons-Nous Faire Pour Vous`}

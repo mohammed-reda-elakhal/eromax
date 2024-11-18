@@ -38,6 +38,7 @@ const { RangePicker } = DatePicker;
 
 const PromotionList = () => {
   const dispatch = useDispatch();
+  const newbranch = developement ;
   const {
     promotions,
     loading: promotionsLoading,

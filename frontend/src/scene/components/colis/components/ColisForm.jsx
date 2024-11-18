@@ -36,6 +36,16 @@ import debounce from 'lodash/debounce';
 
 const { TextArea } = Input;
 
+const daysOfWeek = [
+  'Lundi',
+  'Mardi',
+  'Mercredi',
+  'Jeudi',
+  'Vendredi',
+  'Samedi',
+  'Dimanche',
+];
+
 const ColisTypes = [
   { id: 1, name: 'Colis Simple' },
   { id: 2, name: 'Colis du Stock' },
@@ -337,8 +347,6 @@ function ColisForm({ theme, type }) {
           className="colis-form-inputs"
           style={{ marginTop: '24px' }}
         >
-          <Row gutter={16}>
-            <Col span={12}>
               <div className="colis-form-input">
                 <label htmlFor="nom">
                   Nom <span style={{ color: 'red' }}>*</span>
@@ -362,8 +370,6 @@ function ColisForm({ theme, type }) {
                   required
                 />
               </div>
-            </Col>
-            <Col span={12}>
               <div className="colis-form-input">
                 <label htmlFor="tele">
                   Téléphone <span style={{ color: 'red' }}>*</span>
@@ -389,8 +395,6 @@ function ColisForm({ theme, type }) {
                   required
                 />
               </div>
-            </Col>
-          </Row>
 
           {/* Ville Selection */}
           <div className="colis-form-input">
@@ -430,6 +434,45 @@ function ColisForm({ theme, type }) {
               />
             </div>
           )}
+         {
+          selectedVille && (
+            <div className="selected-ville-info" style={{ padding: '16px 0' }}>
+              <h3>Disponibility pour {selectedVille.nom}:</h3>
+              <div
+                className="days-checkbox-list"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flexWrap: 'wrap',  // Allow wrapping for small screens
+                  gap: '8px',
+                  padding: '16px',
+                  backgroundColor: '#f0f2f5',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                {daysOfWeek.map((day) => (
+                  <Checkbox
+                    key={day}
+                    checked={selectedVille.disponibility.includes(day)}
+                    disabled
+                    style={{
+                      fontSize: '16px',
+                      padding: '8px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '4px',
+                      backgroundColor: selectedVille.disponibility.includes(day)
+                        ? '#e6f7ff'
+                        : '#fff',
+                    }}
+                  >
+                    {day}
+                  </Checkbox>
+                ))}
+              </div>
+            </div>
+          )
+         }
 
           {/* Adresse Input */}
           <div className="colis-form-input">
@@ -464,9 +507,7 @@ function ColisForm({ theme, type }) {
             />
           </div>
 
-          {/* Prix and Nature de Produit Inputs */}
-          <Row gutter={16}>
-            <Col span={12}>
+         
               <div className="colis-form-input">
                 <label htmlFor="prix">
                   Prix <span style={{ color: 'red' }}>*</span>
@@ -492,8 +533,6 @@ function ColisForm({ theme, type }) {
                   min={0}
                 />
               </div>
-            </Col>
-            <Col span={12}>
               <div className="colis-form-input">
                 <label htmlFor="produit">Nature de produit</label>
                 <Input
@@ -516,8 +555,6 @@ function ColisForm({ theme, type }) {
                   }
                 />
               </div>
-            </Col>
-          </Row>
 
           {/* Submit Button */}
           <Button

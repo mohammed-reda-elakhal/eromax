@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './track.css';
 import { Input, Drawer, Steps, Alert } from 'antd';
+import TrackingColis from '../../scene/global/TrackingColis ';
 
 function Track() {
     const [open, setOpen] = useState(false);
@@ -50,37 +51,7 @@ function Track() {
                 />
             )}
             <Drawer title="Les données de colis suivre" onClose={onClose} open={open}>
-                <h4>
-                    Code de votre colis :
-                    <span>{codeSuivre}</span>
-                </h4>
-                <Steps
-                    progressDot
-                    current={1}
-                    direction="vertical"
-                    items={[
-                        {
-                            title: 'Finished',
-                            description: 'This is a description. This is a description.',
-                        },
-                        {
-                            title: 'Finished',
-                            description: 'This is a description. This is a description.',
-                        },
-                        {
-                            title: 'In Progress',
-                            description: 'This is a description. This is a description.',
-                        },
-                        {
-                            title: 'Waiting',
-                            description: 'This is a description.',
-                        },
-                        {
-                            title: 'Waiting',
-                            description: 'This is a description.',
-                        },
-                    ]}
-                />
+                <TrackingColis codeSuivi={codeSuivre} />
             </Drawer>
         </section>
     );

@@ -5,6 +5,7 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { FaDownload } from "react-icons/fa";
 import ImportFileColis from '../components/ImportFileColis';
+import file from '../../../../Assets/colis_import_example.xlsx'
 
 
 function ColisImport() {
@@ -23,10 +24,11 @@ function ColisImport() {
                 >
                     <div className="page-content-header">
                         <Title nom='Import Colis' />
-                        <button className='btn-dashboard'>
-                            <FaDownload style={{marginRight:"8px"}} />
+                        <a href={file} download="colis_import_example.xlsx" className="btn-dashboard">
+                            <FaDownload style={{ marginRight: "8px" }} />
                             Télécharger Modéle
-                        </button>
+                        </a>
+
                     </div>
                     <div
                         className="content"
