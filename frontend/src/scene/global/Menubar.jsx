@@ -7,7 +7,7 @@ import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt 
 import { IoWalletSharp } from "react-icons/io5";
 import { LuBox, LuScanLine } from "react-icons/lu";
 import { BiTagAlt } from "react-icons/bi";
-import { BsFillInboxesFill } from "react-icons/bs";
+import { BsFillFileEarmarkSpreadsheetFill, BsFillInboxesFill } from "react-icons/bs";
 import { CgDanger } from "react-icons/cg";
 import StoreDown from './StoreDown'; // Ensure this component is correctly implemented
 import { MdEditNotifications } from "react-icons/md";
@@ -15,7 +15,7 @@ import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { useDispatch , useSelector } from 'react-redux';
 import { FaUserFriends } from "react-icons/fa"
-import { FaFileInvoiceDollar } from "react-icons/fa6";
+import { FaFileInvoiceDollar, FaRegSquarePlus } from "react-icons/fa6";
 import { MdPayment } from "react-icons/md";
 import { RiDiscountPercentLine } from "react-icons/ri";
 
@@ -228,22 +228,30 @@ function Menubar() {
 
         {
           userData.role ==="client" && (
-            <Menu.SubMenu icon={<LuBox />} title="Espace Client">
+            <Menu.SubMenu icon={<FaRegSquarePlus />} title="Ajouter Colis">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BsFillFileEarmarkSpreadsheetFill />}>
+                <Link to="/dashboard/import-colis">Import Colis</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
+        {
+          userData.role ==="client" && (
+            <Menu.SubMenu icon={<LuBox />} title="Gestion colis">
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/import-colis">Import Colis</Link>
-              </Menu.Item>
             </Menu.SubMenu>
           )
         }
+
         {
           userData.role ==="livreur" && (
             <Menu.SubMenu icon={<LuBox />} title="Espace Livreur">

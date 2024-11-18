@@ -4,7 +4,8 @@ import { Input, Tooltip, Button, Form, Select, Typography, message } from 'antd'
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser } from '../redux/apiCalls/authApiCalls';
 import { toast } from 'react-toastify';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { MdOutlineDeliveryDining } from "react-icons/md";
 import { getAllVilles } from '../redux/apiCalls/villeApiCalls';
 
 const { Option } = Select;
@@ -39,8 +40,10 @@ const NumericInput = (props) => {
 };
 
 function RegisterLivreur() {
+    const [form] = Form.useForm(); // Create a Form instance
     const dispatch = useDispatch();
-    const { villes } = useSelector(state => state.ville);
+    const navigate = useNavigate();
+    const { villes } = useSelector((state) => state.ville);
 
     // Fetch villes data
     useEffect(() => {
@@ -56,15 +59,17 @@ function RegisterLivreur() {
             villes: values.villes, // Multi-selected villes for delivery
         };
 
-        console.log(`liv : ${livreurData}`);
-        
-        dispatch(registerUser("livreur", livreurData)).then((response) => {
-            if (response && response.success) {
-                toast.success(response.message);
-            }
-        }).catch((error) => {
-            toast.error(error.message || "Erreur lors de l'inscription");
-        });
+        dispatch(registerUser("livreur", livreurData))
+            .then((response) => {
+                if (response && response.success) {
+                    toast.success(response.message);
+                    form.resetFields(); // Reset form fields after successful submission
+                    navigate('/login');
+                }
+            })
+            .catch((error) => {
+                toast.error(error.message || "Erreur lors de l'inscription");
+            });
     };
 
     return (
@@ -74,10 +79,13 @@ function RegisterLivreur() {
             </Link>
             <div className="register-section-main">
                 <div className="register-main-title">
-                    <UserOutlined style={{ fontSize: '24px' }} />
-                    <Title level={4}>Devenir livreur avec EROMAX</Title>
+                  <div className="register-main-title-icon">
+                    <MdOutlineDeliveryDining />
+                  </div>
+                  <p>Devenir Livreur avec EROMAX</p>
                 </div>
                 <Form
+                    form={form} // Attach the form instance
                     name="register-livreur"
                     onFinish={onFinish}
                     layout="vertical"
@@ -117,7 +125,6 @@ function RegisterLivreur() {
                         <NumericInput />
                     </Form.Item>
 
-                    {/* Single Selection for Ville */}
                     <Form.Item
                         name="ville"
                         label="Ville"
@@ -126,31 +133,30 @@ function RegisterLivreur() {
                         <Select
                             placeholder="Choisir une ville"
                             size="large"
-                            showSearch  // Enables search functionality
-                            optionFilterProp="children"  // Filters options based on the displayed text
+                            showSearch
+                            optionFilterProp="children"
                             filterOption={(input, option) =>
-                                option.children.toLowerCase().includes(input.toLowerCase()) // Custom filtering function
+                                option.children.toLowerCase().includes(input.toLowerCase())
                             }
                         >
-                            {villes.map(ville => (
-                                <Option key={ville._id} value={ville.nom}>{ville.nom}</Option>
+                            {villes.map((ville) => (
+                                <Option key={ville._id} value={ville.nom}>
+                                    {ville.nom}
+                                </Option>
                             ))}
                         </Select>
                     </Form.Item>
 
-                    {/* Multi-Selection for Regions */}
                     <Form.Item
                         name="villes"
                         label="Régions desservies"
                         rules={[{ required: true, message: 'Veuillez sélectionner au moins une région!' }]}
                     >
-                        <Select
-                            mode="multiple"
-                            placeholder="Choisir des régions"
-                            size="large"
-                        >
-                            {villes.map(ville => (
-                                <Option key={ville._id} value={ville.nom}>{ville.nom}</Option>
+                        <Select mode="multiple" placeholder="Choisir des régions" size="large">
+                            {villes.map((ville) => (
+                                <Option key={ville._id} value={ville.nom}>
+                                    {ville.nom}
+                                </Option>
                             ))}
                         </Select>
                     </Form.Item>

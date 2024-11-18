@@ -63,12 +63,14 @@ import FactureGlobaleDetail from "./scene/components/facture/page/FactureGlobale
 import FactureRetour from "./scene/components/facture/page/FactureRetour";
 import FactureRetourDetail from "./scene/components/facture/page/FactureRetourDetail";
 import Promotions from "./scene/components/promotion/page/Promotion";
+import { useSelector } from "react-redux";
 
 function App() {
 
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
+  const {user} = useSelector(state => state.auth );
   
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -185,7 +187,6 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/livreur" element={<RegisterLivreur />} />
-
           
           <Route path='dashboard' element={<ProtectedRoute/>}>
             <Route path="home" element={<HomeDashboard />} />

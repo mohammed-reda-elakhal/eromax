@@ -79,3 +79,11 @@
     color: #1890ff;
     margin-left: 4px;
   }
+
+  .social_media_link{
+
+    margin:20px auto 0 auto;
+    display:flex;
+    width: 50%;
+    justify-content: space-around;
+  }

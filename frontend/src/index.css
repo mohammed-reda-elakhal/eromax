@@ -165,3 +165,9 @@ code {
   margin: 0 12px;
   color: var(--secondary);
 }
+
+.form_inputs{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

@@ -6,6 +6,7 @@ import { LockOutlined, MailOutlined } from '@ant-design/icons';
 
 import './login.css';
 import { loginUser } from '../redux/apiCalls/authApiCalls';
+import { FaFacebook, FaInstagram, FaWhatsapp } from 'react-icons/fa';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -81,6 +82,17 @@ const Login = () => {
           <span>No account yet?</span>
           <Link to="/register" className="login-footer-link">
             Register
+          </Link>
+        </div>
+        <div className="social_media_link">
+          <Link to={"#"}>
+            <FaWhatsapp size={20} color='green'/>
+          </Link>
+          <Link to={"#"}>
+            <FaInstagram size={20} color='pink'/>
+          </Link>
+          <Link to={"#"}>
+            <FaFacebook  size={20} color='blue'/>
           </Link>
         </div>
       </div>
