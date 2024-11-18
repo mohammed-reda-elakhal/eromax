@@ -2,18 +2,29 @@ const mongoose = require('mongoose');
 
 
 const fileSchema = new mongoose.Schema({
-  filename: {
+
+  type: {
     type: String,
-    required: true
+    enum: ['CIN', 'Passport', 'Other'], // Types possibles
+    default: 'CIN', // Par défaut, c'est "CIN"
+    required: true,
   },
-  
-  contentType: {
+  userType: {
     type: String,
-    required: true
+    enum: ['client', 'livreur'], 
+    required: true,
   },
-  path: {
-    type: String,
-    required: true
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
+  cinRecto: {
+    url: { type: String, required: true }, // L'URL du fichier recto
+    publicId: { type: String, required: true }, // ID public pour Cloudinary ou autre service
+  },
+  cinVerso: {
+    url: { type: String, required: true }, // L'URL du fichier verso
+    publicId: { type: String, required: true }, // ID public pour Cloudinary ou autre service
   },
   uploadedAt: {
     type: Date,
