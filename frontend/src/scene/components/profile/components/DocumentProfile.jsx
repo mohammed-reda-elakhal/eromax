@@ -22,7 +22,6 @@ function DocumentProfile() {
       return message.warning("Please select files to upload.");
     }
 
-    console.log("fileList:", fileList);
 
     const formData = new FormData();
 
@@ -38,7 +37,7 @@ function DocumentProfile() {
 
     // Log FormData contents for debugging
     for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
+      //console.log(pair[0], pair[1]);
     }
 
     // Dispatch formData directly to API
@@ -57,7 +56,6 @@ function DocumentProfile() {
       setFileList((prevList) => prevList.filter((item) => item.uid !== file.uid));
     },
     beforeUpload: (file) => {
-      console.log("Before Upload - File:", file);
 
       // Prevent adding duplicate files to fileList
       setFileList((prevList) => {

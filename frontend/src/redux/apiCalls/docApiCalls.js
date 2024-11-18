@@ -11,7 +11,6 @@ const uploadFiles = (role, userId, formData) => {
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      console.log("files",data); // Log non-file fields
       dispatch(docActions.uploadFiles(data)); // Dispatch action to update the Redux store
       toast.success("Documents téléchargés avec succès");
     } catch (error) {

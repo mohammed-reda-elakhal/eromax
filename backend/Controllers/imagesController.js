@@ -328,7 +328,6 @@ const UploadClientFiles = asyncHandler(async (req, res) => {
 
         const imagePath = path.join(__dirname, `../files/${req.file.filename}`);
         const result = await cloudinaryUploadImage(imagePath);
-        console.log(result);
         if (!result) {
             console.error("Failed to upload file to Cloudinary:", JSON.stringify(result.error));
             return res.status(500).json({ message: "Failed to upload file to Cloudinary", error: result.error });
@@ -365,7 +364,6 @@ const uploadFiles = asyncHandler(async (req, res) => {
     if (!req.files || !req.files.cinRecto || !req.files.cinVerso) {
       return res.status(400).json({ message: "Both CIN recto and verso are required." });
     }
-    console.log("Fichiers téléchargés : ", req.files);
 
     const { role, id } = req.params;
   
@@ -422,7 +420,6 @@ const uploadFiles = asyncHandler(async (req, res) => {
       fs.unlinkSync(cinRectoPath);
       fs.unlinkSync(cinVersoPath);
   
-      console.log("Files uploaded and saved to DB:", newFile);
   
       res.status(201).json({
         message: "Files uploaded successfully",
