@@ -87,14 +87,17 @@ function Topbar() {
           Payement Methode
         </Link>
       </Menu.Item>
-      <Menu.Item key="document" icon={<FaFileArchive style={{ margin: '0 8px' }} />}>
-        <Link className='link_topbar' to={`/dashboard/document`}>
-          Documents
-        </Link>
-      </Menu.Item>
       </>
       )
     }
+      {user?.role === 'client' && user?.role === 'livreur' (
+        <Menu.Item key="document" icon={<FaFileArchive style={{ margin: '0 8px' }} />}>
+          <Link className='link_topbar' to={`/dashboard/document`}>
+            Documents
+          </Link>
+        </Menu.Item>
+        )
+      }
       <Menu.Divider />
       <Menu.Item key="logout" icon={<ImExit style={{ marginRight: '8px' }} />} onClick={logoutFunction}>
         Deconnecter
