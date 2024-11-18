@@ -365,7 +365,8 @@ const uploadFiles = asyncHandler(async (req, res) => {
     if (!req.files || !req.files.cinRecto || !req.files.cinVerso) {
       return res.status(400).json({ message: "Both CIN recto and verso are required." });
     }
-  
+    console.log("Fichiers téléchargés : ", req.files);
+
     const { role, id } = req.params;
   
     try {
