@@ -4,6 +4,23 @@ import { storeActions } from "../slices/storeSlice";
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 
+
+export function getStoreList() {
+  return async (dispatch) => {
+    dispatch(storeActions.fetchStoresStart());
+    try {
+      const { data } = await request.get(`/api/store`);
+      dispatch(storeActions.fetchStoresSuccess(data));
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message || error.message || "Failed to fetch stores";
+      dispatch(storeActions.fetchStoresFailure(errorMsg));
+      toast.error(errorMsg);
+    }
+  };
+}
+
+
 // Fetch Stores by User ID
 export function getStoreByUser(userId) {
   return async (dispatch) => {

@@ -8,7 +8,6 @@ import {
   Form,
   InputNumber,
   Select,
-  DatePicker,
   Switch,
   Space,
   Popconfirm,
@@ -16,8 +15,9 @@ import {
   Row,
   Col,
   Checkbox,
-  Spin,
   Avatar,
+  Input,
+  Typography,
 } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -27,135 +27,205 @@ import {
   deletePromotion,
   togglePromotionStatus,
 } from '../../../../redux/apiCalls/promotionApiCalls';
-import { getProfileList } from '../../../../redux/apiCalls/profileApiCalls'; // Import the client API call
+import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
 import { promotionActions } from '../../../../redux/slices/promotionSlice';
 import { toast, ToastContainer } from 'react-toastify';
 import moment from 'moment';
-import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify styles
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Option } = Select;
-const { RangePicker } = DatePicker;
+const { Text } = Typography;
 
 const PromotionList = () => {
   const dispatch = useDispatch();
-  //const newbranch = developement ;
-  const {
-    promotions,
-    loading: promotionsLoading,
-    error: promotionsError,
-  } = useSelector((state) => state.promotion);
 
-  const { profileList, user } = useSelector((state) => ({
-    profileList: state.profile.profileList,
-    user: state.auth.user
-}));
+  // Accessing promotion and store state from Redux
+  const promotionsState = useSelector((state) => state.promotion);
+  const storeState = useSelector((state) => state.store);
 
+  const { promotions, loading: promotionsLoading, error: promotionsError } = promotionsState;
+  const { stores, loading: storesLoading, error: storesError } = storeState;
+
+  // Local component states
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentPromotion, setCurrentPromotion] = useState(null);
 
   const [isClientModalVisible, setIsClientModalVisible] = useState(false);
-  const [selectedStoreIds, setSelectedStoreIds] = useState([]);
+  const [selectedStores, setSelectedStores] = useState([]); // Storing store objects
+  const [searchTerm, setSearchTerm] = useState(''); // Search term for filtering stores
 
   const [form] = Form.useForm();
 
+  // Fetch promotions and stores on component mount
   useEffect(() => {
     dispatch(getAllPromotions());
-    dispatch(getProfileList("client")); // Fetch client profiles on mount
+    dispatch(getStoreList());
   }, [dispatch]);
 
+  // Handle promotions error
   useEffect(() => {
     if (promotionsError) {
       toast.error(promotionsError);
-      dispatch(promotionActions.fetchPromotionsFailure(null)); // Reset error
+      dispatch(promotionActions.fetchPromotionsFailure(null));
     }
   }, [promotionsError, dispatch]);
 
+  // Handle stores error
+  useEffect(() => {
+    if (storesError) {
+      toast.error(storesError);
+      dispatch(promotionActions.fetchPromotionsFailure(null));
+    }
+  }, [storesError, dispatch]);
 
+  // Function to open the Add Promotion modal
   const showAddModal = () => {
     setIsEditMode(false);
     setCurrentPromotion(null);
     form.resetFields();
-    setSelectedStoreIds([]);
+    setSelectedStores([]);
     setIsModalVisible(true);
   };
 
-  const showEditModal = (promotion) => {
-    setIsEditMode(true);
-    setCurrentPromotion(promotion);
-    form.setFieldsValue({
-      type: promotion.type,
-      value: promotion.value,
-      dateRange: [moment(promotion.startDate), moment(promotion.endDate)],
-      appliesTo: promotion.appliesTo,
-      clients: promotion.appliesTo === 'specific' ? promotion.clients : [],
-    });
-    setSelectedStoreIds(promotion.clients || []);
-    setIsModalVisible(true);
-  };
+ // Function to open the Edit Promotion modal with existing data
+const showEditModal = (promotion) => {
+  setIsEditMode(true);
+  setCurrentPromotion(promotion);
 
+  // Extract store IDs from the promotion's clients
+  const promotionClientIds = promotion.clients.map((client) =>
+    typeof client === 'object' && client._id ? client._id : client
+  );
+
+  // Find corresponding store objects from the stores list
+  const promotionClients = stores.filter((store) =>
+    promotionClientIds.includes(store._id)
+  );
+
+  // Set form fields with existing promotion data
+  form.setFieldsValue({
+    type: promotion.type,
+    // For percentage_discount, use the stored whole number (e.g., 50 for 50%)
+    fixedValue: promotion.type === 'fixed_tarif' ? promotion.value : undefined,
+    percentageValue: promotion.type === 'percentage_discount' ? promotion.value : undefined,
+    startDate: moment(promotion.startDate).format('YYYY-MM-DD'),
+    endDate: moment(promotion.endDate).format('YYYY-MM-DD'),
+    appliesTo: promotion.appliesTo,
+    clients: promotionClients, // This will be handled by selectedStores
+  });
+
+  // Update selectedStores state
+  setSelectedStores(promotionClients || []);
+  setIsModalVisible(true);
+};
+
+
+  // Function to handle modal cancellation
   const handleCancel = () => {
     setIsModalVisible(false);
     setCurrentPromotion(null);
     form.resetFields();
-    setSelectedStoreIds([]);
+    setSelectedStores([]);
   };
 
+  // Function to handle client modal cancellation
   const handleClientModalCancel = () => {
     setIsClientModalVisible(false);
+    setSearchTerm('');
   };
 
+  // Function to confirm client selection
   const handleClientSelectionConfirm = () => {
-    form.setFieldsValue({ clients: selectedStoreIds });
+    form.setFieldsValue({ clients: selectedStores });
     setIsClientModalVisible(false);
+    setSearchTerm('');
   };
 
-  const onFinish = (values) => {
-    const promotionData = {
-      type: values.type,
-      value: Number(values.value), // Ensure it's a number
-      startDate: values.dateRange[0].toISOString(),
-      endDate: values.dateRange[1].toISOString(),
-      appliesTo: values.appliesTo,
-      clients: values.appliesTo === 'specific' ? selectedStoreIds : [],
-    };
+  // Function to handle form submission
+const onFinish = (values) => {
+  let promotionValue;
 
-    if (isEditMode && currentPromotion) {
-      dispatch(updatePromotion(currentPromotion._id, promotionData));
-    } else {
-      dispatch(createPromotion(promotionData));
-    }
+  if (values.type === 'fixed_tarif') {
+    promotionValue = Number(values.fixedValue);
+  } else if (values.type === 'percentage_discount') {
+    promotionValue = Number(values.percentageValue); // Store as whole number (e.g., 50 for 50%)
+  }
 
-    setIsModalVisible(false);
-    form.resetFields();
-    setSelectedStoreIds([]);
+  if (isNaN(promotionValue)) {
+    toast.error('Promotion value is invalid.');
+    return;
+  }
+
+  const promotionData = {
+    type: values.type,
+    value: promotionValue,
+    startDate: moment(values.startDate, 'YYYY-MM-DD').toISOString(),
+    endDate: moment(values.endDate, 'YYYY-MM-DD').toISOString(),
+    appliesTo: values.appliesTo,
+    clients:
+      values.appliesTo === 'specific'
+        ? selectedStores.map((store) => store._id)
+        : [],
   };
 
+  if (isEditMode && currentPromotion) {
+    dispatch(updatePromotion(currentPromotion._id, promotionData))
+      .then(() => {
+        setIsModalVisible(false);
+        form.resetFields();
+        setSelectedStores([]);
+      })
+      .catch((error) => {
+        // Error handling is already done in the action
+      });
+  } else {
+    dispatch(createPromotion(promotionData))
+      .then(() => {
+        setIsModalVisible(false);
+        form.resetFields();
+        setSelectedStores([]);
+      })
+      .catch((error) => {
+        // Error handling is already done in the action
+      });
+  }
+};
+
+
+  // Function to handle promotion deletion
   const handleDelete = (id) => {
     dispatch(deletePromotion(id));
+    toast.success('Promotion deleted successfully!');
   };
 
+  // Function to toggle promotion status
   const handleToggle = (id) => {
     dispatch(togglePromotionStatus(id));
+    toast.success('Promotion status updated!');
   };
 
+  // Function to handle change in "Applies To" selection
   const handleAppliesToChange = (value) => {
     if (value === 'specific') {
       setIsClientModalVisible(true);
     } else {
-      setSelectedStoreIds([]);
+      setSelectedStores([]);
       form.setFieldsValue({ clients: [] });
     }
   };
 
-  const handleStoreSelect = (storeId) => {
-    if (selectedStoreIds.includes(storeId)) {
-      setSelectedStoreIds(selectedStoreIds.filter((id) => id !== storeId));
+  // Function to handle store selection/deselection
+  const handleStoreSelect = (store) => {
+    const isSelected = selectedStores.some((s) => s._id === store._id);
+    if (isSelected) {
+      setSelectedStores(selectedStores.filter((s) => s._id !== store._id));
     } else {
-      setSelectedStoreIds([...selectedStoreIds, storeId]);
+      setSelectedStores([...selectedStores, store]);
     }
   };
 
+  // Define table columns
   const columns = [
     {
       title: 'Type',
@@ -171,6 +241,7 @@ const PromotionList = () => {
       render: (value, record) =>
         record.type === 'fixed_tarif' ? `${value} DH` : `${value}%`,
     },
+    
     {
       title: 'Start Date',
       dataIndex: 'startDate',
@@ -230,7 +301,12 @@ const PromotionList = () => {
     },
   ];
 
-  // Client Selection Modal Content with Stores Displayed as Cards
+  // Filtered stores based on search term
+  const filteredStores = stores.filter((store) =>
+    store.storeName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Client Selection Modal Content with Stores Displayed as Cards and Search
   const ClientSelectionModal = () => (
     <Modal
       title="Select Stores"
@@ -242,40 +318,56 @@ const PromotionList = () => {
       width={800}
       bodyStyle={{ maxHeight: '60vh', overflowY: 'auto' }}
     >
-        <Row gutter={[16, 16]}>
-          {profileList.map((client) =>
-            client.stores.map((store) => (
-              <Col xs={24} sm={12} md={8} lg={6} key={store._id}>
-                <Card
-                  hoverable
-                  onClick={() => handleStoreSelect(store._id)}
-                  style={{
-                    border:
-                      selectedStoreIds.includes(store._id)
-                        ? '2px solid #1890ff'
-                        : '1px solid #f0f0f0',
-                  }}
-                >
-                  <Card.Meta
-                    title={store.storeName}
-                    description={`Solde: ${store.solde} DH`}
-                  />
-                  <div style={{ marginTop: '10px' }}>
-                    <Avatar src={store.image.url}></Avatar>
-                    <Checkbox
-                      checked={selectedStoreIds.includes(store._id)}
-                      onChange={() => handleStoreSelect(store._id)}
-                    >
-                      Select
-                    </Checkbox>
-                  </div>
-                </Card>
-              </Col>
-            ))
-          )}
-        </Row>
+      {/* Search Input */}
+      <Input
+        placeholder="Search stores by name"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        style={{ marginBottom: '16px' }}
+        allowClear
+      />
+      <Row gutter={[16, 16]}>
+        {filteredStores && filteredStores.length > 0 ? (
+          filteredStores.map((store) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={store._id}>
+              <Card
+                hoverable
+                onClick={() => handleStoreSelect(store)}
+                style={{
+                  border: selectedStores.some((s) => s._id === store._id)
+                    ? '2px solid #1890ff'
+                    : '1px solid #f0f0f0',
+                }}
+              >
+                <Card.Meta
+                  title={store.storeName}
+                  description={`Solde: ${store.solde} DH`}
+                />
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center' }}>
+                  <Avatar src={store.image?.url} style={{ marginRight: '8px' }} />
+                  <Checkbox
+                    checked={selectedStores.some((s) => s._id === store._id)}
+                    onChange={() => handleStoreSelect(store)}
+                  >
+                    Select
+                  </Checkbox>
+                </div>
+              </Card>
+            </Col>
+          ))
+        ) : (
+          <Col span={24}>
+            <Text type="secondary">No stores found.</Text>
+          </Col>
+        )}
+      </Row>
     </Modal>
   );
+
+  // Function to remove a selected store
+  const removeSelectedStore = (storeId) => {
+    setSelectedStores(selectedStores.filter((store) => store._id !== storeId));
+  };
 
   return (
     <div style={{ padding: '24px' }}>
@@ -284,7 +376,7 @@ const PromotionList = () => {
         type="primary"
         onClick={showAddModal}
         style={{ marginBottom: '16px' }}
-        disabled={promotionsLoading}
+        disabled={promotionsLoading || storesLoading}
       >
         Ajouter Promotion
       </Button>
@@ -292,9 +384,8 @@ const PromotionList = () => {
         columns={columns}
         dataSource={Array.isArray(promotions) ? promotions : []}
         rowKey="_id"
-        loading={promotionsLoading}
+        loading={promotionsLoading || storesLoading}
         pagination={{ pageSize: 10 }}
-        responsive
       />
 
       {/* Promotion Form Modal */}
@@ -318,50 +409,108 @@ const PromotionList = () => {
           <Form.Item
             name="type"
             label="Type"
-            rules={[{ required: true, message: 'Please select the promotion type!' }]}
+            rules={[
+              { required: true, message: 'Please select the promotion type!' },
+            ]}
           >
             <Select placeholder="Select Promotion Type">
               <Option value="fixed_tarif">Fixed Tarif</Option>
               <Option value="percentage_discount">Percentage Discount</Option>
             </Select>
           </Form.Item>
-
-          {/* Promotion Value */}
+          {/* Fixed Tarif Value */}
           <Form.Item
-            name="value"
-            label="Value (DH)"
-            rules={[
-              { required: true, message: 'Please enter the promotion value!' },
-              { type: 'number', min: 0, message: 'Value must be positive!' },
-            ]}
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
           >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="Enter value"
-              formatter={(value) => `${value} DH`}
-              parser={(value) => value.replace(/ DH\s?|(,*)/g, '')}
-            />
+            {({ getFieldValue }) =>
+              getFieldValue('type') === 'fixed_tarif' ? (
+                <Form.Item
+                  name="fixedValue"
+                  label="Value (DH)"
+                  rules={[
+                    { required: true, message: 'Please enter the promotion value!' },
+                    { type: 'number', min: 0, message: 'Value must be positive!' },
+                  ]}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    placeholder="Enter value in DH"
+                    min={0}
+                  />
+                </Form.Item>
+              ) : null
+            }
+          </Form.Item>
+
+          {/* Percentage Discount Value */}
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
+          >
+            {({ getFieldValue }) =>
+              getFieldValue('type') === 'percentage_discount' ? (
+                <Form.Item
+                  name="percentageValue"
+                  label="Value (%)"
+                  rules={[
+                    { required: true, message: 'Please enter the promotion value!' },
+                    { type: 'number', min: 0, max: 100, message: 'Percentage must be between 0 and 100!' },
+                  ]}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    placeholder="Enter percentage value"
+                    min={0}
+                    max={100}
+                  />
+                </Form.Item>
+              ) : null
+            }
           </Form.Item>
 
           {/* Promotion Period */}
           <Form.Item
-            name="dateRange"
-            label="Promotion Period"
+            name="startDate"
+            label="Start Date"
             rules={[
-              { type: 'array', required: true, message: 'Please select the promotion period!' },
+              { required: true, message: 'Please enter the start date!' },
               {
-                validator: (_, value) =>
-                  value && value[0].isBefore(value[1])
-                    ? Promise.resolve()
-                    : Promise.reject(new Error('Start date must be before end date')),
+                pattern: /^\d{4}-\d{2}-\d{2}$/,
+                message: 'Please use the format YYYY-MM-DD!',
               },
             ]}
           >
-            <RangePicker
-              format="DD/MM/YYYY"
-              style={{ width: '100%' }}
-              disabledDate={(current) => current && current < moment().startOf('day')}
-            />
+            <Input placeholder="Enter start date (YYYY-MM-DD)" />
+          </Form.Item>
+
+          <Form.Item
+            name="endDate"
+            label="End Date"
+            rules={[
+              { required: true, message: 'Please enter the end date!' },
+              {
+                pattern: /^\d{4}-\d{2}-\d{2}$/,
+                message: 'Please use the format YYYY-MM-DD!',
+              },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const startDate = getFieldValue('startDate');
+                  if (
+                    startDate &&
+                    value &&
+                    moment(startDate).isAfter(value)
+                  ) {
+                    return Promise.reject(
+                      new Error('End date must be after start date!')
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
+          >
+            <Input placeholder="Enter end date (YYYY-MM-DD)" />
           </Form.Item>
 
           {/* Applies To */}
@@ -391,13 +540,46 @@ const PromotionList = () => {
                 },
               ]}
             >
-              <InputNumber
-                readOnly
-                style={{ width: '100%' }}
-                placeholder="Click to select stores"
-                value={selectedStoreIds.length > 0 ? `${selectedStoreIds.length} Selected` : null}
-                onClick={() => setIsClientModalVisible(true)}
-              />
+              <div>
+                <Row gutter={[8, 8]}>
+                  {selectedStores.map((store) => (
+                    <Col key={store._id}>
+                      <Card
+                        size="small"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '4px 8px',
+                          border: '1px solid #d9d9d9',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        <Avatar src={store.image?.url} size="small" />
+                        <span style={{ marginLeft: '8px', flex: 1 }}>
+                          {store.storeName}
+                        </span>
+                        <Button
+                          type="text"
+                          size="small"
+                          onClick={() => removeSelectedStore(store._id)}
+                          style={{ marginLeft: '4px' }}
+                        >
+                          ×
+                        </Button>
+                      </Card>
+                    </Col>
+                  ))}
+                  <Col>
+                    <Button
+                      type="dashed"
+                      shape="circle"
+                      icon="+"
+                      onClick={() => setIsClientModalVisible(true)}
+                      size="small"
+                    />
+                  </Col>
+                </Row>
+              </div>
             </Form.Item>
           )}
 

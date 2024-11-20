@@ -38,6 +38,11 @@ function TransactionTable() {
 
     const columns = [
         {
+            title: 'Date ',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+        },
+        {
             title: 'Client',
             dataIndex: 'nom',
             key: 'nom',

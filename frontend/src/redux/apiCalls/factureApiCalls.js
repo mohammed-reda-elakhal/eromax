@@ -50,6 +50,7 @@ export function getFactureDetailsByCode(codeFacture ) {
             // Send the type as a query parameter using 'params'
             const { data } = await request.get(`/api/facture/detail/${codeFacture}`);
             dispatch(factureActions.setFactureDetail(data.facture));
+            dispatch(factureActions.setPromotion(data.promotion));
         } catch (error) {
             toast.error(error.message || "Failed to fetch facture details");
         }
