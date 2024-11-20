@@ -38,23 +38,29 @@ export function getPromotionById(id) {
   };
 }
 
-// Create a new promotion
 export function createPromotion(promotionData) {
   return async (dispatch) => {
     dispatch(promotionActions.fetchPromotionsStart());
     try {
       const response = await request.post(`/api/promotions`, promotionData);
-      const newPromotion = response.data.data; // Extract the new promotion
+      const newPromotion = response.data.data;
       dispatch(promotionActions.createPromotionSuccess(newPromotion));
       toast.success("Promotion created successfully");
+      return Promise.resolve();
     } catch (error) {
+      console.error('Error creating promotion:', error.response?.data || error.message);
       const errorMessage =
-        error.response?.data?.message || error.message || "Failed to create promotion";
+        (error.response?.data?.errors && error.response?.data?.errors.join(', ')) ||
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create promotion";
       dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
-      toast.error(errorMessage);
+      return Promise.reject(error);
     }
   };
 }
+
 
 // Update a promotion
 export function updatePromotion(id, promotionData) {

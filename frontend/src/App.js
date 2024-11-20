@@ -67,6 +67,7 @@ import Promotions from "./scene/components/promotion/page/Promotion";
 import DocumentProfile from "./scene/components/profile/components/DocumentProfile";
 
 import { useSelector } from "react-redux";
+import UpdateColisPage from "./scene/components/colis/pages/UpdateColisPage";
 
 
 function App() {
@@ -254,7 +255,7 @@ function App() {
             <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
             <Route path="ajouter-colis/:type" element={<AjouterColis />} />
             <Route path="import-colis" element={<ColisImport />} />
-            <Route path="colis/update/:codeSuivi" element={<UpdateColis />} />
+            <Route path="colis/update/:codeSuivi" element={<UpdateColisPage />} />
 
             <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
             <Route path="ajouter-produit" element={<AjouterProduit />} />

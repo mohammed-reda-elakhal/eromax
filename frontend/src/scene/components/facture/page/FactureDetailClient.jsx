@@ -10,6 +10,7 @@ const FactureDetail = () => {
   const printRef = useRef();
   const dispatch = useDispatch();
   const facture = useSelector((state) => state.facture.detailFacture);
+  const promotion = useSelector((state) => state.facture.promotionFacture);
   const { code_facture } = useParams();
 
   useEffect(() => {
@@ -22,7 +23,7 @@ const FactureDetail = () => {
     const element = printRef.current;
 
     const opt = {
-      margin: [10, 10, 10, 10], // top, left, bottom, right
+      margin: [10, 10, 10, 10],
       filename: `${facture?.code_facture}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
@@ -30,30 +31,7 @@ const FactureDetail = () => {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
     };
 
-    // Add page numbers
-    const worker = html2pdf()
-      .set(opt)
-      .from(element)
-      .toContainer()
-      .toCanvas()
-      .toImg()
-      .toPdf()
-      .get('pdf')
-      .then(function (pdf) {
-        const totalPages = pdf.internal.getNumberOfPages();
-
-        for (let i = 1; i <= totalPages; i++) {
-          pdf.setPage(i);
-          pdf.setFontSize(10);
-          pdf.text(
-            `Page ${i} of ${totalPages}`,
-            pdf.internal.pageSize.getWidth() / 2,
-            pdf.internal.pageSize.getHeight() - 10,
-            { align: 'center' }
-          );
-        }
-      })
-      .save();
+    html2pdf().set(opt).from(element).save();
   };
 
   // Function to print the PDF
@@ -113,7 +91,9 @@ const FactureDetail = () => {
           <p>{record.destinataire}</p>
           <p>{record.telephone}</p>
           <p>{record.ville}</p>
-          <p> <strong>Prix :</strong> {record.prix}</p>
+          <p>
+            <strong>Prix :</strong> {record.prix}
+          </p>
         </>
       ),
     },
@@ -124,19 +104,34 @@ const FactureDetail = () => {
       render: (text, record) => (
         <>
           {record?.statut === 'Livrée' ? (
-            <Tag color='green'>{record?.statut}</Tag>
+            <Tag color="green">{record?.statut}</Tag>
           ) : (
-            <Tag color='red'>{record?.statut}</Tag>
+            <Tag color="red">{record?.statut}</Tag>
           )}
         </>
       ),
     },
     {
       title: 'Tarif',
-      render: (text , record) => (
+      render: (text, record) => (
         <div>
-          <p> <strong>Livraison : </strong>{record.new_tarif_livraison} <span className='old_price'>{record.old_tarif_livraison}</span></p>
-          <p> <strong>Fragile : </strong>{record.tarif_fragile}</p>
+          <p>
+            <strong>Livraison :</strong> {record.new_tarif_livraison}{' '}
+            {promotion ? 
+            <span className="old_price">{record.old_tarif_livraison}</span>
+            :""
+            }
+          </p>
+          <p>
+            <strong>Suplementaire :</strong> {record.tarif_ajouter}
+            <br />
+          </p>
+          <p>
+            <strong>Fragile :</strong> {record.tarif_fragile}
+          </p>
+          <p style={{color : "var(--limon)"}}>
+            <strong>Reduction :</strong> {record.old_tarif_livraison - record.new_tarif_livraison}
+          </p>
         </div>
       ),
     },
@@ -147,13 +142,8 @@ const FactureDetail = () => {
     },
     {
       title: 'Montant à Payer',
-      render: (text , record) => (
-        <div>
-          {record.prix - record.tarif_total}
-        </div>
-      ),
+      render: (text, record) => <div>{record.prix - record.tarif_total}</div>,
     },
-
   ];
 
   // Define columns for the calculation table
@@ -223,24 +213,28 @@ const FactureDetail = () => {
           </div>
         </div>
 
+        <div className="promotion-section">
+          {promotion ? 
+            <div className="promotion_content">
+              <h1>
+                <strong>Promotion EROMAX</strong>
+              </h1>
+              <p>
+                {promotion.type === 'percentage_discount'  ? 'Percentage Discount ' + promotion.value +" %"  : 'Fixed Tarif' + promotion.value +" DH"}
+              </p>
+            </div>
+            : ""
+            }
+        </div>
+
         {/* Table to display the colis details */}
         <div className="table-facture">
-          <Table
-            className="table-data"
-            columns={columns}
-            dataSource={facture?.colis}
-            pagination={false}
-          />
+          <Table className="table-data" columns={columns} dataSource={facture?.colis} pagination={false} />
         </div>
 
         {/* Table to display the calculation of totals */}
         <div className="table-calcul">
-          <Table
-            className="table-calc-data"
-            columns={calcColumns}
-            dataSource={calcData}
-            pagination={false}
-          />
+          <Table className="table-calc-data" columns={calcColumns} dataSource={calcData} pagination={false} />
         </div>
 
         <div className="facture-signatures">
