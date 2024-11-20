@@ -98,7 +98,6 @@ module.exports.selectStoreCtrl = asyncHandler(async (req, res) => {
     const { userId, storeId } = req.query;
 
     // Log received data for debugging
-    console.log('Received data:', { userId, storeId });
 
     // Validate the user and store
     const user = await Client.findById(userId);

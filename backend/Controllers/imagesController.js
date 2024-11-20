@@ -441,11 +441,53 @@ const uploadFiles = asyncHandler(async (req, res) => {
     }
   });
 
+  const getUserDocuments = asyncHandler(async (req, res) => {
+    const { role, id } = req.params;
+  
+    try {
+      // Verify user based on role
+      let user;
+      if (role === "client") {
+        user = await Client.findById(id).populate("files");
+      } else if (role === "livreur") {
+        user = await Livreur.findById(id).populate("files");
+      } else {
+        return res.status(400).json({ message: "Invalid user type. Must be 'client' or 'livreur'." });
+      }
+  
+      if (!user) {
+        return res.status(404).json({ message: `${role} not found` });
+      }
+  
+      // Check if the user has files
+      if (!user.files || user.files.length === 0) {
+        return res.status(200).json({ message: "No documents found.", documents: [] });
+      }
+  
+      // Map file details
+      const documents = user.files.map((file) => ({
+        id: file._id,
+        type: file.type,
+        cinRecto: file.cinRecto,
+        cinVerso: file.cinVerso,
+        uploadedAt: file.createdAt,
+      }));
+  
+      res.status(200).json({
+        message: "Documents retrieved successfully.",
+        documents,
+      });
+    } catch (error) {
+      console.error("Error retrieving user documents:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+
  module.exports={
     uploadProfilePhotoController,
     updateProfilePhotoController,
     storePhotoController,
     updatePhotoStoreController,
-    UploadClientFiles,
-    uploadFiles
+    uploadFiles,
+    getUserDocuments
  }

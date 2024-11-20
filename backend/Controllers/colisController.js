@@ -121,7 +121,6 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
   // Verify that code_suivi is not null before proceeding
   if (!newColis.code_suivi) {
-    console.log("Error: code_suivi is null after saving Colis");
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
 
