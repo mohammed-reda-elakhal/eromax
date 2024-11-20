@@ -1,4 +1,5 @@
 // components/ColisUpdateForm.js
+
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getColisByCodeSuivi, updateColisById, fetchOptions } from '../../../../redux/apiCalls/colisApiCalls';
@@ -14,12 +15,15 @@ import {
   Row,
   Col,
   DatePicker,
+  Tooltip,
 } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { LoadingOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 import moment from 'moment';
 
 const { Option } = Select;
+const { TextArea } = Input;
+
 
 const UpdateColis = () => {
   const dispatch = useDispatch();
@@ -31,19 +35,7 @@ const UpdateColis = () => {
   const [form] = Form.useForm();
   const { codeSuivi } = useParams();
 
-  // Define validStatuses
-const validStatuses = [
-  "Nouveau Colis",
-  "attente de ramassage",
-  "Ramassée",
-  "Expediée",
-  "Reçu",
-  "Mise en Distribution",
-  "Livrée",
-  "Annulée",
-  "Programmée",
-  "Refusée",
-];
+  const {user} = useSelector(state => state.auth );
 
   useEffect(() => {
     dispatch(getColisByCodeSuivi(codeSuivi));
@@ -60,6 +52,10 @@ const validStatuses = [
         date_programme: selectedColis.date_programme ? moment(selectedColis.date_programme) : null,
         date_livraisant: selectedColis.date_livraisant ? moment(selectedColis.date_livraisant) : null,
         produits: selectedColis.produits.map(p => p.produit),
+        tarif_ajouter: {
+          value: selectedColis.tarif_ajouter?.value || 0,
+          description: selectedColis.tarif_ajouter?.description || '',
+        },
       });
     }
   }, [selectedColis, form]);
@@ -68,20 +64,24 @@ const validStatuses = [
     const updatedData = {
       ...values,
       ville: values.ville,
-      /*
       store: values.store,
-      livreur: values.livreur,
-      date_programme: values.date_programme ? values.date_programme.toDate() : null,
-      date_livraisant: values.date_livraisant ? values.date_livraisant.toDate() : null,
-      produits: values.produits.map(produitId => ({
-        produit: produitId,
-        variants: [], // Adjust based on your requirements
-      })),
-      */
+      tarif_ajouter: {
+        value: values.tarif_ajouter.value || 0,
+        description: values.tarif_ajouter.description || '',
+      },
     };
-    console.log();
-    
-  dispatch(updateColisById( selectedColis._id , updatedData));
+
+    // If is_remplace is true, include replacedColis ID
+    if (values.is_remplace) {
+      if (!values.replacedColis) {
+        // Display an error message or toast
+        Alert.error('Veuillez sélectionner un colis à remplacer.');
+        return;
+      }
+      updatedData.replacedColis = values.replacedColis;
+    }
+
+    dispatch(updateColisById(selectedColis._id, updatedData));
   };
 
   const loadingIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
@@ -102,11 +102,17 @@ const validStatuses = [
               is_simple: selectedColis.is_simple,
               is_remplace: selectedColis.is_remplace,
               is_fragile: selectedColis.is_fragile,
+              tarif_ajouter: {
+                value: selectedColis.tarif_ajouter?.value || 0,
+                description: selectedColis.tarif_ajouter?.description || '',
+              },
             }}
           >
+            {/* Store Selection */}
             <Form.Item
               label="Store"
               name="store"
+              rules={[{ required: true, message: 'Please select a store' }]}
             >
               <Select disabled>
                 <Option value={selectedColis.store._id}>
@@ -139,6 +145,7 @@ const validStatuses = [
             </Form.Item>
 
             {/* Ville */}
+            {user.role === 'admin' && (
             <Form.Item
               label="Ville"
               name="ville"
@@ -156,6 +163,7 @@ const validStatuses = [
                 ))}
               </Select>
             </Form.Item>
+            )}
 
             {/* Adresse */}
             <Form.Item
@@ -171,7 +179,31 @@ const validStatuses = [
               label="Commentaire"
               name="commentaire"
             >
-              <Input.TextArea rows={4} />
+              <TextArea rows={4} />
+            </Form.Item>
+
+           
+
+            {/* Nature Produit */}
+            <Form.Item
+              label="Nature Produit"
+              name="nature_produit"
+              rules={[{ required: true, message: 'Please enter the nature of the product' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            
+
+            {/* Boolean Fields */}
+            <Form.Item name="ouvrir" valuePropName="checked">
+              <Checkbox>Ouvrir</Checkbox>
+            </Form.Item>
+            <Form.Item name="is_simple" valuePropName="checked">
+              <Checkbox>Simple</Checkbox>
+            </Form.Item>
+            <Form.Item name="is_fragile" valuePropName="checked">
+              <Checkbox>Fragile</Checkbox>
             </Form.Item>
 
             {/* Prix */}
@@ -188,64 +220,82 @@ const validStatuses = [
                 parser={value => value.replace(/\$\s?|(,*)/g, '')}
               />
             </Form.Item>
+            {/* Tarif Ajouter Section */}
+            {user.role === 'admin' && (
+            <Form.Item label="Tarif Ajouter">
+              <Row gutter={16}>
+                {/* Value Input */}
+                <Col span={12}>
+                  <Form.Item
+                    name={['tarif_ajouter', 'value']}
+                    rules={[
+                      { required: true, message: 'Please enter the tarif value' },
+                      { type: 'number', min: 0, message: 'Value must be at least 0' },
+                    ]}
+                  >
+                    <InputNumber
+                      placeholder="Valeur du tarif"
+                      min={0}
+                      style={{ width: '100%' }}
+                      formatter={value => `${value}`}
+                      parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                      prefix={<InfoCircleOutlined />}
+                      suffix={
+                        <Tooltip title="Entrez la valeur additionnelle du tarif">
+                          <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                        </Tooltip>
+                      }
+                    />
+                  </Form.Item>
+                </Col>
 
-            {/* Prix Payer */}
-            <Form.Item
-              label="Prix Payer"
-              name="prix_payer"
-              rules={[{ required: true, message: 'Please enter the paid price' }]}
-            >
-              <InputNumber
-                prefix="DH"
-                min={0}
-                style={{ width: '100%' }}
-                formatter={value => `${value}`}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
-              />
+                {/* Description Input */}
+                <Col span={12}>
+                  <Form.Item
+                    name={['tarif_ajouter', 'description']}
+                    rules={[
+                      { required: true, message: 'Please enter the tarif description' },
+                      { type: 'string', max: 300, message: 'Description cannot exceed 300 characters' },
+                    ]}
+                  >
+                    <Input
+                      placeholder="Description du tarif"
+                      style={{ width: '100%' }}
+                      prefix={<InfoCircleOutlined />}
+                      suffix={
+                        <Tooltip title="Entrez une description pour le tarif additionnel">
+                          <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                        </Tooltip>
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
             </Form.Item>
+            )}
 
-            {/* Nature Produit */}
-            <Form.Item
-              label="Nature Produit"
-              name="nature_produit"
-              rules={[{ required: true, message: 'Please enter the nature of the product' }]}
-            >
-              <Input />
-            </Form.Item>
-
-            {/* Statut */}
-            <Form.Item
-              label="Statut"
-              name="statut"
-              rules={[{ required: true, message: 'Please select a status' }]}
-            >
-              <Select placeholder="Select status">
-                {validStatuses.map((status) => (
-                  <Option key={status} value={status}>
-                    {status}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            {/* Boolean Fields */}
-            <Form.Item name="ouvrir" valuePropName="checked">
-              <Checkbox>Ouvrir</Checkbox>
-            </Form.Item>
-            <Form.Item name="is_simple" valuePropName="checked">
-              <Checkbox>Simple</Checkbox>
-            </Form.Item>
-            <Form.Item name="is_remplace" valuePropName="checked">
-              <Checkbox>Remplace</Checkbox>
-            </Form.Item>
-            <Form.Item name="is_fragile" valuePropName="checked">
-              <Checkbox>Fragile</Checkbox>
-            </Form.Item>
-
-           
-
-           
-           
+            {/* Replaced Colis Selection */}
+            {form.getFieldValue('is_remplace') && (
+              <Form.Item
+                label="Colis à remplacer"
+                name="replacedColis"
+                rules={[{ required: true, message: 'Please select a colis to replace' }]}
+              >
+                <Select
+                  placeholder="Sélectionnez le Colis à remplacer"
+                  loading={loading}
+                  allowClear
+                >
+                  {/* Populate options based on available colis */}
+                  {/* Assuming you have a list of colis to replace, replace the below example with actual data */}
+                  {selectedColis && selectedColis.replacedColis && (
+                    <Option value={selectedColis.replacedColis._id}>
+                      {selectedColis.replacedColis.code_suivi} - {selectedColis.replacedColis.nom}
+                    </Option>
+                  )}
+                </Select>
+              </Form.Item>
+            )}
 
             {/* Submit Button */}
             <Form.Item>

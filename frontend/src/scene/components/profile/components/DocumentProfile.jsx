@@ -1,77 +1,70 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Upload, Button, Form, Typography, message, Alert, List } from "antd";
-import { UploadOutlined, ExclamationCircleOutlined, FileOutlined } from "@ant-design/icons";
+import { Upload, Button, Typography, message, Divider } from "antd";
+import { SaveOutlined, SendOutlined, UploadOutlined } from "@ant-design/icons";
 import Menubar from "../../../global/Menubar";
 import Topbar from "../../../global/Topbar";
 import Title from "../../../global/Title";
 import { ThemeContext } from "../../../ThemeContext";
-import { fetchUserDocuments, fetchUserFiles, uploadFiles } from "../../../../redux/apiCalls/docApiCalls";
-import "../profile.css";
+import { uploadFiles } from "../../../../redux/apiCalls/docApiCalls";
+import "../DocumentProfile.css";
 
 const { Title: AntTitle } = Typography;
 
 function DocumentProfile() {
-  const [fileList, setFileList] = useState([]);
-  const [userFiles, setUserFiles] = useState(null); // State for existing user files
+  const [fileListRecto, setFileListRecto] = useState([]); // Liste des fichiers pour CIN Recto
+  const [fileListVerso, setFileListVerso] = useState([]); // Liste des fichiers pour CIN Verso
+  const [isSubmitting, setIsSubmitting] = useState(false); // Nouvel état
+
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
+  const user = useSelector((state) => state.auth.user); // Données utilisateur
   const { theme } = useContext(ThemeContext);
 
-  // Fetch user files on component mount
-  useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        const files = await fetchUserDocuments(user.role, user._id); // API call to fetch files
-        setUserFiles(files); // Update state with fetched files
-      } catch (error) {
-        message.error("Error fetching user files.");
-      }
-    };
-    fetchFiles();
-  }, [user.role, user._id]);
-
+  // Fonction pour gérer la soumission des fichiers
   const handleUpload = () => {
-    if (fileList.length === 0) {
-      return message.warning("Please select files to upload.");
+    if (fileListRecto.length === 0 || fileListVerso.length === 0) {
+      return message.warning("Veuillez ajouter les deux fichiers avant de soumettre.");
     }
-
+    setIsSubmitting(true); // Début de la soumission
     const formData = new FormData();
-    fileList.forEach((file, index) => {
-      if (index === 0) {
-        formData.append("cinRecto", file); // Use cinRecto for front side
-      } else if (index === 1) {
-        formData.append("cinVerso", file); // Use cinVerso for back side
-      }
-    });
+    fileListRecto.forEach((file) => formData.append("cinRecto", file));
+    fileListVerso.forEach((file) => formData.append("cinVerso", file));
+    setIsSubmitting(false); // Fin de la soumission
+
 
     dispatch(uploadFiles(user.role, user._id, formData))
       .then(() => {
-        message.success("Files are being uploaded!");
-        setFileList([]);
-        setUserFiles(["cinRecto", "cinVerso"]); // Update state to simulate uploaded files
+        message.success("Documents soumis avec succès !");
+        setFileListRecto([]);
+        setFileListVerso([]);
       })
       .catch(() => {
-        message.error("An error occurred during file upload.");
+        message.error("Erreur lors de la soumission des documents.");
       });
   };
 
-  const props = {
+  // Configuration pour le composant Upload (CIN Recto)
+  const uploadPropsRecto = {
     onRemove: (file) => {
-      setFileList((prevList) => prevList.filter((item) => item.uid !== file.uid));
+      setFileListRecto((prevList) => prevList.filter((item) => item.uid !== file.uid));
     },
     beforeUpload: (file) => {
-      setFileList((prevList) => {
-        const isDuplicate = prevList.some((item) => item.uid === file.uid);
-        if (isDuplicate) {
-          message.warning("This file is already added.");
-          return prevList;
-        }
-        return [...prevList, file];
-      });
-      return false; // Prevent auto-upload
+      setFileListRecto((prevList) => [...prevList, file]);
+      return false;
     },
-    fileList,
+    fileList: fileListRecto,
+  };
+
+  // Configuration pour le composant Upload (CIN Verso)
+  const uploadPropsVerso = {
+    onRemove: (file) => {
+      setFileListVerso((prevList) => prevList.filter((item) => item.uid !== file.uid));
+    },
+    beforeUpload: (file) => {
+      setFileListVerso((prevList) => [...prevList, file]);
+      return false;
+    },
+    fileList: fileListVerso,
   };
 
   return (
@@ -89,71 +82,59 @@ function DocumentProfile() {
           <div className="page-content-header">
             <Title nom="Documents" />
           </div>
-          <div
-            className="content"
-            style={{
-              backgroundColor: theme === "dark" ? "#001529" : "#fff",
-            }}
-          >
-            {userFiles && userFiles.length > 0 ? (
-              <div>
-                <AntTitle level={3}>Vos Documents Téléchargés</AntTitle>
-                <List
-                  dataSource={userFiles}
-                  renderItem={(file) => (
-                    <List.Item>
-                      <FileOutlined /> {file}
-                      <Button
-                        type="link"
-                        href={`/path-to-files/${file}`}
-                        target="_blank"
-                        style={{ marginLeft: "auto" }}
-                      >
-                        Télécharger
-                      </Button>
-                    </List.Item>
-                  )}
-                  style={{ marginTop: "20px" }}
-                />
+          <div className="profile-container">
+            {/* Section de profil */}
+            <div className="profile-sidebar">
+              <img
+                src={user.profile?.url || "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"}
+                alt="Profile"
+                className="profile-avatar"
+              />
+              <h3>{user.username || "Username"}</h3>
+              <p>{user.email || "ennouaranass@gmail.com"}</p>
+              <p>{user.tele || "0618480821"}</p>
+              <div className="profile-info">
+                <p><strong>Nom Complet :</strong> {user.nom || "Nom"} {user.prenom}</p>
+                <p><strong>C.I.N :</strong> <span className="cin-highlight">{user.cin || "EE348643"}</span></p>
+                <p><strong> email :</strong> {user.email || "ennouaranass@gmail.com"}</p>
+                <p><strong>Téléphone :</strong> {user.tele || "11111111111"}</p>
+                <p><strong>Ville :</strong> {user.ville || "Ville"}</p>
+                <p><strong>Adresse :</strong> {user.adresse || "Adresse"}</p>
               </div>
-            ) : (
-              <div>
-                <h4>Importer Vos Documents</h4>
-                <Alert
-                  message="Important"
-                  description="Veuillez vous assurer que vous téléchargez à la fois le recto et le verso de votre CIN pour la vérification."
-                  type="warning"
-                  icon={<ExclamationCircleOutlined />}
-                  showIcon
-                  style={{ marginBottom: "20px" }}
-                />
-                <div
-                  className="container-profile"
-                  style={{ maxWidth: "500px", margin: "auto", padding: "20px" }}
+            </div>
+
+            {/* Section Documents */}
+            <div className="profile-documents">
+              <div className="document-upload-section">
+                <AntTitle level={4}>C.I.N - Recto</AntTitle>
+                <Upload {...uploadPropsRecto}>
+                  <Button className="button-importer" icon={<UploadOutlined />}>
+                    Importer
+                  </Button>
+                </Upload>
+
+              </div>
+              <div className="document-upload-section">
+                <AntTitle level={4}>C.I.N - Verso</AntTitle>
+                <Upload {...uploadPropsVerso}>
+                  <Button className="button-importer" icon={<UploadOutlined />}>
+                    Importer
+                  </Button>            
+                </Upload>
+              </div>
+              <div className="submit-section">
+                <Button
+                  type="primary"
+                  className={isSubmitting ? "submitting" : ""}
+                  style={{ marginTop: "20px", width: "100%" }}
+                  onClick={handleUpload}
+                  disabled={isSubmitting || fileListRecto.length === 0 || fileListVerso.length === 0}
+                  icon={<SendOutlined />}
                 >
-                  <AntTitle level={3} style={{ textAlign: "center" }}>
-                    Select Files to Upload
-                  </AntTitle>
-                  <Form layout="vertical">
-                    <Form.Item label="Select Files">
-                      <Upload {...props} multiple>
-                        <Button icon={<UploadOutlined />}>Select Files</Button>
-                      </Upload>
-                    </Form.Item>
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        onClick={handleUpload}
-                        disabled={fileList.length < 2}
-                        block
-                      >
-                        Upload
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </div>
+          {isSubmitting ? "Soumission en cours..." : "Soumettre les documents"}
+          </Button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </main>

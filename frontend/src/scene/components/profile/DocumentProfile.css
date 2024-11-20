@@ -1,0 +1,178 @@
+/* Conteneur principal */
+.page-content {
+    padding: 10px;
+    background-color: #f9fafc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre douce */
+    height: auto; /* Supprime toute contrainte de hauteur */
+    min-height: 100vh; /* Au moins la hauteur de la fenêtre */
+    overflow-y: scroll; /* Ajoute le défilement si nécessaire */
+}
+
+.page-content-header {
+    text-align: center; /* Centre le titre horizontalement */
+    margin-bottom: 1px; /* Ajoute un espace sous le titre */
+    padding-top: 5px;
+    margin-top: 7px; /* Ajoute un espace sous le titre */
+}
+
+/* Conteneur global du profil */
+.profile-container {
+    display: flex;
+    height: 100%;
+    gap: 20px; /* Espace entre la barre latérale et les documents */
+    flex-wrap: wrap; /* Adaptation aux écrans plus petits */
+}
+
+/* Barre latérale : Photo et informations */
+.profile-sidebar {
+    width: 250px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px; /* Coins arrondis */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%; /* Forme circulaire */
+    margin-bottom: 15px;
+    border: 2px solid #bbbdcd; /* Bordure autour de l'image */
+}
+
+.profile-info p {
+    margin: 8px 0;
+    margin-bottom: 3px;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+.profile-info strong {
+    color: #3d48aa; /* Couleur d'accentuation */
+}
+
+/* Section documents */
+.profile-documents {
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre douce */
+}
+
+/* Sous-sections des uploads */
+.document-upload-section {
+    margin-bottom: 20px;
+}
+
+.document-upload-section h4 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #444;
+}
+
+.document-upload-section .ant-btn {
+    display: block;
+    margin: 10px auto; /* Centrer les boutons */
+}
+
+/* Section du bouton de soumission */
+.submit-section {
+    margin-top: 20px;
+}
+
+.submit-section .ant-btn {
+    width: 100%; /* Bouton pleine largeur */
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 5px; /* Coins arrondis */
+}
+
+/* Boutons généraux */
+.ant-btn {
+    border-radius: 5px; /* Coins arrondis */
+}
+
+/* Bouton primaire */
+.ant-btn-primary {
+    background-color: #4CAF50; /* Couleur verte */
+    border-color: #4CAF50;
+    color: #fff;
+    transition: all 0.3s ease; /* Animation fluide */
+}
+
+.ant-btn-primary:hover {
+    background-color: #45a049; /* Vert légèrement plus foncé au survol */
+    border-color: #45a049;
+    color: #fff;
+}
+
+.ant-btn-primary:active,
+.ant-btn-primary.submitting {
+    background-color: #4CAF50 !important; /* Vert constant pendant la soumission */
+    border-color: #4CAF50 !important;
+    color: #fff !important;
+    cursor: not-allowed; /* Indique que le bouton est désactivé */
+    opacity: 0.8; /* Ajoute une légère opacité pour montrer l'état actif */
+}
+
+/* Styles personnalisés pour le bouton d'importation */
+.button-importer {
+    display: flex; /* Aligne l'icône et le texte horizontalement */
+    background-color: #ffffff; /* Couleur de fond blanche */
+    border: 1px solid #d9d9d9;
+    border-radius: 8px; /* Coins arrondis */
+    color: #3d48aa; /* Couleur du texte et de l'icône */
+    transition: all 0.3s ease; /* Animation fluide */
+    cursor: pointer; /* Curseur au survol */
+    font-size: 14px;
+}
+
+.button-importer:hover {
+    background-color: #f5f5f5; /* Couleur de fond au survol */
+    border-color: #3d48aa; /* Change la couleur de la bordure au survol */
+    color: #4CAF50; /* Couleur verte pour le texte et l'icône */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Ombre renforcée */
+}
+
+.button-importer:active {
+    background-color: #e6f7ff; /* Couleur bleutée lors du clic */
+    transform: translateY(2px); /* Effet de pression */
+}
+
+/* Bouton danger (Retirer la photo) */
+.ant-btn-danger {
+    background-color: transparent;
+    border-color: #e63946;
+    color: #e63946;
+}
+
+.ant-btn-danger:hover {
+    background-color: #e63946;
+    color: #fff;
+}
+
+/* Responsivité pour les petits écrans */
+@media (max-width: 768px) {
+    .profile-container {
+        flex-direction: column; /* Mettre les sections en colonne */
+    }
+
+    .profile-sidebar {
+        display: none; /* Cache complètement la barre latérale */
+    }
+
+    .profile-documents {
+        width: 100%; /* La section documents occupe toute la largeur */
+    }
+}
+
+/* Accentuation de CIN */
+.cin-highlight {
+    color: #e63946;
+    font-weight: bold;
+}

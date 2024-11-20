@@ -40,8 +40,3 @@ export const fetchUserDocuments = (role, userId) => {
   
 
 };
-
-module.exports={
-  fetchUserDocuments,
-  uploadFiles
-}

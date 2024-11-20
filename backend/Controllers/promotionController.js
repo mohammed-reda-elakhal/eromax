@@ -2,12 +2,13 @@ const Promotion = require('../Models/Promotion');
 const mongoose = require('mongoose');
 
 // Create a new promotion
+// Create a new promotion
 exports.createPromotion = async (req, res) => {
   try {
     const promotionData = req.body;
 
-    // Validate required fields
-    if (!promotionData.type || !promotionData.value || !promotionData.startDate || !promotionData.endDate) {
+    // Corrected validation check
+    if (!promotionData.type || promotionData.value == null || !promotionData.startDate || !promotionData.endDate) {
       return res.status(400).json({ message: 'All required fields must be provided.' });
     }
 
@@ -19,6 +20,10 @@ exports.createPromotion = async (req, res) => {
       data: savedPromotion,
     });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ message: 'Validation error.', errors: messages });
+    }
     res.status(500).json({
       message: 'Error creating promotion.',
       error: error.message,
@@ -26,11 +31,13 @@ exports.createPromotion = async (req, res) => {
   }
 };
 
+
+
 // Get all promotions
 exports.getAllPromotions = async (req, res) => {
   try {
     const promotions = await Promotion.find()
-      .populate('clients', 'name'); // Populate client names if needed
+      .populate('clients'); // Populate client names if needed
 
     res.status(200).json({
       message: 'Promotions retrieved successfully.',
