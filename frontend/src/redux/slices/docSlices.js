@@ -12,6 +12,8 @@ const fileSlice = createSlice({
         state.files=action.payload
 
 
+      },getFiles: (state,action) => {
+        state.files=action.payload
       },
     },
    

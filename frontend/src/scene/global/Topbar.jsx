@@ -90,7 +90,7 @@ function Topbar() {
       </>
       )
     }
-      {user?.role === 'client' && user?.role === 'livreur' (
+      {user?.role === 'client' || user?.role === 'livreur' (
         <Menu.Item key="document" icon={<FaFileArchive style={{ margin: '0 8px' }} />}>
           <Link className='link_topbar' to={`/dashboard/document`}>
             Documents
