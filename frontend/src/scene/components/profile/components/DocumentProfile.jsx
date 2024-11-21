@@ -82,27 +82,12 @@ function DocumentProfile() {
           <div className="page-content-header">
             <Title nom="Documents" />
           </div>
-          <div className="profile-container">
-            {/* Section de profil */}
-            <div className="profile-sidebar">
-              <img
-                src={user.profile?.url || "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"}
-                alt="Profile"
-                className="profile-avatar"
-              />
-              <h3>{user.username || "Username"}</h3>
-              <p>{user.email || "ennouaranass@gmail.com"}</p>
-              <p>{user.tele || "0618480821"}</p>
-              <div className="profile-info">
-                <p><strong>Nom Complet :</strong> {user.nom || "Nom"} {user.prenom}</p>
-                <p><strong>C.I.N :</strong> <span className="cin-highlight">{user.cin || "EE348643"}</span></p>
-                <p><strong> email :</strong> {user.email || "ennouaranass@gmail.com"}</p>
-                <p><strong>Téléphone :</strong> {user.tele || "11111111111"}</p>
-                <p><strong>Ville :</strong> {user.ville || "Ville"}</p>
-                <p><strong>Adresse :</strong> {user.adresse || "Adresse"}</p>
-              </div>
-            </div>
-
+          <div
+              className="content"
+              style={{
+                  backgroundColor: theme === 'dark' ? '#001529' : '#fff',
+              }} 
+          >
             {/* Section Documents */}
             <div className="profile-documents">
               <div className="document-upload-section">
@@ -131,8 +116,8 @@ function DocumentProfile() {
                   disabled={isSubmitting || fileListRecto.length === 0 || fileListVerso.length === 0}
                   icon={<SendOutlined />}
                 >
-          {isSubmitting ? "Soumission en cours..." : "Soumettre les documents"}
-          </Button>
+                  {isSubmitting ? "Envoyer en cours..." : "Envoyer"}
+                </Button>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 // ColisTable.js
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Button, Input, Drawer, Typography, Tag, Descriptions, Divider } from 'antd';
-import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt } from 'react-icons/fa';
+import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt, FaDownload } from 'react-icons/fa';
 import { Si1001Tracklists } from 'react-icons/si';
 import { TbPhoneCall } from 'react-icons/tb';
 import { IoSearch } from "react-icons/io5";
@@ -12,11 +12,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { FiRefreshCcw } from "react-icons/fi";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
 import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import TrackingColis from '../../../global/TrackingColis ';
+import moment from 'moment';
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
@@ -395,10 +398,47 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     navigate('/dashboard/tickets', { state: { selectedColis: state.selectedRows } });
   };
 
+  // Export to Excel Function
+  const exportToExcel = () => {
+    const { selectedRows } = state;
+
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one colis to export.");
+      return;
+    }
+
+    // Map selectedRows to a format suitable for Excel
+    const dataToExport = selectedRows.map(colis => ({
+      "Code Suivi": colis.code_suivi,
+      "Destinataire": colis.nom,
+      "Téléphone": colis.tele,
+      "Ville": colis.ville?.nom || 'N/A',
+      "Adresse": colis.adresse || 'N/A',
+      "Prix (DH)": colis.prix,
+      "Nature de Produit":colis.nature_produit
+    }));
+
+    // Create a worksheet
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+    // Create a new workbook and append the worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Selected Colis");
+
+    // Generate a buffer
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
+    // Create a blob from the buffer
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+
+    // Save the file
+    saveAs(data, `Selected_Colis_${moment().format('YYYYMMDD_HHmmss')}.xlsx`);
+  };
+
   return (
     <>
       {/* Action Bar */}
-      <div className="bar-action-data" style={{ marginBottom: '16px' }}>
+      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
         <Button 
           icon={<IoMdRefresh />} 
           type="primary" 
@@ -413,6 +453,14 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           onClick={handleBatchTickets}
         >
           Tickets
+        </Button>
+        <Button 
+          icon={<FaDownload />} 
+          type="default" 
+          onClick={exportToExcel}
+          disabled={state.selectedRowKeys.length === 0}
+        >
+          Export to Excel
         </Button>
       </div>
 
@@ -431,7 +479,10 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         column={columns}
         data={state.filteredData}
         id="_id"
-        onSelectChange={handleRowSelection}
+        rowSelection={{
+          selectedRowKeys: state.selectedRowKeys,
+          onChange: handleRowSelection,
+        }}
         expandable={{
           expandedRowRender: expandedRowRender,
           rowExpandable: (record) => true, // Allow all rows to be expandable
