@@ -40,10 +40,9 @@ function Store() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Profile</h4>
-                        <div className="container-profile">
-                            <StoreInfo />
-                        </div>
+                        <h4>Bussniss</h4>
+                        <StoreInfo />
+                        
                     </div>
                 </div>
             </main>

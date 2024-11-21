@@ -34,10 +34,8 @@ function Pyements() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Profile</h4>
-                        <div className="container-profile">
-                            <PayementProfile />
-                        </div>
+                        <h4>Methode de payement</h4>
+                        <PayementProfile />
                     </div>
                 </div>
             </main>
