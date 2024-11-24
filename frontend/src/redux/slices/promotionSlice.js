@@ -6,6 +6,7 @@ const promotionSlice = createSlice({
   name: "promotion",
   initialState: {
     promotions: [], // Should be an array
+    validPromotions: [], // Valid promotions for the user
     selectedPromotion: null,
     loading: false,
     error: null,
@@ -16,7 +17,11 @@ const promotionSlice = createSlice({
       state.error = null;
     },
     fetchPromotionsSuccess(state, action) {
-      state.promotions = action.payload; // Expects an array
+      state.promotions = action.payload;
+      state.loading = false;
+    },
+    fetchValidPromotionsSuccess(state, action) {
+      state.validPromotions = action.payload;
       state.loading = false;
     },
     fetchPromotionsFailure(state, action) {

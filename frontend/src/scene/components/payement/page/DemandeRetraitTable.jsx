@@ -11,9 +11,10 @@ import {
     validerDemandeRetrait 
 } from '../../../../redux/apiCalls/demandeRetraitApiCall';
 import { CheckCircleOutlined, SyncOutlined, DollarOutlined } from '@ant-design/icons';
-import { Button, Tag } from 'antd';
+import { Button, Tag, Input, DatePicker } from 'antd';
 import { toast } from 'react-toastify';
 import { IoMdRefresh } from 'react-icons/io';
+import dayjs from 'dayjs';
 
 function DemandeRetraitTable() {
     const { theme } = useContext(ThemeContext);
@@ -24,43 +25,65 @@ function DemandeRetraitTable() {
     }));
 
     const dispatch = useDispatch();
-    
-    // Loading state for the button
-    const [loadingId, setLoadingId] = useState(null); // Track which button is loading
 
-    const getDataDR = () =>{
+    // State for filtering and loading
+    const [filteredData, setFilteredData] = useState([]);
+    const [loadingId, setLoadingId] = useState(null);
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [searchText, setSearchText] = useState("");
+
+    const getDataDR = () => {
         if (user.role === "admin") {
             dispatch(getAlldemandeRetrait());
         } else if (user.role === "client") {
             dispatch(getdemandeRetraitByClient(store?._id));
         }
+    };
 
-    }
     useEffect(() => {
-        getDataDR()
+        getDataDR();
         window.scrollTo(0, 0);
     }, [dispatch, user.role, store?._id]);
 
-    // Function to handle status update
+    useEffect(() => {
+        filterData();
+    }, [demandesRetraits, startDate, endDate, searchText]);
+    
+
+    const filterData = () => {
+        const lowerCaseSearchText = searchText.toLowerCase();
+        const filtered = demandesRetraits.filter((item) => {
+            const createdAt = new Date(item.createdAt);
+            const matchesSearch =
+                item?.id_store?.id_client?.nom?.toLowerCase().includes(lowerCaseSearchText) ||
+                item?.id_store?.storeName?.toLowerCase().includes(lowerCaseSearchText);
+
+            const withinDateRange =
+                (!startDate || dayjs(createdAt).isAfter(startDate)) &&
+                (!endDate || dayjs(createdAt).isBefore(endDate));
+
+            return matchesSearch && withinDateRange;
+        });
+        setFilteredData(filtered);
+    };
+
     const handleValiderDemandeRetrait = async (id_demande) => {
-        setLoadingId(id_demande); // Set the loading state for this button
-
+        setLoadingId(id_demande);
         try {
-            await dispatch(validerDemandeRetrait(id_demande)).unwrap(); // Wait for the action to complete
-
-            // The Redux store will update 'demandesRetraits' via the slice's 'updateDemandeRetrait' reducer
+            await dispatch(validerDemandeRetrait(id_demande)).unwrap();
             toast.success("Demande de retrait validée avec succès !");
         } catch (error) {
             console.error(error.response?.data?.message || "Erreur lors de la validation de la demande de retrait");
         } finally {
-            setLoadingId(null); // Reset loading state regardless of success or failure
+            setLoadingId(null);
         }
     };
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-      };
+    };
 
     const columns = [
         {
@@ -189,21 +212,49 @@ function DemandeRetraitTable() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        <div className="bar-action-data" style={{ marginBottom: '16px' }}>
-                            <Button 
-                                icon={<IoMdRefresh />} 
-                                type="primary" 
-                                onClick={getDataDR} 
-                                style={{ marginRight: '8px' }}
-                            >
-                                Refresh
-                            </Button>
+                        <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
+                        <Button
+                            icon={<IoMdRefresh />}
+                            type="primary"
+                            onClick={() => {
+                                setSearchText(""); // Reset search text
+                                setStartDate(null); // Reset start date
+                                setEndDate(null); // Reset end date
+                                getDataDR(); // Reload data
+                            }}
+                            style={{ marginRight: '8px' }}
+                        >
+                            Refresh
+                        </Button>
+
+                            {
+                                user?.role === "admin" ? 
+                            
+                            <Input 
+                                placeholder="Search by client or store" 
+                                value={searchText} 
+                                onChange={(e) => setSearchText(e.target.value)} 
+                                style={{ width: '200px' }}
+                            />
+                            :
+                            ""
+                            }
+                            <DatePicker 
+                                placeholder="Start Date" 
+                                onChange={(date) => setStartDate(date)} 
+                                style={{ width: '150px' }}
+                            />
+                            <DatePicker 
+                                placeholder="End Date" 
+                                onChange={(date) => setEndDate(date)} 
+                                style={{ width: '150px' }}
+                            />
                         </div>
                         <TableDashboard
                             theme={theme} 
                             id="_id" 
                             column={columns} 
-                            data={demandesRetraits}
+                            data={filteredData}
                         />
                     </div>
                 </div>
