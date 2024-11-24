@@ -182,7 +182,7 @@ function ColisRamasse({ search }) {
             <div className="bar-action-data">
               <Button icon={<IoMdRefresh />} type="primary" onClick={() => getDataColis()} >Rafraîchir</Button>
               <Button icon={<FaBoxesStacked />} type="primary" onClick={() => showModal()} loading={loading}>Expédier</Button>
-              <Button icon={<IoQrCodeSharp />} type="primary" onClick={() => navigate("")} loading={loading}>Scanner</Button>
+              <Button icon={<IoQrCodeSharp />} type="primary" onClick={() => navigate("/dashboard/scan/statu/Expediée")} loading={loading}>Scanner</Button>
             </div>
             <TableDashboard column={columns} data={data} id="code_suivi" theme={theme} onSelectChange={setSelectedRowKeys} />
             {contextHolder}

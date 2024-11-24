@@ -1,56 +1,69 @@
-import React, { useState } from 'react';
-import { Input, Button, Select, Table, Typography, Space, notification } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Input, Button, Select, Table, Typography, Space, notification, Modal, Card, Divider , Form, Tag, message } from 'antd';
 import BarcodeReader from 'react-barcode-reader';
 import QrScanner from 'react-qr-scanner';
 import request from '../../../../utils/request';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 function ScanRamasser() {
-  const { statu } = useParams(); // Declare 'statu' first
+  const { statu } = useParams(); // Récupère le paramètre 'statu' depuis l'URL
 
-  // If 'status' state is not used elsewhere, you can remove it
-  // const [status, setStatus] = useState(statu); 
+  // États locaux
+  const [scannedItems, setScannedItems] = useState([]); // Liste des colis scannés
+  const [currentBarcode, setCurrentBarcode] = useState(''); // Code barre actuel
+  const [scanMethod, setScanMethod] = useState('barcode'); // Méthode de scan : 'barcode' ou 'qrcode'
+  const [scannerEnabled, setScannerEnabled] = useState(true); // Contrôle la visibilité du scanner
+  const [isModalVisible, setIsModalVisible] = useState(false); // Contrôle la visibilité de la modal
+  const [selectedLivreur, setSelectedLivreur] = useState(null); // Livreur sélectionné
+  const [loading, setLoading] = useState(false); // État de chargement pour les opérations
+  const [form] = Form.useForm(); // Formulaire Ant Design
 
-  const [scannedItems, setScannedItems] = useState([]);
-  const [currentBarcode, setCurrentBarcode] = useState('');
-  const [scanMethod, setScanMethod] = useState('barcode'); // Toggle between barcode and QR code scanner
-  const [scannerEnabled, setScannerEnabled] = useState(true); // Control scanner visibility
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
 
-  // Function to fetch the colis by code_suivi
-  const fetchColisByCodeSuivi = async (barcode) => { // Removed 'statu' parameter
-    // Check if the barcode is already scanned
+  // Sélecteurs Redux
+  const { livreurList } = useSelector(state => ({
+    livreurList: state.livreur.livreurList, // Liste des livreurs depuis le store Redux
+  }));
+
+  // Effet pour récupérer la liste des livreurs au montage du composant
+  useEffect(() => {
+    dispatch(getLivreurList());
+  }, [dispatch]);
+
+  // Fonction pour récupérer les détails d'un colis via son code_suivi
+  const fetchColisByCodeSuivi = async (barcode) => {
+    // Vérifie si le colis a déjà été scanné
     if (scannedItems.some(item => item.barcode === barcode)) {
       notification.warning({
         message: 'Code Suivi déjà scanné',
         description: 'Ce code a déjà été scanné.',
       });
-      return; // If the code is already scanned, exit the function
+      return;
     }
 
     try {
       const response = await request.get(`/api/colis/code_suivi/${barcode}`);
-      const colisData = response.data; // Get the data from the Axios response
+      const colisData = response.data;
 
-      // Map of required previous statuses for each 'statu' prop value
+      // Mappage des statuts requis en fonction du nouveau statut
       const requiredStatusMap = {
         'Ramassée': ['attente de ramassage'],
         'Expediée': ['Ramassée'],
         'Reçu': ['Expediée'],
         'Mise en Distribution': ['Reçu'],
         'Livrée': ['Mise en Distribution'],
-        'Fermée': ['En Retour'], // Assuming 'Fermée' should follow 'Livrée'
-        'En Retour': ['Reçu', 'Annulée', 'Refusée', 'Remplacée'], // Multiple statuses for "En Retour"
+        'Fermée': ['En Retour'],
+        'En Retour': ['Reçu', 'Annulée', 'Refusée', 'Remplacée'],
       };
 
-      // Get the required previous statuses based on 'statu' prop
       const requiredStatuses = requiredStatusMap[statu];
 
       if (!requiredStatuses) {
@@ -61,16 +74,15 @@ function ScanRamasser() {
         return;
       }
 
-      // Check if the colis has one of the required previous statuses
       if (!requiredStatuses.includes(colisData.statut)) {
         notification.warning({
           message: 'Statut de colis invalide',
           description: `Seuls les colis avec le statut "${requiredStatuses.join(', ')}" peuvent être scannés pour "${statu}".`,
         });
-        return; // Exit the function if the status does not match
+        return;
       }
 
-      // Add the fetched colis to the scanned items table
+      // Ajoute le colis scanné à la liste des colis scannés
       setScannedItems((prevItems) => [
         ...prevItems,
         {
@@ -83,7 +95,7 @@ function ScanRamasser() {
 
       notification.success({ message: 'Colis trouvé et ajouté à la liste' });
     } catch (error) {
-      console.error('Error fetching colis:', error);
+      console.error('Erreur lors de la récupération du colis:', error);
       notification.error({
         message: 'Erreur lors de la récupération du colis',
         description: error.response?.data?.message || error.message,
@@ -91,84 +103,93 @@ function ScanRamasser() {
     }
   };
 
-  // Handle barcode input (this will be used when a barcode is scanned)
+  // Gestionnaire pour le scan du code barre via l'input
   const handleBarcodeScan = (event) => {
     if (event.key === 'Enter' && currentBarcode) {
-      // Fetch the colis information using the scanned barcode (code_suivi)
       fetchColisByCodeSuivi(currentBarcode);
-      // Clear the input field
       setCurrentBarcode('');
     }
   };
 
-  // Handle QR code scan success
+  // Gestionnaire pour le scan réussi d'un QR code
   const handleQrScan = (data) => {
     if (data && data.text) {
-      fetchColisByCodeSuivi(data.text); // Use the same handleScan method for QR code
-      setScannerEnabled(false); // Disable scanner after scan
+      fetchColisByCodeSuivi(data.text);
+      setScannerEnabled(false); // Désactive le scanner après un scan réussi
     }
   };
 
-  // Handle scan errors
+  // Gestionnaire d'erreur lors du scan
   const handleError = (err) => {
-    console.error('Scan Error:', err);
+    console.error('Erreur de scan:', err);
     notification.error({ message: 'Erreur lors du scan', description: err.message });
   };
 
-  // Rescan function to enable the scanner again
+  // Fonction pour réactiver le scanner
   const handleRescan = () => {
     setCurrentBarcode('');
-    setScannerEnabled(true); // Re-enable the scanner
+    setScannerEnabled(true);
   };
 
-  // Handle barcode input change
+  // Gestionnaire pour la modification de l'input du code barre
   const handleBarcodeChange = (event) => {
     setCurrentBarcode(event.target.value);
   };
 
-  // Handle switching between barcode and QR code
+  // Gestionnaire pour changer la méthode de scan
   const handleScanMethodChange = (value) => {
-    setScanMethod(value); // Set the scan method to either barcode or QR code
-    setCurrentBarcode(''); // Clear the input on switching
-    setScannerEnabled(true); // Enable scanner when switching
+    setScanMethod(value);
+    setCurrentBarcode('');
+    setScannerEnabled(true);
   };
 
-  // Function to handle the action (e.g., ramasser)
-  const handleAction = async () => {
-    const codeSuiviList = scannedItems.map(item => item.barcode);
-    try {
-      const response = await request.put('/api/colis/statu/update', {
-        colisCodes: codeSuiviList,
-        new_status: statu
-      });
-      toast.success(response.data.message);
-      
-      // Handle failed updates if any
-      if (response.data.failedUpdates && response.data.failedUpdates.length > 0) {
-        response.data.failedUpdates.forEach(failure => {
-          toast.error(`Erreur pour ${failure.codeSuivi}: ${failure.error}`);
-        });
-      }
-  
-      navigate('/dashboard/list-colis');
-    } catch (err) {
-      // If the backend returns a 500 error with a message
-      if (err.response && err.response.data && err.response.data.message) {
-        toast.error(`Erreur: ${err.response.data.message}`);
-        // Optionally display details about failed updates
-        if (err.response.data.failedUpdates) {
-          err.response.data.failedUpdates.forEach(failure => {
-            toast.error(`Erreur pour ${failure.codeSuivi}: ${failure.error}`);
-          });
-        }
-      } else {
-        toast.error("Erreur lors de la mise à jour des colis.");
-      }
+  // Fonction pour ouvrir la modal d'affectation du livreur
+  const handleAction = () => {
+    if (scannedItems.length > 0) {
+      setIsModalVisible(true);
+    } else {
+      toast.warn("Veuillez scanner au moins un colis !");
     }
   };
-  
 
-  // Define columns for the table
+  // Fonction pour confirmer l'affectation du livreur
+  const handleOk = async () => {
+    if (selectedLivreur) {
+      setLoading(true);
+      const codesSuivi = scannedItems.map(item => item.barcode);
+      try {
+        const response = await request.put('/api/colis/statu/affecter', {
+          codesSuivi: codesSuivi,
+          livreurId: selectedLivreur._id
+        });
+        setLoading(false);
+        toast.success(response.data.message);
+        // Réinitialise les états après succès
+        setScannedItems([]);
+        setSelectedLivreur(null);
+        setIsModalVisible(false);
+        navigate('/dashboard/list-colis');
+      } catch (err) {
+        setLoading(false);
+        toast.error("Erreur lors de la mise à jour des colis.");
+      }
+    } else {
+      message.warning('Veuillez sélectionner un livreur');
+    }
+  };
+
+  // Fonction pour annuler l'affectation du livreur
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setSelectedLivreur(null);
+  };
+
+  // Fonction pour sélectionner un livreur
+  const selectLivreur = (livreur) => {
+    setSelectedLivreur(livreur);
+  };
+
+  // Définition des colonnes pour la table des colis scannés
   const columns = [
     { title: 'Code Barre', dataIndex: 'barcode', key: 'barcode' },
     { title: 'Statut', dataIndex: 'status', key: 'status' },
@@ -177,10 +198,10 @@ function ScanRamasser() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <Title level={3}>Scan Colis</Title>
+      <Title level={3}>Scanner Colis</Title>
 
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        {/* Select scan method */}
+        {/* Sélection de la méthode de scan */}
         <div>
           <label>Méthode de scan: </label>
           <Select defaultValue="barcode" style={{ width: 200 }} onChange={handleScanMethodChange}>
@@ -189,7 +210,7 @@ function ScanRamasser() {
           </Select>
         </div>
 
-        {/* Barcode Reader */}
+        {/* Lecteur de Code Barre */}
         {scanMethod === 'barcode' && scannerEnabled && (
           <>
             <BarcodeReader
@@ -206,37 +227,90 @@ function ScanRamasser() {
           </>
         )}
 
-        {/* QR Code Reader */}
+        {/* Lecteur de QR Code */}
         {scanMethod === 'qrcode' && scannerEnabled && (
           <QrScanner
             delay={300}
             onError={handleError}
             onScan={handleQrScan}
-            style={{ width: '400px', height: '400px' }} // Set scanner size to 400px by 400px
+            style={{ width: '100%' }} // Ajustez la taille selon vos besoins
           />
         )}
 
-        {/* Rescan Button */}
+        {/* Bouton pour rescanner */}
         {!scannerEnabled && (
           <Button type="primary" onClick={handleRescan}>
             Scanner un autre colis
           </Button>
         )}
 
-        {/* Table to display scanned items */}
+        {/* Table des colis scannés */}
         <Table
           columns={columns}
           dataSource={scannedItems}
           pagination={false}
           bordered
-          title={() => 'Articles scannés'}
+          title={() => 'Colis Scannés'}
         />
 
-        {/* Button to perform action */}
+        {/* Bouton pour effectuer l'action d'affectation */}
         <Button type="primary" onClick={handleAction} style={{ marginTop: '20px' }}>
           {statu} Tous
         </Button>
       </Space>
+
+      {/* Modal pour sélectionner un livreur */}
+      <Modal
+        title="Sélectionner Livreur"
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        confirmLoading={loading}
+        width={"90vw"}
+      >
+        <div className='livreur_list_modal'>
+          <h3>Liste des Livreurs</h3>
+          <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {livreurList && livreurList.length > 0 ? (
+              livreurList.map(livreur => (
+                <Card
+                  key={livreur._id}
+                  hoverable
+                  style={{
+                    width: 240,
+                    margin: '10px',
+                    border:
+                      selectedLivreur && selectedLivreur._id === livreur._id
+                        ? '2px solid #1890ff'
+                        : '1px solid #f0f0f0',
+                  }}
+                  onClick={() => selectLivreur(livreur)}
+                >
+                  <Card.Meta
+                    title={<div>{livreur.username}</div>}
+                    description={
+                      <>
+                        {livreur.tele}
+                        <Button
+                          icon={<CheckCircleOutlined />}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Empêche la propagation de l'événement de clic
+                            toast.info(`Villes: ${livreur.villes.join(', ')}`);
+                          }}
+                          type='primary'
+                          style={{ float: 'right' }}
+                        />
+                      </>
+                    }
+                  />
+                </Card>
+              ))
+            ) : (
+              <p>Aucun livreur disponible</p>
+            )}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

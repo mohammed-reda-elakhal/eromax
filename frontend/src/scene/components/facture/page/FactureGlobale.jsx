@@ -27,7 +27,7 @@ function FactureGlobale() {
                     }}
                 >
                     <div className="page-content-header">
-                        <Title nom='Facture Client' />
+                        <Title nom='Facture Ramassage GLobale' />
                     </div>
                     <div
                         className="content"

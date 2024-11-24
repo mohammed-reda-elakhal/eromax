@@ -7,6 +7,7 @@ import { FaDownload } from "react-icons/fa";
 import Statistic from '../components/Statistic';
 import Notification from '../components/Notification';
 import '../dashboard.css'
+import PromotionStore from '../components/PromotionStore';
 
 
 function HomeDashboard() {
@@ -33,6 +34,7 @@ function HomeDashboard() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
+                        <PromotionStore/>
                         <Notification theme={theme}/>
                         <Statistic theme={theme}/>
                     </div>
