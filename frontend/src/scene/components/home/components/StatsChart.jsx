@@ -7,7 +7,6 @@ function StatsChart({data}) {
   return (
     <div className='statistic-chart'>
         <ColisCirclChart data={data} />
-        <ColisLineChart data = {data}/>
     </div>
   )
 }
