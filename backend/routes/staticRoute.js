@@ -1,7 +1,9 @@
 const express = require("express");
-const { countColisLivreByLivreur, countColisLivreByClient, countColisLivreByTeam, countColisLivre, countColis, countColisByClinet, countColisByLivreur, countColisByTeam, countColisByRole, countColisLivreByRole, countCanceledColisByRole, countTotalGains, countTotalGainsByRole, countRetourColisByRole, getLastTransactionByStore, getBigTransByStore, countTopVilleForStore, countBenefitsPerPeriod, countColisParVille, countColisParLivreur } = require("../Controllers/staticController");
-const { verifyTokenAdminTeam } = require("../Middlewares/VerifyToken");
+const { countColisLivreByLivreur, countColisLivreByClient, countColisLivreByTeam, countColisLivre, countColis, countColisByClinet, countColisByLivreur, countColisByTeam, countColisByRole, countColisLivreByRole, countCanceledColisByRole, countTotalGains, countTotalGainsByRole, countRetourColisByRole, getLastTransactionByStore, getBigTransByStore, countTopVilleForStore, countBenefitsPerPeriod, countColisParVille, countColisParLivreur, colisStatic, transactionStatistics ,  getTopVilles} = require("../Controllers/staticController");
+const { verifyTokenAdminTeam, verifyToken } = require("../Middlewares/VerifyToken");
 const router = express.Router();
+
+
 // /api/count/
 router.get('/livres/:role/:id', countColisLivreByRole);
 router.get('/annules/:role/:id', countCanceledColisByRole);
@@ -15,6 +17,11 @@ router.get("/topVille/:storeId",countTopVilleForStore);
 router.get("/benifts",countBenefitsPerPeriod);
 router.get('/colis/countParVille', countColisParVille);
 router.get('/colis/countParLiv', countColisParLivreur);
+
+
+router.get("/colis" , verifyToken , colisStatic);
+router.get("/transaction" , verifyToken , transactionStatistics);
+router.get("/ville" , verifyToken , getTopVilles);
 
 
 

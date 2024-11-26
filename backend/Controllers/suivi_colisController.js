@@ -150,6 +150,8 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
 
 const updateMultipleColisStatus = asyncHandler(async (req, res) => {
   const { colisCodes, new_status, comment } = req.body;
+  // if colis ==> bml changer 
+  
   const validStatuses = [
     "Nouveau Colis",
     "attente de ramassage",

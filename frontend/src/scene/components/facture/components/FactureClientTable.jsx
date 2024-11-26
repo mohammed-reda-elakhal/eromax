@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
-import { getFacture, getFactureDetailsByClient, setFactureEtat } from '../../../../redux/apiCalls/factureApiCalls';
+import {
+  getFacture,
+  getFactureDetailsByClient,
+  setFactureEtat,
+} from '../../../../redux/apiCalls/factureApiCalls';
 import { Button, Tag, Input, DatePicker, Row, Col } from 'antd';
-import { FaRegFolderOpen } from "react-icons/fa6";
-import { Link, useNavigate } from 'react-router-dom';
+import { FaRegFolderOpen } from 'react-icons/fa6';
 import { MdOutlinePayment } from 'react-icons/md';
 import moment from 'moment';
+import { useNavigate } from 'react-router-dom';
 
 function FactureClientTable({ theme }) {
   const navigate = useNavigate();
@@ -22,6 +26,7 @@ function FactureClientTable({ theme }) {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
+  // Récupérer les factures au chargement du composant
   useEffect(() => {
     if (user?.role === 'admin') {
       dispatch(getFacture('client'));
@@ -29,41 +34,31 @@ function FactureClientTable({ theme }) {
       dispatch(getFactureDetailsByClient(store?._id));
     }
     window.scrollTo(0, 0);
-  }, [dispatch]);
+  }, [dispatch, user, store]);
 
+  // Mettre à jour les données filtrées lorsque les filtres changent
   useEffect(() => {
-    setFilteredData(facture); // Initialize filtered data
-  }, [facture]);
+    filterData(searchText, startDate, endDate);
+  }, [facture, searchText, startDate, endDate]);
 
-  // Handle facture payment update
   const setFacturePay = (id) => {
     dispatch(setFactureEtat(id));
   };
 
-  // Handle search input change
   const handleSearchChange = (e) => {
-    const value = e.target.value.toLowerCase();
-    setSearchText(value);
-    filterData(value, startDate, endDate);
+    setSearchText(e.target.value.toLowerCase());
   };
 
-  // Handle start date change
   const handleStartDateChange = (date) => {
-    const start = date ? moment(date).format('YYYY-MM-DD') : null;
-    setStartDate(start);
-    filterData(searchText, start, endDate);
+    setStartDate(date ? date.startOf('day') : null);
   };
 
-  // Handle end date change
   const handleEndDateChange = (date) => {
-    const end = date ? moment(date).format('YYYY-MM-DD') : null;
-    setEndDate(end);
-    filterData(searchText, startDate, end);
+    setEndDate(date ? date.endOf('day') : null);
   };
 
-  // Filter data based on search text and date range
   const filterData = (text, start, end) => {
-    let filtered = facture;
+    let filtered = [...facture];
 
     if (text) {
       filtered = filtered.filter((item) =>
@@ -71,26 +66,39 @@ function FactureClientTable({ theme }) {
       );
     }
 
-    if (start && end) {
+    if (start || end) {
       filtered = filtered.filter((item) => {
-        const itemDate = moment(item.createdAt).format('YYYY-MM-DD');
-        return itemDate >= start && itemDate <= end;
+        const itemDate = moment(item.createdAt);
+        if (start && end) {
+          return itemDate.isBetween(start, end, null, '[]');
+        } else if (start) {
+          return itemDate.isSameOrAfter(start);
+        } else if (end) {
+          return itemDate.isSameOrBefore(end);
+        }
+        return true;
       });
     }
 
     setFilteredData(filtered);
   };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-};
+    return `${String(date.getDate()).padStart(2, '0')}/${String(
+      date.getMonth() + 1
+    ).padStart(2, '0')}/${date.getFullYear()} ${String(
+      date.getHours()
+    ).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  };
+
   const columns = [
     {
       title: 'Date',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (text, record) => <span>{formatDate(record.createdAt)}</span>,
-  },
+    },
     {
       title: 'Code Facture',
       dataIndex: 'code_facture',
@@ -121,20 +129,20 @@ function FactureClientTable({ theme }) {
       render: (prix) => `${prix} DH`,
     },
     {
-      title: 'Number of Colis',
+      title: 'Nombre de Colis',
       key: 'countColis',
       render: (text, record) => record.colis.length,
     },
     {
-      title: 'Etat',
+      title: 'État',
       dataIndex: 'etat',
       key: 'etat',
       render: (text, record) => (
         <>
           {record.etat ? (
-            <Tag color="green">Payer</Tag>
+            <Tag color="green">Payé</Tag>
           ) : (
-            <Tag color="red">Non Payer</Tag>
+            <Tag color="red">Non Payé</Tag>
           )}
         </>
       ),
@@ -157,9 +165,7 @@ function FactureClientTable({ theme }) {
               onClick={() => setFacturePay(record?._id)}
               type="primary"
             />
-          ) : (
-            ''
-          )}
+          ) : null}
         </div>
       ),
     },
@@ -170,7 +176,7 @@ function FactureClientTable({ theme }) {
       <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
         <Col span={8}>
           <Input
-            placeholder="Search Store Name"
+            placeholder="Rechercher le nom du magasin"
             value={searchText}
             onChange={handleSearchChange}
           />
@@ -179,18 +185,23 @@ function FactureClientTable({ theme }) {
           <DatePicker
             onChange={handleStartDateChange}
             style={{ width: '100%' }}
-            placeholder="Start Date"
+            placeholder="Date de début"
           />
         </Col>
         <Col span={8}>
           <DatePicker
             onChange={handleEndDateChange}
             style={{ width: '100%' }}
-            placeholder="End Date"
+            placeholder="Date de fin"
           />
         </Col>
       </Row>
-      <TableDashboard id="_id" column={columns} data={filteredData} theme={theme} />
+      <TableDashboard
+        id="_id"
+        column={columns}
+        data={filteredData}
+        theme={theme}
+      />
     </div>
   );
 }

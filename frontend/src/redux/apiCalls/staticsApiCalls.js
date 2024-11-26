@@ -2,6 +2,92 @@
 import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { staticsActions } from "../slices/StaticsSlice";
+import Cookies from "js-cookie";
+
+
+export function getStatisticColis() {
+    return async (dispatch) => {
+        try {
+              // Get token from cookies
+          const token = Cookies.get('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+            const { data } = await request.get(`/api/statistic/colis`, config);
+
+            dispatch(staticsActions.setColisData(data.data));
+
+        } catch (error) {
+            console.error(error.message || "Failed to fetch colis statistic");
+        }
+    };
+}
+
+export function getStatisticArgent() {
+    return async (dispatch) => {
+        try {
+              // Get token from cookies
+          const token = Cookies.get('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+            const { data } = await request.get(`/api/statistic/transaction`, config);
+
+            dispatch(staticsActions.setArgentData(data.data));
+
+        } catch (error) {
+            console.error(error.message || "Failed to fetch colis statistic");
+        }
+    };
+}
+
+export function getStatisticVille() {
+    return async (dispatch) => {
+        try {
+              // Get token from cookies
+          const token = Cookies.get('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+            const { data } = await request.get(`/api/statistic/ville`, config);
+
+            dispatch(staticsActions.setVilleData(data.data));
+
+        } catch (error) {
+            console.error(error.message || "Failed to fetch colis statistic");
+        }
+    };
+}
 
 
 
