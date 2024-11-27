@@ -73,6 +73,26 @@ export function getColis(statut) {
     };
 }
 
+
+// set colis pret payant 
+export const setColisPayant = (id) => async (dispatch) => {
+  dispatch(colisActions.setLoading(true)); // Set loading state to true
+  try {
+    // Make the API request to update the etat field
+    const { data } = await request.patch(`/api/colis/pret_payant/${id}`);
+
+    // Dispatch the updated Colis to the Redux state
+    dispatch(colisActions.updateColis(data));
+    toast.success("Colis updated successfully!");
+  } catch (error) {
+    console.error("Error updating Colis:", error);
+    dispatch(colisActions.setError(error.message));
+    toast.error(error.response?.data?.message || "Failed to update Colis");
+  } finally {
+    dispatch(colisActions.setLoading(false)); // Set loading state to false
+  }
+};
+
 // Fetch a single colis by `code_suivi`
 // Fetch a single colis by `code_suivi`
 export function getColisByCodeSuivi(code_suivi) {

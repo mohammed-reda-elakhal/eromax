@@ -8,10 +8,15 @@ import Statistic from '../components/Statistic';
 import Notification from '../components/Notification';
 import '../dashboard.css'
 import PromotionStore from '../components/PromotionStore';
+import Mission from '../components/Mission';
+import { useSelector } from 'react-redux';
 
 
 function HomeDashboard() {
     const { theme } = useContext(ThemeContext);
+    const { user } = useSelector((state) => ({
+        user: state.auth.user,
+    }));
   return (
     <div className='page-dashboard'>
             <Menubar />
@@ -34,9 +39,18 @@ function HomeDashboard() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        <PromotionStore/>
+                        {
+                            user?.role ==="client" ? <PromotionStore/> : ""
+                        }
+                        
                         <Notification theme={theme}/>
-                        <Statistic theme={theme}/>
+                        {
+                            user?.role ==="admin" || user?.role ==="livreur" ? 
+                            <Mission theme={theme}/>
+                            :""
+                        }
+                        
+                        <Statistic theme={theme} />
                     </div>
                 </div>
             </main>

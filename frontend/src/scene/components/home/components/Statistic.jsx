@@ -4,7 +4,7 @@ import { Divider } from 'antd'
 import StatsColis from './StatsColis'
 import StatsChart from './StatsChart'
 import ColisData from '../../../../data/colis.json'
-import TopCitiesTable from './TopCities';
+import TopCitiesChart from './TopCities'
 
 
 function Statistic({theme}) {
@@ -15,9 +15,8 @@ function Statistic({theme}) {
         <Divider />
         <img className='rotate_phone_dashboard' src="/image/rotate_phone.gif" alt="" />
         <StatsChart theme={theme} data={ColisData} />
-        <Divider>
-          <TopCitiesTable></TopCitiesTable>
-        </Divider>
+        <Divider/>
+        <TopCitiesChart />
     </div>
   )
 }

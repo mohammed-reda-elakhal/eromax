@@ -4,6 +4,8 @@ const { verifyTokenAndAdmin} = require('../Middlewares/VerifyToken');
 
 const router = express.Router();
 
+
+// base url : /api/mission
 router.get('/reclamation', verifyTokenAndAdmin, getReclamationToday);
 router.get('/demande-retrait', verifyTokenAndAdmin, getDemandeRetraitToday);
 router.get('/colis-ATR', verifyTokenAndAdmin, getColisATRToday);

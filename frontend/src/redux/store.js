@@ -14,6 +14,7 @@ import { demandeRetraitReducer } from "./slices/demandeRetraitSlice";
 import { storeReducer } from "./slices/storeSlice";
 import { staticsReducer } from "./slices/StaticsSlice";
 import { promotionReducer } from "./slices/promotionSlice";
+import { missionReducer } from "./slices/missionSlice";
 
 
 
@@ -34,6 +35,7 @@ const store = configureStore({
     store: storeReducer, // Add store reducer to the store
     statics:staticsReducer,
     promotion: promotionReducer,
+    mission: missionReducer,
   },
 });
 

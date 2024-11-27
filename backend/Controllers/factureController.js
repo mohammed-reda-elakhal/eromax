@@ -579,14 +579,14 @@ const getFactureByCode = asyncHandler(async (req, res) => {
             const suiviColis = await Suivi_Colis.findOne({ code_suivi }).lean();
             if (suiviColis) {
                 const livraison = suiviColis.status_updates.find(status => status.status === statut);
-                return livraison ? livraison.date : null; // Return the delivery date if found
+                return livraison ? livraison.date : null;
             }
             return null;
         };
 
         // Prepare the response data for colis
         const colisDetails = await Promise.all(facture.colis.map(async col => {
-            const livraisonDate = await getDeliveryDate(col.code_suivi, col.statut); // Get delivery date from Suivi_Colis
+            const livraisonDate = await getDeliveryDate(col.code_suivi, col.statut);
 
             // Initialize tarif_livraison and montant_a_payer based on statut
             let old_tarif_livraison = 0;
@@ -595,7 +595,7 @@ const getFactureByCode = asyncHandler(async (req, res) => {
 
             if (col.statut === 'Livrée') {
                 old_tarif_livraison = col.ville?.tarif || 0;
-                montant_a_payer = col.prix; // montant_a_payer is the same as prix for 'Livrée' colis
+                montant_a_payer = col.prix;
 
                 // Apply the stored promotion if available
                 if (storedPromotion) {
@@ -605,22 +605,26 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                         new_tarif_livraison = old_tarif_livraison * (1 - storedPromotion.value / 100);
                     }
                 } else {
-                    new_tarif_livraison = old_tarif_livraison; // No promotion applied
+                    new_tarif_livraison = old_tarif_livraison;
                 }
             } else if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
                 old_tarif_livraison = col.ville?.tarif_refus || 0;
-                montant_a_payer = 0; // montant_a_payer is 0 for these statuses
-
-                new_tarif_livraison = old_tarif_livraison; // Do not apply promotion
+                montant_a_payer = 0;
+                new_tarif_livraison = old_tarif_livraison;
             } else {
-                // Handle any other statuses if necessary
-                old_tarif_livraison = col.ville?.tarif || 0; // Default to regular tarif
+                old_tarif_livraison = col.ville?.tarif || 0;
                 new_tarif_livraison = storedPromotion ? (
                     storedPromotion.type === 'fixed_tarif' ? 
                         storedPromotion.value : 
                         (old_tarif_livraison * (1 - storedPromotion.value / 100))
                 ) : old_tarif_livraison;
                 montant_a_payer = col.prix;
+            }
+
+            if (col.pret_payant) {
+                // If pret_payant is true, set both old and new tarif_livraison to 0
+                old_tarif_livraison = 0;
+                new_tarif_livraison = 0;
             }
 
             // Determine tarif_fragile
@@ -640,14 +644,15 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                 adresse: col.adresse,
                 statut: col.statut,
                 prix: col.prix,
-                old_tarif_livraison: old_tarif_livraison, // Original delivery fee
-                new_tarif_livraison: new_tarif_livraison, // Delivery fee after promotion
+                old_tarif_livraison: old_tarif_livraison,
+                new_tarif_livraison: new_tarif_livraison,
                 tarif_fragile: tarif_fragile,
-                tarif_ajouter: tarif_ajouter, // Include tarif_ajouter
+                tarif_ajouter: tarif_ajouter,
                 tarif_total: tarif_total,
                 montant_a_payer: montant_a_payer,
                 date_livraison: livraisonDate,
                 fragile: col.is_fragile,
+                pret_payant: col.pret_payant, // Include pret_payant in the response
             };
         }));
 
@@ -656,7 +661,7 @@ const getFactureByCode = asyncHandler(async (req, res) => {
         let totalOldTarifLivraison = 0;
         let totalNewTarifLivraison = 0;
         let totalTarifFragile = 0;
-        let totalTarifAjouter = 0; // New total for tarif_ajouter
+        let totalTarifAjouter = 0;
         let totalTarif = 0;
         let totalFraisRefus = 0;
 
@@ -666,14 +671,14 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                 totalOldTarifLivraison += col.old_tarif_livraison;
                 totalNewTarifLivraison += col.new_tarif_livraison;
                 totalTarifFragile += col.tarif_fragile;
-                totalTarifAjouter += col.tarif_ajouter; // Sum tarif_ajouter
+                totalTarifAjouter += col.tarif_ajouter;
                 totalTarif += col.tarif_total;
-            } else{
+            } else {
                 totalFraisRefus += col.old_tarif_livraison;
                 totalOldTarifLivraison += col.old_tarif_livraison;
                 totalNewTarifLivraison += col.new_tarif_livraison;
                 totalTarifFragile += col.tarif_fragile;
-                totalTarifAjouter += col.tarif_ajouter; // Sum tarif_ajouter
+                totalTarifAjouter += col.tarif_ajouter;
                 totalTarif += col.tarif_total;
             }
         });
@@ -690,13 +695,13 @@ const getFactureByCode = asyncHandler(async (req, res) => {
             livreur_tele: facture.livreur ? facture.livreur.tele : null,
             livreur_tarif: facture.livreur ? facture.livreur.tarif : null,
             totalPrix: totalPrix,
-            totalOldTarifLivraison: totalOldTarifLivraison, // Total before promotion
-            totalNewTarifLivraison: totalNewTarifLivraison, // Total after promotion
+            totalOldTarifLivraison: totalOldTarifLivraison,
+            totalNewTarifLivraison: totalNewTarifLivraison,
             totalTarifFragile: totalTarifFragile,
-            totalTarifAjouter: totalTarifAjouter, // Total tarif_ajouter
+            totalTarifAjouter: totalTarifAjouter,
             totalTarif: totalTarif,
             totalFraisRefus: totalFraisRefus,
-            netAPayer: (totalPrix + totalTarifAjouter - totalTarif) - totalFraisRefus, // Adjusted net amount
+            netAPayer: (totalPrix + totalTarifAjouter - totalTarif) - totalFraisRefus,
             colis: colisDetails,
         };
 
@@ -704,13 +709,14 @@ const getFactureByCode = asyncHandler(async (req, res) => {
         res.status(200).json({
             message: 'Facture details retrieved successfully',
             facture: factureResponse,
-            promotion: storedPromotion, // Include the stored promotion details
+            promotion: storedPromotion,
         });
     } catch (error) {
         console.error('Error fetching facture by code:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 
 const getFacturesByLivreur = async (req, res) => {

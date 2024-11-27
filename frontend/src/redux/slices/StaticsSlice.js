@@ -7,12 +7,24 @@ const initialState={
     setColisLivreByRole:0,
     setColisCancealByRole:0,
     topVilles: [],
+    statisticColis : [] ,
+    argentStatistic : [] ,
+    villeStatistic : []
 
 };
 const staticsSlice = createSlice({
     name: "statics",
     initialState,
     reducers: {
+        setColisData(state , action){
+            state.statisticColis = action.payload ;
+        },
+        setArgentData(state , action){
+            state.argentStatistic = action.payload ;
+        },
+        setVilleData(state , action){
+            state.villeStatistic = action.payload ;
+        },
         setAllColisLivre(state, action) {
             state.setAllColisLivre = action.payload;
         },
