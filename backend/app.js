@@ -65,6 +65,7 @@ app.use("/api/images", require("./routes/imageRoute"));
 app.use("/api/count", require("./routes/staticRoute"));
 app.use('/api/promotions', require('./routes/promotionRoutes'));
 app.use('/api/mission', require('./routes/missionRoutes'));
+app.use('/api/integration', require('./routes/apiIntegrationRoute'));
 
 
 
