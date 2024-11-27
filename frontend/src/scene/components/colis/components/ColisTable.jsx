@@ -16,7 +16,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
-import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis, getColisForClient, getColisForLivreur, setColisPayant } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import TrackingColis from '../../../global/TrackingColis ';
 import moment from 'moment';
@@ -260,7 +260,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
             style={{ marginRight: '8px' }}
           >
-            Track
           </Button>
           <Button 
             type="primary" 
@@ -268,18 +267,17 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             onClick={() => handleTicket(record)} 
             style={{ marginRight: '8px' }}
           >
-            Print
           </Button>
-          {user.role !== 'client' && user.role !== 'livreur' && (
+          {user.role !== 'livreur' ?
             <Button 
               type="primary" 
               icon={<FaPenFancy />} 
               onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
               style={{ marginRight: '8px' }}
             >
-              Edit
             </Button>
-          )}
+            : ""
+          }
           {
             user?.role === "client" && (
               <Button 
@@ -287,6 +285,16 @@ const ColisTable = ({ theme, darkStyle, search }) => {
                 onClick={() => openReclamationModal(record)} 
               >
                 Reclamation
+              </Button>
+            )
+          }
+          {
+            user?.role === "admin" && (
+              <Button 
+                type="primary" 
+                onClick={() => dispatch(setColisPayant(record._id))} 
+              >
+                Prét Payant
               </Button>
             )
           }
@@ -305,6 +313,9 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       <Descriptions.Item label="Nature de Produit">{record.nature_produit || 'N/A'}</Descriptions.Item>
       <Descriptions.Item label="État">
         {record.etat ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>}
+      </Descriptions.Item>
+      <Descriptions.Item label="Prés payant">
+        {record.pret_payant ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>}
       </Descriptions.Item>
       <Descriptions.Item label="Ouvrir">{record.ouvrir ? 'Oui' : 'Non'}</Descriptions.Item>
       <Descriptions.Item label="Is Simple">{record.is_simple ? 'Oui' : 'Non'}</Descriptions.Item>
