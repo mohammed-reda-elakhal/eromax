@@ -7,6 +7,7 @@ const { validateRegisterColis, Colis } = require('../Models/Colis');
 const { Ville } = require('../Models/Ville');
 const { Suivi_Colis } = require('../Models/Suivi_Colis');
 const { Store } = require('../Models/Store');
+const { validateLogin } = require('../Models/Admin');
 
 
 const generateToken = (id, role, store) => {
@@ -17,125 +18,132 @@ const generateCodeSuivi = (refVille) => {
     const currentDate = new Date(); // Get the current date
     const formattedDate = currentDate.toISOString().slice(0, 10).replace(/-/g, ''); // Format date as YYYYMMDD
     const randomNumber = shortid.generate().slice(0, 6).toUpperCase(); // Shorten and uppercase for readability
-    return `TEST-${refVille}${formattedDate}-${randomNumber}`;
+    return `API-${refVille}${formattedDate}-${randomNumber}`;
   };
 
-  module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
-    // Validation
-    const { error } = validateLogin(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-
-    const { email, password } = req.body;
-    let user;
-    let token;
-
-    user = await Client.findOne({ email });
-
-    // Check if user exists
-    if (!user) {
-        return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    // Validate password
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatch) {
-        return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    // Handle client role with default store
-
-        const store = await Store.findOne({ id_client: user._id, default: true });
-        if (!store) {
-            return res.status(400).json({ message: "No default store found for this client" });
-        }
-       
-        token = generateToken(user._id, user.role, store._id);
-        // Respond with token and user profile
-        return res.status(200).json({
-            message: "Login successful",
-            token,
-            user,
-            store
-        });
-   
-});
-// Fonction de connexion
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // 1. Vérifier si l'utilisateur existe
-    const user = await Client.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Utilisateur non trouvé.' });
-    }
-
-    // 2. Vérifier le mot de passe
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Mot de passe incorrect.' });
-    }
-
-    // 3. Générer le token JWT
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET, // Clé secrète de votre choix
-      { expiresIn: '1y' } // Durée de validité du token
-    );
-
-    // 4. Retourner le token
-    res.json({
-      message: 'Connexion réussie.',
-      token
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erreur serveur.' });
-  }
-};
-module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
+  module.exports.login = asyncHandler(async (req, res) => {
     try {
-      // 1. Vérification du token JWT (comme avant)
-      const token = req.headers.authorization?.split(' ')[1];
-      if (!token) {
-        return res.status(401).json({ message: "Token manquant ou invalide." });
+      // Validation
+      const { error } = validateLogin(req.body);
+      if (error) {
+        return res.status(400).json({ message: error.details[0].message });
       }
   
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.userId;
-      if (!userId) {
-        return res.status(400).json({ message: "Informations utilisateur manquantes." });
+      const { email, password } = req.body;
+  
+      // Trouver l'utilisateur par email
+      const user = await Client.findOne({ email }).lean();
+  
+      // Vérifier si l'utilisateur existe
+      if (!user) {
+        return res.status(400).json({ message: "Email ou mot de passe invalide" });
       }
   
-      // 2. Validation des données de colis
-      if (!req.body || !Array.isArray(req.body) || req.body.length === 0) {
-        return res.status(400).json({ message: "Les données de colis sont manquantes ou invalides." });
+      // Valider le mot de passe
+      const isPasswordMatch = await bcrypt.compare(password, user.password);
+      if (!isPasswordMatch) {
+        return res.status(400).json({ message: "Email ou mot de passe invalide" });
       }
   
-      const colisToInsert = [];
+      // Trouver la boutique par défaut
+      const store = await Store.findOne({ id_client: user._id, default: true }).lean();
+      if (!store) {
+        return res.status(400).json({ message: "Aucune boutique par défaut trouvée pour ce client" });
+      }
   
-      for (const [index, colisInput] of req.body.entries()) {
+      // Générer un token JWT
+      const token = generateToken(user._id, user.role, store._id);
+  
+      // Filtrer les champs sensibles de l'utilisateur
+      const filteredUser = {
+        nom: user.nom,
+        prenom: user.prenom,
+        username: user.username,
+        ville: user.ville,
+        adresse: user.adresse,
+        tele: user.tele,
+        email: user.email,
+        active: user.active,
+        role: user.role,
+      };
+  
+      // Filtrer les champs sensibles de la boutique
+      const filteredStore = {
+        storeName: store.storeName,
+        default: store.default,
+        solde: store.solde,
+      };
+  
+      // Renvoyer la réponse
+      return res.status(200).json({
+        message: "Login successful",
+        token,
+        user: filteredUser,
+        store: filteredStore,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la connexion :", error);
+      res.status(500).json({ message: "Erreur interne du serveur" });
+    }
+  });
+  
+module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
+  try {
+    // 1. Vérification du token JWT
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: "Token manquant ou invalide." });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+    if (!userId) {
+      return res.status(400).json({ message: "Informations utilisateur manquantes." });
+    }
+
+    // 2. Validation des données de colis
+    if (!req.body || !Array.isArray(req.body) || req.body.length === 0) {
+      return res.status(400).json({ message: "Les données de colis sont manquantes ou invalides." });
+    }
+
+    const villes = await Ville.find().lean(); // Charger toutes les villes en mémoire
+    const villeMap = villes.reduce((acc, ville) => {
+      const nomVille = ville.nom?.trim().toLowerCase(); // Vérifie si "nom" existe
+      if (nomVille) {
+        acc[nomVille] = ville;
+      }
+      return acc;
+    }, {});
+
+    const colisToInsert = [];
+    const errors = [];
+
+    for (const [index, colisInput] of req.body.entries()) {
+      try {
         // Validation de chaque colis
         const { error } = validateRegisterColis(colisInput);
         if (error) {
-          return res.status(400).json({ message: `Erreur de validation pour le colis à l'index ${index}: ${error.details[0].message}` });
+          throw new Error(`Erreur de validation : ${error.details[0].message}`);
         }
-  
-        // Recherche de la ville par son nom
-        const ville = await Ville.findOne({ nom: colisInput.ville.trim() });
+
+        // Validation de la propriété "ville"
+        const villeInput = colisInput.ville?.trim().toLowerCase();
+        if (!villeInput) {
+          throw new Error(`La propriété "ville" est manquante ou vide pour le colis à l'index ${index}.`);
+        }
+
+        // Recherche de la ville
+        const ville = villeMap[villeInput];
         if (!ville) {
-          return res.status(400).json({ message: `Ville "${colisInput.ville}" non trouvée pour le colis à l'index ${index}.` });
+          throw new Error(`Ville "${colisInput.ville}" non trouvée.`);
         }
-  
+
         // Génération du code de suivi unique
         let code_suivi;
         let isUnique = false;
         let attempts = 0;
-        const maxAttempts = 5;
-  
+        const maxAttempts = 10;
+
         while (!isUnique && attempts < maxAttempts) {
           code_suivi = generateCodeSuivi(ville.ref);
           const existingColis = await Colis.findOne({ code_suivi });
@@ -144,34 +152,178 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
           }
           attempts++;
         }
-  
+
         if (!isUnique) {
-          return res.status(500).json({ message: `Impossible de générer un code de suivi unique pour le colis à l'index ${index}.` });
+          throw new Error("Impossible de générer un code de suivi unique.");
         }
-  
+
         // Préparer les données du colis
         const colisData = {
           ...colisInput,
           userId,
-          ville: ville._id, // Utilisation de l'ID après résolution par le nom
+          ville: ville._id, // Utilisation de l'ID
           code_suivi,
         };
-  
+
         colisToInsert.push(colisData);
+      } catch (err) {
+        // Stocker les erreurs par colis
+        errors.push({ index, error: err.message });
       }
-  
-      // Insertion des colis
-      const insertedColis = await Colis.insertMany(colisToInsert);
-  
-      res.status(201).json({
-        message: 'Les colis ont été créés avec succès.',
-        colis: insertedColis,
-      });
-    } catch (error) {
-      console.error('Erreur lors de la création des colis:', error);
-      res.status(500).json({ message: 'Erreur interne du serveur.' });
     }
+
+    // Insertion des colis valides
+    const insertedColis = colisToInsert.length > 0 ? await Colis.insertMany(colisToInsert) : [];
+
+    // Ajouter les suivis pour chaque colis inséré
+    const suiviToInsert = insertedColis.map((colis) => ({
+      code_suivi: colis.code_suivi,
+      id_colis: colis._id, // Ajout de l'ID du colis
+      status_updates: [
+        {
+          date: new Date(),
+          status: "Nouveau Colis",
+        },
+      ],
+    }));
+
+    const insertedSuivi = suiviToInsert.length > 0 ? await Suivi_Colis.insertMany(suiviToInsert) : [];
+
+    // Exclure les champs indésirables de la réponse
+    const filteredInsertedColis = insertedColis.map((colis) => {
+      const { _id, id_Colis, __v, createdAt, updatedAt, ...filteredColis } = colis.toObject();
+      return filteredColis;
+    });
+
+    // Réponse finale
+    res.status(201).json({
+      message: 'Opération terminée.',
+      inserted: filteredInsertedColis,
+      errors,
+    });
+  } catch (error) {
+    console.error('Erreur lors de la création des colis:', error);
+    res.status(500).json({ message: 'Erreur interne du serveur.' });
+  }
 });
+
+
+module.exports.updateColisController = asyncHandler(async (req, res) => {
+  try {
+    // Récupérer le code de suivi depuis les paramètres
+    const { code_suivi } = req.params;
+
+    // Vérifier si le colis existe
+    const colis = await Colis.findOne({ code_suivi });
+    if (!colis) {
+      return res.status(404).json({ message: "Colis introuvable. Veuillez vérifier le code de suivi." });
+    }
+
+    // Validation des données envoyées dans le corps de la requête
+    const allowedUpdates = [
+      "nom",
+      "tele",
+      "ville",
+      "adresse",
+      "nature_produit",
+      "prix",
+      "ouvrir",
+      "is_simple",
+      "is_remplace",
+      "is_fragile",
+    ]; // Liste des champs autorisés pour la mise à jour
+
+    const updates = Object.keys(req.body); // Clés des champs à mettre à jour
+    const isValidUpdate = updates.every((update) => allowedUpdates.includes(update));
+
+    if (!isValidUpdate) {
+      return res.status(400).json({ message: "Mise à jour invalide. Champs non autorisés inclus." });
+    }
+
+    // Appliquer les mises à jour autorisées
+    updates.forEach((update) => {
+      colis[update] = req.body[update];
+    });
+
+    // Sauvegarder les modifications
+    await colis.save();
+
+    // Filtrer les champs sensibles
+    const filteredColis = {
+      code_suivi: colis.code_suivi,
+      nom: colis.nom,
+      tele: colis.tele,
+      ville: colis.ville,
+      adresse: colis.adresse,
+      nature_produit: colis.nature_produit,
+      prix: colis.prix,
+      ouvrir: colis.ouvrir,
+      is_simple: colis.is_simple,
+      is_remplace: colis.is_remplace,
+      is_fragile: colis.is_fragile,
+    };
+
+    // Retourner les informations mises à jour
+    res.status(200).json({
+      message: "Colis mis à jour avec succès.",
+      colis: filteredColis,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du colis :", error);
+    res.status(500).json({ message: "Erreur interne du serveur", error: error.message });
+  }
+});
+
+
+module.exports.deleteColisController = asyncHandler(async (req, res) => {
+  try {
+    const { code_suivi } = req.params;
+
+    // Vérifier si le colis existe
+    const colis = await Colis.findOne({ code_suivi });
+    if (!colis) {
+      return res.status(404).json({ message: "Colis introuvable. Veuillez vérifier le code de suivi." });
+    }
+
+    // Supprimer le colis
+    await Colis.deleteOne({ code_suivi });
+
+    // Supprimer les données de suivi associées
+    await Suivi_Colis.deleteMany({ code_suivi });
+
+    // Retourner une réponse simple
+    res.status(200).json({
+      message: "Colis et données de suivi supprimés avec succès.",
+      code_suivi: code_suivi,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la suppression du colis et des données associées :", error);
+    res.status(500).json({ message: "Erreur interne du serveur", error: error.message });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports.TrackColisCtrl = asyncHandler(async (req, res) => {
     try {
@@ -241,4 +393,115 @@ module.exports.TrackColisCtrl = asyncHandler(async (req, res) => {
       res.status(500).json({ message: "Erreur interne du serveur." });
     }
   });
+
+
+  module.exports.getSuiviColis = asyncHandler(async (req, res) => {
+    try {
+      // Find the colis by code_suivi
+      const colis = await Colis.findOne({ code_suivi: req.params.code_suivi });
+  
+      if (!colis) {
+        return res.status(404).json({ message: "S'il vous plaît vérifier le code de suivi" });
+      }
+  
+      // Find the tracking information
+      const suivi_colis = await Suivi_Colis.findOne({ code_suivi: req.params.code_suivi })
+        .populate({
+          path: 'status_updates.livreur',
+          select: '-password -__v',
+        });
+  
+      if (!suivi_colis) {
+        return res.status(404).json({ message: "Données de suivi non trouvées pour ce colis" });
+      }
+  
+      // Filtrer les champs avant d'envoyer la réponse
+      const filteredSuivi = {
+        code_suivi: suivi_colis.code_suivi,
+        status_updates: suivi_colis.status_updates.map((update) => ({
+          status: update.status,
+          date: update.date,
+        })),
+      };
+  
+      // Send response
+      res.status(200).json(filteredSuivi);
+    } catch (error) {
+      console.error('Erreur:', error);
+      res.status(500).json({ message: "Erreur du serveur interne", error: error.message });
+    }
+});
+
+
+module.exports.getColisInfoByCodeSuivi = asyncHandler(async (req, res) => {
+  try {
+    // Vérification du token JWT
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: "Accès refusé : Token manquant ou invalide." });
+    }
+
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.userId;
+    } catch (err) {
+      return res.status(403).json({ message: "Accès refusé : Token invalide ou expiré." });
+    }
+
+    if (!userId) {
+      return res.status(403).json({ message: "Utilisateur non identifié." });
+    }
+
+    // Récupérer le colis à partir du code de suivi
+    const colis = await Colis.findOne({ code_suivi: req.params.code_suivi }).lean();
+
+    if (!colis) {
+      return res.status(404).json({ message: "Colis introuvable. Veuillez vérifier le code de suivi." });
+    }
+
+    // Récupérer les informations de suivi et du livreur
+    const suivi_colis = await Suivi_Colis.findOne({ code_suivi: req.params.code_suivi })
+      .populate({
+        path: 'status_updates.livreur',
+        select: 'nom email tele -_id', // Inclure uniquement les champs nécessaires du livreur
+      })
+      .lean();
+
+    if (!suivi_colis) {
+      return res.status(404).json({ message: "Aucune donnée de suivi trouvée pour ce colis." });
+    }
+
+    // Combiner les informations du colis et du livreur
+    const livreurInfo =
+      suivi_colis.status_updates?.find((update) => update.livreur)?.livreur || null;
+
+    const response = {
+      code_suivi: colis.code_suivi,
+      nom: colis.nom,
+      tele: colis.tele,
+      ville: colis.ville,
+      adresse: colis.adresse,
+      nature_produit: colis.nature_produit,
+      prix: colis.prix,
+      statut: colis.statut,
+      livreur: livreurInfo
+        ? {
+            nom: livreurInfo.nom,
+            email: livreurInfo.email,
+            tele: livreurInfo.tele,
+          }
+        : null,
+    };
+
+    // Renvoyer la réponse
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Erreur:', error);
+    res.status(500).json({ message: "Erreur interne du serveur", error: error.message });
+  }
+});
+
+
+  
   

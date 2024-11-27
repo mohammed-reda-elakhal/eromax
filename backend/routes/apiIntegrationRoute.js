@@ -1,12 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const { login, CreateMultipleColisCtrl, TrackColisCtrl } = require('../Controllers/apiIntegrationController');
+const { 
+  CreateMultipleColisCtrl, 
+  getSuiviColis, 
+  getColisInfoByCodeSuivi, 
+  updateColisController, 
+  deleteColisController, 
+  login
+} = require('../Controllers/apiIntegrationController');
+const { verifyToken } = require('../Middlewares/VerifyToken');
 
+// Route pour l'authentification
+router.post('/login', login);
 
+// Regroupement des routes liées aux colis
+router
+  .route('/colis')
+  .post(verifyToken, CreateMultipleColisCtrl); // Ajouter un colis
 
-router.post('/login', login); // Route pour la connexion
-router.post('/colis/addColis', CreateMultipleColisCtrl); // Route pour la connexion
-router.get("/colis/Track/:code_suivi", TrackColisCtrl);
+router
+  .route('/colis/:code_suivi')
+  .get(verifyToken, getColisInfoByCodeSuivi) // Obtenir les infos d'un colis
+  .patch(verifyToken, updateColisController) // Mettre à jour un colis
+  .delete(verifyToken, deleteColisController); // Supprimer un colis
 
+// Route spécifique pour le suivi des colis
+router.get('/colis/track/:code_suivi', verifyToken, getSuiviColis);
 
 module.exports = router;
