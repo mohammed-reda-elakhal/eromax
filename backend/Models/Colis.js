@@ -150,6 +150,10 @@ const ColisSchema = new mongoose.Schema({
         required: false,
         default: 'eromax'
     },
+    pret_payant: {
+        type: Boolean,
+        default: false,
+    },
     tarif_ajouter: {
         value: {
             type: Number,
@@ -232,6 +236,7 @@ function validateRegisterColis(obj) {
             value: Joi.number(),
             description: Joi.string(),
         }),
+        pret_payant : Joi.boolean(),
     });
     return schema.validate(obj);
 }

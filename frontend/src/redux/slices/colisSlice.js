@@ -75,19 +75,19 @@ const colisSlice = createSlice({
     updateColis(state, action) {
       const updatedColis = action.payload;
       if (updatedColis && updatedColis._id) {
-        const index = state.colis.findIndex(colis => colis._id === updatedColis._id);
+        const index = state.colis.findIndex((colis) => colis._id === updatedColis._id);
         if (index !== -1) {
-          state.colis[index] = updatedColis;
+          state.colis[index] = updatedColis; // Update the specific colis in the array
         }
-        // Also update selectedColis if it's the one being updated
         if (state.selectedColis && state.selectedColis._id === updatedColis._id) {
-          state.selectedColis = updatedColis;
+          state.selectedColis = updatedColis; // Update selectedColis if applicable
         }
       } else {
         console.error("Invalid payload format for updateColis:", action.payload);
-        state.error = "Invalid data format for updating colis.";
+        state.error = "Invalid data format for updating Colis.";
       }
     },
+    
     // New reducers for search functionality
     setSearchResults(state, action) {
       if (Array.isArray(action.payload)) {
