@@ -202,7 +202,6 @@ const generateFactureClient = async (req, res) => {
         if (!colis) {
             return res.status(404).json({ error: "Colis not found" });
         }
-        console.log(colis);
         if (colis.statut !== "Livrée") {
             return res.status(400).json({ error: "La facture ne peut être générée que pour les colis livrés." });
         }
@@ -318,7 +317,6 @@ const generateFactureClientwithLiv = async (req, res) => {
         facture_items: factureItems,
       };
       store.somme = (store.somme || 0) + factureData.total_net;
-      console.log(store.somme);
       await store.save();
       // Return the combined invoice data for the client
       res.json(factureData);

@@ -6,7 +6,7 @@ import { ThemeContext } from '../ThemeContext';
 import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt } from "react-icons/fa";
 import { IoWalletSharp } from "react-icons/io5";
 import { LuBox, LuScanLine } from "react-icons/lu";
-import { BiTagAlt } from "react-icons/bi";
+import { BiNote, BiTagAlt } from "react-icons/bi";
 import { BsFillFileEarmarkSpreadsheetFill, BsFillInboxesFill } from "react-icons/bs";
 import { CgDanger } from "react-icons/cg";
 import StoreDown from './StoreDown'; // Ensure this component is correctly implemented
@@ -154,14 +154,9 @@ function Menubar() {
         
         {
           userData.role ==="admin" && (
-            <Menu.SubMenu icon={<MdEditNotifications />} title="Notification">
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/gnotification">Générals Notifications</Link>
+              <Menu.Item icon={<BiNote />}>
+                <Link to="/dashboard/gnotification">Notifications</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/enotification">Events Notifications</Link>
-              </Menu.Item>
-            </Menu.SubMenu>
           )
         }
 

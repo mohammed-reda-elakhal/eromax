@@ -7,6 +7,7 @@ const factureSlice = createSlice({
         factureRamasser: [],
         factureRetour: [],
         detailFacture: [],
+        promotionFacture : [],
         detailFactureRamasser: [],
         detailFactureRetour: [],
     },
@@ -22,6 +23,9 @@ const factureSlice = createSlice({
         },
         setFactureDetail(state, action) {
             state.detailFacture = action.payload;
+        },
+        setPromotion(state, action) {
+            state.promotionFacture = action.payload;
         },
         setFactureDetailRamasser(state, action) {
             state.detailFactureRamasser = action.payload;

@@ -53,6 +53,8 @@ const assignColisToAmeex = asyncHandler(async (req, res) => {
     const authId = 3452;
     const authKey = "9435a2-921aa4-67fc55-ced90c-1bafbc";
 
+    
+
     // Prepare headers
     const headers = {
       'X-AUTH-ID': authId,

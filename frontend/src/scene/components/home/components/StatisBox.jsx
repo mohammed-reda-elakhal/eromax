@@ -4,35 +4,41 @@ import { Avatar } from 'antd';
 function StatisBox({ icon, num, desc, theme, color }) {
     return (
         <div 
-            className='statistic-colis-box'
+            className="statistic-colis-box"
             style={{
                 backgroundColor: theme === 'dark' ? '#333' : '#f0f0f0',
-                borderRadius: '8px',
-                padding: '20px',
-                margin: '8px',
-                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-                textAlign: 'center',
-                width: '220px', // Légèrement plus large
-                height: '130px', // Ajuster la hauteur
+                color: theme === 'dark' ? '#fff' : '#333',
+                borderLeft: `5px solid ${color}`,
+                boxShadow: theme === 'dark'
+                    ? '0px 4px 8px rgba(0, 0, 0, 0.5)'
+                    : '0px 4px 8px rgba(0, 0, 0, 0.1)',
+                transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'space-around'
+                justifyContent: 'center',
             }}
         >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Avatar 
                     icon={icon} 
-                    size={32} // Taille de l'icône ajustée
-                    style={{ color: color, marginRight: '8px',
-                        backgroundColor: '#e0e0e0', // Couleur de fond par défaut ou personnalisée
-
-                     }} // Espace entre l'icône et le nombre
-
+                    size={32}
+                    style={{
+                        backgroundColor: theme === 'dark' ? '#555' : '#e0e0e0',
+                        color: color,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
                 />
-                <h5 style={{ fontSize: '1.5em', fontWeight: 'bold',lineHeight: '1.2', color,margin: 0 }}>{num}</h5>
+                <h5 style={{ fontSize: '1.5em', fontWeight: 'bold', margin: 0, lineHeight: 1.2 }}>
+                    {num}
+                </h5>
             </div>
-            <span style={{ fontSize: '0.9em', fontWeight: 'bold',color: '#666' }}>{desc}</span>
+            <span style={{ fontSize: '0.9em', fontWeight: 'bold', marginTop: '8px' }}>
+                {desc}
+            </span>
         </div>
     );
 }

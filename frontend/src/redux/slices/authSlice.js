@@ -5,7 +5,7 @@ function safeParse(item) {
     try {
         return JSON.parse(item);
     } catch (error) {
-        console.error("Error parsing JSON from localStorage:", error);
+        //console.error("Error parsing JSON from localStorage:", error);
         return null;
     }
 }

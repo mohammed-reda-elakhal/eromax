@@ -3,6 +3,7 @@
 import { promotionActions } from "../slices/promotionSlice";
 import { toast } from "react-toastify";
 import request from "../../utils/request";
+import Cookies from "js-cookie";
 
 // Fetch all promotions
 export function getAllPromotions() {
@@ -38,23 +39,29 @@ export function getPromotionById(id) {
   };
 }
 
-// Create a new promotion
 export function createPromotion(promotionData) {
   return async (dispatch) => {
     dispatch(promotionActions.fetchPromotionsStart());
     try {
       const response = await request.post(`/api/promotions`, promotionData);
-      const newPromotion = response.data.data; // Extract the new promotion
+      const newPromotion = response.data.data;
       dispatch(promotionActions.createPromotionSuccess(newPromotion));
       toast.success("Promotion created successfully");
+      return Promise.resolve();
     } catch (error) {
+      console.error('Error creating promotion:', error.response?.data || error.message);
       const errorMessage =
-        error.response?.data?.message || error.message || "Failed to create promotion";
+        (error.response?.data?.errors && error.response?.data?.errors.join(', ')) ||
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create promotion";
       dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
-      toast.error(errorMessage);
+      return Promise.reject(error);
     }
   };
 }
+
 
 // Update a promotion
 export function updatePromotion(id, promotionData) {
@@ -103,6 +110,40 @@ export function togglePromotionStatus(id) {
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || "Failed to toggle promotion status";
+      dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
+      toast.error(errorMessage);
+    }
+  };
+}
+
+
+// get valide promotion for user 
+export function getValidPromotionsForUser() {
+    // Get token from cookies
+    const token = Cookies.get('token');
+    if (!token) {
+        toast.error('Authentification token est manquant');
+        return;
+    }
+
+    // Set up headers with the token
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    };
+  return async (dispatch) => {
+    dispatch(promotionActions.fetchPromotionsStart());
+    try {
+      const response = await request.get(`/api/promotions/user/valide` , config);
+      const promotions = response.data.data; // Extract the array from response
+      dispatch(promotionActions.fetchValidPromotionsSuccess(promotions));
+      console.log(promotions);
+      
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || "Failed to fetch valid promotions";
       dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
       toast.error(errorMessage);
     }

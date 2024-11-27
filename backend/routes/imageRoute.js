@@ -1,5 +1,5 @@
 const express = require('express');
-const { uploadProfilePhotoController, updateProfilePhotoController, storePhotoController, updatePhotoStoreController, UploadClientFiles, uploadFiles } = require('../Controllers/imagesController');
+const { uploadProfilePhotoController, updateProfilePhotoController, storePhotoController, updatePhotoStoreController, UploadClientFiles, uploadFiles, getUserDocuments } = require('../Controllers/imagesController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
 const photoUpload = require('../Middlewares/photoUpload');
 const fileUpload = require('../Middlewares/fileUpload');
@@ -18,7 +18,9 @@ router.route("/store/upload/:id")
 
 
 //router.route("/files/:id").post(fileUpload.single('file'),UploadClientFiles);
-router.route("/files/:role/:id").post(fileUpload,uploadFiles);
+router.route("/files/:role/:id")
+.post(fileUpload,uploadFiles)
+.get(getUserDocuments)
 
 
 module.exports = router;

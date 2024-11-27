@@ -328,7 +328,6 @@ const UploadClientFiles = asyncHandler(async (req, res) => {
 
         const imagePath = path.join(__dirname, `../files/${req.file.filename}`);
         const result = await cloudinaryUploadImage(imagePath);
-        console.log(result);
         if (!result) {
             console.error("Failed to upload file to Cloudinary:", JSON.stringify(result.error));
             return res.status(500).json({ message: "Failed to upload file to Cloudinary", error: result.error });
@@ -365,7 +364,7 @@ const uploadFiles = asyncHandler(async (req, res) => {
     if (!req.files || !req.files.cinRecto || !req.files.cinVerso) {
       return res.status(400).json({ message: "Both CIN recto and verso are required." });
     }
-  
+
     const { role, id } = req.params;
   
     try {
@@ -421,7 +420,6 @@ const uploadFiles = asyncHandler(async (req, res) => {
       fs.unlinkSync(cinRectoPath);
       fs.unlinkSync(cinVersoPath);
   
-      console.log("Files uploaded and saved to DB:", newFile);
   
       res.status(201).json({
         message: "Files uploaded successfully",
@@ -443,11 +441,53 @@ const uploadFiles = asyncHandler(async (req, res) => {
     }
   });
 
+  const getUserDocuments = asyncHandler(async (req, res) => {
+    const { role, id } = req.params;
+  
+    try {
+      // Verify user based on role
+      let user;
+      if (role === "client") {
+        user = await Client.findById(id).populate("files");
+      } else if (role === "livreur") {
+        user = await Livreur.findById(id).populate("files");
+      } else {
+        return res.status(400).json({ message: "Invalid user type. Must be 'client' or 'livreur'." });
+      }
+  
+      if (!user) {
+        return res.status(404).json({ message: `${role} not found` });
+      }
+  
+      // Check if the user has files
+      if (!user.files || user.files.length === 0) {
+        return res.status(200).json({ message: "No documents found.", documents: [] });
+      }
+  
+      // Map file details
+      const documents = user.files.map((file) => ({
+        id: file._id,
+        type: file.type,
+        cinRecto: file.cinRecto,
+        cinVerso: file.cinVerso,
+        uploadedAt: file.createdAt,
+      }));
+  
+      res.status(200).json({
+        message: "Documents retrieved successfully.",
+        documents,
+      });
+    } catch (error) {
+      console.error("Error retrieving user documents:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+
  module.exports={
     uploadProfilePhotoController,
     updateProfilePhotoController,
     storePhotoController,
     updatePhotoStoreController,
-    UploadClientFiles,
-    uploadFiles
+    uploadFiles,
+    getUserDocuments
  }

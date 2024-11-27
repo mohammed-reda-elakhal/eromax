@@ -32,6 +32,11 @@ router.route('/code_suivi/:code_suivi')
         .get(colisController.getColisByCodeSuiviCtrl)
 
 
+// Router /api/colis/pret_payant/:id
+router.route('/pret_payant/:id')
+        .patch(colisController.toggleColisPayant)
+
+
 
 
 //router api/colis/St

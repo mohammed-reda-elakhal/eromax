@@ -5,7 +5,6 @@ import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
-//import ColisData from '../../../../data/colis.json';
 import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
@@ -19,12 +18,19 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import { Tag } from 'antd';
-import { FaBoxesStacked } from 'react-icons/fa6';
+import { FaBoxesStacked, FaDownload } from 'react-icons/fa6';
 import { IoQrCodeSharp } from 'react-icons/io5';
 import request from '../../../../utils/request';
 import { toast } from 'react-toastify';
-import { IoMdRefresh } from 'react-icons/io';
+import moment from 'moment';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
+// **Add the following imports:**
+import { FiRefreshCcw } from 'react-icons/fi';
+import { Typography } from 'antd';
+import { ExclamationCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { IoMdRefresh } from 'react-icons/io';
 
 
 function ColisPourRamassage({ search }) {
@@ -39,9 +45,6 @@ function ColisPourRamassage({ search }) {
   const [form] = Form.useForm();
   const navigate = useNavigate(); // Get history for redirection
   const [loading, setLoading] = useState(false);
-
-
-
 
   const success = (text) => {
     messageApi.open({
@@ -63,43 +66,40 @@ function ColisPourRamassage({ search }) {
       content: text,
     });
   };
-  //-----------------------------
+
   const { colisData, user, store } = useSelector((state) => ({
     colisData: state.colis.colis || [],  // Corrected the casing of colisData
     user: state.auth.user,
     store: state.auth.store,
   }));
 
- 
   // Recuperation des colis selon le role
-  const getDataColis = () =>{
+  const getDataColis = () => {
     if (user?.role) {
       if (user.role === "admin") {
         dispatch(getColis("attente de ramassage"));
       } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id , "attente de ramassage"));
-      }else if (user.role === "team") {
-        dispatch(getColisForClient(user._id,'attente de ramassage'));  // Use getColisForLivreur for 'livreur'
+        dispatch(getColisForClient(store._id, "attente de ramassage"));
+      } else if (user.role === "team") {
+        dispatch(getColisForClient(user._id, 'attente de ramassage'));  // Use getColisForLivreur for 'livreur'
       }
     }
-  }
+  };
+
   useEffect(() => {
-    getDataColis()
+    getDataColis();
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
-  
+
   // Filter colis for "Attente de Ramassage"
   useEffect(() => {
-    setData(colisData)
-  }, [colisData ]);
+    setData(colisData);
+  }, [colisData]);
 
   // Hide page for "livreur" role
   if (user?.role === 'livreur') {
     return null; // This will hide the entire page content for "livreur"
   }
-
-  
-
 
   const handleRamasse = async () => {
     if (selectedRowKeys.length > 0) {
@@ -113,7 +113,7 @@ function ColisPourRamassage({ search }) {
         });
         setLoading(false);
         setSelectedRowKeys([]);
-        toast.success(response.data.message)
+        toast.success(response.data.message);
         // Update the local data to remove the updated colis
         const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
         setData(newData);
@@ -121,12 +121,11 @@ function ColisPourRamassage({ search }) {
         setLoading(false);
         error("Erreur lors de la mise à jour des colis.");
       }
-      
+
     } else {
       warning("Veuillez sélectionner une colonne");
     }
   };
-  
 
   const showModal = (record) => {
     setCurrentColis(record);
@@ -136,7 +135,7 @@ function ColisPourRamassage({ search }) {
 
   const handleModifier = () => {
     if (selectedRowKeys.length === 1) {
-      const record = colisData.find(item => item.id === selectedRowKeys[0]);
+      const record = colisData.find(item => item.code_suivi === selectedRowKeys[0]);
       showModal(record);
     } else {
       warning("Veuillez sélectionner une seule colonne.");
@@ -144,7 +143,7 @@ function ColisPourRamassage({ search }) {
   };
 
   const confirmSuppression = () => {
-    const newData = colisData.filter(item => !selectedRowKeys.includes(item.id));
+    const newData = colisData.filter(item => !selectedRowKeys.includes(item.code_suivi));
     setData(newData);
     setSelectedRowKeys([]);
     success(`${selectedRowKeys.length} colis supprimés.`);
@@ -167,7 +166,7 @@ function ColisPourRamassage({ search }) {
   const handleOk = () => {
     form.validateFields().then(values => {
       const newData = colisData.map(item => {
-        if (item._id === currentColis._id) {
+        if (item.code_suivi === currentColis.code_suivi) {
           return { ...item, ...values };
         }
         return item;
@@ -203,12 +202,80 @@ function ColisPourRamassage({ search }) {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
+  const exportToExcel = () => {
+    try {
+      if (selectedRowKeys.length === 0) {
+        toast.error("Veuillez sélectionner au moins un colis à exporter.");
+        return;
+      }
+
+      // Filter selected rows from the data
+      const selectedData = data.filter(item => selectedRowKeys.includes(item.code_suivi));
+
+      // Map selectedData to a format suitable for Excel
+      const dataToExport = selectedData.map(colis => ({
+        "Code Suivi": colis.code_suivi,
+        "Destinataire": colis.nom,
+        "Téléphone": colis.tele,
+        "Ville": colis.ville?.nom || 'N/A',
+        "Adresse": colis.adresse || 'N/A',
+        "Prix (DH)": colis.prix,
+        "Statut": colis.statut,
+        "Tarif Ajouter (DH)": colis.tarif_ajouter?.value || 0,
+        // Add more fields as needed
+      }));
+
+      // Create a worksheet
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+      // Create a new workbook and append the worksheet
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Colis Sélectionnés");
+
+      // Generate a buffer
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
+      // Create a blob from the buffer
+      const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
+
+      // Save the file
+      saveAs(dataBlob, `Colis_Sélectionnés_${moment().format('YYYYMMDD_HHmmss')}.xlsx`);
+
+      // Success toast
+      toast.success("Exporté vers Excel avec succès!");
+
+    } catch (error) {
+      console.error("Erreur lors de l'exportation vers Excel:", error);
+      toast.error("Échec de l'exportation vers Excel.");
+    }
+  };
+
   const columns = [
     {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      ...search('code_suivi')
+      ...search('code_suivi'),
+      render: (text, record) => (
+        <>
+          {record.replacedColis ? 
+            <Tag icon={<FiRefreshCcw />} color="geekblue">
+              Remplacée
+            </Tag>
+            : ""
+          }
+          <Typography.Text
+            copyable
+            style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          >
+            {text}
+          </Typography.Text>
+          {record.expedation_type === "ameex" ? 
+            <p style={{color:"gray", fontSize:"10px"}}>{record.code_suivi_ameex}</p> 
+            : ""
+          }
+        </>
+      ),
     },
     {
       title: 'Livreur',
@@ -216,29 +283,30 @@ function ColisPourRamassage({ search }) {
       key: 'livreur',
       render: (text, record) => (
         <span>
-          {
-            record.livreur 
-            ? 
-            record.livreur.nom + ' - ' + record.livreur.tele 
-            : 
-            <Tag icon={<ClockCircleOutlined />} color="default">
-               Operation de Ramassage
-            </Tag>
-           
+          {record.livreur 
+            ? `${record.livreur.nom} - ${record.livreur.tele}` 
+            : <Tag icon={<ClockCircleOutlined />} color="default">Opération de Ramassage</Tag>
           }
-        </span> // Check if 'livreur' exists, otherwise show default message
+        </span>
       )
     },
-    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
+    { 
+      title: 'Dernière Mise à Jour', 
+      dataIndex: 'updatedAt', 
+      key: 'updatedAt', 
+      render: formatDate 
+    },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',
+      ...search('nom'),
     },
     {
       title: 'Téléphone',
       dataIndex: 'tele',
       key: 'tele',
+      ...search('tele'),
     },
     {
       title: 'État',
@@ -260,34 +328,65 @@ function ColisPourRamassage({ search }) {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
-      render: (text, record) => (
-        <Tag icon={<SyncOutlined spin />} color="processing">
-          {record.statut}
-        </Tag>
-      ),
+      render: (text, record) => {
+        let color = 'processing';
+        let icon = <SyncOutlined spin />;
+        switch (record.statut) {
+          case 'Livrée':
+            color = 'success';
+            icon = <CheckCircleOutlined />;
+            break;
+          case 'Annulée':
+          case 'Refusée':
+            color = 'error';
+            icon = <CloseCircleOutlined />;
+            break;
+          case 'Programme':
+            color = 'default';
+            icon = <ClockCircleOutlined />;
+            break;
+          case 'Remplacée':
+          case 'En Retour':
+            color = 'warning';
+            icon = <ExclamationCircleOutlined />;
+            break;
+          case 'Fermée':
+            color = 'default';
+            icon = <MinusCircleOutlined />;
+            break;
+          default:
+            color = 'processing';
+            icon = <SyncOutlined spin />;
+        }
+        return <Tag icon={icon} color={color}>{record.statut}</Tag>;
+      },
     },
     {
       title: 'Date de Livraison',
       dataIndex: 'date_livraison',
       key: 'date_livraison',
+      ...search('date_livraison'),
+      render: (text) => text ? formatDate(text) : 'N/A',
     },
     {
       title: 'Ville',
       dataIndex: 'ville',
       key: 'ville',
+      ...search('ville.nom'),
       render: (text, record) => (
         <span>
-          {record.ville.nom}
+          {record.ville?.nom || 'N/A'}
         </span>
       ),
     },
     {
       title: 'Tarif',
       dataIndex: 'ville',
-      key: 'ville',
+      key: 'tarif',
+      ...search('ville.tarif'),
       render: (text, record) => (
         <span>
-          {record.ville.tarif}
+          {record.ville?.tarif || 'N/A'}
         </span>
       ),
     },
@@ -295,11 +394,15 @@ function ColisPourRamassage({ search }) {
       title: 'Prix',
       dataIndex: 'prix',
       key: 'prix',
+      ...search('prix'),
+      render: (text) => text ? `${text} DH` : 'N/A',
     },
     {
       title: 'Nature de Produit',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
+      ...search('nature_produit'),
+      render: (text) => text || 'N/A',
     },
   ];
 
@@ -332,10 +435,41 @@ function ColisPourRamassage({ search }) {
             {
               user?.role === "admin" 
               ?
-              <div className="bar-action-data">
-                <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
-                <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleRamasse} loading={loading}>Rammaser</Button>
-                <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("/dashboard/scan/statu/Ramassée")} loading={loading}>Scan</Button>
+              <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+                <Button 
+                  icon={<IoMdRefresh />} 
+                  type="primary" 
+                  onClick={getDataColis} 
+                  style={{ marginRight: '8px' }}
+                >
+                  Refresh
+                </Button>
+                <Button 
+                  icon={<FaBoxesStacked />} 
+                  type="primary" 
+                  onClick={handleRamasse} 
+                  loading={loading}
+                  style={{ marginRight: '8px' }}
+                >
+                  Ramasser
+                </Button>
+                <Button 
+                  icon={<IoQrCodeSharp />} 
+                  type="primary" 
+                  onClick={() => navigate("/dashboard/scan/statu/Ramassée")} 
+                  loading={loading}
+                  style={{ marginRight: '8px' }}
+                >
+                  Scan
+                </Button>
+                <Button 
+                  icon={<FaDownload />} 
+                  type="default" 
+                  onClick={exportToExcel}
+                  disabled={selectedRowKeys.length === 0}
+                >
+                  Export to Excel
+                </Button>
               </div>
               :
               "" 
@@ -345,89 +479,15 @@ function ColisPourRamassage({ search }) {
               data={data}
               id="code_suivi"
               theme={theme}
-              onSelectChange={setSelectedRowKeys}
+              rowSelection={{
+                selectedRowKeys: selectedRowKeys,
+                onChange: setSelectedRowKeys,
+              }}
             />
             {contextHolder}
-            
           </div>
         </div>
       </main>
-      <Modal
-        title="Modifier Colis"
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          name="form_in_modal"
-        >
-          <Form.Item
-            name="code_suivi"
-            label="Code Suivi"
-            rules={[{ required: true, message: 'Veuillez entrer le code suivi!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="nom"
-            label="Destinataire"
-            rules={[{ required: true, message: 'Veuillez entrer le nom du destinataire!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="tele"
-            label="Téléphone"
-            rules={[{ required: true, message: 'Veuillez entrer le téléphone!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="etat"
-            label="État"
-            rules={[{ required: true, message: 'Veuillez entrer l\'état!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="statut"
-            label="Statut"
-            rules={[{ required: true, message: 'Veuillez entrer le statut!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="date_livraison"
-            label="Date de Livraison"
-            rules={[{ required: false, message: 'Veuillez entrer la date de livraison!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="ville"
-            label="Ville"
-            rules={[{ required: true, message: 'Veuillez entrer la ville!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="prix"
-            label="Prix"
-            rules={[{ required: true, message: 'Veuillez entrer le prix!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="nature_produit"
-            label="Nature de Produit"
-            rules={[{ required: true, message: 'Veuillez entrer la nature du produit!' }]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 }

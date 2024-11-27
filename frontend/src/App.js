@@ -63,7 +63,12 @@ import FactureGlobaleDetail from "./scene/components/facture/page/FactureGlobale
 import FactureRetour from "./scene/components/facture/page/FactureRetour";
 import FactureRetourDetail from "./scene/components/facture/page/FactureRetourDetail";
 import Promotions from "./scene/components/promotion/page/Promotion";
+
+import DocumentProfile from "./scene/components/profile/components/DocumentProfile";
+
 import { useSelector } from "react-redux";
+import UpdateColisPage from "./scene/components/colis/pages/UpdateColisPage";
+
 
 function App() {
 
@@ -192,6 +197,8 @@ function App() {
             <Route path="home" element={<HomeDashboard />} />
             <Route path="bussness" element={<Store />} />
             <Route path="payement" element={<Pyements />} />
+            <Route path="document" element={<DocumentProfile />} />
+
 
             
             <Route path="profile/:id" element={<Profile />} />
@@ -248,7 +255,7 @@ function App() {
             <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
             <Route path="ajouter-colis/:type" element={<AjouterColis />} />
             <Route path="import-colis" element={<ColisImport />} />
-            <Route path="colis/update/:codeSuivi" element={<UpdateColis />} />
+            <Route path="colis/update/:codeSuivi" element={<UpdateColisPage />} />
 
             <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
             <Route path="ajouter-produit" element={<AjouterProduit />} />

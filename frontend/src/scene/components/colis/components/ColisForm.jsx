@@ -185,7 +185,7 @@ function ColisForm({ theme, type }) {
     // Prepare colis data
     const colis = {
       nom,
-      tele: tele.startsWith('+212') ? tele : `+212${tele}`,
+      tele: tele.startsWith('0') ? tele : `0${tele}`,
       ville,
       adresse: adress,
       commentaire,

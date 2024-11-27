@@ -1,5 +1,3 @@
-// models/Colis.js
-
 const mongoose = require("mongoose");
 const Joi = require("joi");
 const shortid = require('shortid');
@@ -40,10 +38,10 @@ const ColisSchema = new mongoose.Schema({
     commentaire: {
         type: String,
     },
-    comment_annule:{
+    comment_annule: {
         type: String,
     },
-    comment_refuse:{
+    comment_refuse: {
         type: String,
     },
     prix: {
@@ -145,12 +143,26 @@ const ColisSchema = new mongoose.Schema({
     },
     code_suivi_ameex: {
         type: String,
-        required : false 
+        required: false 
     },
-    expedation_type : {
-        type:String ,
-        required : false ,
-        default : 'eromax'
+    expedation_type: {
+        type: String,
+        required: false,
+        default: 'eromax'
+    },
+    pret_payant: {
+        type: Boolean,
+        default: false,
+    },
+    tarif_ajouter: {
+        value: {
+            type: Number,
+            default: 0,
+        },
+        description: {
+            type: String,
+            default: '',
+        }
     }
 }, {
     timestamps: true
@@ -217,10 +229,14 @@ function validateRegisterColis(obj) {
                 variants: Joi.array().items(Joi.string()),
             })
         ),
-        replacedColis:Joi.string(), // New field for replaced colis
-        expedation_type : Joi.string(),
-        code_suivi_ameex : Joi.string(),
-
+        replacedColis: Joi.string(),
+        expedation_type: Joi.string(),
+        code_suivi_ameex: Joi.string(),
+        tarif_ajouter: Joi.object({
+            value: Joi.number(),
+            description: Joi.string(),
+        }),
+        pret_payant : Joi.boolean(),
     });
     return schema.validate(obj);
 }
