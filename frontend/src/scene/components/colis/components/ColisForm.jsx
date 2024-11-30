@@ -375,25 +375,21 @@ function ColisForm({ theme, type }) {
                   Téléphone <span style={{ color: 'red' }}>*</span>
                 </label>
                 <Input
-                  type="tel"
                   placeholder="Numéro de téléphone"
                   size="large"
                   value={formData.tele}
                   onChange={(e) => handleInputChange('tele', e.target.value)}
                   style={theme === 'dark' ? darkStyle : {}}
-                  prefix={
-                    <span style={{ color: 'rgba(0,0,0,.25)' }}>+212</span>
-                  }
+
                   suffix={
                     <Tooltip title="Entrer Numéro de téléphone de destinataire">
-                      <InfoCircleOutlined
-                        style={{ color: 'rgba(0,0,0,.45)' }}
-                      />
+                      <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
                     </Tooltip>
                   }
-                  maxLength={9}
+                  maxLength={10} // Ensure it doesn't exceed 10 digits
                   required
                 />
+
               </div>
 
           {/* Ville Selection */}

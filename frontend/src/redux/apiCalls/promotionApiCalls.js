@@ -76,7 +76,7 @@ export function updatePromotion(id, promotionData) {
       const errorMessage =
         error.response?.data?.message || error.message || "Failed to update promotion";
       dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
-      toast.error(errorMessage);
+      console.error(errorMessage);
     }
   };
 }
@@ -93,7 +93,7 @@ export function deletePromotion(id) {
       const errorMessage =
         error.response?.data?.message || error.message || "Failed to delete promotion";
       dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
-      toast.error(errorMessage);
+      console.error(errorMessage);
     }
   };
 }
@@ -111,7 +111,7 @@ export function togglePromotionStatus(id) {
       const errorMessage =
         error.response?.data?.message || error.message || "Failed to toggle promotion status";
       dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
-      toast.error(errorMessage);
+      console.error(errorMessage);
     }
   };
 }
@@ -139,13 +139,11 @@ export function getValidPromotionsForUser() {
       const response = await request.get(`/api/promotions/user/valide` , config);
       const promotions = response.data.data; // Extract the array from response
       dispatch(promotionActions.fetchValidPromotionsSuccess(promotions));
-      console.log(promotions);
-      
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || "Failed to fetch valid promotions";
       dispatch(promotionActions.fetchPromotionsFailure(errorMessage));
-      toast.error(errorMessage);
+      console.error(errorMessage);
     }
   };
 }

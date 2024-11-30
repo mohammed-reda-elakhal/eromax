@@ -178,7 +178,6 @@ function ColisRamasse({ search }) {
             <Title nom='Colis ramassée' />
           </div>
           <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
-            <h4>Colis ramassée</h4>
             <div className="bar-action-data">
               <Button icon={<IoMdRefresh />} type="primary" onClick={() => getDataColis()} >Rafraîchir</Button>
               <Button icon={<FaBoxesStacked />} type="primary" onClick={() => showModal()} loading={loading}>Expédier</Button>

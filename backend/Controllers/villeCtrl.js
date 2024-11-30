@@ -1,21 +1,25 @@
 const { Ville } = require('../Models/Ville'); // Assure-toi que le chemin est correct
 const asyncHandler = require('express-async-handler');
 
-// Controller pour ajouter une nouvelle ville
 const ajoutVille = async (req, res) => {
   try {
+    // Vérifier si la requête contient plusieurs villes
+    const villes = Array.isArray(req.body) ? req.body : [req.body];
 
-    // Créer une nouvelle instance de Ville
-    const nouvelleVille = new Ville(req.body);
-
-    // Sauvegarder la ville dans la base de données
-    await nouvelleVille.save();
-
-    res.status(201).json({ message: 'Ville ajoutée avec succès!', ville: nouvelleVille });
+    // Insérer plusieurs villes ou une seule ville dans la base de données
+    if (villes.length > 1) {
+      const result = await Ville.insertMany(villes);
+      res.status(201).json({ message: `${result.length} villes ajoutées avec succès!`, villes: result });
+    } else {
+      const nouvelleVille = new Ville(villes[0]);
+      await nouvelleVille.save();
+      res.status(201).json({ message: 'Ville ajoutée avec succès!', ville: nouvelleVille });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de l\'ajout de la ville', error });
   }
 };
+
 
 /** -------------------------------------------
  *@desc get list ville    
