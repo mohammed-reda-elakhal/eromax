@@ -125,22 +125,23 @@ function Topbar() {
   return (
     <Header style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }} className='top-bar'>
       <div>
-        {user?.role === 'client' && (
-          <div
-            className="topbar-walet"
-            style={{
-              backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
-              color: theme === 'dark' ? '#fff' : '#002242',
-            }}
-          >
-            <div className="solde-wallet" onClick={() => { setShowSolde((prev) => !prev); }}>
-              {showSolde ? <p>{storeData.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>}
-            </div>
-            <Avatar icon={<IoMdWallet />} size={25} className='wallet_icon' onClick={() => setOpenRetrait(true)} />
-          </div>
-        )}
+        
       </div>
       <div className="control-topbar">
+        {user?.role === 'client' && (
+            <div
+              className="topbar-walet"
+              style={{
+                backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
+                color: theme === 'dark' ? '#fff' : '#002242',
+              }}
+            >
+              <div className="solde-wallet" onClick={() => { setShowSolde((prev) => !prev); }}>
+                {showSolde ? <p>{storeData.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>}
+              </div>
+              <Avatar icon={<IoMdWallet />} size={25} className='wallet_icon' onClick={() => setOpenRetrait(true)} />
+            </div>
+          )}
         <Badge count={notificationUser.length} onClick={showDrawer} style={{ cursor: "pointer" }}>
           <Avatar icon={<IoIosNotifications />} style={{ cursor: "pointer" }} />
         </Badge>

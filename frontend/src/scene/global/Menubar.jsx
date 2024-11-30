@@ -77,7 +77,7 @@ function Menubar() {
         className='menu'
       >
         <div className= {collapsed ?  'open-menu' : 'open-menu-c'}>
-          <Button icon={<CiMenuFries />} onClick={toggleMenu}>
+          <Button type='primary' icon={<CiMenuFries />} onClick={toggleMenu}>
           </Button>
         </div>
         <div className={`header-menu reclamation-item`}>
