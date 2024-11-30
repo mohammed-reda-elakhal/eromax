@@ -9,13 +9,16 @@ const { Title, Text } = Typography;
 const { Countdown } = Statistic;
 
 function PromotionStore() {
-  const { validPromotions, loading, error } = useSelector((state) => state.promotion);
+  const { validPromotions, error } = useSelector((state) => state.promotion);
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => ({
+    user: state.auth.user,
+}));
 
   useEffect(() => {
     dispatch(getValidPromotionsForUser());
     window.scrollTo(0, 0);
-  }, [dispatch]);
+  }, [dispatch , user]);
 
   useEffect(() => {
     if (error) {
@@ -23,9 +26,6 @@ function PromotionStore() {
     }
   }, [error]);
 
-  if (loading) {
-    return <div>Chargement des promotions...</div>;
-  }
 
   if (!validPromotions || validPromotions.length === 0) {
     return <div></div>;
