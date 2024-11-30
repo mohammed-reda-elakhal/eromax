@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const request = axios.create({
-    baseURL: "https://eromax-api.vercel.app/",
+    baseURL: "https://eromax-api.onrender.com/",
     headers: {
         'Content-Type': 'application/json',
     }
