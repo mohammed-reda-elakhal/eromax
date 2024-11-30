@@ -31,6 +31,7 @@ function HomeDashboard() {
                 >
                     <div className="page-content-header">
                         <Title nom='Accuiel' />
+                        
                     </div>
                     <div
                         className="content"
@@ -38,16 +39,20 @@ function HomeDashboard() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        {
-                            user?.role ==="client" ? <PromotionStore/> : ""
-                        }
                         
+                        {
+                            /**
+                             *  
                         <Notification theme={theme}/>
                         {
                             user?.role ==="admin" || user?.role ==="livreur" ? 
                             <Mission theme={theme}/>
                             :""
                         }
+                             * 
+                             */
+                        }
+                       
                         
                         <Statistic theme={theme} />
                     </div>

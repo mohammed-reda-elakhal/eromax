@@ -1,10 +1,7 @@
-const moongose= require("mongoose");
+const mongoose = require("mongoose");
 const Joi = require("joi");
-const { default: mongoose } = require("mongoose");
 
-
-const AdminSchema = new moongose.Schema({
-    //add additional attributes
+const AdminSchema = new mongoose.Schema({
     nom: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
     prenom: { type: String, required: true, minlength: 2 },
     username: { type: String , minlength: 2 },
@@ -21,19 +18,36 @@ const AdminSchema = new moongose.Schema({
     role: {
         type: String,
         required: true,
-        default:'admin'
+        default: 'admin'
+    },
+    message: {
+        type: String,
+        required: false
+    },
+    permission: {
+        type: String,
+        enum: ['all', 'none'],  // Define allowed permissions
+        default: 'none'         // Default permission for new users
+    },
+    type: {
+        type: String,
+        enum: ['super', 'normal'],  // Only 'super_admin' or 'admin' allowed
+        default: 'normal'                // Default type for new users
     }
-},{
+}, {
     timestamps: true
 });
 
-const Admin = mongoose.model("Admin",AdminSchema);
 
+const Admin = mongoose.model("Admin", AdminSchema);
+
+// Validation schema for Admin data
 const adminValidation = (obj) => {
     const adminJoiSchema = Joi.object({
         nom: Joi.string().trim().min(2).max(100).required(),
         prenom: Joi.string().trim().min(2).required(),
         username: Joi.string(),
+        message: Joi.string(),
         tele: Joi.string().required(),
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
@@ -45,21 +59,23 @@ const adminValidation = (obj) => {
             publicId: null
         }),
         role: Joi.string().default("admin"),
+        permission: Joi.string().valid('all', 'none').default('none'), // Validate permission field
+        type: Joi.string().valid('super', 'normal').default('normal') // Validate type field
     });
     return adminJoiSchema.validate(obj);
 }
 
 const validateLogin = (obj) => {
     const adminJoiSchema = Joi.object({
-        username:Joi.string().trim(),
+        username: Joi.string().trim(),
         password: Joi.string().trim().min(5).required(),
         email: Joi.string().email().trim().min(5).max(100).required(),
-        username : Joi.string().trim()
     });
     return adminJoiSchema.validate(obj);
 }
-module.exports={
+
+module.exports = {
     Admin,
     adminValidation,
     validateLogin
-}
+};

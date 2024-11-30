@@ -63,9 +63,9 @@ function RegisterLivreur() {
             .then((response) => {
                 if (response && response.success) {
                     toast.success(response.message);
-                    form.resetFields(); // Reset form fields after successful submission
-                    navigate('/login');
                 }
+                form.resetFields(); // Reset form fields after successful submission
+                navigate('/login');
             })
             .catch((error) => {
                 toast.error(error.message || "Erreur lors de l'inscription");

@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Drawer, Menu } from 'antd';
+import { Button, Drawer, Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -18,14 +18,17 @@ import { FaUserFriends } from "react-icons/fa"
 import { FaFileInvoiceDollar, FaRegSquarePlus } from "react-icons/fa6";
 import { MdPayment } from "react-icons/md";
 import { RiDiscountPercentLine } from "react-icons/ri";
+import { CiMenuFries } from 'react-icons/ci';
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
   const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
   const [isNewReclamation, setIsNewReclamation] = useState(false);
   const [openWallet, setOpenWallet] = useState(false);
+  const [openMenu, setOpenMenu] = useState(false);
   const [userData , setUserData] = useState({})
   const {user} = useSelector(state => state.auth );
+
 
   useEffect(()=>{
     setUserData(user)
@@ -39,6 +42,12 @@ function Menubar() {
     setCollapsed(newCollapsedState);
     localStorage.setItem('menuCollapsed', JSON.stringify(newCollapsedState));
   };
+  const toggleMenu = () =>{
+    setOpenMenu(prev => !prev)
+    if(!openMenu){
+      setCollapsed(true)
+    }
+  }
 
   useEffect(() => {
     const handleResize = () => {
@@ -60,29 +69,25 @@ function Menubar() {
   }, []);
 
   return (
-    <div className='menu-bar'>
+    <div className={openMenu ? 'menu-bar-open' : 'menu-bar'}>
       <Menu
         mode="inline"
         theme={theme === 'dark' ? 'dark' : 'light'}
         inlineCollapsed={collapsed}
         className='menu'
       >
+        <div className= {collapsed ?  'open-menu' : 'open-menu-c'}>
+          <Button type='primary' icon={<CiMenuFries />} onClick={toggleMenu}>
+          </Button>
+        </div>
         <div className={`header-menu reclamation-item`}>
-          {collapsed ? '' : (
+         
             <img
               src={theme === 'dark' ? '/image/logo.png' : '/image/logo-light.png'}
               alt=""
               style={{ width: "50px" }}
+              onClick={toggleCollapsed}
             />
-          )}
-          <button
-            onClick={toggleCollapsed}
-            style={{
-              color: theme === 'dark' ? '#fff' : '#002242',
-            }}
-          >
-            {collapsed ? <FaAngleDoubleRight /> : <FaAngleDoubleLeft />}
-          </button>
         </div>
 
         {/* Conditionally render StoreDown if user is a client and there are stores */}

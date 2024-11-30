@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { MdBorderColor } from "react-icons/md";
 import Cookies from 'js-cookie';
-import { getPaymentsByClientId } from '../../../../redux/apiCalls/payementApiCalls';// import the create action
+import { getPaymentsByClientId } from '../../../../redux/apiCalls/payementApiCalls'; // import the create action
 import { createDemandeRetrait } from '../../../../redux/apiCalls/demandeRetraitApiCall';
 
 function DemandeRetrait({ theme , setOpenWallet }) {
@@ -39,12 +39,11 @@ function DemandeRetrait({ theme , setOpenWallet }) {
         // Dispatch the createDemandeRetrait action
         dispatch(createDemandeRetrait(demandeData));
 
-         // Clear the form fields after submission
-         setMontant('');          // Reset montant field
-         setSelectedBank(null);   // Reset selectedBank field
-         
-         
-        setOpenWallet(false)
+        // Clear the form fields after submission
+        setMontant('');          // Reset montant field
+        setSelectedBank(null);   // Reset selectedBank field
+
+        setOpenWallet(false);
     };
 
     const darkStyle = {
@@ -52,6 +51,14 @@ function DemandeRetrait({ theme , setOpenWallet }) {
         color: '#fff',
         borderColor: 'gray',
     };
+
+    // Check if payements is an array and contains items
+    const paymentOptions = Array.isArray(payements) && payements.length > 0
+        ? payements.map((option) => ({
+            value: option._id,
+            label: option?.idBank?.Bank,
+        }))
+        : []; // Return an empty array if no payments are available
 
     return (
         <div className='demande-retrait'>
@@ -85,12 +92,10 @@ function DemandeRetrait({ theme , setOpenWallet }) {
                         size="large"
                         value={selectedBank}
                         onChange={setSelectedBank}
-                        options={payements.map((option) => ({
-                            value: option._id,
-                            label: option?.idBank?.Bank,
-                        }))}
+                        options={paymentOptions}
                         className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-                        placeholder="Sélectionner la banque"
+                        placeholder={paymentOptions.length === 0 ? "Aucune méthode de paiement disponible" : "Sélectionner la banque"}
+                        disabled={paymentOptions.length === 0} // Disable the select box if no options
                     />
                 </div>
                 <Divider />
@@ -98,6 +103,7 @@ function DemandeRetrait({ theme , setOpenWallet }) {
                     className='btn-dashboard'
                     style={{ marginTop: "12px" }}
                     type='submit'
+                    disabled={paymentOptions.length === 0} // Disable submit button if no payment options
                 >
                     Faire la demande
                 </button>

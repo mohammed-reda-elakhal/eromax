@@ -16,6 +16,7 @@ router.route("/:id")
         .put( updateLivreur)
         .delete(deleteLivreur)
 
+// api/livreur/ameex
 router.route("/ameex")
         .post(assignColisToAmeex)
 

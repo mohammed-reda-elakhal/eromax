@@ -167,6 +167,13 @@ function ScanRecherche() {
     setIsTrackingDrawerVisible(false);
   };
 
+   // Toggle between front and rear camera
+   const [cameraType, setCameraType] = useState('user');  // 'user' for front, 'environment' for rear
+
+   const toggleCamera = () => {
+     setCameraType(prev => (prev === 'user' ? 'environment' : 'user'));
+   };
+
   return (
     <div className='page-dashboard'>
       <Menubar />
@@ -229,8 +236,14 @@ function ScanRecherche() {
                     delay={300}
                     onError={handleError}
                     onScan={handleQrScan}
-                    style={{ width: '400px', height: '400px' }}  // Set scanner size
+                    style={{ width: '100%', height: 'auto' }}
+                    videoConstraints={{
+                      facingMode: cameraType  // Use front or rear camera based on state
+                    }}
                   />
+                  <Button onClick={toggleCamera} style={{ marginTop: '10px' }}>
+                    Switch to {cameraType === 'user' ? 'Rear' : 'Front'} Camera
+                  </Button>
                 </>
               )}
 

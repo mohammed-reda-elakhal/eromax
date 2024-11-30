@@ -420,10 +420,13 @@ function ColisPourRamassage({ search }) {
         >
           <div className="page-content-header">
             <Title nom='Colis attend de ramassage' />
-            <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
-              <PlusCircleFilled style={{ marginRight: "8px" }} />
-              Ajouter Colis
-            </Link>
+            {
+                user?.role === "client" ?
+                <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
+                    <PlusCircleFilled style={{marginRight:"8px"}} />
+                    Ajouter Colis
+                </Link>:""
+            }
           </div>
           <div
             className="content"
