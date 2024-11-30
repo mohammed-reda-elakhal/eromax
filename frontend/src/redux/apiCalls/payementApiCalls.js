@@ -101,7 +101,7 @@ export function getPaymentsByClientId(clientId) {
     } catch (error) {
       dispatch(setFetching(false));
       dispatch(setError(error.message || "Failed to fetch payments by client"));
-      toast.error(error.message || "Failed to fetch payments by client");
+      console.error(error.message || "Failed to fetch payments by client");
     }
   };
 }
