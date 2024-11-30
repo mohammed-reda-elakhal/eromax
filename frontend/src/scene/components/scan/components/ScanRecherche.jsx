@@ -229,7 +229,10 @@ function ScanRecherche() {
                     delay={300}
                     onError={handleError}
                     onScan={handleQrScan}
-                    style={{ width: '400px', height: '400px' }}  // Set scanner size
+                    style={{ width: '100%', height: 'auto' }}  // Adjust size to fit screen
+                    videoConstraints={{
+                      facingMode: "environment"  // Rear camera
+                    }}
                   />
                 </>
               )}
