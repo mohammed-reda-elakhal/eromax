@@ -29,10 +29,6 @@ function HomeDashboard() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Accuiel' />
-                        
-                    </div>
                     <div
                         className="content"
                         style={{
@@ -40,13 +36,19 @@ function HomeDashboard() {
                         }}
                     >
                         
-                        
+                        {
+                            /**
+                             *  
                         <Notification theme={theme}/>
                         {
                             user?.role ==="admin" || user?.role ==="livreur" ? 
                             <Mission theme={theme}/>
                             :""
                         }
+                             * 
+                             */
+                        }
+                       
                         
                         <Statistic theme={theme} />
                     </div>
