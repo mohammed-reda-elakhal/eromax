@@ -18,7 +18,7 @@ export function loginUser(user, role, navigate) {
             }
 
             toast.success(data.message);
-            navigate("/dashboard/home");
+            navigate("/dashboard/list-colis");
             
         } catch (error) {
             if (error.response && error.response.data) {

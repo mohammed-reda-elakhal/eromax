@@ -31,7 +31,6 @@ function HomeDashboard() {
                 >
                     <div className="page-content-header">
                         <Title nom='Accuiel' />
-                        
                     </div>
                     <div
                         className="content"
