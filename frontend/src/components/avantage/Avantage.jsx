@@ -1,7 +1,7 @@
 import React from 'react'
 import './avantage.css'
 import { TbTruckDelivery } from "react-icons/tb";
-import { MdOutlineTask } from "react-icons/md";
+import { MdOutlineTask, MdOutlineTaskAlt } from "react-icons/md";
 import { FaHome } from "react-icons/fa";
 import { FaBoxesPacking } from "react-icons/fa6";
 import { AiOutlineControl , AiOutlineFileProtect } from "react-icons/ai";
@@ -31,7 +31,7 @@ const avantages = [
         desc : 'Toutes vos données ou les données de vos clients sont protégées à 100% et ne sont partagées avec aucun tiers'
     },{
         id : 5,
-        icon : <MdOutlineTask/>,
+        icon : <MdOutlineTaskAlt/>,
         title : 'Précision et maîtrise',
         desc : 'Une équipe de professionnels assure la qualité du service.'
     },{
