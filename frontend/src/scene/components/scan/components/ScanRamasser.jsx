@@ -67,6 +67,8 @@ function ScanRamasser() {
       const requiredStatuses = requiredStatusMap[statu];
 
       if (!requiredStatuses) {
+        console.log(statu);
+        
         notification.error({
           message: 'Statut inconnu',
           description: `Le statut "${statu}" n'est pas reconnu.`,
@@ -143,40 +145,88 @@ function ScanRamasser() {
     setScannerEnabled(true);
   };
 
-  // Fonction pour ouvrir la modal d'affectation du livreur
-  const handleAction = () => {
-    if (scannedItems.length > 0) {
-      setIsModalVisible(true);
+  // Function to update the status of scanned parcels
+const handleChangeStatu = async (codesuiviList) => {
+  try {
+    // Send a PUT request to update the status of selected colis
+    const response = await request.put('/api/colis/statu/update', {
+      colisCodes: codesuiviList, // List of scanned codes
+      new_status: statu, // New status value
+    });
+    // Handle success - You can show a toast notification or process the response
+    toast.success('Statut des colis mis à jour avec succès!');
+    navigate('/dashboard/list-colis');
+  } catch (err) {
+    // Handle error
+    console.error("Erreur lors de la mise à jour des colis:", err);
+    toast.error("Erreur lors de la mise à jour des colis.");
+  }
+};
+
+// Function to handle the action button click
+const handleAction = () => {
+  if (scannedItems.length > 0) {
+    // Extract the list of scanned codes (code_suivi)
+    const codesuiviList = scannedItems.map(item => item.barcode);
+    
+    if (statu === "Expediée") {
+      setIsModalVisible(true); // Show the modal if the status is "Expediée"
     } else {
-      toast.warn("Veuillez scanner au moins un colis !");
+      // Pass the list of scanned codes to the status change function
+      handleChangeStatu(codesuiviList);
     }
-  };
+  } else {
+    toast.warn("Veuillez scanner au moins un colis !");
+  }
+};
+
+
 
   // Fonction pour confirmer l'affectation du livreur
   const handleOk = async () => {
     if (selectedLivreur) {
-      setLoading(true);
-      const codesSuivi = scannedItems.map(item => item.barcode);
-      try {
-        const response = await request.put('/api/colis/statu/affecter', {
-          codesSuivi: codesSuivi,
-          livreurId: selectedLivreur._id
-        });
-        setLoading(false);
-        toast.success(response.data.message);
-        // Réinitialise les états après succès
-        setScannedItems([]);
-        setSelectedLivreur(null);
-        setIsModalVisible(false);
+      // Map over scannedItems and rename "barcode" to "code_suivi"
+      const codesSuivi = scannedItems.map(item => item.barcode);  // Using barcode as code_suivi
+  
+      if (selectedLivreur.nom === 'ameex') {
+        // Call the API with the list of code_suivi
+        const response = await request.post('/api/livreur/ameex', { codes_suivi: codesSuivi });
+  
+        if (response.status === 200) {
+          const { success, errors } = response.data;
+  
+          // Handle successes and errors
+          if (success.length > 0) {
+            toast.success(`${success.length} colis assigned to Ameex successfully`);
+          }
+          if (errors.length > 0) {
+            toast.error(`${errors.length} colis failed to assign to Ameex`);
+          }
+        } else {
+          toast.error(response.data.message || 'Erreur lors de l\'affectation à Ameex');
+        }
+        
         navigate('/dashboard/list-colis');
-      } catch (err) {
-        setLoading(false);
-        toast.error("Erreur lors de la mise à jour des colis.");
+        // Optionally reset selections and close modal
+      } else {
+        try {
+          // Send a PUT request to update the status of selected colis
+          const response = await request.put('/api/colis/statu/affecter', {
+            codesSuivi: codesSuivi,
+            livreurId: selectedLivreur._id
+          });
+          toast.success(response.data.message);
+          navigate('/dashboard/list-colis');
+          setIsModalVisible(false); // Show the modal if the status is "Expediée"
+        } catch (err) {
+          toast.error("Erreur lors de la mise à jour des colis.");
+        }
       }
     } else {
       message.warning('Veuillez sélectionner un livreur');
     }
   };
+  
 
   // Fonction pour annuler l'affectation du livreur
   const handleCancel = () => {

@@ -70,13 +70,13 @@ const assignColisToAmeex = asyncHandler(async (req, res) => {
     for (const colis of colisList) {
       try {
         // Convert the phone number to the required format
-        const convertedPhone = convertPhoneNumber(colis.tele);
+        //const convertedPhone = convertPhoneNumber(colis.tele);
 
         // Prepare the request body with the required data
         const body = {
           "ORDER_NUM": colis.code_suivi,
           "RECEIVER": colis.nom,
-          "PHONE": convertedPhone,
+          "PHONE": colis.tele,
           "CITY": colis.ville.nom, // Assuming 'ville' is populated and has 'nom' field
           "ADDRESS": colis.adresse, // Ensure this field matches your model
           "COD": colis.prix,

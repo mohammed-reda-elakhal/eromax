@@ -71,7 +71,7 @@ const getPaymentsByClientId = async (req, res) => {
 
         // Check if any payments were found
         if (!payments.length) {
-            return res.status(404).json({ message: 'No payments found for this client' });
+            return res.status(200).json({ message: 'No payments found for this client' });
         }
 
         // Send the found payments as response

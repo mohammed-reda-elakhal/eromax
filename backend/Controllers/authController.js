@@ -128,36 +128,58 @@ module.exports.selectStoreCtrl = asyncHandler(async (req, res) => {
  * @access public 
  -------------------------------------------*/
 
-
-module.exports.registerAdmin = asyncHandler(async (req, res) => {
-    const { error } = adminValidation(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-
-    const { email, password , ...rest } = req.body;
-
-    const userExists = await Admin.findOne({ email });
-    if (userExists) {
-        return res.status(400).json({ message: "User already exists" });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const username = req.body.prenom +"_"+ req.body.nom
-    const admin = new Admin({ email, password: hashedPassword, username ,  ...rest });
-
-
-    await admin.save();
-
-    res.status(201).json({
-        message : `Bonjours nouveau admin`,
-        _id: admin._id,
-        email: admin.email,
-        username:admin.username,
-        role: admin.role,
-    });
-});
-
+ 
+ module.exports.registerAdmin = asyncHandler(async (req, res) => {
+     // Validate the request body
+     const { error } = adminValidation(req.body);
+     if (error) {
+         return res.status(400).json({ message: error.details[0].message });
+     }
+ 
+     const { email, password, ...rest } = req.body;
+ 
+     // Check if the user already exists by email
+     const userExists = await Admin.findOne({ email });
+     if (userExists) {
+         return res.status(400).json({ message: "User already exists" });
+     }
+ 
+     // Hash the password
+     const hashedPassword = await bcrypt.hash(password, 10);
+ 
+     // Generate username from the first name and last name
+     const username = req.body.prenom + "_" + req.body.nom;
+ 
+     // Check if this is the first admin being created
+     const adminCount = await Admin.countDocuments();
+     const permission = adminCount === 0 ? 'all' : 'none';  // First admin gets 'all' permissions
+     const type = adminCount === 0 ? 'super' : 'normal';    // First admin is 'super', others are 'normal'
+ 
+     // Create a new admin instance
+     const admin = new Admin({
+         email,
+         password: hashedPassword,
+         username,
+         permission,  // Set permission based on whether this is the first admin
+         type,         // Set type based on whether this is the first admin
+         ...rest
+     });
+ 
+     // Save the new admin to the database
+     await admin.save();
+ 
+     // Return the response with the admin's details
+     res.status(201).json({
+         message: `Bonjours nouveau admin`,
+         _id: admin._id,
+         email: admin.email,
+         username: admin.username,
+         role: admin.role,
+         permission: admin.permission,
+         type: admin.type  // Include the type in the response
+     });
+ });
+ 
 module.exports.registerClient = asyncHandler(async (req, res) => {
     const {storeName , ...clientData} = req.body
     const { error } = clientValidation(clientData);
@@ -189,7 +211,7 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
     store = await store.populate('id_client',  ["-password"]);
 
     res.status(201).json({
-        message : `Bonjour ${client.prenom} , votre compte sera active sur 24H`,
+        message : `Bonjour ${client.prenom} , Votre compte est créer`,
         role: client.role,
         store
     });
@@ -212,7 +234,7 @@ module.exports.registerLivreur = asyncHandler(async (req, res) => {
     await livreur.save();
 
     res.status(201).json({
-        message : `Bonjour ${livreur.prenom} , Votre compte sera activée sur 24H  `,
+        message : `Bonjour ${livreur.prenom} , Votre compte est créer !!`,
         _id: livreur._id,
         email: livreur.email,
         role: livreur.role,

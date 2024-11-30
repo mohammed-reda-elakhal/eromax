@@ -21,7 +21,7 @@ const Scan = () => {
     // Définir les données des cartes en fonction du rôle de l'utilisateur
     const adminCardData = [
         { name: 'Ramassée', icon: <CarOutlined /> },
-        { name: 'Expédiée', icon: <MdDeliveryDining /> },
+        { name: 'Expediée', icon: <MdDeliveryDining /> },
         { name: 'En Retour', icon: <MdFeedback /> },
         { name: 'Fermée', icon: <IoLockClosed /> },
         { name: 'Recherche', icon: <SearchOutlined /> },

@@ -9,10 +9,12 @@ import ColisFilterBar from '../components/ColisFilterBar';
 import ColisTable from '../components/ColisTable';
 import '../colis.css'
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 
 
 function ColisList({search}) {
+    const user = useSelector((state) => state.auth)
     const { theme } = useContext(ThemeContext);
     const darkStyle = {
         control: (styles) => ({
@@ -81,10 +83,14 @@ function ColisList({search}) {
                 >
                     <div className="page-content-header">
                         <Title nom='List Colis' />
-                        <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
-                            <PlusCircleFilled style={{marginRight:"8px"}} />
-                            Ajouter Colis
-                        </Link>
+                        {
+                            user?.role === "client" ?
+                            <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
+                                <PlusCircleFilled style={{marginRight:"8px"}} />
+                                Ajouter Colis
+                            </Link>:""
+                        }
+                        
                     </div>
                     <div
                         className="content"
