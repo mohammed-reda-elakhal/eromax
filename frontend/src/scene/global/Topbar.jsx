@@ -128,7 +128,9 @@ function Topbar() {
         
       </div>
       <div className="control-topbar">
-        {user?.role === 'client' && (
+        {
+        /** 
+        user?.role === 'client' && (
             <div
               className="topbar-walet"
               style={{
@@ -141,7 +143,9 @@ function Topbar() {
               </div>
               <Avatar icon={<IoMdWallet />} size={25} className='wallet_icon' onClick={() => setOpenRetrait(true)} />
             </div>
-          )}
+          )
+            */
+            }
         <Badge count={notificationUser.length} onClick={showDrawer} style={{ cursor: "pointer" }}>
           <Avatar icon={<IoIosNotifications />} style={{ cursor: "pointer" }} />
         </Badge>
