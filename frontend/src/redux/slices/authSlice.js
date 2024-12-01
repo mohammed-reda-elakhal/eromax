@@ -14,7 +14,7 @@ const authSlice = createSlice({
     name: "auth",
     initialState: {
         user: safeParse(Cookies.get("user")),
-        store: safeParse(Cookies.get("store")),
+        store: safeParse(localStorage.getItem("store")),
         token:safeParse(Cookies.get("token")),
     },
    

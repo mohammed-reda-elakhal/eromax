@@ -9,7 +9,7 @@ import { createDemandeRetrait } from '../../../../redux/apiCalls/demandeRetraitA
 
 function DemandeRetrait({ theme , setOpenWallet }) {
     const user = JSON.parse(Cookies.get('user'));
-    const store = JSON.parse(Cookies.get('store'));
+    const store = JSON.parse(localStorage.getItem("store"));
     const dispatch = useDispatch();
     const { payements } = useSelector((state) => state.payement);
 

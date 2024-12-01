@@ -309,7 +309,8 @@ export function createColis(colis) {
         // Determine the correct ID to use for clients, admin, or team
         let idToUse;
         if (user.role === 'client') {
-          const store = JSON.parse(Cookies.get('store'));
+
+          const store = JSON.parse(localStorage.getItem("store"));
           if (!store?._id) {
             throw new Error('Store information is missing.');
           }

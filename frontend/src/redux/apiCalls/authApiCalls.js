@@ -16,7 +16,7 @@ export function loginUser(user, role, navigate) {
 
             if (data.user.role === "client") {
                 dispatch(authActions.setStore(data.store));
-                Cookies.set("store", JSON.stringify(data.store), { expires: 30, sameSite: "Lax" , secure: true , domain: ".eromax.vercel.app",   });
+                localStorage.setItem("store", JSON.stringify(data.store));
             }
 
             toast.success(data.message);
@@ -53,7 +53,7 @@ export const logoutUser = (navigate) => {
     return (dispatch) => {
         // Remove cookies first
         Cookies.remove('user');
-        Cookies.remove('store');
+        localStorage.removeItem('store');
         Cookies.remove('token');
         
         navigate('/login');

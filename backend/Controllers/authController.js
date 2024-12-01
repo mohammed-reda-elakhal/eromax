@@ -77,6 +77,17 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
        
         token = generateToken(user._id, user.role, store._id);
         // Respond with token and user profile
+
+        /**
+
+            user{
+                nom .......
+                store :{
+                    
+                }
+            }
+        
+         */
         return res.status(200).json({
             message: "Login successful",
             token,
