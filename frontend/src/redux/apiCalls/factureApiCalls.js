@@ -23,7 +23,7 @@ export function getFactureRamasser() {
     return async (dispatch) => {
         try {
             
-            const token = Cookies.get('token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 toast.error('Authentification token is missing');
                 return;
@@ -112,7 +112,7 @@ export function getFactureDetailsByLivreur(id){
 export function getFactureRetour(type) {
     return async (dispatch) => {
         try {
-            const token = Cookies.get('token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 toast.error('Authentication token is missing');
                 return;

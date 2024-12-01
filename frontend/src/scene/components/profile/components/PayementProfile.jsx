@@ -42,7 +42,7 @@ const { Option } = Select;
 
 function PayementProfile() {
   // Retrieve the logged-in user from cookies
-  const user = JSON.parse(Cookies.get('user'));
+  const user = JSON.parse(localStorage.getItem('user'));
   
   const dispatch = useDispatch();
   const { id } = useParams(); // Get user ID from route parameters if available

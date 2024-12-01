@@ -120,7 +120,7 @@ export function togglePromotionStatus(id) {
 // get valide promotion for user 
 export function getValidPromotionsForUser() {
     // Get token from cookies
-    const token = Cookies.get('token');
+    const token = localStorage.getItem('token');
     if (!token) {
         toast.error('Authentification token est manquant');
         return;

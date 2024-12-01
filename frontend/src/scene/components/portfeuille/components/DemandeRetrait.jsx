@@ -8,7 +8,7 @@ import { getPaymentsByClientId } from '../../../../redux/apiCalls/payementApiCal
 import { createDemandeRetrait } from '../../../../redux/apiCalls/demandeRetraitApiCall';
 
 function DemandeRetrait({ theme , setOpenWallet }) {
-    const user = JSON.parse(Cookies.get('user'));
+    const user = JSON.parse(localStorage.getItem('user'));
     const store = JSON.parse(localStorage.getItem("store"));
     const dispatch = useDispatch();
     const { payements } = useSelector((state) => state.payement);

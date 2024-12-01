@@ -10,10 +10,10 @@ export function loginUser(user, role, navigate) {
             const { data } = await request.post(`/api/auth/login/${role}`, user);
             dispatch(authActions.login(data.user));
             
-            // Set cookies with SameSite attribute and expiration of 30 days
-            Cookies.set("user", JSON.stringify(data.user), { expires: 30, sameSite: "Lax" , secure: true ,  domain: ".eromax.vercel.app",   });
-            Cookies.set("token", data.token, { expires: 30, sameSite: "Lax" , secure: true , domain: ".eromax.vercel.app",   });
-
+            // Set data in LocalStorage instead of cookies
+            localStorage.setItem("user", JSON.stringify(data.user));
+            localStorage.setItem("token", data.token);
+            
             if (data.user.role === "client") {
                 dispatch(authActions.setStore(data.store));
                 localStorage.setItem("store", JSON.stringify(data.store));

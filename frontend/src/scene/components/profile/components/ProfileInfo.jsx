@@ -31,7 +31,7 @@ function ProfileInfo() {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const user = JSON.parse(Cookies.get('user'));
+    const user = JSON.parse(localStorage.getItem('user'));
     const { id } = useParams();
     const { profile, loading, error } = useSelector((state) => state.profile);
     const { message: adminMessage } = useSelector((state) => state.message);

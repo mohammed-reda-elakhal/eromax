@@ -35,7 +35,7 @@ function StoreInfo() {
   const [editingStore, setEditingStore] = useState(null);
 
   // Extract user ID from cookies
-  const userCookie = Cookies.get('user');
+  const userCookie = localStorage.getItem('user');
   const userId = userCookie ? JSON.parse(userCookie)._id : null;
 
   useEffect(() => {

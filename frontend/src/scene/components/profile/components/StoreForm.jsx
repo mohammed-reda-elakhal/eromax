@@ -54,7 +54,7 @@ function StoreForm({ onClose, initialValues = {}, isEdit = false }) {
         toast.success("Store updated successfully");
       } else {
         // Dispatch createStore
-        const userCookie = Cookies.get('user');
+        const userCookie = localStorage.getItem('user');
         const userId = userCookie ? JSON.parse(userCookie)._id : null;
         if (!userId) {
           toast.error("User not found");

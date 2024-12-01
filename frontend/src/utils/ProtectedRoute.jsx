@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 
 const ProtectedRoute = () => {
     const { user } = useSelector((state) => state.auth);
-    const token = Cookies.get('token');
+    const token = localStorage.getItem('token');
     
     if (!user) {
         return <Navigate to="/login" />;

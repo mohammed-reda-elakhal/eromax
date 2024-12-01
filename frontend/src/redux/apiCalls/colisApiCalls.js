@@ -12,7 +12,7 @@ export function createMultipleColis(colisList) {
   return async (dispatch) => {
       try {
           // Get token from cookies
-          const token = Cookies.get('token');
+          const token = localStorage.getItem('token');
           if (!token) {
               toast.error('Authentification token est manquant');
               return;
@@ -54,7 +54,7 @@ export function createMultipleColis(colisList) {
 export function getColis(statut) {
     return async (dispatch) => {
         try {
-            const token = Cookies.get('token');
+            const token = localStorage.getItem('token');
             if(!token){
                 toast.error('Authentification token is missing')
             }
@@ -99,7 +99,7 @@ export function getColisByCodeSuivi(code_suivi) {
     return async (dispatch) => {
       dispatch(colisActions.setLoading(true));
       try {
-        const token = Cookies.get('token');
+        const token = localStorage.getItem('token');
         if (!token) {
           toast.error('Authentication token is missing');
           dispatch(colisActions.setLoading(false));
@@ -130,7 +130,7 @@ export function getColisByCodeSuivi(code_suivi) {
     return async (dispatch) => {
       dispatch(colisActions.setLoading(true));
       try {
-        const token = Cookies.get('token');
+        const token = localStorage.getItem('token');
         if (!token) {
           toast.error('Authentication token is missing');
           dispatch(colisActions.setLoading(false));
@@ -193,7 +193,7 @@ export function getColisByCodeSuivi(code_suivi) {
 export function getColisByStatu(statut) {
     return async (dispatch) => {
         try {
-            const token = Cookies.get('token');
+            const token = localStorage.getItem('token');
             if(!token){
                 toast.error('Authentification token is missing')
             }
@@ -217,7 +217,7 @@ export function getColisByStatu(statut) {
 export const getColisForClient = (storeId , statut) => async (dispatch) => {
     dispatch(colisActions.setLoading(true));
     try {
-        const token = Cookies.get('token');
+        const token = localStorage.getItem('token');
         if(!token){
             toast.error('Authentification token is missing')
             
@@ -261,7 +261,7 @@ export function searchColisByCodeSuivi(code_suivi) {
       try {
         dispatch(colisActions.setSearchLoading(true));
   
-        const token = Cookies.get('token');
+        const token = localStorage.getItem('token');
         if (!token) {
           toast.error('Authentification token is missing');
           dispatch(colisActions.setSearchLoading(false));
@@ -298,8 +298,8 @@ export function createColis(colis) {
     return async (dispatch) => {
       try {
         // Get token and user data from cookies
-        const token = Cookies.get('token');
-        const user = JSON.parse(Cookies.get('user'));
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
   
         // Check for token and user data
         if (!token || !user) {
@@ -346,7 +346,7 @@ export function createColis(colis) {
 export const getColisForLivreur = (userId, statuts = []) => async (dispatch) => {
   dispatch(colisActions.setLoading(true));
   try {
-      const token = Cookies.get('token'); // Retrieve token as a string
+      const token = localStorage.getItem('token'); // Retrieve token as a string
       const config = {
           headers: {
               'Authorization': `Bearer ${token}`, // Correct capitalization of Bearer
@@ -373,7 +373,7 @@ export const getColisForLivreur = (userId, statuts = []) => async (dispatch) => 
 
 export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
     try{
-        const token = Cookies.get('token');
+        const token = localStorage.getItem('token');
         if(!token){
             toast.error('Authentification token is missing')
         }
@@ -405,8 +405,8 @@ export const updateStatut = (colisId, newStatus , comment) => async (dispatch) =
     }
     console.log('inside update api call');
     // Retrieve the authentication token
-    const token = Cookies.get('token');
-    const user = JSON.parse(Cookies.get('user')); // Parse user data from cookies
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user')); // Parse user data from cookies
     if (!token) {
         toast.error('Authentication token is missing');
         return;

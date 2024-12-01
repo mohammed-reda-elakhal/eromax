@@ -26,10 +26,10 @@ export function getNotificationUserByStore() {
     return async (dispatch) => {
         try {
 
-            const token =Cookies.get('token'); // Retrieve token as a string
+            const token =localStorage.getItem('token'); // Retrieve token as a string
             const config = {
                 headers: {
-                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+                    'Authorization': `Bearer ${token}`, // Correct capitalization of Bearer
                     'Content-Type': 'application/json',
                 }
             };

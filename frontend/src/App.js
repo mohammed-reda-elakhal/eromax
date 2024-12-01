@@ -77,7 +77,7 @@ function App() {
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
   const { user } = useSelector((state) => state.auth);
-  const token = Cookies.get('token');
+  const token = localStorage.getItem('token');
   
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
