@@ -11,12 +11,12 @@ export function loginUser(user, role, navigate) {
             dispatch(authActions.login(data.user));
             
             // Set cookies with SameSite attribute and expiration of 30 days
-            Cookies.set("user", JSON.stringify(data.user), { expires: 30, sameSite: "Lax" });
-            Cookies.set("token", data.token, { expires: 30, sameSite: "Lax" });
+            Cookies.set("user", JSON.stringify(data.user), { expires: 30, sameSite: "Lax" , secure: true });
+            Cookies.set("token", data.token, { expires: 30, sameSite: "Lax" , secure: true });
 
             if (data.user.role === "client") {
                 dispatch(authActions.setStore(data.store));
-                Cookies.set("store", JSON.stringify(data.store), { expires: 30, sameSite: "Lax" });
+                Cookies.set("store", JSON.stringify(data.store), { expires: 30, sameSite: "Lax" , secure: true });
             }
 
             toast.success(data.message);
