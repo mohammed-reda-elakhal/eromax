@@ -63,6 +63,7 @@ import FactureGlobaleDetail from "./scene/components/facture/page/FactureGlobale
 import FactureRetour from "./scene/components/facture/page/FactureRetour";
 import FactureRetourDetail from "./scene/components/facture/page/FactureRetourDetail";
 import Promotions from "./scene/components/promotion/page/Promotion";
+import Cookies from "js-cookie";
 
 import DocumentProfile from "./scene/components/profile/components/DocumentProfile";
 
