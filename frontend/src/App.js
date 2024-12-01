@@ -75,7 +75,8 @@ function App() {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
-  const {user} = useSelector(state => state.auth );
+  const { user } = useSelector((state) => state.auth);
+  const token = Cookies.get('token');
   
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -189,7 +190,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={token && user ? <Navigate to="/dashboard/home" /> : <Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/livreur" element={<RegisterLivreur />} />
           
