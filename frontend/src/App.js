@@ -191,7 +191,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={token && user ? <Navigate to="/dashboard/home" /> : <Login />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard/home" /> : <Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/livreur" element={<RegisterLivreur />} />
           
