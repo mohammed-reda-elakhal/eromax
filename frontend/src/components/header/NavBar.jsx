@@ -10,6 +10,10 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
 
   const navigate = useNavigate()
 
+  const handleLinkClick = () => {
+    setToggleMenu(false); // Close the menu on link click
+  };
+
   return (
     <div className={`navbar ${toogleMenu ? 'open' : ''}`}>
       <div className="navbar-header">
@@ -26,6 +30,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           duration={500}
           offset={-70} // Adjust based on fixed header height
           className="navbar-link"
+          onClick={handleLinkClick} // Close menu when clicked
         >
           Accueil
         </ScrollLink>
@@ -36,6 +41,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           offset={-70}
           className="navbar-link"
           style={{cursor:'pointer'}}
+          onClick={handleLinkClick}
         >
           A propos
         </ScrollLink>
@@ -46,6 +52,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           offset={-70}
           className="navbar-link"
           style={{cursor:'pointer'}}
+          onClick={handleLinkClick}
         >
           Service
         </ScrollLink>
@@ -56,6 +63,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           offset={-70}
           className="navbar-link"
           style={{cursor:'pointer'}}
+          onClick={handleLinkClick}
         >
           Contact
         </ScrollLink>
@@ -66,18 +74,19 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           offset={-70}
           className="navbar-link"
           style={{cursor:'pointer'}}
+          onClick={handleLinkClick}
         >
           Tarif
         </ScrollLink>
       </div>
       <div className="navbar-footer">
-        <button onClick={()=>navigate("/register")} className="header-bottom-link">
+        <button onClick={() => {navigate("/register"); handleLinkClick();}} className="header-bottom-link">
           Devenir Client
         </button>
-        <button onClick={()=>navigate("/register/livreur")} className="header-bottom-link">
+        <button onClick={() => {navigate("/register/livreur"); handleLinkClick();}} className="header-bottom-link">
           Devenir Livreur
         </button>
-        <button onClick={()=>navigate("/login")} className="header-bottom-link">
+        <button onClick={() => {navigate("/login"); handleLinkClick();}} className="header-bottom-link">
           Connexion
         </button>
       </div>

@@ -70,7 +70,7 @@ export function updateProfile(userId, role, user) {
     return async (dispatch) => {
         dispatch(profileActions.updateProfileStart());
         try {
-            const token = Cookies.get('token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 throw new Error('No token found');
             }
@@ -97,7 +97,7 @@ export function updateProfileImageOld(userId, formData) {
     return async (dispatch) => {
         dispatch(profileActions.updateProfileImageStart());
         try {
-            const token = Cookies.get('token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 throw new Error('No token found');
             }
@@ -142,7 +142,7 @@ export function updateProfileImage(userId, role, formData) {
     return async (dispatch) => {
         dispatch(profileActions.updateProfileImageStart());
         try {
-            const token = Cookies.get('token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 throw new Error('No token found');
             }

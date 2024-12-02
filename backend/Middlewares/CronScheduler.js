@@ -4,7 +4,7 @@ const { generateFacturesRetour } = require('../Controllers/factureRetourControll
 const { createFacturesForClientsAndLivreurs } = require('../Controllers/factureController');
 
 // Schedule a job to create FactureRetour every day at 00:02 AM
-cron.schedule('27 16 * * *', async () => {
+cron.schedule('50 23 * * *', async () => {
     console.log('Running daily FactureRetour generation at 00:02 AM');
     try {
         await generateFacturesRetour();

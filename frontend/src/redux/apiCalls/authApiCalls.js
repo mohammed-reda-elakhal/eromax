@@ -2,23 +2,25 @@ import { toast } from "react-toastify";
 import request from "../../utils/request";
 import { authActions } from "../slices/authSlice";
 import Cookies from "js-cookie";
+
 // login function
 export function loginUser(user, role, navigate) {
     return async (dispatch) => {
         try {
             const { data } = await request.post(`/api/auth/login/${role}`, user);
             dispatch(authActions.login(data.user));
-            Cookies.set("user", JSON.stringify(data.user),{ expires: 30 });// expand expiration time 
-            Cookies.set("token", data.token);
-
+            
+            // Set data in LocalStorage instead of cookies
+            localStorage.setItem("user", JSON.stringify(data.user));
+            localStorage.setItem("token", data.token);
             
             if (data.user.role === "client") {
                 dispatch(authActions.setStore(data.store));
-                Cookies.set("store", JSON.stringify(data.store),{ expires: 30 });
+                localStorage.setItem("store", JSON.stringify(data.store));
             }
 
-            toast.success(data.message);
-            navigate("/dashboard/home");
+            // toast.success(data.message);
+            navigate("/dashboard/list-colis");
             
         } catch (error) {
             if (error.response && error.response.data) {
@@ -33,28 +35,27 @@ export function loginUser(user, role, navigate) {
 }
 
 // create user
-export function registerUser(role , user){
-    return async (dispatch ) =>{
+export function registerUser(role, user) {
+    return async (dispatch) => {
         try {
             console.log(`user : ${user}`);
             
-            const {data} = await request.post(`/api/auth/register/${role}` , user);
+            const { data } = await request.post(`/api/auth/register/${role}`, user);
             toast.success(data.message);
         } catch (error) {
-            toast.error(error.message || "Failed to create USer");
+            toast.error(error.message || "Failed to create User");
             console.log(error.message);
-            
         }
-    }
+    };
 }
 
 export const logoutUser = (navigate) => {
     return (dispatch) => {
-      // Remove cookies first
-      Cookies.remove('user');
-      Cookies.remove('store');
-      Cookies.remove('token');
-      
-      navigate('/login');
+        // Remove cookies first
+        localStorage.removeItem('user');
+        localStorage.removeItem('store');
+        localStorage.removeItem('token');
+        
+        navigate('/login');
     };
-  };
+};

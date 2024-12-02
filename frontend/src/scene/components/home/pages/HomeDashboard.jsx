@@ -10,6 +10,7 @@ import '../dashboard.css'
 import PromotionStore from '../components/PromotionStore';
 import Mission from '../components/Mission';
 import { useSelector } from 'react-redux';
+import Promotions from '../../promotion/page/Promotion';
 
 
 function HomeDashboard() {
@@ -35,21 +36,14 @@ function HomeDashboard() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        
-                        {
-                            /**
-                             *  
                         <Notification theme={theme}/>
+                        <PromotionStore />
                         {
                             user?.role ==="admin" || user?.role ==="livreur" ? 
                             <Mission theme={theme}/>
                             :""
                         }
-                             * 
-                             */
-                        }
-                       
-                        
+        
                         <Statistic theme={theme} />
                     </div>
                 </div>

@@ -30,16 +30,12 @@ function Profile() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Profile' />
-                    </div>
                     <div
                         className="content"
                         style={{
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Profile</h4>
                         <div className="container-profile">
                             <ProfileInfo />
                         </div>

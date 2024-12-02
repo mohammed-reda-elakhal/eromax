@@ -3,7 +3,6 @@ import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input, Button, Radio } from 'antd';
 import { LockOutlined, MailOutlined } from '@ant-design/icons';
-
 import './login.css';
 import { loginUser } from '../redux/apiCalls/authApiCalls';
 import { FaFacebook, FaInstagram, FaWhatsapp } from 'react-icons/fa';
@@ -15,13 +14,26 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Handle login submission
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = { email, password };
-    dispatch(loginUser(formData, role, navigate));
+    dispatch(loginUser(formData, role, navigate)); // dispatch login
     clearData();
   };
 
+  // Handle navigation based on role
+  const handleRegisterNavigation = () => {
+    if (role === 'client') {
+      navigate('/register'); // Navigate to client registration
+    } else if (role === 'livreur') {
+      navigate('/register/livreur'); // Navigate to livreur registration
+    } else if (role === 'staf') {
+      navigate('/'); // Navigate to staf registration (if needed)
+    }
+  };
+
+  // Clear form data
   const clearData = () => {
     setEmail('');
     setPassword('');
@@ -33,8 +45,8 @@ const Login = () => {
         <div className="login-header">
           <img 
             src="/image/logo-light.png" 
-            onClick={()=>navigate('/')} 
-            style={{cursor:"pointer"}} 
+            onClick={() => navigate('/')} 
+            style={{ cursor: "pointer" }} 
             alt="Landino" 
             className="login-logo" 
           />
@@ -80,9 +92,13 @@ const Login = () => {
         </form>
         <div className="login-footer">
           <span>No account yet?</span>
-          <Link to="/register" className="login-footer-link">
+          <Button 
+            onClick={handleRegisterNavigation} 
+            className="login-footer-link" 
+            style={{ border: 'none', padding: 0, background: 'transparent', color: '#1890ff' }}
+          >
             Register
-          </Link>
+          </Button>
         </div>
         <div className="social_media_link">
           <Link to={"#"}>
@@ -92,7 +108,7 @@ const Login = () => {
             <FaInstagram size={20} color='pink'/>
           </Link>
           <Link to={"#"}>
-            <FaFacebook  size={20} color='blue'/>
+            <FaFacebook size={20} color='blue'/>
           </Link>
         </div>
       </div>

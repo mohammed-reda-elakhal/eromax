@@ -50,6 +50,7 @@ function RegisterLivreur() {
         if (villes.length === 0) {
             dispatch(getAllVilles());
         }
+        window.scrollTo(0, 0);
     }, [dispatch, villes.length]);
 
     const onFinish = (values) => {

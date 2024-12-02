@@ -63,6 +63,7 @@ import FactureGlobaleDetail from "./scene/components/facture/page/FactureGlobale
 import FactureRetour from "./scene/components/facture/page/FactureRetour";
 import FactureRetourDetail from "./scene/components/facture/page/FactureRetourDetail";
 import Promotions from "./scene/components/promotion/page/Promotion";
+import Cookies from "js-cookie";
 
 import DocumentProfile from "./scene/components/profile/components/DocumentProfile";
 
@@ -75,7 +76,8 @@ function App() {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
-  const {user} = useSelector(state => state.auth );
+  const { user } = useSelector((state) => state.auth);
+  const token = localStorage.getItem('token');
   
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -189,7 +191,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard/home" /> : <Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/livreur" element={<RegisterLivreur />} />
           

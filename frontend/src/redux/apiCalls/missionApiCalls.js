@@ -8,7 +8,7 @@ export function getDemandeRetraitToday() {
     return async (dispatch) => {
 
           // Get token from cookies
-          const token = Cookies.get('token');
+          const token = localStorage.getItem('token');
           if (!token) {
               toast.error('Authentification token est manquant');
               return;
@@ -36,7 +36,7 @@ export function getReclamationToday() {
     return async (dispatch) => {
 
           // Get token from cookies
-          const token = Cookies.get('token');
+          const token = localStorage.getItem('token');
           if (!token) {
               toast.error('Authentification token est manquant');
               return;
@@ -65,7 +65,7 @@ export function getColisATRToday() {
     return async (dispatch) => {
 
           // Get token from cookies
-          const token = Cookies.get('token');
+          const token = localStorage.getItem('token');
           if (!token) {
               toast.error('Authentification token est manquant');
               return;

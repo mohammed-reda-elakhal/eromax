@@ -9,7 +9,7 @@ export function getStatisticColis() {
     return async (dispatch) => {
         try {
               // Get token from cookies
-          const token = Cookies.get('token');
+          const token = localStorage.getItem('token');
           if (!token) {
               toast.error('Authentification token est manquant');
               return;
@@ -37,7 +37,7 @@ export function getStatisticArgent() {
     return async (dispatch) => {
         try {
               // Get token from cookies
-          const token = Cookies.get('token');
+          const token = localStorage.getItem('token');
           if (!token) {
               toast.error('Authentification token est manquant');
               return;
@@ -65,7 +65,7 @@ export function getStatisticVille() {
     return async (dispatch) => {
         try {
               // Get token from cookies
-          const token = Cookies.get('token');
+          const token = localStorage.getItem('token');
           if (!token) {
               toast.error('Authentification token est manquant');
               return;

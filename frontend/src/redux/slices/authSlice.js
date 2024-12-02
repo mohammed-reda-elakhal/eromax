@@ -13,9 +13,9 @@ function safeParse(item) {
 const authSlice = createSlice({
     name: "auth",
     initialState: {
-        user: safeParse(Cookies.get("user")),
-        store: safeParse(Cookies.get("store")),
-        token:safeParse(Cookies.get("token")),
+        user: safeParse(localStorage.getItem("user")),
+        store: safeParse(localStorage.getItem("store")),
+        token: localStorage.getItem("token"), // No need to parse token, it's a string
     },
    
     reducers: {

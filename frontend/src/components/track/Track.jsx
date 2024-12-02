@@ -3,6 +3,7 @@ import './track.css';
 import { Input, Drawer, Steps, Alert } from 'antd';
 import TrackingColis from '../../scene/global/TrackingColis ';
 
+
 function Track() {
     const [open, setOpen] = useState(false);
     const [codeSuivre, setCodeSuivre] = useState("");
@@ -14,6 +15,7 @@ function Track() {
 
     const onClose = () => {
         setOpen(false);
+        setCodeSuivre(""); // Clear the input field when the drawer is closed
     };
 
     const handleSuivreColis = () => {
