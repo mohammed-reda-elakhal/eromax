@@ -327,7 +327,7 @@ function PayementProfile() {
               loading={meth_payement.length === 0}
               allowClear
             >
-              {meth_payement.map(meth => (
+              {Array.isArray(meth_payement) && meth_payement.map(meth => (
                 <Option key={meth._id} value={meth._id}>
                   <Space>
                     {meth.image?.url && <Avatar src={meth.image.url} size={24} />}
