@@ -7,7 +7,7 @@ import { ThemeContext } from '../ThemeContext';
 import { logoutUser } from '../../redux/apiCalls/authApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoIosNotifications, IoMdExit, IoMdWallet } from 'react-icons/io';
-import { FaFileArchive, FaRegEyeSlash, FaStore } from 'react-icons/fa';
+import { FaFileArchive, FaPaypal, FaRegEyeSlash, FaStore } from 'react-icons/fa';
 import { getNotificationUserByStore, notificationRead } from '../../redux/apiCalls/notificationApiCalls';
 import { getStoreById } from '../../redux/apiCalls/profileApiCalls';
 import SoldeCart from '../components/portfeuille/components/SoldeCart';
@@ -53,6 +53,9 @@ function Topbar() {
       </Menu.Item>
       <Menu.Item key="store" icon={<FaStore />} onClick={() => navigate(`/dashboard/bussness`)}>
         Bussness
+      </Menu.Item>
+      <Menu.Item key="payement" icon={<FaPaypal />} onClick={() => navigate(`/dashboard/payement`)}>
+        Payements
       </Menu.Item>
       <Menu.Item key="document" icon={<FaFileArchive />} onClick={() => navigate(`/dashboard/document`)}>
         Documents

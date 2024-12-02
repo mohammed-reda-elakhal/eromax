@@ -90,18 +90,29 @@ export function deletePayement(id) {
   };
 }
 
+
+
 // Get payments by client ID
 export function getPaymentsByClientId(clientId) {
   return async (dispatch) => {
     dispatch(setFetching(true));
     try {
       const { data } = await request.get(`/api/payement/client/${clientId}`); // API call to get payments by client ID
-      dispatch(setPayements(data));
+      
+      // **Ensure that data.payements is an array**
+      if (data && Array.isArray(data)) {
+        dispatch(setPayements(data));
+      } else {
+        // If data.payements is not an array, handle accordingly
+        dispatch(setPayements([]));
+        toast.warn("No payments found for this client.");
+      }
+      
       dispatch(setFetching(false));
     } catch (error) {
       dispatch(setFetching(false));
       dispatch(setError(error.message || "Failed to fetch payments by client"));
-      console.error(error.message || "Failed to fetch payments by client");
+      toast.error(error.message || "Failed to fetch payments by client");
     }
   };
 }

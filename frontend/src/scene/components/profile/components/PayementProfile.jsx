@@ -42,8 +42,16 @@ const { Option } = Select;
 
 function PayementProfile() {
   // Retrieve the logged-in user from cookies
-  const user = JSON.parse(localStorage.getItem('user'));
+  const { user  } = useSelector((state) => state.auth);
   
+  // Handle the case where user is not found in cookies
+  if (!user) {
+    toast.error("User not authenticated");
+    // Redirect to login or handle accordingly
+    // For example:
+    // window.location.href = '/login';
+  }
+
   const dispatch = useDispatch();
   const { id } = useParams(); // Get user ID from route parameters if available
 
@@ -62,11 +70,15 @@ function PayementProfile() {
 
   // Fetch payments and payment methods on component mount
   useEffect(() => {
-    const userId = id || user._id;
-    dispatch(getPaymentsByClientId(userId));
-    dispatch(getMeth_payement());
-    window.scrollTo(0, 0); // Scroll to top on component load
-  }, [dispatch, id, user._id]);
+    const userId = id || user?._id;
+    if (userId) {
+      dispatch(getPaymentsByClientId(userId));
+      dispatch(getMeth_payement());
+      window.scrollTo(0, 0); // Scroll to top on component load
+    } else {
+      toast.error("User ID not found");
+    }
+  }, [dispatch, id, user?._id]);
 
   /**
    * Show the Drawer for adding a new payment
@@ -139,7 +151,7 @@ function PayementProfile() {
    */
   const handleAddOrUpdate = async (values) => {
     const { nom, rib, idBank } = values;
-    const clientId = user._id ;
+    const clientId = user?._id;
     const payementData = {
       clientId,
       nom,
@@ -190,13 +202,13 @@ function PayementProfile() {
           type="error"
           showIcon
           action={
-            <Button size="small" type="text" onClick={() => dispatch(getPaymentsByClientId(id || user._id))}>
+            <Button size="small" type="text" onClick={() => dispatch(getPaymentsByClientId(id || user?._id))}>
               Retry
             </Button>
           }
           style={{ marginBottom: '20px' }}
         />
-      ) : payements.length === 0 ? (
+      ) : Array.isArray(payements) && payements.length === 0 ? (
         /* Informative Alert when no payments are found */
         <Alert 
           message="No Payments Found"
@@ -208,7 +220,7 @@ function PayementProfile() {
       ) : (
         /* Responsive Grid Layout for Payments */
         <Row gutter={[16, 16]}>
-          {payements.map(payement => (
+          {Array.isArray(payements) && payements.map(payement => (
             <Col xs={24} sm={12} md={8} lg={6} key={payement._id}>
               <Card
                 hoverable

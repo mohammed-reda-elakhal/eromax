@@ -12,7 +12,8 @@ const payementSlice = createSlice({
   },
   reducers: {
     setPayements(state, action) {
-      state.payements = action.payload; // Set the list of payments
+      // **Ensure payements is always an array**
+      state.payements = Array.isArray(action.payload) ? action.payload : [];
     },
     addPayement(state, action) {
       state.payements.push(action.payload); // Add a new payment
