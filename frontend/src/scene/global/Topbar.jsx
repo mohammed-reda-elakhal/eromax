@@ -11,6 +11,7 @@ import { IoMdExit } from 'react-icons/io';
 const { Header } = Layout;
 
 function Topbar() {
+  // top bar
   const { theme, toggleTheme } = useContext(ThemeContext);
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -38,15 +39,12 @@ function Topbar() {
     <Header style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff', padding: '0 20px' }} className="top-bar">
 
       <div>
-        
+
       </div>
       <div className="control-topbar">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Theme toggle icon */}
-          <div onClick={toggleTheme} style={{ cursor: 'pointer' }}>
-            {theme === 'dark' ? <MdLightMode size={24} color="#fff" /> : <MdNightlight size={24} color="#000" />}
-          </div>
-
+          <Avatar onClick={toggleTheme} style={{ cursor: 'pointer' }} icon={theme === 'dark' ? <MdLightMode size={24} color="#fff" /> : <MdNightlight size={24} color="#000" />}/>
           {/* Dropdown menu for profile, settings, and logout */}
           <Dropdown overlay={menu} trigger={['click']}>
             <Avatar icon={<SettingOutlined />} style={{ cursor: 'pointer' }} />

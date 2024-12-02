@@ -18,9 +18,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProfile, updateProfileImage } from '../../../../redux/apiCalls/profileApiCalls';
 import { useParams, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
-import { updateMessage, getMessage } from '../../../../redux/apiCalls/messageApiCalls'; // Actions to get and update message
-import request from '../../../../utils/request';
+import { getMessage } from '../../../../redux/apiCalls/messageApiCalls'; // Actions to get and update message
 
 const { Title } = Typography;
 
@@ -31,22 +29,17 @@ function ProfileInfo() {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user'));
     const { id } = useParams();
     const { profile, loading, error } = useSelector((state) => state.profile);
-    const { message: adminMessage } = useSelector((state) => state.message);
-
+    const {user} = useSelector((state) => state.auth);
     // Fetch profile data
     useEffect(() => {
         if (user) {
             const userId = id || user._id;
             dispatch(getProfile(userId, user.role));
         }
-        if (user.role === 'admin' && user.type === 'super') {
-            dispatch(getMessage(user?._id));  // Get the super admin message on component load
-        }
         window.scrollTo(0, 0);
-    }, [dispatch, user, id]);
+    }, [dispatch]);
 
     // Get profile information based on role
     const getProfileItems = (role, profile) => {
@@ -111,32 +104,6 @@ function ProfileInfo() {
             message.error('Failed to upload image, please try again.');
         }
         return false; // Prevent default upload behavior
-    };
-
-    const handleSubmitMessage = async () => {
-        if (newMessage.trim()) {
-            setIsSubmitting(true); // Show loading state while submitting
-    
-            try {
-                // Send the PATCH request to update the message
-                const response = await request.patch(`/api/admin/message/${user?._id}`, {
-                    message: newMessage
-                });
-    
-                // Handle the successful response
-                if (response.status === 200) {
-                    message.success("Message updated successfully!");
-                    setNewMessage(''); // Clear the message input field
-                }
-            } catch (error) {
-                // Handle error response
-                message.error(error.response?.data?.message || 'Failed to update message');
-            } finally {
-                setIsSubmitting(false); // Hide loading state after request is complete
-            }
-        } else {
-            message.error('Le message ne peut pas être vide.');
-        }
     };
 
     // Centralized error handling
