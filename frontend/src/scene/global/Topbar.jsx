@@ -42,7 +42,7 @@ function Topbar() {
 
   useEffect(() => {
     if (user?.role === "client") {
-      dispatch(getStoreById(store?._id));
+      //dispatch(getStoreById(store?._id));
       //dispatch(getNotificationUserByStore());
       dispatch(getPaymentsByClientId(user._id));
     } else if(user?.role === "livreur"){
