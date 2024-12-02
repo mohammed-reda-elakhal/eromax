@@ -34,3 +34,17 @@
 .submit-btn:hover{
     box-shadow: 2px 2px 5px var(--white);
 }
+
+@media only screen and (max-width: 600px){
+   .track h1{
+    font-size: 22px;
+   }
+   .track p{
+    font-size: 14px;
+   }
+   .track-input{
+    flex-direction: column;
+    
+   }
+
+}

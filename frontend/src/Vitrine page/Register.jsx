@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Tooltip, Input, Button, Radio, Space } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
@@ -17,6 +17,10 @@ function Register() {
   const [numberColis, setNumberColis] = useState('');
   const dispatch = useDispatch()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+}, [dispatch]);
 
   const clearData = () => {
     setNom('');
@@ -45,7 +49,7 @@ function Register() {
     };
     dispatch(registerUser('client' , formData))
     clearData();
-    navigate('/')
+    navigate('/login')
   };
 
   return (

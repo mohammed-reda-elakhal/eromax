@@ -33,7 +33,7 @@ const ClientSchema= new mongoose.Schema({
             publicId: null,
         }
     },
-    active: { type: Boolean, default: false },
+    active: { type: Boolean, default: true },
     role: {
         type: String,
         required: true,
@@ -72,7 +72,7 @@ const clientValidation = (obj) => {
             url: "https://cdn.pixabay.com/photo/2021/07/02/04/48/user-6380868_1280.png",
             publicId: null
         }),
-        active: Joi.boolean().default(false),
+        active: Joi.boolean().default(true),
         role: Joi.string().default("client"),
         start_date: Joi.string(),
         number_colis: Joi.string(),
