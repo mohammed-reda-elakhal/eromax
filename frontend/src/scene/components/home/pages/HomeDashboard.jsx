@@ -22,7 +22,7 @@ function HomeDashboard() {
     <div className='page-dashboard'>
             <Menubar />
             <main className="page-main">
-
+                <Topbar />
                 <div
                     className="page-content"
                     style={{
