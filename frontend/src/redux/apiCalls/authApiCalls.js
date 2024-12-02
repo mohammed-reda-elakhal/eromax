@@ -19,7 +19,7 @@ export function loginUser(user, role, navigate) {
                 localStorage.setItem("store", JSON.stringify(data.store));
             }
 
-            toast.success(data.message);
+            // toast.success(data.message);
             navigate("/dashboard/list-colis");
             
         } catch (error) {
