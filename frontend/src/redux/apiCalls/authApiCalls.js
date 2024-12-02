@@ -52,9 +52,9 @@ export function registerUser(role, user) {
 export const logoutUser = (navigate) => {
     return (dispatch) => {
         // Remove cookies first
-        Cookies.remove('user');
+        localStorage.removeItem('user');
         localStorage.removeItem('store');
-        Cookies.remove('token');
+        localStorage.removeItem('token');
         
         navigate('/login');
     };
