@@ -1,6 +1,7 @@
 // controllers/demande_retour.controller.js
 const DemandeRetrait = require('../Models/Demande_Retrait');
 const Notification_User = require('../Models/Notification_User');
+const Payement = require('../Models/Payement');
 const { Store } = require('../Models/Store');
 const Transaction = require('../Models/Transaction')
 
@@ -100,6 +101,7 @@ exports.createAutomaticDemandeRetrait = async (req, res) => {
           message: 'Demandes de retrait automatiques créées avec succès.',
           data: demandesRetrait,
       });
+      console.log("demandes", demandesRetrait);
   } catch (error) {
       res.status(500).json({
           message: 'Erreur lors de la création des demandes de retrait automatiques.',
