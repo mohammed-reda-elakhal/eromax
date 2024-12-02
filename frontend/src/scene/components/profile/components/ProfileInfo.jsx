@@ -103,8 +103,13 @@ function ProfileInfo() {
         const formData = new FormData();
         formData.append('image', file);
     
-        dispatch(updateProfileImage(profile._id, user.role, formData));
-        setIsModalVisible(false);
+        try {
+            // Use try/catch to handle errors during the profile image upload
+            await dispatch(updateProfileImage(profile._id, user.role, formData));
+            setIsModalVisible(false);
+        } catch (err) {
+            message.error('Failed to upload image, please try again.');
+        }
         return false; // Prevent default upload behavior
     };
 
@@ -134,6 +139,7 @@ function ProfileInfo() {
         }
     };
 
+    // Centralized error handling
     if (error) {
         return (
             <div style={{ textAlign: 'center', padding: '50px 0' }}>

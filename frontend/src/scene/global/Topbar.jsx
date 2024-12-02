@@ -36,16 +36,22 @@ function Topbar() {
 
   return (
     <Header style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff', padding: '0 20px' }} className="top-bar">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {/* Theme toggle icon */}
-        <div onClick={toggleTheme} style={{ cursor: 'pointer' }}>
-          {theme === 'dark' ? <MdLightMode size={24} color="#fff" /> : <MdNightlight size={24} color="#000" />}
-        </div>
 
-        {/* Dropdown menu for profile, settings, and logout */}
-        <Dropdown overlay={menu} trigger={['click']}>
-          <Avatar icon={<SettingOutlined />} style={{ cursor: 'pointer' }} />
-        </Dropdown>
+      <div>
+        
+      </div>
+      <div className="control-topbar">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Theme toggle icon */}
+          <div onClick={toggleTheme} style={{ cursor: 'pointer' }}>
+            {theme === 'dark' ? <MdLightMode size={24} color="#fff" /> : <MdNightlight size={24} color="#000" />}
+          </div>
+
+          {/* Dropdown menu for profile, settings, and logout */}
+          <Dropdown overlay={menu} trigger={['click']}>
+            <Avatar icon={<SettingOutlined />} style={{ cursor: 'pointer' }} />
+          </Dropdown>
+        </div>
       </div>
     </Header>
   );
