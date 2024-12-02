@@ -30,10 +30,6 @@ function HomeDashboard() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Accuiel' />
-                        
-                    </div>
                     <div
                         className="content"
                         style={{
