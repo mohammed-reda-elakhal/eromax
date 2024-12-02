@@ -24,8 +24,6 @@ const { Title } = Typography;
 
 function ProfileInfo() {
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newMessage, setNewMessage] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false); // To handle form submission state
 
     const dispatch = useDispatch();
     const navigate = useNavigate();

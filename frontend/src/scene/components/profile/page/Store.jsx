@@ -15,10 +15,6 @@ import StoreInfo from '../components/StoreInfo';
 
 function Store() {
     const { theme } = useContext(ThemeContext);
-   
-   
-  
-
     return (
         <div className='page-dashboard'>
             <Menubar />
@@ -31,9 +27,6 @@ function Store() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Profile' />
-                    </div>
                     <div
                         className="content"
                         style={{
@@ -42,7 +35,6 @@ function Store() {
                     >
                         <h4>Bussniss</h4>
                         <StoreInfo />
-                        
                     </div>
                 </div>
             </main>

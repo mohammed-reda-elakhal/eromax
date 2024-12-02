@@ -36,8 +36,8 @@ function HomeDashboard() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        <PromotionStore />
                         <Notification theme={theme}/>
+                        <PromotionStore />
                         {
                             user?.role ==="admin" || user?.role ==="livreur" ? 
                             <Mission theme={theme}/>

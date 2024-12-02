@@ -35,14 +35,13 @@ function StoreInfo() {
   const [editingStore, setEditingStore] = useState(null);
 
   // Extract user ID from cookies
-  const userCookie = localStorage.getItem('user');
-  const userId = userCookie ? JSON.parse(userCookie)._id : null;
+  const {user} = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (userId) {
-      dispatch(getStoreByUser(userId));
+    if (  user?.role==="client") {
+      dispatch(getStoreByUser(user?._id));
     }
-  }, [dispatch, userId]);
+  }, [dispatch]);
 
   // Sort stores to have default store(s) first
   const sortedStores = [...stores].sort((a, b) => {
@@ -93,11 +92,6 @@ function StoreInfo() {
     });
   };
 
-  const handleAddStore = () => {
-    setEditingStore(null);
-    setDrawerVisible(true);
-  };
-
   const handleDrawerClose = () => {
     setDrawerVisible(false);
     setEditingStore(null);
@@ -117,7 +111,7 @@ function StoreInfo() {
           type="error"
           showIcon
           action={
-            <Button size="small" type="text" onClick={() => dispatch(getStoreByUser(userId))}>
+            <Button size="small" type="text" onClick={() => dispatch(getStoreByUser(user?._id))}>
               Retry
             </Button>
           }
