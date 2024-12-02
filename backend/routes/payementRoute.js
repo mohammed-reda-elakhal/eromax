@@ -1,4 +1,4 @@
-const { createPayement, getAllPayements, getPayementById, deletePayement, getPaymentsByClientId, updatePayement } = require('../Controllers/payementController');
+const { createPayement, getAllPayements, getPayementById, deletePayement, getPaymentsByClientId, updatePayement, setDefaultPayement } = require('../Controllers/payementController');
 
 const router = require('express').Router();
 
@@ -12,6 +12,8 @@ router.get('/',getAllPayements);
     .put(updatePayement)
     .delete(deletePayement)
  router.get('/client/:clientId',getPaymentsByClientId);
+ router.post('/payement/default',setDefaultPayement);
+
 
 
 module.exports = router;

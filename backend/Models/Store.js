@@ -45,6 +45,10 @@ const StoreSchema = new mongoose.Schema({
         type : Number,
         default : 0 ,
     },
+    auto_DR:{
+        type:Boolean,
+        default:false
+    },
    
 }, { timestamps: true });
 
