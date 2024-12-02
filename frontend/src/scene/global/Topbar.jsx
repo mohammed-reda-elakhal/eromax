@@ -127,7 +127,10 @@ function Topbar() {
       <div>
         
       </div>
-      <div className="control-topbar">
+
+      {
+        /**
+         <div className="control-topbar">
         {
         user?.role === 'client' && (
             <div
@@ -145,10 +148,7 @@ function Topbar() {
           )
         }
 
-        {
-          /**
-           * 
-           *  <Badge count={notificationUser.length} onClick={showDrawer} style={{ cursor: "pointer" }}>
+        <Badge count={notificationUser.length} onClick={showDrawer} style={{ cursor: "pointer" }}>
           <Avatar icon={<IoIosNotifications />} style={{ cursor: "pointer" }} />
         </Badge>
 
@@ -178,10 +178,13 @@ function Topbar() {
         <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
           <Avatar icon={<SettingOutlined />} style={{ cursor: "pointer" }} />
         </Dropdown>
-           */
-        }
+          
+      
        
       </div>
+         */
+      }
+      
 
 
 {
