@@ -43,7 +43,7 @@ function Topbar() {
   useEffect(() => {
     if (user?.role === "client") {
       dispatch(getStoreById(store?._id));
-      dispatch(getNotificationUserByStore());
+      //dispatch(getNotificationUserByStore());
       dispatch(getPaymentsByClientId(user._id));
     } else if(user?.role === "livreur"){
       dispatch(getNotificationUserByStore());
@@ -144,7 +144,11 @@ function Topbar() {
             </div>
           )
         }
-        <Badge count={notificationUser.length} onClick={showDrawer} style={{ cursor: "pointer" }}>
+
+        {
+          /**
+           * 
+           *  <Badge count={notificationUser.length} onClick={showDrawer} style={{ cursor: "pointer" }}>
           <Avatar icon={<IoIosNotifications />} style={{ cursor: "pointer" }} />
         </Badge>
 
@@ -174,12 +178,22 @@ function Topbar() {
         <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
           <Avatar icon={<SettingOutlined />} style={{ cursor: "pointer" }} />
         </Dropdown>
+           */
+        }
+       
       </div>
 
+
+{
+  /**
+   * 
+   * 
       <Drawer title="Demande De Retrait" onClose={() => setOpenRetrait((prev) => !prev)} open={openRetrait}>
         <SoldeCart theme={theme} />
         <DemandeRetrait setOpenWallet={setOpenRetrait} theme={theme} />
       </Drawer>
+   */
+}
     </Header>
   );
 }
