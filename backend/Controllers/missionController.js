@@ -1,25 +1,11 @@
 const DemandeRetrait = require('../Models/Demande_Retrait');
 const { Reclamation } = require('../Models/Reclamation');
 const { Colis } = require('../Models/Colis');
-const Demande_Retrait = require('../Models/Demande_Retrait');
 
-// Helper function to get today's date range
-const getTodayDateRange = () => {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0); // 00:00:00.000
-
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999); // 23:59:59.999
-
-    return { startOfDay, endOfDay };
-};
-
+// Get all Demande Retrait without date condition
 const getDemandeRetraitToday = async (req, res) => {
     try {
-        const { startOfDay, endOfDay } = getTodayDateRange();
-
-        const demandes = await Demande_Retrait.find({
-           createdAt: { $gte: startOfDay, $lte: endOfDay },
+        const demandes = await DemandeRetrait.find({
             verser: false, // Assuming `verser` is a boolean field
         });
 
@@ -29,12 +15,10 @@ const getDemandeRetraitToday = async (req, res) => {
     }
 };
 
+// Get all Reclamation without date condition
 const getReclamationToday = async (req, res) => {
     try {
-        const { startOfDay, endOfDay } = getTodayDateRange();
-
         const reclamations = await Reclamation.find({
-            createdAt: { $gte: startOfDay, $lte: endOfDay },
             resoudre: false, // Assuming `resoudre` is a boolean field
         });
 
@@ -44,12 +28,10 @@ const getReclamationToday = async (req, res) => {
     }
 };
 
+// Get all Colis without date condition
 const getColisATRToday = async (req, res) => {
     try {
-        const { startOfDay, endOfDay } = getTodayDateRange();
-
         const colis = await Colis.find({
-            createdAt: { $gte: startOfDay, $lte: endOfDay },
             statut: 'attente de ramassage', // Assuming this is the correct status
         });
 
@@ -59,8 +41,71 @@ const getColisATRToday = async (req, res) => {
     }
 };
 
+
+// Controller to count Colis for a specific Livreur where statut is 'Expediée'
+const countExpedieColisForLivreur = async (req, res) => {
+    try {
+        const livreurId = req.user.id;  // Assuming the livreur's id is in req.user.id
+        const statut = "Expediée";  // The required status
+
+        // Find the colis count based on livreur and statut
+        const colisCount = await Colis.countDocuments({
+            livreur: livreurId,
+            statut: statut
+        });
+
+        // Send response with the count
+        res.status(200).json(colisCount );
+    } catch (error) {
+        res.status(500).json({ message: 'Error counting colis', error });
+    }
+};
+// Controller to count Colis for a specific Livreur where statut is in the "pret to livrée" statuses
+const countPretToLivreeColisForLivreur = async (req, res) => {
+    try {
+        const livreurId = req.user.id;  // Assuming the livreur's id is in req.user.id
+        
+        // The list of statuses that represent "pret to livrée"
+        const readyToDeliverStatuses = [
+            "Mise en Distribution",
+            "Programmée",
+            "Boite vocale",
+            "Pas de reponse jour 1",
+            "Pas de reponse jour 2",
+            "Pas de reponse jour 3",
+            "Pas reponse + sms / + whatsap",
+            "En voyage",
+            "Injoignable",
+            "Hors-zone",
+            "Intéressé",
+            "Numéro Incorrect",
+            "Reporté",
+            "Confirmé Par Livreur",
+            "Endomagé"
+        ];
+
+        // Find the count of colis with livreur ID and matching any of the statuses in readyToDeliverStatuses
+        const colisCount = await Colis.countDocuments({
+            livreur: livreurId,
+            statut: { $in: readyToDeliverStatuses }
+        });
+
+        // Send response with the count
+        res.status(200).json(colisCount);
+    } catch (error) {
+        res.status(500).json({ message: 'Error counting colis', error });
+    }
+};
+
+
+
+
+
+
 module.exports = {
     getDemandeRetraitToday,
     getReclamationToday,
     getColisATRToday,
+    countExpedieColisForLivreur,
+    countPretToLivreeColisForLivreur
 };

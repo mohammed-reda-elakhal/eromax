@@ -197,7 +197,7 @@ const findOrCreateLivreur = asyncHandler(async () => {
    active: true,
    role: "livreur",
    type: "company",
-   tarif: 100,
+   tarif: 33,
    domaine: "https://api.ameex.app",
    villes: villeNames, // Use the dynamically fetched list of cities
  };

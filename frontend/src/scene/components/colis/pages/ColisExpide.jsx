@@ -175,9 +175,6 @@ function ColisExpide({ search }) {
       <main className="page-main">
         <Topbar />
         <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
-          <div className="page-content-header">
-            <Title nom='Colis Expidée' />
-          </div>
           <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
             <h4>Colis Expidée</h4>
             <div className="bar-action-data">

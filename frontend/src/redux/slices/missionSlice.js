@@ -6,6 +6,8 @@ const missionSlice = createSlice({
         demandeRetrait: [],
         reclamations: [],
         colis: [],
+        colisExp : [],
+        colisPret : [],
     },
     reducers: {
         // Set DemandeRetrait data
@@ -19,6 +21,14 @@ const missionSlice = createSlice({
         // Set Colis data
         setColis(state, action) {
             state.colis = action.payload;
+        },
+        // Set Colis expidée data
+        setColisExp(state, action) {
+            state.colisExp = action.payload;
+        },
+        // Set Colis pret de livrée data
+        setColisPret(state, action) {
+            state.colisPret = action.payload;
         },
     },
 });

@@ -12,6 +12,7 @@ function LivreurFormUpdate() {
     const dispatch = useDispatch();
     const { id } = useParams(); // Get the userId from the URL parameters
     const { profile, error } = useSelector((state) => state.profile); // Assuming profile is stored in the profile state
+    const { user } = useSelector((state) => state.auth); // Assuming profile is stored in the profile state
     const navigate = useNavigate();
     const location = useLocation();
     const [previousRoute, setPreviousRoute] = useState(null);
@@ -52,6 +53,7 @@ function LivreurFormUpdate() {
                 type: profile.type, // Set type from profile
                 active: profile.active, // Set active status from profile
                 domaine: profile.domain, // Set the profile URL if available
+                tarif: profile.tarif,
             });
         }
     }, [profile, form]);
@@ -135,6 +137,20 @@ function LivreurFormUpdate() {
             >
                 <Input />
             </Form.Item>
+
+            {
+                user?.role === "admin"
+                ?
+                <Form.Item
+                label="Tarif"
+                name="tarif"
+                rules={[{ required: false, message: 'Veuillez entrer Tarif!' }]}
+                >
+                    <Input />
+                </Form.Item>
+                :""
+            }
+            
 
             {/* Multiple cities (villes) selection */}
             <Form.Item

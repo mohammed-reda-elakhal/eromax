@@ -109,15 +109,13 @@ function Reclamation() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Reclamation' />
-                    </div>
                     <div
                         className="content"
                         style={{
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
+                        <h4>Reclamation Incomplete</h4>
                         <ReclamationIncomplete theme={theme}/>,
                     </div>
                 </div>

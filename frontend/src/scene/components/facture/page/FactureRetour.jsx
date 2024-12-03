@@ -28,7 +28,7 @@ function FactureRetour() {
                     }}
                 >
                     <div className="page-content-header">
-                        <Title nom='Facture Client' />
+                        <Title nom='Facture Retour' />
                     </div>
                     <div
                         className="content"

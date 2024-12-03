@@ -287,9 +287,6 @@ const handleDistribution = async (colisId) => {
             color: theme === 'dark' ? '#fff' : '#002242',
           }}
         >
-          <div className="page-content-header">
-            <Title nom='Colis Reçu ' />
-          </div>
           <div
             className="content"
             style={{

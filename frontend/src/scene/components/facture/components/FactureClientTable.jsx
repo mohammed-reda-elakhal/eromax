@@ -159,7 +159,7 @@ function FactureClientTable({ theme }) {
             }
             type="primary"
           />
-          {user?.role === 'admin' ? (
+          {user?.role === 'admin' && !record.etat ? (
             <Button
               icon={<MdOutlinePayment />}
               onClick={() => setFacturePay(record?._id)}

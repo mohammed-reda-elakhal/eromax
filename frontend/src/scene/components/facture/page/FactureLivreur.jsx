@@ -28,7 +28,7 @@ function FactureLivreur() {
                     }}
                 >
                     <div className="page-content-header">
-                        <Title nom='Facture Client' />
+                        <Title nom='Facture Livreur' />
                     </div>
                     <div
                         className="content"

@@ -5,7 +5,7 @@ const { createFacturesForClientsAndLivreurs } = require('../Controllers/factureC
 const { createAutomaticDemandeRetrait } = require('../Controllers/demandeRetraitController');
 
 // Schedule a job to create FactureRetour every day at 00:02 AM
-cron.schedule('42 23 * * *', async () => {
+cron.schedule('12 18 * * *', async () => {
     console.log('Running daily FactureRetour generation at 00:02 AM');
     try {
         await generateFacturesRetour();

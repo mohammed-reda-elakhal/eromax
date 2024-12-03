@@ -88,3 +88,63 @@ export function getColisATRToday() {
         }
     };
 }
+
+
+// Fetch today's packages waiting for pickup (Colis ATR)
+export function getColisExpidée() {
+    return async (dispatch) => {
+
+          // Get token from cookies
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+
+        try {
+            const { data } = await request.get(`/api/mission/colis-Ex` , config);
+            dispatch(missionActions.setColisExp(data));
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to fetch today's packages");
+        }
+    };
+}
+
+// Fetch today's packages waiting for pickup (Colis ATR)
+export function getColisPret() {
+    return async (dispatch) => {
+
+          // Get token from cookies
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+
+        try {
+            const { data } = await request.get(`/api/mission/colis-Pret` , config);
+            dispatch(missionActions.setColisPret(data));
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to fetch today's packages");
+        }
+    };
+}
+

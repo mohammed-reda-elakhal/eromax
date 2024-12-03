@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllStores, getStoreById, deleteStore, createStores, updateStore,storePhotoController, getStoreByUser } = require("../Controllers/storeController");
+const { getAllStores, getStoreById, deleteStore, createStores, updateStore,storePhotoController, getStoreByUser, resetAutoDR } = require("../Controllers/storeController");
 const {verifyTokenAndClient, verifyTokenAndStore, verifyToken} = require("../Middlewares/VerifyToken");
 const { route } = require("./clientRoute");
 const photoUpload = require("../Middlewares/photoUpload");

@@ -5,10 +5,12 @@ const asyncHandler = require('express-async-handler');
 const shortid = require('shortid');
 const { Suivi_Colis } = require('../Models/Suivi_Colis');
 const { Store } = require('../Models/Store');
+const { Livreur } = require('../Models/Livreur');
 const cron = require('node-cron');
 const Transaction = require('../Models/Transaction');
 const NotificationUser = require('../Models/Notification_User');
 const Promotion = require('../Models/Promotion'); // Import the Promotion model
+const { createAutomaticDemandeRetrait } = require('./demandeRetraitController');
 
 // Function to generate code_facture
 const generateCodeFacture = (date) => {
@@ -26,6 +28,7 @@ const getDeliveryDate = async (code_suivi) => {
     }
     return null;
 };
+
 
 // Controller to create factures for clients and livreurs based on daily delivered packages
 const createFacturesForClientsAndLivreurs = async (req, res) => {
@@ -157,6 +160,11 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                 } else if (appliedPromotion.type === 'percentage_discount') {
                     tarif_livraison = originalTarifLivraison * (1 - appliedPromotion.value / 100);
                 }
+
+                 // Check if the tarif with promotion is higher than the original tarif
+                if (tarif_livraison > originalTarifLivraison) {
+                    tarif_livraison = originalTarifLivraison; // Revert to original tarif if promotion gives a higher value
+                }
             }
 
             // Calculate tarif_fragile based on is_fragile
@@ -263,9 +271,8 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     await store.save();
                 }
 
-                // Record the transaction
                 const transaction = new Transaction({
-                    id_store: store._id,
+                    id_store: factureData.store._id,  // Correctly passing id_store here
                     montant: montant,
                     type: 'credit', // Adding to the store's balance
                 });
@@ -315,14 +322,6 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                     await livreur.save();
                 }
 
-                // Record the transaction for livreur
-                const transactionLivreur = new Transaction({
-                    id_livreur: livreur._id,
-                    montant: montantLivreur,
-                    type: 'credit', // Adding to the livreur's balance
-                });
-                await transactionLivreur.save();
-
                 // Create a notification for the livreur
                 const notificationLivreur = new NotificationUser({
                     id_livreur: livreur._id,
@@ -353,11 +352,13 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 };
 
 
+
 // Schedule a job to create factures every day at the specified time
-cron.schedule('50 23 * * *', async () => {
+cron.schedule('13 18 * * *', async () => {
     console.log('Running daily facture generation at 17:54');
     await createFacturesForClientsAndLivreurs();
     await generateFacturesRetour(); // Ensure this function is also adjusted if needed
+    await createAutomaticDemandeRetrait();
 });
 
 
@@ -620,6 +621,12 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                 ) : old_tarif_livraison;
                 montant_a_payer = col.prix;
             }
+
+              // If the new tarif is greater than the old tarif, make the new tarif equal to the old tarif
+                if (new_tarif_livraison > old_tarif_livraison) {
+                    new_tarif_livraison = old_tarif_livraison;
+                }
+
 
             if (col.pret_payant) {
                 // If pret_payant is true, set both old and new tarif_livraison to 0

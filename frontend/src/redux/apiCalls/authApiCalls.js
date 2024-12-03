@@ -48,14 +48,13 @@ export function registerUser(role, user) {
         }
     };
 }
-
 export const logoutUser = (navigate) => {
     return (dispatch) => {
         // Remove cookies first
+        dispatch(authActions.logout());
+
         localStorage.removeItem('user');
         localStorage.removeItem('store');
         localStorage.removeItem('token');
-        
-        navigate('/login');
     };
 };

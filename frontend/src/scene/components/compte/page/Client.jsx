@@ -213,11 +213,6 @@ function Client({ search }) {
                         icon={<MdDelete size={20} />}
                         onClick={() => handleDeleteProfile(record._id)}
                     />
-                    <Button 
-                        style={{ color: 'blue', borderColor: "blue", background: "transparent" }} 
-                        icon={<FaInfoCircle size={20} />}
-                        onClick={() => openStoresModal(record)}
-                    />
                 </div>
             )
         }
@@ -248,16 +243,13 @@ const closeStoreForm = () => {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Gestion des utilisateurs' />
-                    </div>
                     <div
                         className="content"
                         style={{
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Gestion des utilisateurs</h4>
+                        <h4>Gestion des utilisateurs ( client )</h4>
                         <Button 
                             type="primary" 
                             icon={<FaPlus />} 
@@ -326,14 +318,6 @@ const closeStoreForm = () => {
                                                         title={<Typography.Title level={4}>{store.storeName}</Typography.Title>}
                                                     />
                                                     <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
-                                                        <Col span={24}>
-                                                            <Typography.Text strong>
-                                                                <EnvironmentOutlined /> Adresse:
-                                                            </Typography.Text>
-                                                            <Typography.Text style={{ marginLeft: '8px' }}>
-                                                                {store.adress}
-                                                            </Typography.Text>
-                                                        </Col>
                                                         <Col span={24}>
                                                             <Typography.Text strong>
                                                                 <PhoneOutlined /> Téléphone:

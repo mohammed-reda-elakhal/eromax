@@ -161,11 +161,6 @@ function Livreur() {
                         icon={<MdDelete size={20} />}
                         onClick={() => handleDeleteProfile(record._id)}
                     />
-                    <Button 
-                        style={{ color: 'blue', borderColor: "blue" , background:"transparent"  }} 
-                        icon={<FaInfoCircle size={20} />}
-                        // Add more info logic here
-                    />
                 </div>
             )
         }
@@ -183,16 +178,13 @@ function Livreur() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Gestion des utilisateurs' />
-                    </div>
                     <div
                         className="content"
                         style={{
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Gestion des utilisateurs</h4>
+                        <h4>Gestion des utilisateurs ( livreur )</h4>
                         <Button 
                             type="primary" 
                             icon={<FaPlus />} 

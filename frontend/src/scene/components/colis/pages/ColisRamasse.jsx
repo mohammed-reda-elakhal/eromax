@@ -174,9 +174,6 @@ function ColisRamasse({ search }) {
       <main className="page-main">
         <Topbar />
         <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
-          <div className="page-content-header">
-            <Title nom='Colis ramassée' />
-          </div>
           <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
             <div className="bar-action-data">
               <Button icon={<IoMdRefresh />} type="primary" onClick={() => getDataColis()} >Rafraîchir</Button>
