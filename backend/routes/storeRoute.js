@@ -6,6 +6,8 @@ const photoUpload = require("../Middlewares/photoUpload");
 const router = express.Router();
 
 // api/store
+router.put('/reset', resetAutoDR);
+
 router.route('/')
         .get(getAllStores)
 
@@ -29,5 +31,6 @@ router.route("/:id/photo")
   .put(photoUpload.single("image"), storePhotoController); // Added PUT handler
 
 router.patch('/:storeId/auto-dr', toggleAutoDR);
+// reset auto en haut de page 
 
 module.exports= router;

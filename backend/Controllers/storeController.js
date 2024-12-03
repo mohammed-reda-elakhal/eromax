@@ -166,16 +166,24 @@ const storePhotoController = asyncHandler(async (req, res) => {
 
 const resetAutoDR = asyncHandler(async (req, res) => {
   try {
+      // Update all documents in the Store collection
       const result = await Store.updateMany({}, { $set: { auto_DR: false } });
+
+      // Respond with success
       res.status(200).json({
-          message: 'auto_DR attribute reset to false for all stores',
+          message: 'Successfully reset auto_DR attribute to false for all stores.',
           modifiedCount: result.modifiedCount,
       });
   } catch (error) {
-      console.error("Error resetting auto_DR for all stores:", error);
-      res.status(500).json({ message: 'Server error while resetting auto_DR for all stores.' });
+      // Log the error and respond with a server error message
+      console.error("Error resetting auto_DR for all stores:", error.message);
+      res.status(500).json({
+          message: 'Server error occurred while resetting auto_DR for all stores.',
+          error: error.message,
+      });
   }
 });
+
 const toggleAutoDR = async (req, res) => {
   try {
       const { storeId } = req.params;
