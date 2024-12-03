@@ -46,14 +46,20 @@ const setDefaultPayement = async (req, res) => {
     try {
         const { clientId, payementId } = req.body;
 
-        // Vérifier si le paiement appartient à l'utilisateur
+        // Valider les IDs
+        if (!mongoose.Types.ObjectId.isValid(payementId)) {
+            return res.status(400).json({ message: 'payementId invalide.' });
+        }
+        if (!mongoose.Types.ObjectId.isValid(clientId)) {
+            return res.status(400).json({ message: 'clientId invalide.' });
+        }
+        // Vérifier si le paiement appartient au client
         const payement = await Payement.findOne({ _id: payementId, clientId });
-
         if (!payement) {
             return res.status(404).json({ message: 'Méthode de paiement introuvable ou non autorisée.' });
         }
 
-        // Réinitialiser le champ default pour tous les paiements de l'utilisateur
+        // Réinitialiser `default` pour tous les paiements du client
         await Payement.updateMany(
             { clientId },
             { $set: { default: false } }
@@ -68,6 +74,7 @@ const setDefaultPayement = async (req, res) => {
             payement,
         });
     } catch (error) {
+        console.error('Erreur:', error.message);
         res.status(500).json({
             message: 'Erreur lors de la mise à jour du paiement par défaut.',
             error: error.message,

@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllStores, getStoreById, deleteStore, createStores, updateStore,storePhotoController, getStoreByUser, resetAutoDR } = require("../Controllers/storeController");
+const { getAllStores, getStoreById, deleteStore, createStores, updateStore,storePhotoController, getStoreByUser, resetAutoDR, toggleAutoDR } = require("../Controllers/storeController");
 const {verifyTokenAndClient, verifyTokenAndStore, verifyToken} = require("../Middlewares/VerifyToken");
 const { route } = require("./clientRoute");
 const photoUpload = require("../Middlewares/photoUpload");
@@ -28,5 +28,6 @@ router.route("/:id/photo")
   .post(photoUpload.single("image"), storePhotoController)
   .put(photoUpload.single("image"), storePhotoController); // Added PUT handler
 
+router.patch('/:storeId/auto-dr', toggleAutoDR);
 
 module.exports= router;
