@@ -1,35 +1,36 @@
-// src/components/ScanRecherche.js
-import React, { useContext, useState } from 'react';
+// src/scene/components/scan/components/ScanRecherche.jsx
+
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { HiOutlineStatusOnline } from "react-icons/hi";
-import {
-  Button,
-  Input,
-  Card,
-  Descriptions,
-  Spin,
-  Alert,
-  Select,
-  Space,
-  Table,
-  notification,
-  Modal,
-  Form,
-  Tag,
-  message,
-  Drawer, // Import Drawer from antd
+import { 
+  Button, 
+  Input, 
+  Card, 
+  Descriptions, 
+  Spin, 
+  Alert, 
+  Select, 
+  Space, 
+  Table, 
+  notification, 
+  Modal, 
+  Form, 
+  Tag, 
+  message, 
+  Drawer
 } from 'antd';
 import { CiBarcode } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
 import BarcodeReader from 'react-barcode-reader';
-import QrScanner from 'react-qr-scanner';
+import Webcam from 'react-webcam'; // Import de react-webcam
+import jsQR from 'jsqr'; // Import de jsQR
 import { getColisByCodeSuivi, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
-import TrackingColis from '../../../global/TrackingColis '; // Corrected import path
+import TrackingColis from '../../../global/TrackingColis ';
 import { Si1001Tracklists } from 'react-icons/si';
-
 
 const { Meta } = Card;
 const { Option } = Select;
@@ -38,25 +39,26 @@ function ScanRecherche() {
   const { theme } = useContext(ThemeContext);
   const dispatch = useDispatch();
 
-  // Accessing colis state
+  // Accès à l'état des colis
   const colisState = useSelector(state => state.colis);
   const { selectedColis, loading, error } = colisState;
 
-  // Accessing user info
+  // Accès aux informations de l'utilisateur
   const userState = useSelector(state => state.auth);
   const { user } = userState;
   const userRole = user && user.role;
 
-  const [codeSuivi, setCodeSuivi] = useState('');  // State to store the barcode/QR code
-  const [scanMethod, setScanMethod] = useState('barcode');  // Toggle between barcode and QR code scanner
-  const [scannerEnabled, setScannerEnabled] = useState(true);  // Control scanner visibility
-  const [scannedItems, setScannedItems] = useState([]);  // Store scanned items for QR code
+  const [codeSuivi, setCodeSuivi] = useState('');  // Code scanné
+  const [scanMethod, setScanMethod] = useState('barcode');  // Méthode de scan
+  const [scannerEnabled, setScannerEnabled] = useState(true);  // Activation du scanner
+  const [scannedItems, setScannedItems] = useState([]);  // Historique des scans
+  const [facingMode, setFacingMode] = useState('environment'); // Caméra utilisée ('environment' ou 'user')
 
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [statusType, setStatusType] = useState(null);
   const [form] = Form.useForm();
 
-  const [isTrackingDrawerVisible, setIsTrackingDrawerVisible] = useState(false); // State for Drawer visibility
+  const [isTrackingDrawerVisible, setIsTrackingDrawerVisible] = useState(false); // État de visibilité du Drawer
 
   const allowedStatuses = [
     "Livrée",
@@ -78,103 +80,171 @@ function ScanRecherche() {
     "Endomagé",
   ];
 
-  // Handle the barcode scan
-  const handleScan = (scannedCode) => {
-    if (scannedCode) {
-      setCodeSuivi(scannedCode);  // Set the scanned barcode or QR code
-      dispatch(getColisByCodeSuivi(scannedCode));  // Dispatch action to fetch colis
-      setScannerEnabled(false);  // Disable scanner after successful scan
-    }
-  };
+  // Référence pour empêcher le traitement multiple des scans
+  const isProcessingScan = useRef(false);
 
-  // Handle QR code scan success
-  const handleQrScan = (data) => {
-    if (data && data.text && !scannedItems.some(item => item.barcode === data.text)) {
-      setCodeSuivi(data.text);
-      handleScan(data.text);  // Use the same handleScan method
-    }
-  };
+  // Références pour react-webcam et canvas
+  const webcamRef = useRef(null);
+  const canvasRef = useRef(null);
 
-  // Handle any scan errors
-  const handleError = (err) => {
-    console.error("Scan Error:", err);
-    notification.error({ message: 'Error scanning code', description: err.message });
-  };
-
-  // Handle switching between barcode and QR code
-  const handleScanMethodChange = (value) => {
-    setScanMethod(value);  // Set the scan method to either barcode or QR code
-    setCodeSuivi('');  // Clear the input on switching
-    setScannerEnabled(true);  // Enable scanner when switching
-    setScannedItems([]);  // Clear scanned items
-  };
-
-  // Rescan function to enable the scanner again
-  const handleRescan = () => {
-    setCodeSuivi('');
-    setScannerEnabled(true);  // Re-enable the scanner
-  };
-
-  // Define columns for the table (for QR code scan results)
+  // Définition des colonnes pour le tableau
   const columns = [
     { title: 'Barcode', dataIndex: 'barcode', key: 'barcode' },
     { title: 'Status', dataIndex: 'status', key: 'status' },
     { title: 'Ville', dataIndex: 'ville', key: 'ville' },
   ];
 
-  // Function to handle confirming the status change
+  // Fonction de gestion du scan
+  const handleScan = (scannedCode) => {
+    if (!scannedCode) return; // Ignorer les résultats vides
+
+    // Empêcher les scans multiples en succession rapide
+    if (isProcessingScan.current) return;
+    isProcessingScan.current = true;
+
+    setCodeSuivi(scannedCode);  // Mettre à jour le code scanné
+    dispatch(getColisByCodeSuivi(scannedCode));  // Récupérer les informations du colis
+    setScannerEnabled(false);  // Désactiver le scanner après un scan réussi
+    setScannedItems(prev => [
+      ...prev, 
+      { 
+        barcode: scannedCode, 
+        status: selectedColis?.statut, 
+        ville: selectedColis?.ville?.nom 
+      }
+    ]);
+
+    // Réinitialiser le flag de traitement après un court délai
+    setTimeout(() => {
+      isProcessingScan.current = false;
+    }, 1000); // Ajuster le délai si nécessaire
+  };
+
+  // Fonction de gestion des erreurs de scan
+  const handleError = (error) => {
+    console.error("Scan Error:", error);
+    notification.error({ message: 'Erreur lors du scan', description: error?.message || 'Une erreur est survenue lors du scan.' });
+  };
+
+  // Fonction de changement de méthode de scan
+  const handleScanMethodChange = (value) => {
+    setScanMethod(value);  // Définir la méthode de scan
+    setCodeSuivi('');      // Effacer l'entrée lors du changement
+    setScannerEnabled(true);  // Activer le scanner lors du changement
+    setScannedItems([]);   // Effacer l'historique des scans
+  };
+
+  // Fonction de rescan
+  const handleRescan = () => {
+    setCodeSuivi('');
+    setScannerEnabled(true);  // Réactiver le scanner
+    setScannedItems([]);     // Effacer l'historique des scans
+  };
+
+  // Fonction pour changer le statut du colis
   const handleStatusOk = () => {
     form.validateFields().then(values => {
       const { status, comment, deliveryTime } = values;
 
-      // If status is 'Programmée', ensure deliveryTime is provided
+      // Si le statut est 'Programmée', s'assurer que le temps de livraison est fourni
       if (status === "Programmée" && !deliveryTime) {
         message.error("Veuillez sélectionner un temps de livraison pour une livraison programmée.");
         return;
       }
 
-      // Dispatch updateStatut with or without deliveryTime
+      // Dispatch de la mise à jour du statut avec ou sans deliveryTime
       if (status === "Programmée") {
         dispatch(updateStatut(selectedColis._id, status, comment, deliveryTime));
       } else {
         dispatch(updateStatut(selectedColis._id, status, comment));
       }
 
-      // Reset form and close modal
+      // Réinitialiser le formulaire et fermer le modal
       form.resetFields();
       setStatusType(null);
       setIsStatusModalVisible(false);
 
-      // Refresh colis data
+      // Rafraîchir les données du colis
       dispatch(getColisByCodeSuivi(selectedColis.code_suivi));
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
   };
 
-  // Function to handle cancelling the status change
+  // Fonction pour annuler le changement de statut
   const handleStatusCancel = () => {
     form.resetFields();
     setStatusType(null);
     setIsStatusModalVisible(false);
   };
 
-  // Function to open the Tracking Drawer
+  // Fonction pour ouvrir le Drawer de suivi
   const showTrackingDrawer = () => {
     setIsTrackingDrawerVisible(true);
   };
 
-  // Function to close the Tracking Drawer
+  // Fonction pour fermer le Drawer de suivi
   const closeTrackingDrawer = () => {
     setIsTrackingDrawerVisible(false);
   };
 
-  // Toggle between front and rear camera
-  const [cameraType, setCameraType] = useState('user');  // 'user' for front, 'environment' for rear
-
+  // Fonction pour basculer entre les caméras
   const toggleCamera = () => {
-    setCameraType(prev => (prev === 'user' ? 'environment' : 'user'));
+    setFacingMode(prevMode => (prevMode === 'environment' ? 'user' : 'environment'));
   };
+
+  // Fonction pour capturer et scanner une image
+  const captureAndScan = () => {
+    const webcam = webcamRef.current;
+    const canvas = canvasRef.current;
+    
+    if (webcam && canvas) {
+      const video = webcam.video;
+
+      // Vérifier si la vidéo est prête et si les dimensions sont valides
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+
+        // Vérifier que les dimensions sont positives
+        if (width > 0 && height > 0) {
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, width, height);
+          
+          try {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const code = jsQR(imageData.data, width, height);
+            
+            if (code) {
+              handleScan(code.data);
+            }
+          } catch (err) {
+            console.error("Error processing image data:", err);
+          }
+        } else {
+          console.warn("Invalid video dimensions:", width, height);
+        }
+      }
+    }
+  };
+
+  // Utilisation de useEffect pour scanner régulièrement
+  useEffect(() => {
+    let intervalId;
+    
+    if (scanMethod === 'qrcode' && scannerEnabled) {
+      intervalId = setInterval(captureAndScan, 1000); // Scanner toutes les 1 seconde
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scanMethod, scannerEnabled, facingMode]);
 
   return (
     <div className='page-dashboard'>
@@ -196,21 +266,27 @@ function ScanRecherche() {
             style={{
               backgroundColor: theme === 'dark' ? '#001529' : '#fff',
               padding: '20px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Ombre pour la profondeur
             }} 
           >
             <h4>Recherche Colis :</h4>
 
-            {/* Select scan method */}
+            {/* Sélection de la méthode de scan */}
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <div>
                 <label>Méthode de Scan: </label>
-                <Select defaultValue="barcode" style={{ width: 200 }} onChange={handleScanMethodChange}>
+                <Select 
+                  defaultValue="barcode" 
+                  style={{ width: 200 }} 
+                  onChange={handleScanMethodChange}
+                >
                   <Option value="barcode">Scanner Code-barres</Option>
                   <Option value="qrcode">Scanner QR Code</Option>
                 </Select>
               </div>
 
-              {/* Barcode Reader */}
+              {/* Scanner Code-barres */}
               {scanMethod === 'barcode' && (
                 <>
                   <BarcodeReader
@@ -225,55 +301,75 @@ function ScanRecherche() {
                     size="large"
                     addonBefore={<CiBarcode />}
                   />
-                  <Button type="primary" onClick={() => handleScan(codeSuivi)} loading={loading}>
+                  <Button 
+                    type="primary" 
+                    onClick={() => handleScan(codeSuivi)} 
+                    loading={loading}
+                  >
                     Rechercher Colis
                   </Button>
                 </>
               )}
 
-              {/* QR Code Reader */}
+              {/* Scanner QR Code avec react-webcam et jsQR */}
               {scanMethod === 'qrcode' && scannerEnabled && (
                 <>
-                  <QrScanner
-                    key={cameraType} // Force remount when cameraType changes
-                    delay={300}
-                    onError={handleError}
-                    onScan={handleQrScan}
-                    style={{ width: '100%', height: 'auto' }}
+                  <Webcam
+                    audio={false}
+                    ref={webcamRef}
+                    screenshotFormat="image/png"
                     videoConstraints={{
-                      facingMode: cameraType === 'user' ? 'user' : 'environment' // Use front or rear camera based on state
+                      facingMode: facingMode,
                     }}
+                    style={{ width: '100%', maxWidth: '500px', margin: '20px auto', borderRadius: '8px', border: '2px solid #1890ff' }}
                   />
-                  <Button onClick={toggleCamera} style={{ marginTop: '10px' }}>
-                    Switch to {cameraType === 'user' ? 'Rear' : 'Front'} Camera
+                  <canvas ref={canvasRef} style={{ display: 'none' }} />
+                  <Button 
+                    onClick={toggleCamera} 
+                    className="switch-camera-button" 
+                    disabled={false} // Vous pouvez ajouter une logique pour vérifier le nombre de caméras disponibles
+                  >
+                    Switch to {facingMode === 'environment' ? 'Front' : 'Rear'} Camera
                   </Button>
                 </>
               )}
 
-              {/* Rescan Button */}
+              {/* Bouton de Rescan */}
               {scanMethod === 'qrcode' && !scannerEnabled && (
-                <Button type="primary" onClick={handleRescan}>
+                <Button 
+                  type="primary" 
+                  onClick={handleRescan}
+                >
                   Rescanner le QR Code
                 </Button>
               )}
 
+              {/* Champ de saisie pour le code scanné */}
               {scanMethod === 'qrcode' && (
                 <Input
                   value={codeSuivi}
                   onChange={(e) => setCodeSuivi(e.target.value)}
                   placeholder="Le QR Code scanné apparaîtra ici..."
                   style={{ width: '100%' }}
-                  disabled={scannerEnabled}  // Disable input when scanner is enabled
+                  disabled={scannerEnabled}  // Désactiver l'entrée lorsque le scanner est actif
                 />
               )}
 
-              {/* Display loading spinner */}
+              {/* Afficher le spinner de chargement */}
               {loading && <Spin style={{ marginTop: '20px' }} />}
 
-              {/* Display error if any */}
-              {error && <Alert message="Erreur" description={error} type="error" showIcon style={{ marginTop: '20px' }} />}
+              {/* Afficher une alerte en cas d'erreur */}
+              {error && (
+                <Alert 
+                  message="Erreur" 
+                  description={error} 
+                  type="error" 
+                  showIcon 
+                  style={{ marginTop: '20px' }} 
+                />
+              )}
 
-              {/* Display Colis Information */}
+              {/* Afficher les informations du colis scanné */}
               {selectedColis && (
                 <Card style={{ marginTop: '20px' }}>
                   <Meta title={`Colis: ${selectedColis.code_suivi}`} />
@@ -295,9 +391,9 @@ function ScanRecherche() {
                     <Descriptions.Item label="Mis à jour le">{new Date(selectedColis.updatedAt).toLocaleString()}</Descriptions.Item>
                   </Descriptions>
 
-                  {/* Buttons Section */}
+                  {/* Section des boutons */}
                   <Space direction="horizontal" size="middle" style={{ marginTop: '20px' }}>
-                    {/* Button to Change Status - only for 'admin' and 'livreur' roles */}
+                    {/* Bouton pour changer le statut - uniquement pour les rôles 'admin' et 'livreur' */}
                     {(userRole === 'admin' || userRole === 'livreur') && (
                       <Button
                         icon={<HiOutlineStatusOnline />}
@@ -308,7 +404,7 @@ function ScanRecherche() {
                       </Button>
                     )}
                     
-                    {/* Button to Open Tracking Drawer */}
+                    {/* Bouton pour ouvrir le Drawer de suivi */}
                     <Button
                         icon={<Si1001Tracklists />}
                         type="primary"
@@ -320,7 +416,7 @@ function ScanRecherche() {
                 </Card>
               )}
 
-              {/* Scanned QR Code Items Table (if using QR code) */}
+              {/* Tableau des éléments scannés QR Code */}
               {scanMethod === 'qrcode' && (
                 <Table
                   columns={columns}
@@ -336,7 +432,7 @@ function ScanRecherche() {
         </div>
       </main>
 
-      {/* Change Status Modal */}
+      {/* Modal pour changer le statut */}
       <Modal
         title={`Changer le Statut de ${selectedColis ? selectedColis.code_suivi : ''}`}
         visible={isStatusModalVisible}
@@ -351,7 +447,7 @@ function ScanRecherche() {
             label="Nouveau Statut"
             rules={[{ required: true, message: 'Veuillez sélectionner un statut!' }]}
           >
-            {/* Display statuses as a list of clickable Tags */}
+            {/* Afficher les statuts sous forme de Tags cliquables */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {allowedStatuses.map((status, index) => (
                 <Tag.CheckableTag
@@ -369,7 +465,7 @@ function ScanRecherche() {
             </div>
           </Form.Item>
 
-          {/* Conditionally render comment field */}
+          {/* Champ conditionnel pour les commentaires */}
           <Form.Item
             name="comment"
             label="Commentaire"
@@ -378,7 +474,7 @@ function ScanRecherche() {
             <Input.TextArea placeholder="Ajouter un commentaire" rows={3} />
           </Form.Item>
 
-          {/* Conditionally render deliveryTime field if status is 'Programmée' */}
+          {/* Champ conditionnel pour le temps de livraison si le statut est 'Programmée' */}
           {statusType === "Programmée" && (
             <Form.Item
               name="deliveryTime"
@@ -396,7 +492,7 @@ function ScanRecherche() {
         </Form>
       </Modal>
 
-      {/* Tracking Drawer */}
+      {/* Drawer pour le suivi du colis */}
       <Drawer
         title={`Suivi du Colis: ${selectedColis ? selectedColis.code_suivi : ''}`}
         placement="right"

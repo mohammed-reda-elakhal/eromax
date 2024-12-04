@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Input, Button, Select, Table, Typography, Space, notification, Modal, Card, Divider , Form, Tag, message } from 'antd';
-import BarcodeReader from 'react-barcode-reader';
-import QrScanner from 'react-qr-scanner';
-import request from '../../../../utils/request';
+// src/scene/components/scan/components/ScanRamasser.jsx
+
+import React, { useEffect, useState, useRef, useContext } from 'react';
+import { Input, Button, Select, Table, Typography, Space, notification, Modal, Card, Form, Tag, message } from 'antd';
+import { CiBarcode } from "react-icons/ci";
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
+import BarcodeReader from 'react-barcode-reader';
+import Webcam from 'react-webcam'; // Utilisation de react-webcam
+import jsQR from 'jsqr'; // Utilisation de jsQR
 import { useNavigate, useParams } from 'react-router-dom';
+import request from '../../../../utils/request';
 import { toast } from 'react-toastify';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
-import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 function ScanRamasser() {
   const { statu } = useParams(); // Récupère le paramètre 'statu' depuis l'URL
@@ -37,6 +40,65 @@ function ScanRamasser() {
   useEffect(() => {
     dispatch(getLivreurList());
   }, [dispatch]);
+
+  // Références pour react-webcam et canvas
+  const webcamRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // Référence pour empêcher le traitement multiple des scans
+  const isProcessingScan = useRef(false);
+
+  // Définition des colonnes pour la table des colis scannés
+  const columns = [
+    { title: 'Code Suivi', dataIndex: 'barcode', key: 'barcode' },
+    { title: 'Statut', dataIndex: 'status', key: 'status' },
+    { title: 'Ville', dataIndex: 'ville', key: 'ville' },
+  ];
+
+  // État pour gérer la direction de la caméra
+  const [facingMode, setFacingMode] = useState('environment'); // 'environment' pour arrière, 'user' pour avant
+
+  // Fonction pour basculer entre les caméras
+  const toggleCamera = () => {
+    setFacingMode(prevMode => (prevMode === 'environment' ? 'user' : 'environment'));
+  };
+
+  // Fonction de gestion du scan
+  const handleScan = (scannedCode) => {
+    if (!scannedCode) return; // Ignorer les résultats vides
+
+    // Empêcher les scans multiples en succession rapide
+    if (isProcessingScan.current) return;
+    isProcessingScan.current = true;
+
+    fetchColisByCodeSuivi(scannedCode);
+
+    // Réinitialiser le flag de traitement après un court délai
+    setTimeout(() => {
+      isProcessingScan.current = false;
+    }, 1000); // Ajuster le délai si nécessaire
+  };
+
+  // Fonction de gestion des erreurs de scan
+  const handleError = (error) => {
+    console.error("Scan Error:", error);
+    notification.error({ message: 'Erreur lors du scan', description: error?.message || 'Une erreur est survenue lors du scan.' });
+  };
+
+  // Fonction de changement de méthode de scan
+  const handleScanMethodChange = (value) => {
+    setScanMethod(value);  // Définir la méthode de scan
+    setCurrentBarcode('');      // Effacer l'entrée lors du changement
+    setScannerEnabled(true);  // Activer le scanner lors du changement
+    // Ne pas effacer l'historique des scans pour permettre un historique complet
+  };
+
+  // Fonction de rescan
+  const handleRescan = () => {
+    setCurrentBarcode('');
+    setScannerEnabled(true);  // Réactiver le scanner
+    // Ne pas effacer l'historique des scans pour permettre de voir tous les scans précédents
+  };
 
   // Fonction pour récupérer les détails d'un colis via son code_suivi
   const fetchColisByCodeSuivi = async (barcode) => {
@@ -68,7 +130,7 @@ function ScanRamasser() {
 
       if (!requiredStatuses) {
         console.log(statu);
-        
+
         notification.error({
           message: 'Statut inconnu',
           description: `Le statut "${statu}" n'est pas reconnu.`,
@@ -108,116 +170,140 @@ function ScanRamasser() {
   // Gestionnaire pour le scan du code barre via l'input
   const handleBarcodeScan = (event) => {
     if (event.key === 'Enter' && currentBarcode) {
-      fetchColisByCodeSuivi(currentBarcode);
+      handleScan(currentBarcode);
       setCurrentBarcode('');
     }
   };
 
-  // Gestionnaire pour le scan réussi d'un QR code
-  const handleQrScan = (data) => {
-    if (data && data.text) {
-      fetchColisByCodeSuivi(data.text);
-      setScannerEnabled(false); // Désactive le scanner après un scan réussi
+  // Fonction pour capturer et scanner une image
+  const captureAndScan = () => {
+    const webcam = webcamRef.current;
+    const canvas = canvasRef.current;
+
+    if (webcam && canvas) {
+      const video = webcam.video;
+
+      // Vérifier si la vidéo est prête et si les dimensions sont valides
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+
+        // Vérifier que les dimensions sont positives
+        if (width > 0 && height > 0) {
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, width, height);
+
+          try {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const code = jsQR(imageData.data, width, height);
+
+            if (code) {
+              handleScan(code.data);
+              setScannerEnabled(false); // Désactiver le scanner après un scan réussi
+            }
+          } catch (err) {
+            console.error("Error processing image data:", err);
+          }
+        } else {
+          console.warn("Invalid video dimensions:", width, height);
+        }
+      }
     }
   };
 
-  // Gestionnaire d'erreur lors du scan
-  const handleError = (err) => {
-    console.error('Erreur de scan:', err);
-    notification.error({ message: 'Erreur lors du scan', description: err.message });
+  // Utilisation de useEffect pour scanner régulièrement
+  useEffect(() => {
+    let intervalId;
+
+    if (scanMethod === 'qrcode' && scannerEnabled) {
+      intervalId = setInterval(captureAndScan, 1000); // Scanner toutes les 1 seconde
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scanMethod, scannerEnabled, facingMode]);
+
+  // Fonction pour changer le statut du colis
+  const handleChangeStatu = async (codesuiviList) => {
+    try {
+      // Envoyer une requête PUT pour mettre à jour le statut des colis sélectionnés
+      const response = await request.put('/api/colis/statu/update', {
+        colisCodes: codesuiviList, // Liste des codes scannés
+        new_status: statu, // Nouvelle valeur de statut
+      });
+      // Gérer le succès - Vous pouvez afficher une notification toast ou traiter la réponse
+      toast.success('Statut des colis mis à jour avec succès!');
+      navigate('/dashboard/list-colis');
+    } catch (err) {
+      // Gérer l'erreur
+      console.error("Erreur lors de la mise à jour des colis:", err);
+      toast.error("Erreur lors de la mise à jour des colis.");
+    }
   };
 
-  // Fonction pour réactiver le scanner
-  const handleRescan = () => {
-    setCurrentBarcode('');
-    setScannerEnabled(true);
-  };
+  // Fonction pour gérer le clic sur le bouton d'action
+  const handleAction = () => {
+    if (scannedItems.length > 0) {
+      // Extraire la liste des codes scannés (code_suivi)
+      const codesuiviList = scannedItems.map(item => item.barcode);
 
-  // Gestionnaire pour la modification de l'input du code barre
-  const handleBarcodeChange = (event) => {
-    setCurrentBarcode(event.target.value);
-  };
-
-  // Gestionnaire pour changer la méthode de scan
-  const handleScanMethodChange = (value) => {
-    setScanMethod(value);
-    setCurrentBarcode('');
-    setScannerEnabled(true);
-  };
-
-  // Function to update the status of scanned parcels
-const handleChangeStatu = async (codesuiviList) => {
-  try {
-    // Send a PUT request to update the status of selected colis
-    const response = await request.put('/api/colis/statu/update', {
-      colisCodes: codesuiviList, // List of scanned codes
-      new_status: statu, // New status value
-    });
-    // Handle success - You can show a toast notification or process the response
-    toast.success('Statut des colis mis à jour avec succès!');
-    navigate('/dashboard/list-colis');
-  } catch (err) {
-    // Handle error
-    console.error("Erreur lors de la mise à jour des colis:", err);
-    toast.error("Erreur lors de la mise à jour des colis.");
-  }
-};
-
-// Function to handle the action button click
-const handleAction = () => {
-  if (scannedItems.length > 0) {
-    // Extract the list of scanned codes (code_suivi)
-    const codesuiviList = scannedItems.map(item => item.barcode);
-    
-    if (statu === "Expediée") {
-      setIsModalVisible(true); // Show the modal if the status is "Expediée"
+      if (statu === "Expediée") {
+        setIsModalVisible(true); // Afficher la modal si le statut est "Expediée"
+      } else {
+        // Passer la liste des codes scannés à la fonction de changement de statut
+        handleChangeStatu(codesuiviList);
+      }
     } else {
-      // Pass the list of scanned codes to the status change function
-      handleChangeStatu(codesuiviList);
+      toast.warn("Veuillez scanner au moins un colis !");
     }
-  } else {
-    toast.warn("Veuillez scanner au moins un colis !");
-  }
-};
-
-
+  };
 
   // Fonction pour confirmer l'affectation du livreur
   const handleOk = async () => {
     if (selectedLivreur) {
-      // Map over scannedItems and rename "barcode" to "code_suivi"
-      const codesSuivi = scannedItems.map(item => item.barcode);  // Using barcode as code_suivi
-  
+      // Extraire les codes_suivi des colis scannés
+      const codesSuivi = scannedItems.map(item => item.barcode);  // Utiliser barcode comme code_suivi
+
       if (selectedLivreur.nom === 'ameex') {
-        // Call the API with the list of code_suivi
-        const response = await request.post('/api/livreur/ameex', { codes_suivi: codesSuivi });
-  
-        if (response.status === 200) {
-          const { success, errors } = response.data;
-  
-          // Handle successes and errors
-          if (success.length > 0) {
-            toast.success(`${success.length} colis assigned to Ameex successfully`);
+        // Appeler l'API avec la liste des codes_suivi
+        try {
+          const response = await request.post('/api/livreur/ameex', { codes_suivi: codesSuivi });
+
+          if (response.status === 200) {
+            const { success, errors } = response.data;
+
+            // Gérer les succès et les erreurs
+            if (success.length > 0) {
+              toast.success(`${success.length} colis assigned to Ameex successfully`);
+            }
+            if (errors.length > 0) {
+              toast.error(`${errors.length} colis failed to assign to Ameex`);
+            }
+          } else {
+            toast.error(response.data.message || 'Erreur lors de l\'affectation à Ameex');
           }
-          if (errors.length > 0) {
-            toast.error(`${errors.length} colis failed to assign to Ameex`);
-          }
-        } else {
-          toast.error(response.data.message || 'Erreur lors de l\'affectation à Ameex');
+
+          navigate('/dashboard/list-colis');
+          // Optionnel : Réinitialiser les sélections et fermer la modal
+        } catch (err) {
+          toast.error("Erreur lors de l'affectation à Ameex.");
         }
-        
-        navigate('/dashboard/list-colis');
-        // Optionally reset selections and close modal
       } else {
         try {
-          // Send a PUT request to update the status of selected colis
+          // Envoyer une requête PUT pour mettre à jour le statut des colis sélectionnés
           const response = await request.put('/api/colis/statu/affecter', {
             codesSuivi: codesSuivi,
             livreurId: selectedLivreur._id
           });
           toast.success(response.data.message);
           navigate('/dashboard/list-colis');
-          setIsModalVisible(false); // Show the modal if the status is "Expediée"
+          setIsModalVisible(false); // Fermer la modal
         } catch (err) {
           toast.error("Erreur lors de la mise à jour des colis.");
         }
@@ -226,7 +312,6 @@ const handleAction = () => {
       message.warning('Veuillez sélectionner un livreur');
     }
   };
-  
 
   // Fonction pour annuler l'affectation du livreur
   const handleCancel = () => {
@@ -238,13 +323,6 @@ const handleAction = () => {
   const selectLivreur = (livreur) => {
     setSelectedLivreur(livreur);
   };
-
-  // Définition des colonnes pour la table des colis scannés
-  const columns = [
-    { title: 'Code Barre', dataIndex: 'barcode', key: 'barcode' },
-    { title: 'Statut', dataIndex: 'status', key: 'status' },
-    { title: 'Ville', dataIndex: 'ville', key: 'ville' },
-  ];
 
   return (
     <div style={{ padding: '20px' }}>
@@ -265,26 +343,40 @@ const handleAction = () => {
           <>
             <BarcodeReader
               onError={handleError}
-              onScan={(barcode) => fetchColisByCodeSuivi(barcode)}
+              onScan={(barcode) => handleScan(barcode)}
             />
             <Input
               placeholder="Entrez ou scannez le code barre..."
               value={currentBarcode}
-              onChange={handleBarcodeChange}
+              onChange={(e) => setCurrentBarcode(e.target.value)}
               onKeyDown={handleBarcodeScan}
               style={{ width: '100%' }}
+              addonBefore={<CiBarcode />}
             />
           </>
         )}
 
-        {/* Lecteur de QR Code */}
+        {/* Lecteur de QR Code avec react-webcam et jsQR */}
         {scanMethod === 'qrcode' && scannerEnabled && (
-          <QrScanner
-            delay={300}
-            onError={handleError}
-            onScan={handleQrScan}
-            style={{ width: '100%' }} // Ajustez la taille selon vos besoins
-          />
+          <>
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/png"
+              videoConstraints={{
+                facingMode: facingMode,
+              }}
+              style={{ width: '100%', maxWidth: '500px', margin: '20px auto', borderRadius: '8px', border: '2px solid #1890ff' }}
+            />
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <Button 
+              onClick={toggleCamera} 
+              className="switch-camera-button" 
+              disabled={false} // Vous pouvez ajouter une logique pour vérifier le nombre de caméras disponibles
+            >
+              Switch to {facingMode === 'environment' ? 'Front' : 'Rear'} Camera
+            </Button>
+          </>
         )}
 
         {/* Bouton pour rescanner */}
@@ -298,7 +390,8 @@ const handleAction = () => {
         <Table
           columns={columns}
           dataSource={scannedItems}
-          pagination={false}
+          rowKey="barcode"
+          pagination={{ pageSize: 5 }}
           bordered
           title={() => 'Colis Scannés'}
         />
