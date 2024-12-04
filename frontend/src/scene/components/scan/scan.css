@@ -3,3 +3,55 @@
     gap:10px;
     align-items: center;
 }
+
+/* src/components/ScanRecherche.css */
+
+/* src/components/ScanRecherche.css */
+/* src/scene/components/scan/components/ScanRecherche.css */
+
+.qr-reader {
+    width: 100%;
+    max-width: 500px;
+    height: auto; /* Le composant QrReader ajuste automatiquement la hauteur */
+    margin: 20px auto; /* Centrer le scanner */
+    border-radius: 8px;
+    border: 2px solid #1890ff;
+  }
+  
+  .switch-camera-button {
+    display: block;
+    margin: 10px auto;
+    max-width: 200px;
+  }
+  
+
+  /* src/scene/components/scan/components/ScanRamasser.css */
+
+.switch-camera-button {
+    display: block;
+    margin: 10px auto;
+    max-width: 200px;
+    background-color: #1890ff;
+    color: white;
+  }
+  
+  .switch-camera-button:hover {
+    background-color: #40a9ff;
+  }
+  
+  /* Optionnel : Styles supplémentaires pour améliorer l'apparence */
+  .livreur_list_modal_card {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .livreur_list_modal_card .ant-card {
+    cursor: pointer;
+  }
+  
+  .livreur_list_modal_card .ant-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  
