@@ -30,6 +30,7 @@ router.route("/:id/photo")
   .post(photoUpload.single("image"), storePhotoController)
   .put(photoUpload.single("image"), storePhotoController); // Added PUT handler
 
+  // api/store/:storeId/auto-dr
 router.patch('/:storeId/auto-dr', toggleAutoDR);
 // reset auto en haut de page 
 

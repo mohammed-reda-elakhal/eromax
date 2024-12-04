@@ -4,7 +4,7 @@ import { Divider } from 'antd'
 import StatsColis from './StatsColis'
 import StatsChart from './StatsChart'
 import ColisData from '../../../../data/colis.json'
-import TopCitiesChart from './TopCities'
+import TopCitiesChart from '../charts/TopCities'
 import ClientChart from '../charts/ClientChart'
 
 

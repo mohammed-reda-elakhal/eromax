@@ -179,7 +179,7 @@ function StoreInfo() {
                       <p><strong>Address:</strong> {store.adress || 'N/A'}</p>
                       <p><strong>Telephone:</strong> {store.tele || 'N/A'}</p>
                       <p><strong>Solde:</strong> DH {store.solde}</p>
-                      <p><strong>DR:</strong> {store.auto_DR}</p>
+                      <p><strong> Auto D-R : </strong> {store.auto_DR ? <Tag color='green'>Active</Tag> : <Tag color='red'>Desactive</Tag>}</p>
                     </>
                   }
                 />

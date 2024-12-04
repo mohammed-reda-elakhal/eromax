@@ -274,7 +274,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
                 const transaction = new Transaction({
                     id_store: factureData.store._id,  // Correctly passing id_store here
                     montant: montant,
-                    type: 'credit', // Adding to the store's balance
+                    type: 'debit', // Adding to the store's balance
                 });
                 await transaction.save();
 

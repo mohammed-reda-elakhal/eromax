@@ -184,30 +184,32 @@ const resetAutoDR = asyncHandler(async (req, res) => {
   }
 });
 
+// storeController.js
+
 const toggleAutoDR = async (req, res) => {
   try {
-      const { storeId } = req.params;
+    const { storeId } = req.params;
 
-      // Find the store by ID
-      const store = await Store.findById(storeId);
+    // Find the store by ID
+    const store = await Store.findById(storeId);
 
-      if (!store) {
-          return res.status(404).json({ message: "Store not found" });
-      }
+    if (!store) {
+      return res.status(404).json({ message: "Store not found" });
+    }
 
-      // Toggle the auto_DR value
-      store.auto_DR = !store.auto_DR;
+    // Toggle the auto_DR value
+    store.auto_DR = !store.auto_DR;
 
-      // Save the updated store
-      await store.save();
+    // Save the updated store
+    await store.save();
 
-      return res.status(200).json({
-          message: "auto_DR toggled successfully",
-          auto_DR: store.auto_DR
-      });
+    return res.status(200).json({
+      message: "auto_DR toggled successfully",
+      auto_DR: store.auto_DR
+    });
   } catch (error) {
-      console.error("Error toggling auto_DR:", error);
-      return res.status(500).json({ message: "Internal server error" });
+    console.error("Error toggling auto_DR:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

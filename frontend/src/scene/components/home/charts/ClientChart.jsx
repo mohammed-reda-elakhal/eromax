@@ -1,11 +1,11 @@
 // ClientChart.jsx
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getStatisticClient } from '../../../../redux/apiCalls/staticsApiCalls';
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'; // Removed Image
 import { Bar } from 'react-chartjs-2';
 import { ThemeContext } from '../../../ThemeContext';
-import { Avatar } from 'antd';
+import { Image, Avatar } from 'antd'; // Import Image from 'antd'
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -37,6 +37,28 @@ const avatarPlugin = {
     }
 };
 
+// Helper function to calculate dynamic step size
+const calculateStepSize = (max, desiredSteps = 5) => {
+    if (max === 0) return 1; // Avoid division by zero
+
+    const rawStep = max / desiredSteps;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const residual = rawStep / magnitude;
+    let step;
+
+    if (residual > 5) {
+        step = 10 * magnitude;
+    } else if (residual > 2) {
+        step = 5 * magnitude;
+    } else if (residual > 1) {
+        step = 2 * magnitude;
+    } else {
+        step = magnitude;
+    }
+
+    return step;
+};
+
 function ClientChart() {
     const dispatch = useDispatch();
     const { theme } = useContext(ThemeContext);
@@ -45,6 +67,15 @@ function ClientChart() {
     useEffect(() => {
         dispatch(getStatisticClient());
     }, [dispatch]);
+
+    // Calculate dynamic step size using useMemo to optimize performance
+    const yStepSize = useMemo(() => {
+        if (!topClients || topClients.length === 0) return 1;
+
+        const maxValue = Math.max(...topClients.map((client) => client.colisCount));
+        const desiredSteps = 5; // You can adjust the desired number of steps here
+        return calculateStepSize(maxValue, desiredSteps);
+    }, [topClients]);
 
     const chartData = {
         labels: topClients.map((client) => client.storeName),
@@ -76,6 +107,7 @@ function ClientChart() {
                     },
                 },
             },
+            avatarPlugin, // Register the custom avatar plugin
         },
         scales: {
             x: {
@@ -97,7 +129,8 @@ function ClientChart() {
                 },
                 ticks: {
                     color: theme === 'dark' ? '#fff' : '#666',
-                    stepSize: 1,
+                    stepSize: yStepSize, // Set the dynamic step size here
+                    beginAtZero: true, // Ensure the y-axis starts at zero
                 },
             },
         },

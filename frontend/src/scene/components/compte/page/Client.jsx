@@ -10,7 +10,6 @@ import {
     Modal, 
     Button, 
     Spin, 
-    List, 
     Card, 
     Avatar, 
     Row, 
@@ -19,7 +18,9 @@ import {
     Space, 
     Tooltip, 
     Tag, 
-    Descriptions 
+    Descriptions,
+    Switch ,
+    Image
 } from 'antd';
 import { 
     EnvironmentOutlined, 
@@ -34,8 +35,13 @@ import {
 } from '../../../../redux/apiCalls/profileApiCalls';
 import { 
     getStoreByUser, 
-    deleteStore 
-} from '../../../../redux/apiCalls/storeApiCalls'; // Import deleteStore
+    deleteStore,
+    toggleAutoDR
+} from '../../../../redux/apiCalls/storeApiCalls'; // Import toggleAutoDR
+import { 
+    fetchUserDocuments,  
+} from '../../../../redux/apiCalls/docApiCalls'; // Import fetchUserDocuments and docActions
+import { docActions } from '../../../../redux/slices/docSlices';
 import { useNavigate } from 'react-router-dom';
 import ClientFormAdd from '../components/ClientFormAdd';
 import Topbar from '../../../global/Topbar';
@@ -53,6 +59,10 @@ function Client({ search }) {
     const [isStoreFormVisible, setIsStoreFormVisible] = useState(false);
     const [storeToEdit, setStoreToEdit] = useState(null);
 
+    // New state for Documents Modal
+    const [isDocumentsModalVisible, setIsDocumentsModalVisible] = useState(false);
+    const [selectedClient, setSelectedClient] = useState(null);
+
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -67,6 +77,9 @@ function Client({ search }) {
         loading: state.store.loading,
         error: state.store.error
     }));
+
+    // Select documents, loading, and error from Redux state for documents
+    const { files, loading: loadingDocs, error: errorDocs } = useSelector((state) => state.file);
 
     useEffect(() => {
         dispatch(getProfileList("client"));
@@ -136,6 +149,22 @@ function Client({ search }) {
         return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     };
 
+    // Function to open Documents Modal
+    const openDocumentsModal = (client) => {
+        setSelectedClient(client);
+        setIsDocumentsModalVisible(true);
+        dispatch(fetchUserDocuments(client.role, client._id))
+            .catch(() => {
+                // Handle fetch error if needed
+            });
+    };
+
+    // Function to close Documents Modal
+    const closeDocumentsModal = () => {
+        setIsDocumentsModalVisible(false);
+        setSelectedClient(null);
+    };
+
     // Define table columns
     const columns = [
         {
@@ -170,7 +199,11 @@ function Client({ search }) {
             title: 'N° Store',
             dataIndex: 'stores', // Adjusted to match the data structure
             render: (text, record) => (
-                <Tag color='green' style={{cursor:'pointer'}} onClick={() => openStoresModal(record)}>
+                <Tag 
+                    color='green' 
+                    style={{ cursor: 'pointer' }} 
+                    onClick={() => openStoresModal(record)}
+                >
                     {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
                 </Tag>
             )
@@ -236,6 +269,19 @@ function Client({ search }) {
             )
         },
         {
+            title: 'Documents',
+            dataIndex: 'documents',
+            key: 'documents',
+            render: (text, record) => (
+                <Button 
+                    type="link" 
+                    onClick={() => openDocumentsModal(record)}
+                >
+                    Voir Documents
+                </Button>
+            )
+        },
+        {
             title: 'Action',
             dataIndex: 'action',
             render: (text, record) => (
@@ -268,6 +314,11 @@ function Client({ search }) {
     const closeStoreForm = () => {
         setIsStoreFormVisible(false); // Close the StoreForm drawer
         setStoreToEdit(null); // Reset the store to edit
+    };
+
+    // Handle toggleAutoDR
+    const handleToggleAutoDR = (storeId) => {
+        dispatch(toggleAutoDR(storeId));
     };
 
     return (
@@ -331,7 +382,7 @@ function Client({ search }) {
                                     <Row gutter={[16, 16]}>
                                         {selectedStores && selectedStores.length > 0 ? (
                                             selectedStores.map(store => (
-                                                <Col xs={24} sm={12} key={store._id}>
+                                                <Col xs={24} sm={12} md={8} key={store._id}>
                                                     <Card
                                                         hoverable
                                                         actions={[
@@ -361,14 +412,12 @@ function Client({ search }) {
                                                             description={
                                                                 <Descriptions size="small" column={1} bordered>
                                                                     <Descriptions.Item label="Image">
-                                                                        <Space>
-                                                                            <Avatar
-                                                                                src={store.image.url}
-                                                                                size='large'
-                                                                            />
-                                                                        </Space>
+                                                                        <Avatar
+                                                                            src={store.image.url}
+                                                                            size='large'
+                                                                        />
                                                                     </Descriptions.Item>
-                                                                    <Descriptions.Item label="Télé">
+                                                                    <Descriptions.Item label="Téléphone">
                                                                         <Space>
                                                                             <PhoneOutlined />
                                                                             {store.tele || 'N/A'}
@@ -387,7 +436,12 @@ function Client({ search }) {
                                                                         </Space>
                                                                     </Descriptions.Item>
                                                                     <Descriptions.Item label="Auto D-R">
-                                                                        {store.auto_DR ? <Tag color="green">Oui</Tag> : <Tag color="red">Non</Tag>}
+                                                                        <Switch 
+                                                                            checked={store.auto_DR}
+                                                                            onChange={() => handleToggleAutoDR(store._id)}
+                                                                            checkedChildren="Oui" 
+                                                                            unCheckedChildren="Non"
+                                                                        />
                                                                     </Descriptions.Item>
                                                                 </Descriptions>
                                                             }
@@ -432,6 +486,50 @@ function Client({ search }) {
                         >
                             <ClientFormAdd client={currentClient} close={closeDrawer} />
                         </Drawer>
+
+                        {/* Documents Modal */}
+                        <Modal
+                            title={selectedClient ? `Documents de ${selectedClient.nom} ${selectedClient.prenom}` : "Documents"}
+                            visible={isDocumentsModalVisible}
+                            onCancel={closeDocumentsModal}
+                            footer={[
+                                <Button key="close" onClick={closeDocumentsModal}>
+                                    Fermer
+                                </Button>,
+                            ]}
+                            width={800}
+                        >
+                            {loadingDocs ? (
+                                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                                    <Spin size="large" />
+                                </div>
+                            ) : errorDocs ? (
+                                <Typography.Text type="danger">{errorDocs}</Typography.Text>
+                            ) : files.length > 0 ? (
+                                <Row gutter={[16, 16]}>
+                                    {files.map((doc) => (
+                                        <Col xs={24} sm={12} md={8} key={doc.id}>
+                                            <Card
+                                                hoverable
+                                                cover={<Image alt={`CIN Recto ${doc.id}`} src={doc.cinRecto.url} />}
+                                            >
+                                                <Card.Meta
+                                                    title={`${doc.type}`}
+                                                    description={
+                                                        <div>
+                                                            <p>Recto: <a href={doc.cinRecto.url} target="_blank" rel="noopener noreferrer">Voir</a></p>
+                                                            <p>Verso: <a href={doc.cinVerso.url} target="_blank" rel="noopener noreferrer">Voir</a></p>
+                                                        </div>
+                                                    }
+                                                />
+                                            </Card>
+                                        </Col>
+                                    ))}
+                                </Row>
+                            ) : (
+                                <Typography.Text type="secondary">Aucun document trouvé pour ce client.</Typography.Text>
+                            )}
+                        </Modal>
                     </div>
                 </div>
             </main>
