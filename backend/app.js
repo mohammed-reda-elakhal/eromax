@@ -22,7 +22,9 @@ app.use(express.json());
 //Cors Policy 
 
 app.use(cors({
-    origin: "http://localhost:3000", // Removed trailing slash
+    // https://eromax.vercel.app
+    // http://localhost:3000
+    origin: "https://eromax.vercel.app", // Removed trailing slash
     credentials: true
 }));
 app.use(cookieParser());

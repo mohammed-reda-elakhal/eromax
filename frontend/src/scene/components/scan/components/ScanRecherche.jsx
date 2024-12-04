@@ -30,6 +30,7 @@ import { getColisByCodeSuivi, updateStatut } from '../../../../redux/apiCalls/co
 import TrackingColis from '../../../global/TrackingColis '; // Corrected import path
 import { Si1001Tracklists } from 'react-icons/si';
 
+
 const { Meta } = Card;
 const { Option } = Select;
 
@@ -105,6 +106,7 @@ function ScanRecherche() {
     setScanMethod(value);  // Set the scan method to either barcode or QR code
     setCodeSuivi('');  // Clear the input on switching
     setScannerEnabled(true);  // Enable scanner when switching
+    setScannedItems([]);  // Clear scanned items
   };
 
   // Rescan function to enable the scanner again
@@ -167,12 +169,12 @@ function ScanRecherche() {
     setIsTrackingDrawerVisible(false);
   };
 
-   // Toggle between front and rear camera
-   const [cameraType, setCameraType] = useState('user');  // 'user' for front, 'environment' for rear
+  // Toggle between front and rear camera
+  const [cameraType, setCameraType] = useState('user');  // 'user' for front, 'environment' for rear
 
-   const toggleCamera = () => {
-     setCameraType(prev => (prev === 'user' ? 'environment' : 'user'));
-   };
+  const toggleCamera = () => {
+    setCameraType(prev => (prev === 'user' ? 'environment' : 'user'));
+  };
 
   return (
     <div className='page-dashboard'>
@@ -233,12 +235,13 @@ function ScanRecherche() {
               {scanMethod === 'qrcode' && scannerEnabled && (
                 <>
                   <QrScanner
+                    key={cameraType} // Force remount when cameraType changes
                     delay={300}
                     onError={handleError}
                     onScan={handleQrScan}
                     style={{ width: '100%', height: 'auto' }}
                     videoConstraints={{
-                      facingMode: cameraType  // Use front or rear camera based on state
+                      facingMode: cameraType === 'user' ? 'user' : 'environment' // Use front or rear camera based on state
                     }}
                   />
                   <Button onClick={toggleCamera} style={{ marginTop: '10px' }}>
@@ -297,7 +300,7 @@ function ScanRecherche() {
                     {/* Button to Change Status - only for 'admin' and 'livreur' roles */}
                     {(userRole === 'admin' || userRole === 'livreur') && (
                       <Button
-                      icon={<HiOutlineStatusOnline />}
+                        icon={<HiOutlineStatusOnline />}
                         type="primary"
                         onClick={() => setIsStatusModalVisible(true)}
                       >

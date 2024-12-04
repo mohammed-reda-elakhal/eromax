@@ -4,8 +4,8 @@ import { Divider } from 'antd'
 import StatsColis from './StatsColis'
 import StatsChart from './StatsChart'
 import ColisData from '../../../../data/colis.json'
-import TopCitiesChart from '../charts/TopCities'
 import ClientChart from '../charts/ClientChart'
+import TopCitiesChart from '../charts/TopCities'
 
 
 function Statistic({theme}) {
