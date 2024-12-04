@@ -210,6 +210,14 @@ function Menubar() {
         }
 
         {
+          userData.role ==="livreur" && (
+            <Menu.Item icon={<LuScanLine />}>
+              <Link to="/dashboard/scan">Scan</Link>
+            </Menu.Item>
+          )
+        }
+
+        {
           (userData.role === "admin" || userData.role === "team") && (
             <Menu.SubMenu icon={<LuBox />} title="Colis">
               <Menu.Item icon={<BiTagAlt />}>

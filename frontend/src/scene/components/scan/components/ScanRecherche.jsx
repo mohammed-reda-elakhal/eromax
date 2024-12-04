@@ -10,7 +10,6 @@ import {
   Button, 
   Input, 
   Card, 
-  Descriptions, 
   Spin, 
   Alert, 
   Select, 
@@ -21,7 +20,10 @@ import {
   Form, 
   Tag, 
   message, 
-  Drawer
+  Drawer,
+  Row,
+  Col,
+  Typography
 } from 'antd';
 import { CiBarcode } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,11 +31,12 @@ import BarcodeReader from 'react-barcode-reader';
 import Webcam from 'react-webcam'; // Import de react-webcam
 import jsQR from 'jsqr'; // Import de jsQR
 import { getColisByCodeSuivi, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
-import TrackingColis from '../../../global/TrackingColis ';
+import TrackingColis from '../../../global/TrackingColis '; // Correction de l'import
 import { Si1001Tracklists } from 'react-icons/si';
 
 const { Meta } = Card;
 const { Option } = Select;
+const { Text, Title: AntTitle } = Typography;
 
 function ScanRecherche() {
   const { theme } = useContext(ThemeContext);
@@ -373,23 +376,85 @@ function ScanRecherche() {
               {selectedColis && (
                 <Card style={{ marginTop: '20px' }}>
                   <Meta title={`Colis: ${selectedColis.code_suivi}`} />
-                  <Descriptions bordered style={{ marginTop: '20px' }}>
-                    <Descriptions.Item label="Nom">{selectedColis.nom}</Descriptions.Item>
-                    <Descriptions.Item label="Téléphone">{selectedColis.tele}</Descriptions.Item>
-                    <Descriptions.Item label="Ville">{selectedColis.ville.nom}</Descriptions.Item>
-                    <Descriptions.Item label="Adresse">{selectedColis.adresse}</Descriptions.Item>
-                    <Descriptions.Item label="Prix">{selectedColis.prix} DH</Descriptions.Item>
-                    <Descriptions.Item label="Nature Produit">{selectedColis.nature_produit}</Descriptions.Item>
-                    <Descriptions.Item label="Statut">{selectedColis.statut}</Descriptions.Item>
-                    <Descriptions.Item label="Commentaire">{selectedColis.commentaire}</Descriptions.Item>
-                    <Descriptions.Item label="Etat">{selectedColis.etat ? "Payée" : "Non Payée"}</Descriptions.Item>
-                    <Descriptions.Item label="Ouvrir">{selectedColis.ouvrir ? "Oui" : "Non"}</Descriptions.Item>
-                    <Descriptions.Item label="Fragile">{selectedColis.is_fragile ? "Oui" : "Non"}</Descriptions.Item>
-                    <Descriptions.Item label="Remplacer">{selectedColis.is_remplace ? "Oui" : "Non"}</Descriptions.Item>
-                    <Descriptions.Item label="Store">{selectedColis.store?.storeName}</Descriptions.Item>
-                    <Descriptions.Item label="Créé le">{new Date(selectedColis.createdAt).toLocaleString()}</Descriptions.Item>
-                    <Descriptions.Item label="Mis à jour le">{new Date(selectedColis.updatedAt).toLocaleString()}</Descriptions.Item>
-                  </Descriptions>
+                  
+                  {/* Nouvelle Mise en Page pour la Description */}
+                  <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Nom:</Text>
+                      <br />
+                      <Text>{selectedColis.nom}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Téléphone:</Text>
+                      <br />
+                      <Text>{selectedColis.tele}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Ville:</Text>
+                      <br />
+                      <Text>{selectedColis.ville.nom}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Adresse:</Text>
+                      <br />
+                      <Text>{selectedColis.adresse}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Prix:</Text>
+                      <br />
+                      <Text>{selectedColis.prix} DH</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Nature Produit:</Text>
+                      <br />
+                      <Text>{selectedColis.nature_produit}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Statut:</Text>
+                      <br />
+                      <Text>{selectedColis.statut}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Commentaire:</Text>
+                      <br />
+                      <Text>{selectedColis.commentaire || 'Aucun commentaire'}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>État:</Text>
+                      <br />
+                      <Text>{selectedColis.etat ? "Payée" : "Non Payée"}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Ouvrir:</Text>
+                      <br />
+                      <Text>{selectedColis.ouvrir ? "Oui" : "Non"}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Fragile:</Text>
+                      <br />
+                      <Text>{selectedColis.is_fragile ? "Oui" : "Non"}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Remplacer:</Text>
+                      <br />
+                      <Text>{selectedColis.is_remplace ? "Oui" : "Non"}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Store:</Text>
+                      <br />
+                      <Text>{selectedColis.store?.storeName || 'N/A'}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Créé le:</Text>
+                      <br />
+                      <Text>{new Date(selectedColis.createdAt).toLocaleString()}</Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Text strong>Mis à jour le:</Text>
+                      <br />
+                      <Text>{new Date(selectedColis.updatedAt).toLocaleString()}</Text>
+                    </Col>
+                  </Row>
 
                   {/* Section des boutons */}
                   <Space direction="horizontal" size="middle" style={{ marginTop: '20px' }}>
@@ -421,6 +486,7 @@ function ScanRecherche() {
                 <Table
                   columns={columns}
                   dataSource={scannedItems}
+                  rowKey="barcode"
                   pagination={false}
                   bordered
                   title={() => 'Scanned Items'}
