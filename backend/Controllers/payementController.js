@@ -44,6 +44,7 @@ const createPayement = async (req, res) => {
 
 const setDefaultPayement = async (req, res) => {
     try {
+        
         const { clientId, payementId } = req.body;
 
         // Vérifier si le paiement appartient à l'utilisateur

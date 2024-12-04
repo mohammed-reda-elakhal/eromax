@@ -3,21 +3,44 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
-import { FaPenFancy, FaInfoCircle, FaPlus } from "react-icons/fa";
+import { FaPenFancy, FaPlus } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import {  Drawer } from 'antd';
+import { 
+    Drawer, 
+    Modal, 
+    Button, 
+    Spin, 
+    List, 
+    Card, 
+    Avatar, 
+    Row, 
+    Col, 
+    Typography, 
+    Space, 
+    Tooltip, 
+    Tag, 
+    Descriptions 
+} from 'antd';
+import { 
+    EnvironmentOutlined, 
+    PhoneOutlined, 
+    DollarCircleOutlined 
+} from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteProfile, getProfileList, toggleActiveClient } from '../../../../redux/apiCalls/profileApiCalls';
-import { getStoreByUser } from '../../../../redux/apiCalls/storeApiCalls'; // Import the store API call
+import { 
+    deleteProfile, 
+    getProfileList, 
+    toggleActiveClient 
+} from '../../../../redux/apiCalls/profileApiCalls';
+import { 
+    getStoreByUser, 
+    deleteStore 
+} from '../../../../redux/apiCalls/storeApiCalls'; // Import deleteStore
 import { useNavigate } from 'react-router-dom';
 import ClientFormAdd from '../components/ClientFormAdd';
 import Topbar from '../../../global/Topbar';
-import Title from '../../../global/Title';
 import Menubar from '../../../global/Menubar';
-import { Modal, Button, Spin, List, Card, Avatar, Row, Col, Typography } from 'antd';
-import { EnvironmentOutlined, PhoneOutlined, DollarCircleOutlined } from '@ant-design/icons';
 import StoreForm from '../../profile/components/StoreForm';
-
 
 function Client({ search }) {
     const { theme } = useContext(ThemeContext);
@@ -56,27 +79,29 @@ function Client({ search }) {
         try {
             // Assuming client.userId holds the user ID associated with the client
             await dispatch(getStoreByUser(client.userId || client._id)); // Fetch stores
-            // After fetching, set the stores in state
-            setSelectedStores(stores); // Note: This may need to be adjusted based on asynchronous behavior
             setIsModalStoreOpen(true);
         } catch (err) {
             console.error("Failed to fetch stores:", err);
+            Modal.error({
+                title: 'Erreur',
+                content: 'Impossible de récupérer les magasins associés au client.',
+            });
         } finally {
             setLoadingStores(false); // End loading
         }
     };
 
-    // Alternatively, use useEffect to set selectedStores when stores change
+    // Set selectedStores when stores are updated
     useEffect(() => {
         if (isModalStoreOpen) {
             setSelectedStores(stores);
         }
     }, [stores, isModalStoreOpen]);
 
-    const toggleActiveCompte = (id)=>{
-        dispatch(toggleActiveClient(id))
+    const toggleActiveCompte = (id) => {
+        dispatch(toggleActiveClient(id));
         dispatch(getProfileList("client"));
-    }
+    };
 
     const handleOk = () => {
         setIsModalStoreOpen(false);
@@ -94,13 +119,23 @@ function Client({ search }) {
     };
 
     const handleDeleteProfile = (id) => {
-        dispatch(deleteProfile("client", id));
+        Modal.confirm({
+            title: 'Supprimer le client',
+            content: 'Êtes-vous sûr de vouloir supprimer ce client?',
+            okText: 'Oui',
+            okType: 'danger',
+            cancelText: 'Non',
+            onOk: () => {
+                dispatch(deleteProfile("client", id));
+            },
+        });
     };
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-      };
+    };
+
     // Define table columns
     const columns = [
         {
@@ -135,7 +170,9 @@ function Client({ search }) {
             title: 'N° Store',
             dataIndex: 'stores', // Adjusted to match the data structure
             render: (text, record) => (
-                <Button onClick={()=>openStoresModal(record)}>{(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}</Button>
+                <Tag color='green' style={{cursor:'pointer'}} onClick={() => openStoresModal(record)}>
+                    {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
+                </Tag>
             )
         },
         {
@@ -197,39 +234,41 @@ function Client({ search }) {
                     </div>
                 </Button>
             )
-         },
+        },
         {
             title: 'Action',
             dataIndex: 'action',
             render: (text, record) => (
                 <div className='action_user'>
-                    <Button 
-                        style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent" }} 
-                        icon={<FaPenFancy size={20} />}
-                        onClick={() => navigate(`/dashboard/compte/client/${record._id}`, { state: { from: '/dashboard/compte/client' } })}
-                    />
-                    <Button 
-                        style={{ color: 'red', borderColor: "red", background: "transparent" }} 
-                        icon={<MdDelete size={20} />}
-                        onClick={() => handleDeleteProfile(record._id)}
-                    />
+                    <Tooltip title="Edit Client" key="edit">
+                        <Button 
+                            style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent" }} 
+                            icon={<FaPenFancy size={20} />}
+                            onClick={() => navigate(`/dashboard/compte/client/${record._id}`, { state: { from: '/dashboard/compte/client' } })}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Delete Client" key="delete">
+                        <Button 
+                            style={{ color: 'red', borderColor: "red", background: "transparent" }} 
+                            icon={<MdDelete size={20} />}
+                            onClick={() => handleDeleteProfile(record._id)}
+                        />
+                    </Tooltip>
                 </div>
             )
         }
     ];
 
-    // Client.js
+    // Store Form Handlers
+    const openStoreForm = (store) => {
+        setStoreToEdit(store); // Set the store to edit, or null for adding
+        setIsStoreFormVisible(true); // Open the StoreForm drawer
+    };
 
-const openStoreForm = (store) => {
-    setStoreToEdit(store); // Set the store to edit, or null for adding
-    setIsStoreFormVisible(true); // Open the StoreForm drawer
-};
-
-const closeStoreForm = () => {
-    setIsStoreFormVisible(false); // Close the StoreForm drawer
-    setStoreToEdit(null); // Reset the store to edit
-};
-
+    const closeStoreForm = () => {
+        setIsStoreFormVisible(false); // Close the StoreForm drawer
+        setStoreToEdit(null); // Reset the store to edit
+    };
 
     return (
         <div className='page-dashboard'>
@@ -249,7 +288,7 @@ const closeStoreForm = () => {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Gestion des utilisateurs ( client )</h4>
+                        <Typography.Title level={4} style={{ marginBottom: '16px' }}>Gestion des utilisateurs ( client )</Typography.Title>
                         <Button 
                             type="primary" 
                             icon={<FaPlus />} 
@@ -259,6 +298,7 @@ const closeStoreForm = () => {
                         </Button>
                         <TableDashboard theme={theme} column={columns} id="_id" data={profileList} />
                         
+                        {/* Stores Modal */}
                         <Modal
                             title="Stores"
                             open={isModalStoreOpen}
@@ -269,8 +309,9 @@ const closeStoreForm = () => {
                                     Close
                                 </Button>,
                             ]}
-                            width={800}
+                            width={900}
                             centered
+                            destroyOnClose
                         >
                             {loadingStores ? (
                                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
@@ -278,85 +319,100 @@ const closeStoreForm = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <Button 
-                                        type="primary" 
-                                        icon={<FaPlus />} 
-                                        style={{ marginBottom: 16 }} 
-                                        onClick={() => openStoreForm(null)} // Open form for adding new store
-                                    >
-                                        Add Store
-                                    </Button>
-                                    <List
-                                        grid={{
-                                            gutter: 16,
-                                            xs: 1,
-                                            sm: 1,
-                                            md: 2,
-                                            lg: 2,
-                                            xl: 3,
-                                            xxl: 4,
-                                        }}
-                                        dataSource={selectedStores}
-                                        locale={{ emptyText: "No stores found for this client." }}
-                                        renderItem={store => (
-                                            <List.Item>
-                                                <Card
-                                                    hoverable
-                                                    style={{ borderRadius: '10px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}
-                                                    actions={[
-                                                        <Button 
-                                                            type="link" 
-                                                            icon={<FaPenFancy />} 
-                                                            onClick={() => openStoreForm(store)} // Open form for editing store
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                    ]}
-                                                >
-                                                    <Card.Meta
-                                                        avatar={<Avatar src={store.image?.url || '/image/store.png'} size="large" />}
-                                                        title={<Typography.Title level={4}>{store.storeName}</Typography.Title>}
-                                                    />
-                                                    <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
-                                                        <Col span={24}>
-                                                            <Typography.Text strong>
-                                                                <PhoneOutlined /> Téléphone:
-                                                            </Typography.Text>
-                                                            <Typography.Text style={{ marginLeft: '8px' }}>
-                                                                {store.tele}
-                                                            </Typography.Text>
-                                                        </Col>
-                                                        <Col span={24}>
-                                                            <Typography.Text strong>
-                                                                <DollarCircleOutlined /> Solde:
-                                                            </Typography.Text>
-                                                            <Typography.Text style={{ marginLeft: '8px' }}>
-                                                                {store?.solde} DH
-                                                            </Typography.Text>
-                                                        </Col>
-                                                        <Col span={24}>
-                                                            <Typography.Text strong>
-                                                                Adresse :
-                                                            </Typography.Text>
-                                                            <Typography.Text style={{ marginLeft: '8px' }}>
-                                                                {store.adress}
-                                                            </Typography.Text>
-                                                        </Col>
-                                                    </Row>
-                                                </Card>
-                                            </List.Item>
+                                    <Space style={{ marginBottom: 16 }}>
+                                        <Button 
+                                            type="primary" 
+                                            icon={<FaPlus />} 
+                                            onClick={() => openStoreForm(null)}
+                                        >
+                                            Add Store
+                                        </Button>
+                                    </Space>
+                                    <Row gutter={[16, 16]}>
+                                        {selectedStores && selectedStores.length > 0 ? (
+                                            selectedStores.map(store => (
+                                                <Col xs={24} sm={12} key={store._id}>
+                                                    <Card
+                                                        hoverable
+                                                        actions={[
+                                                            <Tooltip title="Edit Store" key="edit">
+                                                                <Button 
+                                                                    type="link" 
+                                                                    icon={<FaPenFancy />} 
+                                                                    onClick={() => openStoreForm(store)}
+                                                                >
+                                                                    Edit
+                                                                </Button>
+                                                            </Tooltip>,
+                                                            <Tooltip title="Delete Store" key="delete">
+                                                                <Button 
+                                                                    type="link" 
+                                                                    icon={<MdDelete />} 
+                                                                    danger 
+                                                                    onClick={() => dispatch(deleteStore(store._id))}
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </Tooltip>,
+                                                        ]}
+                                                    >
+                                                        <Card.Meta 
+                                                            title={store.storeName}
+                                                            description={
+                                                                <Descriptions size="small" column={1} bordered>
+                                                                    <Descriptions.Item label="Image">
+                                                                        <Space>
+                                                                            <Avatar
+                                                                                src={store.image.url}
+                                                                                size='large'
+                                                                            />
+                                                                        </Space>
+                                                                    </Descriptions.Item>
+                                                                    <Descriptions.Item label="Télé">
+                                                                        <Space>
+                                                                            <PhoneOutlined />
+                                                                            {store.tele || 'N/A'}
+                                                                        </Space>
+                                                                    </Descriptions.Item>
+                                                                    <Descriptions.Item label="Solde">
+                                                                        <Space>
+                                                                            <DollarCircleOutlined />
+                                                                            {store.solde} DH
+                                                                        </Space>
+                                                                    </Descriptions.Item>
+                                                                    <Descriptions.Item label="Adresse">
+                                                                        <Space>
+                                                                            <EnvironmentOutlined />
+                                                                            {store.adress || 'N/A'}
+                                                                        </Space>
+                                                                    </Descriptions.Item>
+                                                                    <Descriptions.Item label="Auto D-R">
+                                                                        {store.auto_DR ? <Tag color="green">Oui</Tag> : <Tag color="red">Non</Tag>}
+                                                                    </Descriptions.Item>
+                                                                </Descriptions>
+                                                            }
+                                                        />
+                                                    </Card>
+                                                </Col>
+                                            ))
+                                        ) : (
+                                            <Col span={24}>
+                                                <Typography.Text type="secondary">Aucun magasin trouvé pour ce client.</Typography.Text>
+                                            </Col>
                                         )}
-                                    />
+                                    </Row>
                                 </>
                             )}
                         </Modal>
 
+                        {/* Store Form Drawer */}
                         <Drawer
                             title={storeToEdit ? "Edit Store" : "Add Store"}
                             placement="right"
                             onClose={closeStoreForm}
                             visible={isStoreFormVisible}
-                            width={400}
+                            width={500}
+                            destroyOnClose
                         >
                             <StoreForm 
                                 onClose={closeStoreForm} 
@@ -365,13 +421,14 @@ const closeStoreForm = () => {
                             />
                         </Drawer>
 
-
+                        {/* Client Form Drawer */}
                         <Drawer
                             title={currentClient ? "Edit Client" : "Add Client"}
                             placement="right"
                             onClose={closeDrawer}
                             open={drawerVisible}
-                            width={400}
+                            width={500}
+                            destroyOnClose
                         >
                             <ClientFormAdd client={currentClient} close={closeDrawer} />
                         </Drawer>
@@ -380,6 +437,7 @@ const closeStoreForm = () => {
             </main>
         </div>
     );
+
 }
 
 export default Client;

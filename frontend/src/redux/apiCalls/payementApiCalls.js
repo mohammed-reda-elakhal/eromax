@@ -116,3 +116,36 @@ export function getPaymentsByClientId(clientId) {
     }
   };
 }
+
+
+export function setDefaultPayement(clientId, payementId) {
+  return async (dispatch) => {
+    dispatch(setFetching(true));
+    try {
+      const { data } = await request.post("/api/payement/payement/default", {
+        clientId,
+        payementId,
+      });
+
+      // Assuming the API returns the updated payment
+      const updatedPayement = data.payement;
+
+      // Update all payments: set default to true for updatedPayement and false for others
+      // This requires fetching the updated list or updating the state manually
+      // Option 1: Refetch payments
+      await dispatch(getPaymentsByClientId(clientId));
+
+      // Option 2: Update state manually
+      // dispatch(updatePayementAction(updatedPayement));
+      // Alternatively, you might need to handle setting other payments' default to false
+      // This depends on how your backend responds
+
+      toast.success("Default payment method updated successfully");
+      dispatch(setFetching(false));
+    } catch (error) {
+      dispatch(setFetching(false));
+      dispatch(setError(error.message || "Failed to set default payment"));
+      toast.error(error.message || "Failed to set default payment");
+    }
+  };
+}

@@ -19,13 +19,17 @@ const payementSlice = createSlice({
       state.payements.push(action.payload); // Add a new payment
     },
     updatePayement(state, action) {
-      const index = state.payements.findIndex(payement => payement._id === action.payload._id);
+      const index = state.payements.findIndex(
+        (payement) => payement._id === action.payload._id
+      );
       if (index !== -1) {
         state.payements[index] = action.payload; // Update the payment
       }
     },
     removePayement(state, action) {
-      state.payements = state.payements.filter(payement => payement._id !== action.payload); // Remove payment
+      state.payements = state.payements.filter(
+        (payement) => payement._id !== action.payload
+      ); // Remove payment
     },
     setSelectedPayement(state, action) {
       state.selectedPayement = action.payload; // Set the selected payment for detailed view

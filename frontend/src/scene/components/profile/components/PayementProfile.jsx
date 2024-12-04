@@ -7,7 +7,8 @@ import {
   getPaymentsByClientId, 
   createPayement, 
   ModifierPayement, 
-  deletePayement 
+  deletePayement,
+  setDefaultPayement // Import the new action
 } from '../../../../redux/apiCalls/payementApiCalls';
 import { getMeth_payement } from '../../../../redux/apiCalls/methPayementApiCalls';
 import { 
@@ -177,6 +178,27 @@ function PayementProfile() {
     }
   };
 
+  /**
+   * Handle setting a payment as default
+   * @param {string} payementId - The ID of the payment to set as default
+   */
+  const handleSetDefault = (payementId) => {
+    Modal.confirm({
+      title: 'Set as Default',
+      content: 'Are you sure you want to set this payment method as default?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: () => {
+        const clientId = id || user?._id;
+        if (clientId && payementId) {
+          dispatch(setDefaultPayement(clientId, payementId));
+        } else {
+          toast.error("Client ID or Payment ID is missing");
+        }
+      },
+    });
+  };
+
   return (
     <>
       {/* Button to add a new payment */}
@@ -269,14 +291,24 @@ function PayementProfile() {
                       onClick={() => handleView(payement)}
                     />
                   </Tooltip>,
+                  /* Set as Default Button */
+                  !payement.default && (
+                    <Tooltip title="Set as Default" key="setDefault">
+                      <Button 
+                        type="link" 
+                        onClick={() => handleSetDefault(payement._id)}
+                      >
+                        Default
+                      </Button>
+                    </Tooltip>
+                  ),
                 ]}
               >
                 <Meta 
                   title={
                     <Space>
                       {payement.nom}
-                      {/* Uncomment if 'default' exists in Meth_Payement */}
-                      {/* {payement.idBank?.default && <Tag color="green">Default</Tag>} */}
+                      {payement.default && <Tag color="green">Default</Tag>}
                     </Space>
                   }
                   description={
