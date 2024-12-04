@@ -16,7 +16,9 @@ function PromotionStore() {
 }));
 
   useEffect(() => {
-    dispatch(getValidPromotionsForUser());
+    if(user?.role === "client"){
+      dispatch(getValidPromotionsForUser());
+    }
     window.scrollTo(0, 0);
   }, [dispatch , user]);
 

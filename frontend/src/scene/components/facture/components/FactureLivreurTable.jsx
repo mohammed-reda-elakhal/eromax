@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
 import TableDashboard from '../../../global/TableDashboard'
 import { useDispatch, useSelector } from 'react-redux';
-import { getFacture, getFactureDetailsByLivreur } from '../../../../redux/apiCalls/factureApiCalls';
-import { Button } from 'antd';
+import { getFacture, getFactureDetailsByLivreur, setFactureEtat } from '../../../../redux/apiCalls/factureApiCalls';
+import { Button, Tag } from 'antd';
 import { FaRegFolderOpen } from "react-icons/fa6";
 import { Link, useNavigate } from 'react-router-dom';
+import { MdOutlinePayment } from 'react-icons/md';
 
 function FactureLivreurTable({theme}) {
 
@@ -66,6 +67,20 @@ const columns = [
       render: (prix) => `${prix} DH`, // Format the price
   },
   {
+    title: 'État',
+    dataIndex: 'etat',
+    key: 'etat',
+    render: (text, record) => (
+      <>
+        {record.etat ? (
+          <Tag color="green">Payé</Tag>
+        ) : (
+          <Tag color="red">Non Payé</Tag>
+        )}
+      </>
+    ),
+  },
+  {
       title: 'Number of Colis',
       key: 'countColis',
       render: (text, record) => record.colis.length,
@@ -74,13 +89,24 @@ const columns = [
     title: 'Options',
     key: 'options',
     render: (text, record) => (
-      <>
+      <div style={{ display: 'flex', gap: '10px' }}>
         <Button icon={<FaRegFolderOpen/>} onClick={()=>navigate(`/dashboard/facture/detail/livreur/${record.code_facture}`)} type='primary'>
         </Button>
-      </>
+        {user?.role === 'admin' && !record.etat ? (
+            <Button
+              icon={<MdOutlinePayment />}
+              onClick={() => setFacturePay(record?._id)}
+              type="primary"
+            />
+          ) : null}
+      </div>
     ),
 },
 ];
+
+const setFacturePay = (id) => {
+  dispatch(setFactureEtat(id));
+};
 
   return (
     <div>

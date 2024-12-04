@@ -25,9 +25,6 @@ function Pyements() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Profile' />
-                    </div>
                     <div
                         className="content"
                         style={{

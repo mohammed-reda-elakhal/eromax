@@ -136,3 +136,22 @@ export function deleteStore(storeId) {
     }
   };
 }
+
+
+export function toggleAutoDR(storeId) {
+  return async (dispatch) => {
+    dispatch(storeActions.toggleAutoDRStart());
+    try {
+      const { data } = await request.patch(`/api/store/${storeId}/auto-dr`, {}, {
+        withCredentials: true,
+      });
+      dispatch(storeActions.toggleAutoDRSuccess({ auto_DR: data.auto_DR, storeId }));
+      toast.success("Auto Demande de Retrait toggled successfully");
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message || error.message || "Failed to toggle auto_DR";
+      dispatch(storeActions.toggleAutoDRFailure(errorMsg));
+      toast.error(errorMsg);
+    }
+  };
+}

@@ -22,16 +22,13 @@ function Promotions() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Promotion %' />
-                        
-                    </div>
                     <div
                         className="content"
                         style={{
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
+                        <h4>Promotion %</h4>
                         <PromotionList />
                     </div>
                 </div>

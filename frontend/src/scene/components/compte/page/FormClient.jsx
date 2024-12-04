@@ -39,9 +39,6 @@ function FormClient() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Gestion des utilisateurs' />
-                    </div>
                     <div
                         className="content"
                         style={{

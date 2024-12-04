@@ -7,6 +7,7 @@ const initialState={
     setColisLivreByRole:0,
     setColisCancealByRole:0,
     topVilles: [],
+    topClient: [],
     statisticColis : [] ,
     argentStatistic : [] ,
     villeStatistic : []
@@ -24,6 +25,9 @@ const staticsSlice = createSlice({
         },
         setVilleData(state , action){
             state.villeStatistic = action.payload ;
+        },
+        setClientData(state , action){
+            state.topClient = action.payload ;
         },
         setAllColisLivre(state, action) {
             state.setAllColisLivre = action.payload;

@@ -164,6 +164,55 @@ const storePhotoController = asyncHandler(async (req, res) => {
   }
 });
 
+const resetAutoDR = asyncHandler(async (req, res) => {
+  try {
+      // Update all documents in the Store collection
+      const result = await Store.updateMany({}, { $set: { auto_DR: false } });
+
+      // Respond with success
+      res.status(200).json({
+          message: 'Successfully reset auto_DR attribute to false for all stores.',
+          modifiedCount: result.modifiedCount,
+      });
+  } catch (error) {
+      // Log the error and respond with a server error message
+      console.error("Error resetting auto_DR for all stores:", error.message);
+      res.status(500).json({
+          message: 'Server error occurred while resetting auto_DR for all stores.',
+          error: error.message,
+      });
+  }
+});
+
+// storeController.js
+
+const toggleAutoDR = async (req, res) => {
+  try {
+    const { storeId } = req.params;
+
+    // Find the store by ID
+    const store = await Store.findById(storeId);
+
+    if (!store) {
+      return res.status(404).json({ message: "Store not found" });
+    }
+
+    // Toggle the auto_DR value
+    store.auto_DR = !store.auto_DR;
+
+    // Save the updated store
+    await store.save();
+
+    return res.status(200).json({
+      message: "auto_DR toggled successfully",
+      auto_DR: store.auto_DR
+    });
+  } catch (error) {
+    console.error("Error toggling auto_DR:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 module.exports = {
   getAllStores,
@@ -172,5 +221,7 @@ module.exports = {
   deleteStore,
   createStores,
   getStoreByUser,
-  storePhotoController
+  storePhotoController,
+  resetAutoDR,
+  toggleAutoDR 
 };

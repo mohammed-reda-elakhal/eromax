@@ -1,4 +1,5 @@
-import React, { useEffect, useContext } from 'react';
+// TopCitiesChart.jsx
+import React, { useEffect, useContext, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getStatisticVille } from '../../../../redux/apiCalls/staticsApiCalls';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
@@ -6,6 +7,28 @@ import { Bar } from 'react-chartjs-2';
 import { ThemeContext } from '../../../ThemeContext';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
+// Helper function to calculate dynamic step size
+const calculateStepSize = (max, desiredSteps = 5) => {
+    if (max === 0) return 1; // Avoid division by zero
+
+    const rawStep = max / desiredSteps;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const residual = rawStep / magnitude;
+    let step;
+
+    if (residual > 5) {
+        step = 10 * magnitude;
+    } else if (residual > 2) {
+        step = 5 * magnitude;
+    } else if (residual > 1) {
+        step = 2 * magnitude;
+    } else {
+        step = magnitude;
+    }
+
+    return step;
+};
 
 function TopCitiesChart() {
     const dispatch = useDispatch();
@@ -15,6 +38,15 @@ function TopCitiesChart() {
     useEffect(() => {
         dispatch(getStatisticVille());
     }, [dispatch]);
+
+    // Calculate dynamic step size using useMemo to optimize performance
+    const yStepSize = useMemo(() => {
+        if (!villes || villes.length === 0) return 1;
+
+        const maxValue = Math.max(...villes.map((ville) => ville.count));
+        const desiredSteps = 5; // You can adjust the desired number of steps here
+        return calculateStepSize(maxValue, desiredSteps);
+    }, [villes]);
 
     // Prepare data for the Bar Chart
     const chartData = {
@@ -61,7 +93,8 @@ function TopCitiesChart() {
                 },
                 ticks: {
                     color: theme === 'dark' ? '#fff' : '#666',
-                    stepSize: 5, // Adjust step size to 5
+                    stepSize: yStepSize, // Set the dynamic step size here
+                    beginAtZero: true, // Ensure the y-axis starts at zero
                 },
             },
         },
@@ -84,7 +117,11 @@ function TopCitiesChart() {
             }}
         >
             <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Top 10 Villes par Nombre de Colis</h2>
-            <Bar data={chartData} options={options} />
+            {villes.length > 0 ? (
+                <Bar data={chartData} options={options} />
+            ) : (
+                <p style={{ textAlign: 'center' }}>Chargement des données...</p>
+            )}
         </div>
     );
 }

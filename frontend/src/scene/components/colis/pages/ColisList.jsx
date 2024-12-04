@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 
 
 function ColisList({search}) {
-    const user = useSelector((state) => state.auth)
+    const {user} = useSelector((state) => state.auth)
     const { theme } = useContext(ThemeContext);
     const darkStyle = {
         control: (styles) => ({

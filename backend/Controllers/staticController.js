@@ -3,6 +3,7 @@ const { Colis } = require("../Models/Colis");
 const { default: mongoose } = require("mongoose");
 const Transaction = require("../Models/Transaction");
 const { subDays } = require('date-fns'); // Optionally use date-fns for date handling
+const { Store } = require("../Models/Store");
 
 exports.colisStatic = async (req, res) => {
   try {
@@ -202,6 +203,52 @@ exports.getTopVilles = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Server error while retrieving top villes" });
   }
 });
+
+
+
+
+exports.getTopClient = async (req, res) => {
+  try {
+    // Aggregate to count the number of colis processed by each store
+    const topStores = await Colis.aggregate([
+      {
+        $group: {
+          _id: "$store", // Group by store ID
+          count: { $sum: 1 }, // Count the number of parcels for each store
+        },
+      },
+      { $sort: { count: -1 } }, // Sort by the count of parcels in descending order
+      { $limit: 10 }, // Limit to the top 10 stores
+      {
+        $lookup: {
+          from: "stores", // Reference the Store collection
+          localField: "_id", // Match _id (store in Colis)
+          foreignField: "_id", // Match _id in Store
+          as: "storeDetails", // Populate store details
+        },
+      },
+      { $unwind: "$storeDetails" }, // Unwind the array to make it a single object
+      {
+        $project: {
+          _id: 0, // Exclude the default _id field
+          storeName: "$storeDetails.storeName", // Store name
+          profileImage: "$storeDetails.image.url", // Store profile image URL
+          colisCount: "$count", // Number of parcels processed by the store
+        },
+      },
+    ]);
+
+    // Return the result
+    res.status(200).json({
+      message: "Top 10 stores retrieved successfully",
+      data: topStores,
+    });
+  } catch (error) {
+    console.error("Error retrieving top stores:", error);
+    res.status(500).json({ message: "Server error while retrieving top stores" });
+  }
+};
+
 
 
 

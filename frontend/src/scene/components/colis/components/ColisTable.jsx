@@ -174,6 +174,14 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       ),
     },
     {
+      title: 'Bussness',
+      dataIndex: 'store',
+      key: 'store',
+      render : (text , record) => (
+        <strong>{record.store?.storeName}</strong>
+      )
+    },
+    {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',

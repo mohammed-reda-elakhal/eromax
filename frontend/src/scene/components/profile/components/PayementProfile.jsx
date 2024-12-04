@@ -7,7 +7,8 @@ import {
   getPaymentsByClientId, 
   createPayement, 
   ModifierPayement, 
-  deletePayement 
+  deletePayement,
+  setDefaultPayement // Import the new action
 } from '../../../../redux/apiCalls/payementApiCalls';
 import { getMeth_payement } from '../../../../redux/apiCalls/methPayementApiCalls';
 import { 
@@ -42,8 +43,16 @@ const { Option } = Select;
 
 function PayementProfile() {
   // Retrieve the logged-in user from cookies
-  const user = JSON.parse(localStorage.getItem('user'));
+  const { user  } = useSelector((state) => state.auth);
   
+  // Handle the case where user is not found in cookies
+  if (!user) {
+    toast.error("User not authenticated");
+    // Redirect to login or handle accordingly
+    // For example:
+    // window.location.href = '/login';
+  }
+
   const dispatch = useDispatch();
   const { id } = useParams(); // Get user ID from route parameters if available
 
@@ -62,11 +71,15 @@ function PayementProfile() {
 
   // Fetch payments and payment methods on component mount
   useEffect(() => {
-    const userId = id || user._id;
-    dispatch(getPaymentsByClientId(userId));
-    dispatch(getMeth_payement());
-    window.scrollTo(0, 0); // Scroll to top on component load
-  }, [dispatch, id, user._id]);
+    const userId = id || user?._id;
+    if (userId) {
+      dispatch(getPaymentsByClientId(userId));
+      dispatch(getMeth_payement());
+      window.scrollTo(0, 0); // Scroll to top on component load
+    } else {
+      toast.error("User ID not found");
+    }
+  }, [dispatch, id, user?._id]);
 
   /**
    * Show the Drawer for adding a new payment
@@ -139,7 +152,7 @@ function PayementProfile() {
    */
   const handleAddOrUpdate = async (values) => {
     const { nom, rib, idBank } = values;
-    const clientId = user._id ;
+    const clientId = user?._id;
     const payementData = {
       clientId,
       nom,
@@ -163,6 +176,27 @@ function PayementProfile() {
     } catch (error) {
       toast.error("Operation failed");
     }
+  };
+
+  /**
+   * Handle setting a payment as default
+   * @param {string} payementId - The ID of the payment to set as default
+   */
+  const handleSetDefault = (payementId) => {
+    Modal.confirm({
+      title: 'Set as Default',
+      content: 'Are you sure you want to set this payment method as default?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: () => {
+        const clientId = id || user?._id;
+        if (clientId && payementId) {
+          dispatch(setDefaultPayement(clientId, payementId));
+        } else {
+          toast.error("Client ID or Payment ID is missing");
+        }
+      },
+    });
   };
 
   return (
@@ -190,13 +224,13 @@ function PayementProfile() {
           type="error"
           showIcon
           action={
-            <Button size="small" type="text" onClick={() => dispatch(getPaymentsByClientId(id || user._id))}>
+            <Button size="small" type="text" onClick={() => dispatch(getPaymentsByClientId(id || user?._id))}>
               Retry
             </Button>
           }
           style={{ marginBottom: '20px' }}
         />
-      ) : payements.length === 0 ? (
+      ) : Array.isArray(payements) && payements.length === 0 ? (
         /* Informative Alert when no payments are found */
         <Alert 
           message="No Payments Found"
@@ -208,7 +242,7 @@ function PayementProfile() {
       ) : (
         /* Responsive Grid Layout for Payments */
         <Row gutter={[16, 16]}>
-          {payements.map(payement => (
+          {Array.isArray(payements) && payements.map(payement => (
             <Col xs={24} sm={12} md={8} lg={6} key={payement._id}>
               <Card
                 hoverable
@@ -257,14 +291,24 @@ function PayementProfile() {
                       onClick={() => handleView(payement)}
                     />
                   </Tooltip>,
+                  /* Set as Default Button */
+                  !payement.default && (
+                    <Tooltip title="Set as Default" key="setDefault">
+                      <Button 
+                        type="link" 
+                        onClick={() => handleSetDefault(payement._id)}
+                      >
+                        Default
+                      </Button>
+                    </Tooltip>
+                  ),
                 ]}
               >
                 <Meta 
                   title={
                     <Space>
                       {payement.nom}
-                      {/* Uncomment if 'default' exists in Meth_Payement */}
-                      {/* {payement.idBank?.default && <Tag color="green">Default</Tag>} */}
+                      {payement.default && <Tag color="green">Default</Tag>}
                     </Space>
                   }
                   description={

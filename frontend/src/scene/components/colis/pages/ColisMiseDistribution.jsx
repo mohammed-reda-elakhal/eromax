@@ -240,9 +240,6 @@ function ColisMiseDistribution({ search }) {
             color: theme === 'dark' ? '#fff' : '#002242',
           }}
         >
-          <div className="page-content-header">
-            <Title nom='Colis Mise en Distribution' />
-          </div>
 
           <div
             className="content"

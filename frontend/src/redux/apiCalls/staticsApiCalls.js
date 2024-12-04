@@ -88,6 +88,33 @@ export function getStatisticVille() {
         }
     };
 }
+export function getStatisticClient() {
+    return async (dispatch) => {
+        try {
+              // Get token from cookies
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+            const { data } = await request.get(`/api/statistic/client`, config);
+
+            dispatch(staticsActions.setClientData(data.data));
+
+        } catch (error) {
+            console.error(error.message || "Failed to fetch colis statistic");
+        }
+    };
+}
 
 
 

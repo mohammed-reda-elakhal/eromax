@@ -117,16 +117,13 @@ function Admin() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Gestion des utilisateurs' />
-                    </div>
                     <div
                         className="content"
                         style={{
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Gestion des utilisateurs</h4>
+                        <h4>Gestion des utilisateurs ( admin )</h4>
                         <Button 
                             type="primary" 
                             icon={<FaPlus />} 

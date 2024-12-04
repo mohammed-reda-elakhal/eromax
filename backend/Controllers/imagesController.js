@@ -359,12 +359,13 @@ const UploadClientFiles = asyncHandler(async (req, res) => {
 
 const uploadFiles = asyncHandler(async (req, res) => {
     console.log("Received file upload request");
+    console.log("Uploaded Files:", req.files); // Debugging line
   
     // Check if both files are present
     if (!req.files || !req.files.cinRecto || !req.files.cinVerso) {
       return res.status(400).json({ message: "Both CIN recto and verso are required." });
     }
-
+  
     const { role, id } = req.params;
   
     try {
@@ -375,7 +376,7 @@ const uploadFiles = asyncHandler(async (req, res) => {
       } else if (role === "livreur") {
         user = await Livreur.findById(id);
       } else {
-        return res.status(400).json({ message: "Invalid user type. Must be 'Client' or 'Livreur'." });
+        return res.status(400).json({ message: "Invalid user type. Must be 'client' or 'livreur'." });
       }
   
       if (!user) {
@@ -385,6 +386,11 @@ const uploadFiles = asyncHandler(async (req, res) => {
       // File paths
       const cinRectoPath = path.resolve(__dirname, "../files", req.files.cinRecto[0].filename);
       const cinVersoPath = path.resolve(__dirname, "../files", req.files.cinVerso[0].filename);
+  
+      // Debugging: Check if files exist
+      if (!fs.existsSync(cinRectoPath) || !fs.existsSync(cinVersoPath)) {
+        return res.status(500).json({ message: "Uploaded files not found on the server." });
+      }
   
       // Cloudinary upload
       const cinRectoResult = await cloudinaryUploadImage(cinRectoPath);
@@ -414,12 +420,11 @@ const uploadFiles = asyncHandler(async (req, res) => {
   
       await newFile.save();
       user.files.push(newFile._id);
-        await user.save();
+      await user.save();
   
       // Cleanup local files
       fs.unlinkSync(cinRectoPath);
       fs.unlinkSync(cinVersoPath);
-  
   
       res.status(201).json({
         message: "Files uploaded successfully",
@@ -427,7 +432,7 @@ const uploadFiles = asyncHandler(async (req, res) => {
       });
     } catch (error) {
       console.error("Error uploading files:", error);
-      
+  
       // Cleanup files in case of error
       if (req.files) {
         const cinRectoPath = path.resolve(__dirname, "../files", req.files.cinRecto[0].filename);
@@ -440,7 +445,6 @@ const uploadFiles = asyncHandler(async (req, res) => {
       res.status(500).json({ message: "Internal server error", error: error.message });
     }
   });
-
   const getUserDocuments = asyncHandler(async (req, res) => {
     const { role, id } = req.params;
   

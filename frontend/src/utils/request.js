@@ -1,6 +1,8 @@
 import axios from "axios";
 
 const request = axios.create({
+    // https://eromax-api.onrender.com
+    // http://localhost:8084
     baseURL: "https://eromax-api.onrender.com",
     headers: {
         'Content-Type': 'application/json',

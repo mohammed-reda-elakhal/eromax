@@ -1,33 +1,45 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getColisATRToday, getDemandeRetraitToday, getReclamationToday } from '../../../../redux/apiCalls/missionApiCalls';
+import { getColisATRToday, getColisExpidée, getColisPret, getDemandeRetraitToday, getReclamationToday } from '../../../../redux/apiCalls/missionApiCalls';
 import { Card, Row, Col } from 'antd';
 import { MailOutlined, DropboxOutlined, SolutionOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { FaParachuteBox } from 'react-icons/fa';
+import { TbTruckDelivery } from 'react-icons/tb';
 
 function Mission({ theme }) {
-    const { demandeRetrait, colis, reclamations, user } = useSelector((state) => ({
+    const { demandeRetrait, colis, reclamations, user , colisExp , colisPret } = useSelector((state) => ({
         demandeRetrait: state.mission.demandeRetrait,
         colis: state.mission.colis,
+        colisExp: state.mission.colisExp,
+        colisPret: state.mission.colisPret,
         reclamations: state.mission.reclamations,
         user: state.auth.user,
     }));
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    // Function to dispatch actions based on the user role
     const getData = () => {
-        dispatch(getDemandeRetraitToday());
-        dispatch(getReclamationToday());
-        dispatch(getColisATRToday());
+        if(user?.role === "admin"){
+            dispatch(getDemandeRetraitToday());
+            dispatch(getReclamationToday());
+            dispatch(getColisATRToday());
+        }else if(user?.role === "livreur"){
+            dispatch(getColisExpidée())
+            dispatch(getColisPret())
+        } 
     };
 
     useEffect(() => {
-        if (user?.role === "admin") {
+        if (user?.role) {
             getData();
         }
     }, [user, dispatch]);
 
-    const cardsData = [
+    // Cards data for different roles
+    const adminCardsData = [
         {
             title: 'Colis',
             count: colis.length,
@@ -47,6 +59,24 @@ function Mission({ theme }) {
             link: '/dashboard/demande-retrait',
         },
     ];
+
+    const livreurCardsData = [
+        {
+            title: 'Colis Expidée',
+            count: colisExp,
+            icon: <FaParachuteBox style={{ fontSize: '20px', color: theme === 'dark' ? '#95de64' : '#52c41a' }} />,
+            link: '/dashboard/colis-ex',
+        },
+        {
+            title: 'Colis Pret de livrée',
+            count: colisPret,
+            icon: <TbTruckDelivery style={{ fontSize: '20px', color: theme === 'dark' ? '#95de64' : '#52c41a' }} />,
+            link: '/dashboard/colis-md',
+        },
+    ];
+
+    // Dynamically choose the cards data based on user role
+    const cardsData = user?.role === 'admin' ? adminCardsData : livreurCardsData;
 
     return (
         <Card

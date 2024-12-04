@@ -36,7 +36,6 @@ function ColisImport() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        <h4>Import Colis</h4>
                         <ImportFileColis theme={theme} />
                     </div>
                 </div>

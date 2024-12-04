@@ -158,13 +158,6 @@ function StoreInfo() {
                       onClick={() => handleEdit(store)}
                     />
                   </Tooltip>,
-                  <Tooltip title="Delete Store" key="delete">
-                    <Button 
-                      type="link" 
-                      icon={<MdDelete />} 
-                      onClick={() => handleDelete(store._id)}
-                    />
-                  </Tooltip>,
                   <Tooltip title="View Details" key="view">
                     <Button 
                       type="link" 
@@ -186,6 +179,7 @@ function StoreInfo() {
                       <p><strong>Address:</strong> {store.adress || 'N/A'}</p>
                       <p><strong>Telephone:</strong> {store.tele || 'N/A'}</p>
                       <p><strong>Solde:</strong> DH {store.solde}</p>
+                      <p><strong> Auto D-R : </strong> {store.auto_DR ? <Tag color='green'>Active</Tag> : <Tag color='red'>Desactive</Tag>}</p>
                     </>
                   }
                 />

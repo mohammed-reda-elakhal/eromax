@@ -148,13 +148,6 @@ function ColisLivrée({search}) {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Colis Expidie' />
-                        <Link to={`/dashboard/ajouter-colis/simple`} className='btn-dashboard'>
-                            <PlusCircleFilled style={{marginRight:"8px"}} />
-                            Ajouter Colis
-                        </Link>
-                    </div>
                     <div
                         className="content"
                         style={{

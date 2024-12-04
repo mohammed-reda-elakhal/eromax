@@ -56,6 +56,23 @@ const storeSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     },
+
+    toggleAutoDRStart(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    toggleAutoDRSuccess(state, action) {
+      const { auto_DR, storeId } = action.payload;
+      const storeIndex = state.stores.findIndex(store => store._id === storeId);
+      if (storeIndex !== -1) {
+        state.stores[storeIndex].auto_DR = auto_DR;
+      }
+      state.loading = false;
+    },
+    toggleAutoDRFailure(state, action) {
+      state.error = action.payload;
+      state.loading = false;
+    },
   },
 });
 

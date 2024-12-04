@@ -9,26 +9,80 @@ const createPayement = async (req, res) => {
     try {
         const { clientId, idBank, nom, rib } = req.body;
 
-        // Check if the provided Meth_Payement ID (idBank) is valid
+        // Vérifier si le Meth_Payement sélectionné existe
         const methPayement = await Meth_Payement.findById(idBank);
 
         if (!methPayement) {
-            return res.status(404).json({ message: 'Selected Meth Payement not found' });
+            return res.status(404).json({ message: 'Méthode de paiement sélectionnée introuvable.' });
         }
 
+        // Vérifier s'il existe déjà des paiements pour ce client
+        const existingPayements = await Payement.countDocuments({ clientId });
+
+        // Créer un nouveau paiement
         const newPayement = new Payement({
             clientId,
-            idBank, // This is the Meth_Payement ID you selected
+            idBank,
             nom,
             rib,
+            default: existingPayements === 0 // Si aucun paiement, celui-ci est le premier et devient le par défaut
         });
 
+        // Enregistrer le paiement dans la base de données
         const savedPayement = await newPayement.save();
-        res.status(201).json(savedPayement);
+
+        // Répondre avec succès
+        res.status(201).json({
+            message: 'Paiement créé avec succès.',
+            data: savedPayement,
+        });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
+
+
+const setDefaultPayement = async (req, res) => {
+    try {
+        
+        const { clientId, payementId } = req.body;
+
+        // Valider les IDs
+        if (!mongoose.Types.ObjectId.isValid(payementId)) {
+            return res.status(400).json({ message: 'payementId invalide.' });
+        }
+        if (!mongoose.Types.ObjectId.isValid(clientId)) {
+            return res.status(400).json({ message: 'clientId invalide.' });
+        }
+        // Vérifier si le paiement appartient au client
+        const payement = await Payement.findOne({ _id: payementId, clientId });
+        if (!payement) {
+            return res.status(404).json({ message: 'Méthode de paiement introuvable ou non autorisée.' });
+        }
+
+        // Réinitialiser `default` pour tous les paiements du client
+        await Payement.updateMany(
+            { clientId },
+            { $set: { default: false } }
+        );
+
+        // Définir le paiement sélectionné comme par défaut
+        payement.default = true;
+        await payement.save();
+
+        res.status(200).json({
+            message: 'La méthode de paiement par défaut a été mise à jour avec succès.',
+            payement,
+        });
+    } catch (error) {
+        console.error('Erreur:', error.message);
+        res.status(500).json({
+            message: 'Erreur lors de la mise à jour du paiement par défaut.',
+            error: error.message,
+        });
+    }
+};
+
 
 // Get all payments
 const getAllPayements =asyncHandler(async (req, res) => {
@@ -122,5 +176,7 @@ module.exports={
     getPayementById,
     deletePayement,
     updatePayement,
-    getPaymentsByClientId
+    getPaymentsByClientId,
+    setDefaultPayement
+    
 }
