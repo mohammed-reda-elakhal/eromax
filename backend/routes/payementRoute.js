@@ -12,7 +12,7 @@ router.get('/',getAllPayements);
     .put(updatePayement)
     .delete(deletePayement)
  router.get('/client/:clientId',getPaymentsByClientId);
- router.post('/payement/default',setDefaultPayement);
+ router.post('/default',setDefaultPayement);
 
 
 
