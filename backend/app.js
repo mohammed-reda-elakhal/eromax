@@ -6,6 +6,7 @@ require('dotenv').config;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { findOrCreateLivreur } = require("./Controllers/livreurController");
+const scheduleCronJobs = require('./Middlewares/CronScheduler'); // Import the cronJobs.js file
 
 
 // Connection To DB
@@ -68,6 +69,9 @@ app.use("/api/statistic", require("./routes/staticRoute"));
 app.use('/api/promotions', require('./routes/promotionRoutes'));
 app.use('/api/mission', require('./routes/missionRoutes'));
 app.use('/api/integration', require('./routes/apiIntegrationRoute'));
+
+// Initialize cron jobs
+scheduleCronJobs();
 
 
 
