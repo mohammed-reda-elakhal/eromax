@@ -354,7 +354,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 
 
 // Schedule a job to create factures every day at the specified time
-cron.schedule('50 23 * * *', async () => {
+cron.schedule('00 13 * * *', async () => {
     console.log('Running daily facture generation at 17:54');
     await createFacturesForClientsAndLivreurs();
     await generateFacturesRetour(); // Ensure this function is also adjusted if needed
