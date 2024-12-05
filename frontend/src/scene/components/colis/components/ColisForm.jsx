@@ -10,8 +10,6 @@ import {
   Input,
   Tooltip,
   Select,
-  Col,
-  Row,
   Checkbox,
   Alert,
   Button,
@@ -29,6 +27,7 @@ import {
 import {
   getAllVilles,
   getVilleById,
+  resetVille,
 } from '../../../../redux/apiCalls/villeApiCalls';
 import { toast } from 'react-toastify';
 import SelectAsync from 'react-select/async';
@@ -48,7 +47,6 @@ const daysOfWeek = [
 
 const ColisTypes = [
   { id: 1, name: 'Colis Simple' },
-  { id: 2, name: 'Colis du Stock' },
 ];
 
 const ColisOuvrir = [
@@ -102,6 +100,21 @@ const debouncedLoadOptions = debounce(
 );
 
 function ColisForm({ theme, type }) {
+  const initialFormData = {
+    nom: '',
+    tele: '',
+    ville: '',
+    adress: '',
+    commentaire: '',
+    prix: '',
+    produit: '',
+    colisType: ColisTypes[0].name,
+    remplaceColis: false,
+    ouvrirColis: true,
+    is_fragile: false,
+    oldColis: null, // To store the selected old colis data
+  };
+  
   const [formData, setFormData] = useState({
     nom: '',
     tele: '',
@@ -116,6 +129,8 @@ function ColisForm({ theme, type }) {
     is_fragile: false,
     oldColis: null, // To store the selected old colis data
   });
+
+  const [phoneError, setPhoneError] = useState('');
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -177,6 +192,14 @@ function ColisForm({ theme, type }) {
       oldColis,
     } = formData;
 
+    // Validate phone number before submission
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(tele)) {
+      setPhoneError('Le numéro de téléphone doit commencer par 0 et contenir exactement 10 chiffres.');
+      toast.error('Veuillez corriger le numéro de téléphone.');
+      return;
+    }
+
     if (!ville) {
       toast.error('Veuillez sélectionner une ville.');
       return;
@@ -185,7 +208,7 @@ function ColisForm({ theme, type }) {
     // Prepare colis data
     const colis = {
       nom,
-      tele: tele.startsWith('0') ? tele : `0${tele}`,
+      tele,
       ville,
       adresse: adress,
       commentaire,
@@ -207,9 +230,17 @@ function ColisForm({ theme, type }) {
 
     try {
       await dispatch(createColis(colis));
-      navigate('/dashboard/list-colis');
+      // Reset the form data to initial values
+      setFormData(initialFormData);
+      // Clear phone error
+      setPhoneError('');
+      // Reset Redux state related to 'ville'
+      dispatch(resetVille());
+      // Optionally, navigate if needed
+      window.scrollTo(0, 0);
     } catch (error) {
       console.error('Erreur lors de la création du colis:', error);
+      toast.error('Erreur lors de la création du colis. Veuillez réessayer.');
       // Error handling is managed in the API call
     }
   };
@@ -221,8 +252,8 @@ function ColisForm({ theme, type }) {
           className="colis-form-header"
           style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
         >
-          <Button type="primary" icon={<MdOutlineWidgets />} disabled>
-            Nouveau Colis
+          <Button type='primary' icon={<MdOutlineWidgets />} onClick={()=>navigate('/dashboard/list-colis')} >
+            List Colis
           </Button>
 
           {/* Colis Type Selection */}
@@ -297,7 +328,7 @@ function ColisForm({ theme, type }) {
                     formData.oldColis.label.split(' - ')[1]}
                 </Descriptions.Item>
                 <Descriptions.Item label="Téléphone">
-                  {"+212 "+formData.oldColis.tele || 'N/A'}
+                  {"+212 " + (formData.oldColis.tele || 'N/A')}
                 </Descriptions.Item>
                 <Descriptions.Item label="Ville">
                   {formData.oldColis.ville || 'N/A'}
@@ -347,50 +378,79 @@ function ColisForm({ theme, type }) {
           className="colis-form-inputs"
           style={{ marginTop: '24px' }}
         >
-              <div className="colis-form-input">
-                <label htmlFor="nom">
-                  Nom <span style={{ color: 'red' }}>*</span>
-                </label>
-                <Input
-                  placeholder="Nom"
-                  size="large"
-                  value={formData.nom}
-                  onChange={(e) => handleInputChange('nom', e.target.value)}
-                  style={theme === 'dark' ? darkStyle : {}}
-                  prefix={
-                    <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
-                  }
-                  suffix={
-                    <Tooltip title="Entrer nom de destinataire">
-                      <InfoCircleOutlined
-                        style={{ color: 'rgba(0,0,0,.45)' }}
-                      />
-                    </Tooltip>
-                  }
-                  required
-                />
-              </div>
-              <div className="colis-form-input">
-                <label htmlFor="tele">
-                  Téléphone <span style={{ color: 'red' }}>*</span>
-                </label>
-                <Input
-                  placeholder="Numéro de téléphone"
-                  size="large"
-                  value={formData.tele}
-                  onChange={(e) => handleInputChange('tele', e.target.value)}
-                  style={theme === 'dark' ? darkStyle : {}}
+          <div className="colis-form-input">
+            <label htmlFor="nom">
+              Nom <span style={{ color: 'red' }}>*</span>
+            </label>
+            <Input
+              placeholder="Nom"
+              size="large"
+              value={formData.nom}
+              onChange={(e) => handleInputChange('nom', e.target.value)}
+              style={theme === 'dark' ? darkStyle : {}}
+              prefix={
+                <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
+              }
+              suffix={
+                <Tooltip title="Entrer nom de destinataire">
+                  <InfoCircleOutlined
+                    style={{ color: 'rgba(0,0,0,.45)' }}
+                  />
+                </Tooltip>
+              }
+              required
+            />
+          </div>
 
-                  suffix={
-                    <Tooltip title="Entrer Numéro de téléphone de destinataire">
-                      <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
-                    </Tooltip>
-                  }
-                  maxLength={10} // Ensure it doesn't exceed 10 digits
-                  required
-                />
+          <div className="colis-form-input">
+            <label htmlFor="tele">
+              Téléphone <span style={{ color: 'red' }}>*</span>
+            </label>
+            <Input
+              placeholder="Numéro de téléphone"
+              size="large"
+              value={formData.tele}
+              onChange={(e) => {
+                let value = e.target.value;
 
+                // Remove all non-numeric characters
+                value = value.replace(/\D/g, '');
+
+                // Ensure the value starts with '0'
+                if (value && !value.startsWith('0')) {
+                  value = '0' + value;
+                }
+
+                // Limit to 10 digits
+                if (value.length > 10) {
+                  value = value.slice(0, 10);
+                }
+
+                handleInputChange('tele', value);
+
+                // Validate the phone number
+                const phoneRegex = /^0\d{9}$/;
+                if (value && !phoneRegex.test(value)) {
+                  setPhoneError('Le numéro de téléphone doit commencer par 0 et contenir exactement 10 chiffres.');
+                } else {
+                  setPhoneError('');
+                }
+              }}
+              style={theme === 'dark' ? darkStyle : {}}
+              suffix={
+                <Tooltip title="Entrer Numéro de téléphone de destinataire">
+                  <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                </Tooltip>
+              }
+              maxLength={10} // Ensure it doesn't exceed 10 digits
+              required
+            />
+            {phoneError && (
+              <div style={{ color: 'red', marginTop: '5px' }}>
+                {phoneError}
               </div>
+            )}
+          </div>
 
           {/* Ville Selection */}
           <div className="colis-form-input">
@@ -430,16 +490,15 @@ function ColisForm({ theme, type }) {
               />
             </div>
           )}
-         {
-          selectedVille && (
+          {selectedVille && (
             <div className="selected-ville-info" style={{ padding: '16px 0' }}>
-              <h3>Disponibility pour {selectedVille.nom}:</h3>
+              <h3>Disponibilité pour {selectedVille.nom}:</h3>
               <div
                 className="days-checkbox-list"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  flexWrap: 'wrap',  // Allow wrapping for small screens
+                  flexWrap: 'wrap', // Allow wrapping for small screens
                   gap: '8px',
                   padding: '16px',
                   backgroundColor: '#f0f2f5',
@@ -467,8 +526,7 @@ function ColisForm({ theme, type }) {
                 ))}
               </div>
             </div>
-          )
-         }
+          )}
 
           {/* Adresse Input */}
           <div className="colis-form-input">
@@ -489,7 +547,9 @@ function ColisForm({ theme, type }) {
 
           {/* Commentaire Input */}
           <div className="colis-form-input">
-            <label htmlFor="commentaire">Commentaire</label>
+            <label htmlFor="commentaire">
+              Commentaire <span style={{ color: 'red' }}>*</span>
+            </label>
             <TextArea
               size="large"
               showCount
@@ -500,57 +560,60 @@ function ColisForm({ theme, type }) {
               }
               placeholder="Commentaire, (Autre numéro de téléphone, date de livraison ...)"
               style={theme === 'dark' ? darkStyle : {}}
+              required
             />
           </div>
 
-         
-              <div className="colis-form-input">
-                <label htmlFor="prix">
-                  Prix <span style={{ color: 'red' }}>*</span>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Prix"
-                  size="large"
-                  value={formData.prix}
-                  onChange={(e) => handleInputChange('prix', e.target.value)}
-                  style={theme === 'dark' ? darkStyle : {}}
-                  prefix={
-                    <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
-                  }
-                  suffix={
-                    <Tooltip title="Entrer le prix de produit">
-                      <InfoCircleOutlined
-                        style={{ color: 'rgba(0,0,0,.45)' }}
-                      />
-                    </Tooltip>
-                  }
-                  required
-                  min={0}
-                />
-              </div>
-              <div className="colis-form-input">
-                <label htmlFor="produit">Nature de produit</label>
-                <Input
-                  placeholder="Nature de produit"
-                  size="large"
-                  value={formData.produit}
-                  onChange={(e) =>
-                    handleInputChange('produit', e.target.value)
-                  }
-                  style={theme === 'dark' ? darkStyle : {}}
-                  prefix={
-                    <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
-                  }
-                  suffix={
-                    <Tooltip title="Entrer la nature de produit">
-                      <InfoCircleOutlined
-                        style={{ color: 'rgba(0,0,0,.45)' }}
-                      />
-                    </Tooltip>
-                  }
-                />
-              </div>
+          <div className="colis-form-input">
+            <label htmlFor="prix">
+              Prix <span style={{ color: 'red' }}>*</span>
+            </label>
+            <Input
+              type="number"
+              placeholder="Prix"
+              size="large"
+              value={formData.prix}
+              onChange={(e) => handleInputChange('prix', e.target.value)}
+              style={theme === 'dark' ? darkStyle : {}}
+              prefix={
+                <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
+              }
+              suffix={
+                <Tooltip title="Entrer le prix de produit">
+                  <InfoCircleOutlined
+                    style={{ color: 'rgba(0,0,0,.45)' }}
+                  />
+                </Tooltip>
+              }
+              required
+              min={0}
+            />
+          </div>
+          <div className="colis-form-input">
+            <label htmlFor="produit">
+              Nature de produit <span style={{ color: 'red' }}>*</span>
+            </label>
+            <Input
+              required
+              placeholder="Nature de produit"
+              size="large"
+              value={formData.produit}
+              onChange={(e) =>
+                handleInputChange('produit', e.target.value)
+              }
+              style={theme === 'dark' ? darkStyle : {}}
+              prefix={
+                <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
+              }
+              suffix={
+                <Tooltip title="Entrer la nature de produit">
+                  <InfoCircleOutlined
+                    style={{ color: 'rgba(0,0,0,.45)' }}
+                  />
+                </Tooltip>
+              }
+            />
+          </div>
 
           {/* Submit Button */}
           <Button

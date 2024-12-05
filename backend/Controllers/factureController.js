@@ -338,8 +338,6 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 
         if (res) {
             res.status(200).json({ message: 'Factures created successfully', factures: facturesToInsert });
-        } else {
-            console.log('Factures created successfully');
         }
     } catch (error) {
         console.error(error);
@@ -354,7 +352,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 
 
 // Schedule a job to create factures every day at the specified time
-cron.schedule('00 13 * * *', async () => {
+cron.schedule('45 18 * * *', async () => {
     console.log('Running daily facture generation at 17:54');
     await createFacturesForClientsAndLivreurs();
     await generateFacturesRetour(); // Ensure this function is also adjusted if needed

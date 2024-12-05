@@ -31,6 +31,14 @@ export function getVilleById(id) {
   };
 }
 
+// Fetch a single ville by ID
+export function resetVille() {
+  return async (dispatch) => {
+   
+      dispatch(villeActions.fetchVilleByIdSuccess(null)); // Dispatching to the new action
+  };
+}
+
 // Add a new ville
 export function ajoutVille(villeData) {
   return async (dispatch) => {

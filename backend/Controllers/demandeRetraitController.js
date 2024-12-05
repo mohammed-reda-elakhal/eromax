@@ -1,4 +1,5 @@
 // controllers/demande_retour.controller.js
+const { performAutomaticDemandeRetrait } = require('../Middlewares/ServiceDR');
 const DemandeRetrait = require('../Models/Demande_Retrait');
 const Notification_User = require('../Models/Notification_User');
 const Payement = require('../Models/Payement');
@@ -50,65 +51,9 @@ exports.createDemandeRetrait = async (req, res) => {
 };
 
 
-exports.createAutomaticDemandeRetrait = async (req, res) => {
-  try {
-      const tarif = 5; // Tarif fixe pour chaque retrait
-      const seuilSolde = 105; // Seuil minimum pour déclencher un retrait
 
-      // Étape 1 : Récupérer les magasins avec auto_DR = true et solde >= seuilSolde
-      const stores = await Store.find({ auto_DR: true, solde: { $gte: seuilSolde } });
 
-      if (!stores.length) {
-          return res.status(404).json({ message: 'Aucun magasin éligible pour un retrait automatique.' });
-      }
 
-      const demandesRetrait = [];
-
-      // Étape 2 : Parcourir les magasins éligibles
-      for (const store of stores) {
-          // Récupérer le paiement par défaut pour ce magasin
-          const defaultPayement = await Payement.findOne({ clientId: store.id_client, default: true });
-
-          if (!defaultPayement) {
-              console.warn(`Aucun paiement par défaut trouvé pour le magasin ${store.storeName}.`);
-              continue;
-          }
-
-          // Calculer le montant après déduction du tarif
-          const montantNet = store.solde - tarif;
-
-          // Créer une demande de retrait
-          const demandeRetrait = new DemandeRetrait({
-              id_store: store._id,
-              id_payement: defaultPayement._id,
-              montant: montantNet,
-              tarif,
-              verser: false,
-          });
-
-          // Sauvegarder la demande
-          const savedDemandeRetrait = await demandeRetrait.save();
-
-          // Mettre à jour le solde du magasin
-          store.solde = 0; // Solde remis à zéro après le retrait
-          await store.save();
-
-          demandesRetrait.push(savedDemandeRetrait);
-      }
-
-      // Étape 3 : Répondre avec les demandes créées
-      res.status(201).json({
-          message: 'Demandes de retrait automatiques créées avec succès.',
-          data: demandesRetrait,
-      });
-      console.log("demandes", demandesRetrait);
-  } catch (error) {
-      res.status(500).json({
-          message: 'Erreur lors de la création des demandes de retrait automatiques.',
-          error: error.message,
-      });
-  }
-};
 
 
 exports.getAllDemandesRetrait = async (req, res) => {
@@ -201,6 +146,23 @@ exports.verserDemandeRetrait = async (req, res) => {
     // Handle errors
     res.status(500).json({
       message: 'Erreur lors de la mise à jour du versement',
+      error: error.message,
+    });
+  }
+};
+
+
+exports.createAutomaticDemandeRetrait = async (req, res) => {
+  try {
+    const demandesRetrait = await performAutomaticDemandeRetrait();
+    res.status(201).json({
+      message: 'Demandes de retrait automatiques créées avec succès.',
+      data: demandesRetrait,
+    });
+    console.log('Demandes de retrait créées:', demandesRetrait);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Erreur lors de la création des demandes de retrait automatiques.',
       error: error.message,
     });
   }

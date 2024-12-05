@@ -1,16 +1,39 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table } from 'antd';
+import { Button, Input, message, Space, Table } from 'antd';
 import Highlighter from 'react-highlight-words';
 import HeaderSection from '../header/HeaderSection';
 import './tarif.css';
 import data from '../../data/tarif.json';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllVilles } from '../../redux/apiCalls/villeApiCalls';
 
 function Tarif() {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
   const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch()
+    const { villes } = useSelector(state => ({
+        villes: state.ville.villes
+      }));
+
+    // Fetch villes data
+    useEffect(() => {
+        loadVilles();
+    }, []);
+
+    const loadVilles = async () => {
+        setLoading(true);
+        try {
+            dispatch(getAllVilles())
+        } catch (error) {
+            message.error("Failed to load villes");
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -153,7 +176,7 @@ function Tarif() {
       <div className="tarif-main">
         <Table 
           columns={columns} 
-          dataSource={data} 
+          dataSource={villes} 
           pagination={{ 
             pageSizeOptions: ['5', '10', '20', '50' , '100 '], // Options for page size
             showSizeChanger: true, // Enable the page size changer

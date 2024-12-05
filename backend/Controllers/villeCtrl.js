@@ -28,10 +28,16 @@ const ajoutVille = async (req, res) => {
  * @access private  only admin
  -------------------------------------------
 */
-const getAllVilles= asyncHandler(async (req, res) => {
-  const ville = await Ville.find()
-  res.json(ville);
+const getAllVilles = asyncHandler(async (req, res) => {
+  try {
+    // Fetch villes and sort by 'tarif' in ascending order
+    const villes = await Ville.find().sort({ tarif: 1 });  // 1 for ascending order
+    res.json(villes);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
+
 
 /** -------------------------------------------
  *@desc get ville by id    

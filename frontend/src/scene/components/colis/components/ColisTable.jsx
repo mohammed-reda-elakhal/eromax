@@ -1,7 +1,7 @@
 // ColisTable.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, Button, Input, Drawer, Typography, Tag, Descriptions, Divider } from 'antd';
-import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt, FaDownload } from 'react-icons/fa';
+import { Modal, Button, Input, Drawer, Typography, Tag, Descriptions, Divider, Tooltip } from 'antd';
+import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt, FaDownload   } from 'react-icons/fa';
 import { Si1001Tracklists } from 'react-icons/si';
 import { TbPhoneCall } from 'react-icons/tb';
 import { IoSearch } from "react-icons/io5";
@@ -192,6 +192,45 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       dataIndex: 'tele',
       key: 'tele',
       ...search('tele'),
+      render: (text) => {
+        // Updated regular expression to validate Moroccan phone numbers
+        const phoneRegex = /^0[67]\d{8}$/;
+        const isValidPhoneNumber = phoneRegex.test(text);
+  
+        // Determine specific error messages
+        let errorMessage = '';
+        if (text) {
+          if (!text.startsWith('06') && !text.startsWith('07') && text.length === 10) {
+            errorMessage = 'Le numéro doit commencer par 06 ou 07.';
+          } else if ((text.startsWith('06') || text.startsWith('07')) && text.length !== 10) {
+            errorMessage = 'Le numéro doit comporter 10 chiffres.';
+          } else if (!text.startsWith('06') && !text.startsWith('07') && text.length !== 10) {
+            errorMessage = 'Le numéro doit commencer par 06 ou 07 et comporter 10 chiffres.';
+          }
+        }
+  
+        // If the phone number is invalid and there's an error message, use Tooltip
+        if (!isValidPhoneNumber && errorMessage) {
+          return (
+            <Tooltip title={errorMessage} placement="topLeft">
+              <Typography.Text
+                style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                {text}
+              </Typography.Text>
+            </Tooltip>
+          );
+        }
+  
+        // If the phone number is valid, display it in green without Tooltip
+        return (
+          <Typography.Text
+            style={{ color: 'green', fontWeight: 'bold' }}
+          >
+            {text}
+          </Typography.Text>
+        );
+      },
     },
     {
       title: 'Ville',
@@ -237,77 +276,111 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     },
     {
       title: 'Support',
-      render : (text , record) => (
-        <div className="expanded-actions" style={{ marginTop: '10px' }}>
+      render: (text, record) => (
+        <div className="expanded-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
           {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+            <Tooltip title="Contact via WhatsApp">
+              <Button 
+                type="primary" 
+                icon={<FaWhatsapp />} 
+                onClick={() => window.open(`https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}`, '_blank')}
+                style={{
+                  backgroundColor: '#25D366', // WhatsApp green
+                  borderColor: '#25D366',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
+          )}
+          <Tooltip title="Call Support">
             <Button 
               type="primary" 
-              icon={<FaWhatsapp />} 
-              onClick={() => window.open(`https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}`, '_blank')}
-              style={{ marginRight: '8px' }}
-            >
-            </Button>
-          )}
-          <Button 
-            type="primary" 
-            icon={<TbPhoneCall />} 
-            onClick={() => window.location.href = `tel:${phoneNumber}`}
-            style={{ marginRight: '8px' }}
-          >
-          </Button>
+              icon={<TbPhoneCall />} 
+              onClick={() => window.location.href = `tel:${phoneNumber}`}
+              style={{
+                backgroundColor: '#007bff', // Blue for calling
+                borderColor: '#007bff',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
         </div>
-      )
+      ),
     },
     {
       title: 'Options',
-      render : (text , record) => (
-        <div className="expanded-actions" style={{ marginTop: '10px' }}>
-          <Button 
-            type="primary" 
-            icon={<Si1001Tracklists />} 
-            onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
-            style={{ marginRight: '8px' }}
-          >
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<FaPrint />} 
-            onClick={() => handleTicket(record)} 
-            style={{ marginRight: '8px' }}
-          >
-          </Button>
-          {user.role !== 'livreur' ?
+      render: (text, record) => (
+        <div className="expanded-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+          <Tooltip title="View Tracking">
             <Button 
               type="primary" 
-              icon={<FaPenFancy />} 
-              onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
-              style={{ marginRight: '8px' }}
-            >
-            </Button>
-            : ""
-          }
-          {
-            user?.role === "client" && (
+              icon={<Si1001Tracklists />} 
+              onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
+              style={{
+                backgroundColor: '#17a2b8', // Teal for tracking
+                borderColor: '#17a2b8',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Print Ticket">
+            <Button 
+              type="primary" 
+              icon={<FaPrint />} 
+              onClick={() => handleTicket(record)} 
+              style={{
+                backgroundColor: '#0d6efd', // Blue for printing
+                borderColor: '#0d6efd',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
+          {user.role !== 'livreur' && (
+            <Tooltip title="Edit Record">
+              <Button 
+                type="primary" 
+                icon={<FaPenFancy />} 
+                onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
+                style={{
+                  backgroundColor: '#ffac33', // Orange for editing
+                  borderColor: '#ffac33',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
+          )}
+          {user?.role === 'client' && (
+            <Tooltip title="File a Reclamation">
               <Button 
                 type="primary" 
                 onClick={() => openReclamationModal(record)} 
+                style={{
+                  backgroundColor: '#dc3545', // Red for reclamation
+                  borderColor: '#dc3545',
+                  color: '#fff'
+                }}
               >
                 Reclamation
               </Button>
-            )
-          }
-          {
-            user?.role === "admin" && (
+            </Tooltip>
+          )}
+          {user?.role === 'admin' && (
+            <Tooltip title="Mark as Pret Payant">
               <Button 
                 type="primary" 
                 onClick={() => dispatch(setColisPayant(record._id))} 
+                style={{
+                  backgroundColor: '#dc3545', // Red for pret payant
+                  borderColor: '#dc3545',
+                  color: '#fff'
+                }}
               >
                 Prét Payant
               </Button>
-            )
-          }
-      </div>
-      )
+            </Tooltip>
+          )}
+        </div>
+      ),
     }
   ];
 
