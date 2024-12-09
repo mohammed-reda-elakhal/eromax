@@ -84,7 +84,7 @@ findOrCreateLivreur()
 const port =process.env.PORT || 8084;
 app.listen(port,()=>{
 console.log(
-    `Server is running in ${process.env.MODE_ENV} modde on port ${port}`    
+    `Server is running in ${process.env.MODE_ENV} modde on port ${port} , with server ${process.env.BASE_URL}`    
     
 );
 
