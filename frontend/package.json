@@ -12,7 +12,6 @@
     "antd-img-crop": "^4.22.0",
     "axios": "^1.7.4",
     "chart.js": "^4.4.3",
-    "dotenv": "^16.4.7",
     "file-saver": "^2.0.5",
     "framer-motion": "^11.2.1",
     "html2canvas": "^1.4.1",
