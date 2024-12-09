@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(cors({
     // https://eromax.vercel.app
     // http://localhost:3000
-    origin: "https://eromax.vercel.app", // Removed trailing slash
+    origin: process.env.BASE_URL, // Removed trailing slash
     credentials: true
 }));
 app.use(cookieParser());

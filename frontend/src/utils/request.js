@@ -1,9 +1,13 @@
 import axios from "axios";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 const request = axios.create({
     // https://eromax-api.onrender.com
     // http://localhost:8084
-    baseURL: "https://eromax-api.onrender.com",
+    baseURL:  process.env.BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     }
