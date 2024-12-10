@@ -3,6 +3,7 @@ import {
   InfoCircleOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import { TfiMenuAlt } from "react-icons/tfi";
 import {
   Input,
   Tooltip,
@@ -452,7 +453,7 @@ function ColisForm({ theme, type }) {
           </div>
 
           <div className="colis-form-footer" style={{ marginTop: '12px' }}>
-            <Button type="primary" onClick={showDrawer}>
+            <Button type="primary" onClick={showDrawer} icon={<TfiMenuAlt />}>
               Options Avancées
             </Button>
             <Button
