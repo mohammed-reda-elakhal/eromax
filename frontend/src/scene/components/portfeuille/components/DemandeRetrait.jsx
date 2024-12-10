@@ -67,7 +67,7 @@ function DemandeRetrait({ theme , setOpenWallet }) {
                 Demande de Retrait
             </h1>
             <form onSubmit={handleSubmit}>
-                <div className="colis-form-input">
+                <div className="colis-form-input" style={{width:"100%"}}>
                     <label htmlFor="montant">Montant <span className="etoile">*</span></label>
                     <Input
                         placeholder="Montant"
@@ -86,7 +86,7 @@ function DemandeRetrait({ theme , setOpenWallet }) {
                         }
                     />
                 </div>
-                <div className="colis-form-input">
+                <div className="colis-form-input" style={{width:"100%"}}>
                     <label htmlFor="banque">Banque <span className="etoile">*</span></label>
                     <Select
                         size="large"

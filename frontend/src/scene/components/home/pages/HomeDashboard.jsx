@@ -44,7 +44,7 @@ function HomeDashboard() {
                             :""
                         }
         
-                        <Statistic theme={theme} />
+                        <Statistic theme={theme} userRole={user.role} />
                     </div>
                 </div>
             </main>

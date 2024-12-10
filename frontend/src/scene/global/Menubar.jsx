@@ -52,17 +52,20 @@ function Menubar() {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
+        // On mobile devices, keep it collapsed
         setCollapsed(true);
         localStorage.setItem('menuCollapsed', JSON.stringify(true));
       } else {
-        const savedState = JSON.parse(localStorage.getItem('menuCollapsed'));
-        setCollapsed(savedState !== null ? savedState : false);
+        // On laptop/desktop devices, force it open
+        setOpenMenu(true);
+        setCollapsed(false);
+        localStorage.setItem('menuCollapsed', JSON.stringify(false));
       }
     };
-
-    handleResize(); // Set the initial state
+  
+    handleResize(); // Set the initial state on load
     window.addEventListener('resize', handleResize);
-
+  
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -90,14 +93,7 @@ function Menubar() {
             />
         </div>
 
-        {/* Conditionally render StoreDown if user is a client and there are stores */}
-        
-        {
-          userData.role ==="client" && (
-            <StoreDown  theme={theme} collapsed={collapsed} />
-          )
-        }
-        
+   
           
 
         <Menu.Item icon={<FaTachometerAlt />}>
@@ -180,7 +176,7 @@ function Menubar() {
             <>
               <Menu.SubMenu icon={<IoWalletSharp />} title="Portfeuille">
                 <Menu.Item icon={<BiTagAlt />}>
-                  <Link onClick={() => setOpenWallet(true)}>Portfeuille & Demande</Link>
+                  <Link to={"/dashboard/portfeuille"}>Portfeuille</Link>
                 </Menu.Item>
                 <Menu.Item icon={<BiTagAlt />}>
                   <Link to={"/dashboard/demande-retrait"}>List Demandes</Link>

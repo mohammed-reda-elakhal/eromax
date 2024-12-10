@@ -41,10 +41,6 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   }
 
   // Input validation
-  const { error } = validateRegisterColis(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
 
   // Validate that req.user is present and has store
   if (!req.user) {

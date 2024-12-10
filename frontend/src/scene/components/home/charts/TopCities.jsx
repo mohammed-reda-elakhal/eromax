@@ -116,7 +116,7 @@ function TopCitiesChart() {
                 transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
             }}
         >
-            <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Top 10 Villes par Nombre de Colis</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Top 10 Villes</h2>
             {villes.length > 0 ? (
                 <Bar data={chartData} options={options} />
             ) : (

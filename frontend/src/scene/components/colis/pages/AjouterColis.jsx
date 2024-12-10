@@ -4,7 +4,7 @@ import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import ColisForm from '../components/ColisForm';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 function AjouterColis() {
     const { theme } = useContext(ThemeContext);
@@ -78,7 +78,7 @@ function AjouterColis() {
                     backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                 }}
             >
-                <h4>Nouveau Colis</h4>
+                <h4>Nouveau Colis {" > "} <Link to={`/dashboard/list-colis`}> List Colis</Link></h4>
                 <ColisForm theme={theme} darkStyle={darkStyle} type={type}/>
             </div>
         </div>
