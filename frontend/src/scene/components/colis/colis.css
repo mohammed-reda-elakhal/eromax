@@ -1,8 +1,14 @@
+.colis-form-inputs{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 .colis-form-input{
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-top: 16px;
+    width: 30%;
 }
 /* ColisForm.css */
 
@@ -119,12 +125,61 @@
     border-radius: 8px;
     width: max-content;
 }
+.selected-ville-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+  }
+  
+  .days-checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    background-color: #f0f2f5;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .days-checkbox-list .ant-checkbox-wrapper {
+    font-size: 14px;
+    padding: 4px 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+  
+  .days-checkbox-list .ant-checkbox-wrapper.checked {
+    background-color: #e6f7ff;
+  }
 
+  .colis-form-line{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2%;
+    align-items: flex-start;
+  }
+
+  .colis-form-footer{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  
 @media only screen and (max-width: 600px){
     .colis-form-header{
        flex-direction: column;
     }
     .control-option{
+        flex-direction: column;
+    }
+    .colis-form-input{
+        width: 100%;
+    }
+    .colis-form-footer{
         flex-direction: column;
     }
 }

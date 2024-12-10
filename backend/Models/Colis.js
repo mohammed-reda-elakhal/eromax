@@ -54,7 +54,7 @@ const ColisSchema = new mongoose.Schema({
     },
     nature_produit: {
         type: String,
-        required: true,
+        required: false,
     },
     etat: {
         type: Boolean,
@@ -189,7 +189,7 @@ function validateRegisterColis(obj) {
         prix: Joi.number().required(),
         commentaire: Joi.string(),
         etat: Joi.boolean(),
-        nature_produit: Joi.string().required(),
+        nature_produit: Joi.string(),
         statut: Joi.string().valid(...[
             "Nouveau Colis",
             "attente de ramassage",

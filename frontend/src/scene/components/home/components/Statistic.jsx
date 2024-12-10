@@ -8,7 +8,7 @@ import ClientChart from '../charts/ClientChart'
 import TopCitiesChart from '../charts/TopCities'
 
 
-function Statistic({theme}) {
+function Statistic({theme , userRole}) {
   return (
     <div className='statistic'>
         <Divider />
@@ -19,7 +19,10 @@ function Statistic({theme}) {
         <Divider/>
         <TopCitiesChart />
         <Divider />
-        <ClientChart />
+        {
+          userRole === " admin" ?  <ClientChart /> : ""
+        }
+       
     </div>
   )
 }

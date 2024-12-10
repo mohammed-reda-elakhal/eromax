@@ -7,6 +7,7 @@ import { FaDownload } from "react-icons/fa";
 import '../portfeuille.css'
 import SoldeCart from '../components/SoldeCart';
 import Solde from '../components/Solde';
+import DemandeRetrait from '../components/DemandeRetrait';
 
 function Portfeuille() {
     const { theme } = useContext(ThemeContext);
@@ -22,17 +23,19 @@ function Portfeuille() {
                           color: theme === 'dark' ? '#fff' : '#002242',
                       }}
                   >
-                      <div className="page-content-header">
-                          <Title nom='Portfeuille' />
-                          
-                      </div>
                       <div
                           className="content"
                           style={{
                               backgroundColor: theme === 'dark' ? '#001529' : '#fff',
+
                           }}
                       >
-                          <Solde theme={theme}/>
+                            <h3>Portfeuille</h3>
+                            <div className="portfeuille_content">
+                                <SoldeCart theme={theme}/>
+                                <DemandeRetrait theme={theme}/>
+                            </div>
+                            
                       </div>
                   </div>
               </main>

@@ -308,6 +308,13 @@
   cursor: pointer;
 }
 
+@media (min-width: 768px) {
+  .open-menu,
+  .open-menu-c {
+    display: none !important;
+  }
+}
+
 
 @media only screen and (max-width: 600px){
   .colis-filter .filter-inputs{
