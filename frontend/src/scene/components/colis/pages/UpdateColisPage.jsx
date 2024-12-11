@@ -33,7 +33,7 @@ function UpdateColisPage({search}) {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        <UpdateColis />
+                        <UpdateColis theme={theme} />
                     </div>
                 </div>
             </main>

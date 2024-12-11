@@ -1,91 +1,49 @@
-.colis-form-inputs{
+/* Base form layout */
+.colis-form-container {
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.colis-form-inputs {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
-.colis-form-input{
+
+.colis-form-input {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-top: 16px;
     width: 30%;
 }
-/* ColisForm.css */
 
-/* Dark mode styles for the Select component */
-.colis-select-ville.dark-mode .ant-select-selector {
-    background-color: transparent;
-    color: #fff;
-    border-color: gray;
+.colis-form-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2%;
+    align-items: flex-start;
 }
 
-.colis-select-ville.dark-mode .ant-select-selection-placeholder {
-    color: gray;
-}
-.expanded-actions{
+.colis-form-footer {
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
-    gap: 20px;
-}
-.colis-select-ville.dark-mode .ant-select-selection-item {
-    color: #fff;
+    gap: 12px;
+    width: 100%;
 }
 
-.colis-select-ville.dark-mode .ant-select-dropdown {
-    background-color: #333;
-    color: #fff;
-}
-
-.colis-select-ville.dark-mode .ant-select-item-option {
-    color: #ccc;
-}
-
-.colis-select-ville.dark-mode .ant-select-item-option-selected {
-    background-color: #555;
-    color: #fff;
-}
-
-.colis-select-ville.dark-mode .ant-select-item-option-active {
-    background-color: #444;
-    color: #fff;
-}
-
-.colis-select-ville.dark-mode .ant-select-arrow {
-    color: gray;
-}
-
-.colis-select-ville.dark-mode .ant-select-item-option-content {
-    color: #ccc;
-}
-
-.livreur_list_modal{
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-
-}
-.livreur_list_modal h3{
-    color: var(--gray);
-    font-size: 16px;
-}
-
-.livreur_list_modal_card{
-    display: flex;
-    align-items: center;
-}
-
-.colis-form-header{
+/* Header and actions */
+.colis-form-header {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
 }
-.colis-form-header > *{
+.colis-form-header > * {
     width: 100%;
 }
-.colis-form-header button{
+.colis-form-header button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -95,26 +53,37 @@
     border: none;
     border-radius: 4px;
 }
-.colis-form-header p{
+.colis-form-header p {
     color: var(--gray);
     font-size: 10px;
 }
 
-.option_btn{
+/* Expanded actions */
+.expanded-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 20px;
+}
+
+/* Option buttons */
+.option_btn {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-.control-option{
+
+.control-option {
     display: flex;
     gap: 2rem;
 }
-.scane-option .icon{
+
+.scane-option .icon {
     font-size: 1.6rem;
 }
 
-
-.bar-action-data{
+/* Additional layout components */
+.bar-action-data {
     display: flex;
     align-items: center;
     flex-direction: row;
@@ -125,15 +94,38 @@
     border-radius: 8px;
     width: max-content;
 }
+
+/* Selected ville info section */
 .selected-ville-info {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 16px;
     padding: 16px 0;
-  }
-  
-  .days-checkbox-list {
+    border-radius: 8px;
+}
+
+.selected-ville-info-content {
+    margin: 12px;
+}
+
+/* Livreur modal */
+.livreur_list_modal {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+.livreur_list_modal h3 {
+    color: var(--gray);
+    font-size: 16px;
+}
+.livreur_list_modal_card {
+    display: flex;
+    align-items: center;
+}
+
+/* Days checkbox list */
+.days-checkbox-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -141,62 +133,351 @@
     background-color: #f0f2f5;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .days-checkbox-list .ant-checkbox-wrapper {
+}
+.days-checkbox-list .ant-checkbox-wrapper {
     font-size: 14px;
     padding: 4px 8px;
     border: 1px solid #d9d9d9;
     border-radius: 4px;
     background-color: #fff;
-  }
-  
-  .days-checkbox-list .ant-checkbox-wrapper.checked {
+}
+.days-checkbox-list .ant-checkbox-wrapper.checked {
     background-color: #e6f7ff;
-  }
+}
 
-  .colis-form-line{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2%;
-    align-items: flex-start;
-  }
+/* Dark mode styling */
+.dark-mode {
+    background-color: #002242;
+    color: #ffffff;
+}
 
-  .colis-form-footer{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
+.dark-mode label {
+    color: #ffffff;
+}
+
+/* Inputs and placeholders in dark mode */
+.dark-mode .ant-input::placeholder,
+.dark-mode .ant-input-affix-wrapper::placeholder,
+.dark-mode .ant-select-selection-placeholder,
+.dark-mode .ant-input-textarea::placeholder {
+    color: #cccccc;
+    opacity: 1;
+}
+
+.dark-mode .ant-input,
+.dark-mode .ant-input-affix-wrapper,
+.dark-mode .ant-select-selector,
+.dark-mode .ant-textarea {
+    color: #ffffff;
+    background-color: #001529;
+    border-color: #555555;
+}
+
+/* Dark mode for checkboxes */
+.dark-mode .ant-checkbox-wrapper,
+.dark-mode .ant-checkbox-wrapper * {
+    color: #ffffff;
+}
+
+/* Dark mode for buttons */
+.dark-mode .ant-btn-primary {
+    background-color: #1890ff;
+    border-color: #1890ff;
+}
+.dark-mode .ant-btn {
+    color: #ffffff;
+}
+
+/* Dark mode for modal */
+.dark-mode .ant-modal-content {
+    background-color: #002242;
+    color: #ffffff;
+}
+.dark-mode .ant-modal-header {
+    background-color: #002242;
+    border-bottom-color: #333333;
+}
+.dark-mode .ant-modal-title {
+    color: #ffffff;
+}
+.dark-mode .ant-modal-close-x {
+    color: #ffffff;
+}
+
+/* Dark mode for drawer */
+.dark-mode .ant-drawer-content {
+    background-color: #002242;
+    color: #ffffff;
+}
+.dark-mode .ant-drawer-header {
+    background-color: #002242;
+    border-bottom-color: #333333;
+    color: #ffffff;
+}
+.dark-mode .ant-drawer-body {
+    background-color: #002242;
+    color: #ffffff;
+}
+.dark-mode .ant-drawer-title {
+    color: #ffffff;
+}
+
+/* Dark mode for selected-ville-info */
+.dark-mode .selected-ville-info {
+    background-color: #001529;
+    color: #ffffff;
+}
+
+/* Dark mode for selects and dropdowns */
+.dark-mode .ant-select-dropdown {
+    background-color: #001529;
+    color: #ffffff;
+}
+.dark-mode .ant-select-item-option {
+    color: #ffffff;
+}
+.dark-mode .ant-select-item-option-selected {
+    background-color: #1890ff;
+    color: #ffffff;
+}
+
+/* Dark mode for tooltip */
+.dark-mode .ant-tooltip-inner {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+/* Dark mode textarea placeholders */
+.dark-mode .ant-input-textarea::placeholder {
+    color: #cccccc;
+}
+/* Dark mode for Card */
+.dark-mode .ant-card {
+    background-color: #001529;
+    color: #ffffff;
+    border-color: #555555;
+}
+.dark-mode .ant-card-bordered {
+    border-color: #555555;
+}
+.dark-mode .ant-card-head {
+    background-color: #001529;
+    border-bottom-color: #555555;
+    color: #ffffff;
+}
+/* Footer of Card in Dark Mode */
+.dark-mode .ant-card-actions {
+    background: #001529;
+    border-top: 1px solid #555555;
   }
   
-@media only screen and (max-width: 600px){
-    .colis-form-header{
+  .dark-mode .ant-card-actions > li {
+    color: #ffffff;
+  }
+  
+  .dark-mode .ant-card-actions > li:hover {
+    background: #002242;
+    color: #ffffff;
+  }
+  
+.dark-mode .ant-card-body {
+    background-color: #001529;
+    color: #ffffff;
+}
+
+/* Dark mode styles for Descriptions */
+.dark-mode .ant-descriptions {
+    background-color: #001529; /* Dark background */
+    color: #ffffff;
+  }
+  
+  .dark-mode .ant-descriptions-item-label {
+    color: #cccccc; /* Slightly lighter label text */
+    background-color: transparent;
+    border-color: #555555; /* Adjust border if using bordered layout */
+  }
+  
+  .dark-mode .ant-descriptions-item-content {
+    color: #ffffff;
+    background-color: transparent;
+    border-color: #555555; /* If using bordered */
+  }
+  
+  /* For bordered Descriptions */
+  .dark-mode .ant-descriptions-bordered .ant-descriptions-item-label,
+  .dark-mode .ant-descriptions-bordered .ant-descriptions-item-content {
+    border-color: #555555;
+  }
+  
+  /* Dark mode for Divider */
+  .dark-mode .ant-divider {
+    border-color: #555555;
+  }
+  
+  /* Dark mode for Modal */
+  .dark-mode .ant-modal-content {
+    background-color: #002242;
+    color: #ffffff;
+  }
+  .dark-mode .ant-modal-header {
+    background-color: #002242;
+    border-bottom-color: #333333;
+  }
+  .dark-mode .ant-modal-title {
+    color: #ffffff;
+  }
+  .dark-mode .ant-modal-close-x {
+    color: #ffffff;
+  }
+  
+  /* Dark mode for Form */
+  .dark-mode .ant-form-item-label > label {
+    color: #ffffff;
+  }
+  .dark-mode .ant-form-item-control {
+    color: #ffffff;
+  }
+  
+  /* Dark mode for Input */
+  .dark-mode .ant-input,
+  .dark-mode .ant-input-affix-wrapper,
+  .dark-mode .ant-input-textarea {
+    background-color: #001529;
+    color: #ffffff;
+    border-color: #555555;
+  }
+  .dark-mode .ant-input::placeholder {
+    color: #cccccc;
+  }
+  
+  /* Dark mode for Upload button */
+  .dark-mode .ant-upload-select,
+  .dark-mode .ant-upload-list-item {
+    background-color: #001529;
+    border-color: #555555;
+    color: #ffffff;
+  }
+  
+  /* Dark mode for Typography (Title, Text, etc.) */
+  .dark-mode .ant-typography,
+  .dark-mode .ant-typography h1,
+  .dark-mode .ant-typography h2,
+  .dark-mode .ant-typography h3,
+  .dark-mode .ant-typography h4,
+  .dark-mode .ant-typography p {
+    color: #ffffff;
+  }
+  
+  /* Dark mode for Button (already defined in previous snippets, but reiterating if needed) */
+  .dark-mode .ant-btn {
+    color: #ffffff;
+    background-color: #001529;
+    border-color: #555555;
+  }
+  .dark-mode .ant-btn-primary {
+    background-color: #1890ff;
+    border-color: #1890ff;
+  }
+  
+  /* Additional elements can follow similar patterns if needed */
+  /* Dark mode for Descriptions title */
+.dark-mode .ant-descriptions-title {
+    color: #ffffff; /* White text for the title */
+    background-color: transparent; /* Ensure background matches the dark mode container */
+  }
+/* Dark mode for each Descriptions item title (label) */
+.dark-mode .ant-descriptions-item-label {
+    color: #ffffff;
+    background-color: transparent;
+    border-color: #555555; /* If using bordered Descriptions */
+  }
+  
+
+/* Dark mode for Timeline */
+.dark-mode .ant-timeline {
+    color: #ffffff;
+}
+.dark-mode .ant-timeline-item {
+    color: #ffffff;
+}
+.dark-mode .ant-timeline-item-head {
+    background-color: #1890ff; /* Adjust if desired */
+    border-color: #1890ff;
+}
+.dark-mode .ant-timeline-item-content {
+    color: #ffffff;
+    background-color: #001529; /* If you want a background for the content, adjust as needed */
+}
+.timeline-container {
+    padding: 10px 0;
+    border-radius: 8px;
+    background: #f9f9f9; /* Light mode background */
+  }
+  
+  .dark-mode .timeline-container {
+    background: #001529; /* Dark mode background */
+    color: #ffffff; /* Dark mode text color */
+  }
+  .dark-mode .ant-timeline {
+    background-color: #001529 !important;
+    color: #ffffff !important;
+  }
+    
+  
+/* Dark mode styles for the Select component inside .colis-select-ville */
+.colis-select-ville.dark-mode .ant-select-selector {
+    background-color: transparent;
+    color: #fff;
+    border-color: gray;
+}
+.colis-select-ville.dark-mode .ant-select-selection-placeholder {
+    color: gray;
+}
+.colis-select-ville.dark-mode .ant-select-selection-item {
+    color: #fff;
+}
+.colis-select-ville.dark-mode .ant-select-dropdown {
+    background-color: #333;
+    color: #fff;
+}
+.colis-select-ville.dark-mode .ant-select-item-option {
+    color: #ccc;
+}
+.colis-select-ville.dark-mode .ant-select-item-option-selected {
+    background-color: #555;
+    color: #fff;
+}
+.colis-select-ville.dark-mode .ant-select-item-option-active {
+    background-color: #444;
+    color: #fff;
+}
+.colis-select-ville.dark-mode .ant-select-arrow {
+    color: gray;
+}
+.colis-select-ville.dark-mode .ant-select-item-option-content {
+    color: #ccc;
+}
+
+
+
+/* Responsive adjustments */
+@media only screen and (max-width: 600px) {
+    .colis-form-header {
        flex-direction: column;
     }
-    .control-option{
+    .control-option {
         flex-direction: column;
     }
-    .colis-form-input{
+    .colis-form-input {
         width: 100%;
     }
-    .colis-form-footer{
+    .colis-form-footer {
         flex-direction: column;
     }
 }
+
 @media only screen and (min-width: 601px) and (max-width: 900px) {
-    .colis-form-header{
+    .colis-form-header {
         flex-direction: column;
-     }
+    }
 }
-
-/* Styling for checkboxes container */
-.days-checkbox-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 16px;
-  background-color: #f0f2f5;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-

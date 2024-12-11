@@ -143,7 +143,7 @@ function Topbar() {
          
 
           {/* Notification drawer */}
-          <Drawer title="Notification" onClose={() => setOpenNot(prev => !prev)} open={openNot} width={400}>
+          <Drawer  className={theme === 'dark' ? 'dark-mode' : ''} title="Notification" onClose={() => setOpenNot(prev => !prev)} open={openNot} width={400}>
             <List
               dataSource={notificationUser}
               renderItem={(not) => (
@@ -177,7 +177,7 @@ function Topbar() {
       </div>
 
       {/* Withdraw request drawer */}
-      <Drawer title="Demande De Retrait" onClose={() => setOpenRetrait((prev) => !prev)} open={openRetrait}>
+      <Drawer  className={theme === 'dark' ? 'dark-mode' : ''} title="Demande De Retrait" onClose={() => setOpenRetrait((prev) => !prev)} open={openRetrait}>
         <SoldeCart theme={theme} />
         <DemandeRetrait setOpenWallet={setOpenRetrait} theme={theme} />
       </Drawer>

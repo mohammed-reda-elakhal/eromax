@@ -24,7 +24,7 @@ function SoldeCart({theme}) {
             <h3>Mohammed reda</h3>
             <div className="solde">
                 <h2 className="solde-value">
-                    {storeData.solde} DH
+                    {storeData?.solde} DH
                 </h2>
                 <p>Solde du Compte</p>
             </div>

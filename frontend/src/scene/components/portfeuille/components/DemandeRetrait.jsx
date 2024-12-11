@@ -98,6 +98,15 @@ function DemandeRetrait({ theme , setOpenWallet }) {
                         disabled={paymentOptions.length === 0} // Disable the select box if no options
                     />
                 </div>
+                <div 
+                    className='notification_home'
+                    style={{
+                        backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
+                        marginTop:"16px"
+                    }}
+                >
+                    Les frais de chaque demande de retrait (virement bancaire) sont:5.00MAD
+                </div>
                 <Divider />
                 <button 
                     className='btn-dashboard'

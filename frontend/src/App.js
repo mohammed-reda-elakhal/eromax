@@ -69,6 +69,7 @@ import DocumentProfile from "./scene/components/profile/components/DocumentProfi
 
 import { useSelector } from "react-redux";
 import UpdateColisPage from "./scene/components/colis/pages/UpdateColisPage";
+import TransactionPage from "./scene/components/payement/page/TransactionPage";
 
 
 function App() {
@@ -211,7 +212,7 @@ function App() {
             <Route path="reclamation-complete" element={<ReclamationOk />} />
             <Route path="gnotification" element={<Notification />} /> 
             <Route path="demande-retrait" element={<DemandeRetraitTable />} /> 
-            <Route path="transaction" element={<TransactionTable />} /> 
+            <Route path="transaction" element={<TransactionPage />} /> 
             <Route path="tickets" element={<TicketBatch />} /> 
             
             <Route path="scan">

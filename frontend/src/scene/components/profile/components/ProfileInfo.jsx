@@ -22,7 +22,7 @@ import { getMessage } from '../../../../redux/apiCalls/messageApiCalls'; // Acti
 
 const { Title } = Typography;
 
-function ProfileInfo() {
+function ProfileInfo({theme}) {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const dispatch = useDispatch();
@@ -114,7 +114,7 @@ function ProfileInfo() {
     }
 
     return (
-        <div className='profile_information' style={{ padding: '20px' }}>
+        <div  className={`profile_information ${theme === 'dark' ? 'dark-mode' : ''}`} style={{ padding: '20px' }}>
             <Card 
                 title={<Title level={4}>Profil Utilisateur</Title>} 
                 bordered={false}

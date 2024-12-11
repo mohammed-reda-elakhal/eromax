@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+// ColisForm.jsx
+
+import React, { useEffect, useState, useContext } from 'react';
 import {
   InfoCircleOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { TfiMenuAlt } from "react-icons/tfi";
+import { TfiMenuAlt, TfiMoney } from "react-icons/tfi";
 import {
   Input,
   Tooltip,
   Select,
   Checkbox,
-  Alert,
   Button,
   Modal,
   Drawer,
@@ -30,6 +31,10 @@ import {
 import { toast } from 'react-toastify';
 import SelectAsync from 'react-select/async';
 import debounce from 'lodash/debounce';
+import { FaPhoneAlt } from 'react-icons/fa';
+import { AiFillProduct } from "react-icons/ai";
+import { FaMapLocation } from "react-icons/fa6";
+import { ThemeContext } from '../../../ThemeContext'; // Ensure ThemeContext is imported
 
 const { TextArea } = Input;
 
@@ -45,18 +50,13 @@ const daysOfWeek = [
 
 const ColisTypes = [
   { id: 1, name: 'Colis Simple' },
+  { id: 2, name: 'Colis Stock' }, // Ensure this matches your useEffect logic
 ];
 
 const ColisOuvrir = [
   { id: 1, name: 'Ouvrir Colis', value: true },
   { id: 2, name: 'Ne pas Ouvrir Colis', value: false },
 ];
-
-const darkStyle = {
-  backgroundColor: 'transparent',
-  color: '#fff',
-  borderColor: 'gray',
-};
 
 const loadOptions = (inputValue, callback, dispatch) => {
   if (!inputValue) {
@@ -94,7 +94,8 @@ const debouncedLoadOptions = debounce(
   500
 );
 
-function ColisForm({ theme, type }) {
+function ColisForm({ type }) {
+  const { theme } = useContext(ThemeContext); // Access theme from ThemeContext
   const initialFormData = {
     nom: '',
     tele: '',
@@ -109,7 +110,7 @@ function ColisForm({ theme, type }) {
     is_fragile: false,
     oldColis: null,
   };
-  
+
   const [formData, setFormData] = useState(initialFormData);
   const [phoneError, setPhoneError] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -210,6 +211,7 @@ function ColisForm({ theme, type }) {
       setPhoneError('');
       dispatch(resetVille());
       window.scrollTo(0, 0);
+      toast.success('Colis créé avec succès!');
     } catch (error) {
       console.error('Erreur lors de la création du colis:', error);
       toast.error('Erreur lors de la création du colis. Veuillez réessayer.');
@@ -237,59 +239,65 @@ function ColisForm({ theme, type }) {
   };
 
   return (
-    <>
+    <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`}>
       <form onSubmit={handleSubmit}>
-        {/* Minimal top section */}
-         {/* Display selected ville details if available */}
-         {selectedVille && (
-            <div className="selected-ville-info" style={{ padding: '16px 0', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '16px' }}>
-              <div style={{ flex: 2 }}>
-                <h3 style={{ marginBottom: '8px' }}>
-                  {selectedVille.nom} - {selectedVille.tarif} DH
-                </h3>
-                <div
-                  className="days-checkbox-list"
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    padding: '8px',
-                    backgroundColor: '#f0f2f5',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                  }}
-                >
-                  {daysOfWeek.map((day) => (
-                    <Checkbox
-                      key={day}
-                      checked={selectedVille.disponibility.includes(day)}
-                      disabled
-                      style={{
-                        fontSize: '14px',
-                        padding: '4px 8px',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '4px',
-                        backgroundColor: selectedVille.disponibility.includes(day)
-                          ? '#e6f7ff'
-                          : '#fff',
-                      }}
-                    >
-                      {day}
-                    </Checkbox>
-                  ))}
-                </div>
+        {/* Display selected ville details if available */}
+        {selectedVille && (
+          <div
+            className="selected-ville-info"
+            style={{
+              padding: '16px 0',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: '16px',
+            }}
+          >
+            <div style={{ flex: 2 }} className='selected-ville-info-content'>
+              <h3 style={{ marginBottom: '8px' }}>
+                {selectedVille.nom} - {selectedVille.tarif} DH
+              </h3>
+              <div
+                className="days-checkbox-list"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  padding: '8px',
+                  backgroundColor: theme === 'dark' ? '#001529' : '#f0f2f5',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                {daysOfWeek.map((day) => (
+                  <Checkbox
+                    key={day}
+                    checked={selectedVille.disponibility.includes(day)}
+                    disabled
+                    style={{
+                      fontSize: '14px',
+                      padding: '4px 8px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '4px',
+                      backgroundColor: selectedVille.disponibility.includes(day)
+                        ? (theme === 'dark' ? '#1890ff' : '#e6f7ff')
+                        : '#fff',
+                      color: theme === 'dark' && selectedVille.disponibility.includes(day) ? '#fff' : '#000',
+                    }}
+                  >
+                    {day}
+                  </Checkbox>
+                ))}
               </div>
             </div>
-          )}
-
+          </div>
+        )}
 
         <div className="colis-form-inputs" style={{ marginTop: '24px' }}>
 
           {/* Container for simple inputs in multiple columns */}
-          <div 
-            className="colis-form-line" 
-          >
-            <div className="colis-form-input">
+          <div className="colis-form-line" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+            <div className="colis-form-input" >
               <label htmlFor="nom">
                 Nom <span style={{ color: 'red' }}>*</span>
               </label>
@@ -298,20 +306,17 @@ function ColisForm({ theme, type }) {
                 size="large"
                 value={formData.nom}
                 onChange={(e) => handleInputChange('nom', e.target.value)}
-                style={theme === 'dark' ? darkStyle : {}}
-                prefix={
-                  <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
-                }
+                prefix={<UserOutlined style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
                 suffix={
                   <Tooltip title="Entrer nom de destinataire">
-                    <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
                   </Tooltip>
                 }
                 required
               />
             </div>
 
-            <div className="colis-form-input" >
+            <div className="colis-form-input">
               <label htmlFor="tele">
                 Téléphone <span style={{ color: 'red' }}>*</span>
               </label>
@@ -335,10 +340,10 @@ function ColisForm({ theme, type }) {
                     setPhoneError('');
                   }
                 }}
-                style={theme === 'dark' ? darkStyle : {}}
+                prefix={<FaPhoneAlt style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
                 suffix={
                   <Tooltip title="Entrer Numéro de téléphone de destinataire">
-                    <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
                   </Tooltip>
                 }
                 maxLength={10}
@@ -351,7 +356,7 @@ function ColisForm({ theme, type }) {
               )}
             </div>
 
-            <div className="colis-form-input">
+            <div className="colis-form-input" >
               <label htmlFor="ville">
                 Ville <span style={{ color: 'red' }}>*</span>
               </label>
@@ -364,15 +369,16 @@ function ColisForm({ theme, type }) {
                 }))}
                 value={formData.ville}
                 onChange={handleVilleChange}
-                className={`colis-select-ville ${ theme === 'dark' ? 'dark-mode' : ''}`}
+                className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
                 filterOption={(input, option) =>
                   option.label.toLowerCase().includes(input.toLowerCase())
                 }
                 required
+                style={{ width: '100%' }}
               />
             </div>
 
-            <div className="colis-form-input">
+            <div className="colis-form-input" >
               <label htmlFor="prix">
                 Prix <span style={{ color: 'red' }}>*</span>
               </label>
@@ -381,13 +387,10 @@ function ColisForm({ theme, type }) {
                 size="large"
                 value={formData.prix}
                 onChange={(e) => handleInputChange('prix', e.target.value)}
-                style={theme === 'dark' ? darkStyle : {}}
-                prefix={
-                  <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
-                }
+                prefix={<TfiMoney style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
                 suffix={
                   <Tooltip title="Entrer le prix du produit">
-                    <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
                   </Tooltip>
                 }
                 required
@@ -395,7 +398,7 @@ function ColisForm({ theme, type }) {
               />
             </div>
 
-            <div className="colis-form-input">
+            <div className="colis-form-input" >
               <label htmlFor="produit">
                 Nature de produit <span style={{ color: 'red' }}>*</span>
               </label>
@@ -405,41 +408,36 @@ function ColisForm({ theme, type }) {
                 size="large"
                 value={formData.produit}
                 onChange={(e) => handleInputChange('produit', e.target.value)}
-                style={theme === 'dark' ? darkStyle : {}}
-                prefix={
-                  <UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />
-                }
+                prefix={<AiFillProduct style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
                 suffix={
                   <Tooltip title="Entrer la nature de produit">
-                    <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
                   </Tooltip>
                 }
               />
             </div>
+
+            <div className="colis-form-input" >
+              <label htmlFor="adress">
+                Adresse <span style={{ color: 'red' }}>*</span>
+              </label>
+              <Input
+                size="large"
+                showCount
+                maxLength={300}
+                value={formData.adress}
+                onChange={(e) => handleInputChange('adress', e.target.value)}
+                placeholder="Votre adresse"
+                prefix={<FaMapLocation style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
+                required
+              />
+            </div>
           </div>
-          
-         
 
           {/* TextAreas are separate (full width) */}
-          <div className="colis-form-input" style={{ width: '100%' }}>
-            <label htmlFor="adress">
-              Adresse <span style={{ color: 'red' }}>*</span>
-            </label>
-            <TextArea
-              size="large"
-              showCount
-              maxLength={300}
-              value={formData.adress}
-              onChange={(e) => handleInputChange('adress', e.target.value)}
-              placeholder="Votre adresse"
-              style={theme === 'dark' ? darkStyle : {}}
-              required
-            />
-          </div>
-
-          <div className="colis-form-input" style={{ width: '100%' }}>
+          <div className="colis-form-input" style={{ width: '100%', marginTop: '16px' }}>
             <label htmlFor="commentaire">
-              Commentaire <span style={{ color: 'red' }}>*</span>
+              Commentaire
             </label>
             <TextArea
               size="large"
@@ -448,11 +446,11 @@ function ColisForm({ theme, type }) {
               value={formData.commentaire}
               onChange={(e) => handleInputChange('commentaire', e.target.value)}
               placeholder="Commentaire (Autre numéro, date de livraison...)"
-              style={theme === 'dark' ? darkStyle : {}}
             />
           </div>
 
-          <div className="colis-form-footer" style={{ marginTop: '12px' }}>
+          {/* Footer Buttons */}
+          <div className="colis-form-footer" style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
             <Button type="primary" onClick={showDrawer} icon={<TfiMenuAlt />}>
               Options Avancées
             </Button>
@@ -478,6 +476,7 @@ function ColisForm({ theme, type }) {
         onCancel={handleCancelModal}
         okText="Confirmer"
         cancelText="Annuler"
+        className={theme === 'dark' ? 'dark-mode' : ''}
       >
         <p>Recherche par code suivi:</p>
         <SelectAsync
@@ -499,6 +498,7 @@ function ColisForm({ theme, type }) {
         placement="right"
         onClose={closeDrawer}
         visible={isDrawerVisible}
+        className={theme === 'dark' ? 'dark-mode' : ''}
       >
         <div className="option_colis_form">
           <Select
@@ -509,7 +509,7 @@ function ColisForm({ theme, type }) {
             value={formData.colisType}
             onChange={(value) => handleInputChange('colisType', value)}
             className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-            style={{ marginBottom: '16px' }}
+            style={{ marginBottom: '16px', width: '100%' }}
           />
 
           <Select
@@ -520,21 +520,22 @@ function ColisForm({ theme, type }) {
             value={formData.ouvrirColis}
             onChange={(value) => handleInputChange('ouvrirColis', value)}
             className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-            style={{ marginBottom: '16px' }}
+            style={{ marginBottom: '16px', width: '100%' }}
           />
 
           <Checkbox
             onChange={(e) => handleInputChange('is_fragile', e.target.checked)}
-            style={theme === 'dark' ? darkStyle : {}}
             checked={formData.is_fragile}
+            style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
           >
             Colis fragile
           </Checkbox>
-          <br /><br />
+          <br />
+
           <Checkbox
             onChange={(e) => handleInputChange('remplaceColis', e.target.checked)}
-            style={theme === 'dark' ? darkStyle : {}}
             checked={formData.remplaceColis}
+            style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
           >
             Colis à remplacer
             <p style={{ fontSize: '12px', marginTop: '4px' }}>
@@ -543,14 +544,14 @@ function ColisForm({ theme, type }) {
           </Checkbox>
 
           {formData.remplaceColis && !formData.oldColis && (
-            <Button type="default" onClick={handleOpenModal}>
+            <Button type="primary" onClick={handleOpenModal} style={{ marginBottom: '16px' }}>
               Rechercher l'ancien colis
             </Button>
           )}
 
           {formData.remplaceColis && formData.oldColis && (
             <div className='colis-form-header-oldColis' style={{ marginTop: '16px' }}>
-              <span><strong>Code Suivi</strong> : {formData.oldColis.code_suivi}</span> 
+              <span><strong>Code Suivi</strong> : {formData.oldColis.code_suivi}</span>
               <span><strong>Ville</strong> : {formData.oldColis.ville}</span>
               <Button type="primary" onClick={handleOpenModal} style={{ marginTop: '8px' }}>
                 Modifier
@@ -559,7 +560,7 @@ function ColisForm({ theme, type }) {
           )}
         </div>
       </Drawer>
-    </>
+    </div>
   );
 }
 

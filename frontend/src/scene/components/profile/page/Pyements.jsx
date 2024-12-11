@@ -32,7 +32,7 @@ function Pyements() {
                         }} 
                     >
                         <h4>Methode de payement</h4>
-                        <PayementProfile />
+                        <PayementProfile theme={theme} />
                     </div>
                 </div>
             </main>

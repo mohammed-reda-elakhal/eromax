@@ -20,6 +20,7 @@ import { getColis, getColisForClient, getColisForLivreur, setColisPayant } from 
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import TrackingColis from '../../../global/TrackingColis ';
 import moment from 'moment';
+import { BsBroadcast } from 'react-icons/bs';
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
@@ -170,6 +171,35 @@ const ColisTable = ({ theme, darkStyle, search }) => {
               record.expedation_type ==="ameex" ? 
               <p style={{color:"gray" , size:"10px"}}>{record.code_suivi_ameex}</p> : ""
           }
+          <Divider/>
+          <div className="expanded-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+          {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
+            <Tooltip title="Contact via WhatsApp">
+              <Button 
+                type="primary" 
+                icon={<FaWhatsapp />} 
+                onClick={() => window.open(`https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}`, '_blank')}
+                style={{
+                  backgroundColor: '#25D366', // WhatsApp green
+                  borderColor: '#25D366',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
+          )}
+          <Tooltip title="Call Support">
+            <Button 
+              type="primary" 
+              icon={<TbPhoneCall />} 
+              onClick={() => window.location.href = `tel:${phoneNumber}`}
+              style={{
+                backgroundColor: '#007bff', // Blue for calling
+                borderColor: '#007bff',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
+        </div>
         </>
       ),
     },
@@ -275,39 +305,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       },
     },
     {
-      title: 'Support',
-      render: (text, record) => (
-        <div className="expanded-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
-          {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
-            <Tooltip title="Contact via WhatsApp">
-              <Button 
-                type="primary" 
-                icon={<FaWhatsapp />} 
-                onClick={() => window.open(`https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}`, '_blank')}
-                style={{
-                  backgroundColor: '#25D366', // WhatsApp green
-                  borderColor: '#25D366',
-                  color: '#fff'
-                }}
-              />
-            </Tooltip>
-          )}
-          <Tooltip title="Call Support">
-            <Button 
-              type="primary" 
-              icon={<TbPhoneCall />} 
-              onClick={() => window.location.href = `tel:${phoneNumber}`}
-              style={{
-                backgroundColor: '#007bff', // Blue for calling
-                borderColor: '#007bff',
-                color: '#fff'
-              }}
-            />
-          </Tooltip>
-        </div>
-      ),
-    },
-    {
       title: 'Options',
       render: (text, record) => (
         <div className="expanded-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
@@ -326,7 +323,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           <Tooltip title="Print Ticket">
             <Button 
               type="primary" 
-              icon={<FaPrint />} 
+              icon={<BsBroadcast />} 
               onClick={() => handleTicket(record)} 
               style={{
                 backgroundColor: '#0d6efd', // Blue for printing
@@ -528,9 +525,9 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   };
 
   return (
-    <>
+    <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`} style={{width:"max-content"}}>
       {/* Action Bar */}
-      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' , width:'max-content' }}>
         <Button 
           icon={<IoMdRefresh />} 
           type="primary" 
@@ -561,7 +558,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         placeholder="Recherche ..."
         value={state.searchTerm}
         onChange={handleSearch}
-        style={{ marginBottom: '16px', width: "50%" }}
+        style={{ marginBottom: '16px', width: "300px" }}
         size='large'
         suffix={<IoSearch />}
       />
@@ -571,6 +568,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         column={columns}
         data={state.filteredData}
         id="_id"
+        theme={theme}
         rowSelection={{
           selectedRowKeys: state.selectedRowKeys,
           onChange: handleRowSelection,
@@ -586,6 +584,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         title="Reclamation" 
         visible={state.reclamationModalVisible} 
         onOk={handleCreateReclamation} 
+        className={theme === 'dark' ? 'dark-mode' : ''}
         onCancel={() => setState(prevState => ({ ...prevState, reclamationModalVisible: false }))}
       >
         <Input 
@@ -609,6 +608,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         onCancel={handleCloseTicketModal} 
         footer={null} 
         width={600}
+        className={theme === 'dark' ? 'dark-mode' : ''}
       >
         {state.selectedColis && (
           <div ref={componentRef}>
@@ -622,15 +622,16 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         title="Les données de colis suivre" 
         onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))} 
         visible={state.drawerOpen}
+        className={theme === 'dark' ? 'dark-mode' : ''}
       >
         {
         state.selectedColis && (
-          <TrackingColis codeSuivi={state.selectedColis.code_suivi} /> 
+          <TrackingColis theme={theme} codeSuivi={state.selectedColis.code_suivi} /> 
         )
       
         }
       </Drawer>
-    </>
+    </div>
   );
 };
 

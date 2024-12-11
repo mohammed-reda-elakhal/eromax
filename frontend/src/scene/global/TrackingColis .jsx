@@ -5,7 +5,7 @@ import request from '../../utils/request';
 
 const { Text } = Typography;
 
-const TrackingColis = ({ codeSuivi }) => {
+const TrackingColis = ({ codeSuivi , theme }) => {
   const [trackingData, setTrackingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,48 +58,51 @@ const TrackingColis = ({ codeSuivi }) => {
   };
 
   return (
-    <Card 
-      title={<Text strong>Suivi du Colis</Text>} 
-      style={{ margin: '20px', width: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
-      bodyStyle={{ padding: '20px' }}
-    >
-      <Text strong style={{ marginBottom: '10px', display: 'block' }}>
-        Code de Suivi: {trackingData?.code_suivi}
-      </Text>
-      <Timeline 
-        mode="left" 
-        style={{ padding: '10px 0', background: '#f9f9f9', borderRadius: '8px' }}
-        pending={false}
+    <div className={theme === 'dark' ? 'dark-mode' : ''}>
+      <Card 
+        title={<Text strong>Suivi du Colis</Text>} 
+        style={{ margin: '20px', width: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+        bodyStyle={{ padding: '20px' }}
       >
-        {trackingData?.status_updates.map((update, index) => (
-          <Timeline.Item
-            key={update._id}
-            label={
-              <Text type="secondary">
-                {new Date(update.date).toLocaleDateString('fr-FR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Text>
-            }
-            color={getStatusColor(update.status)}
-            dot={getStatusIcon(update.status)}
-          >
-            <Text strong>{update.status}</Text>
-            {update.status === 'Expediée' && update.livreur && (
-              <div style={{ marginTop: '8px' }}>
-                <Text>🛵 Livreur: <strong>{update.livreur.nom}</strong></Text>
-                <br />
-                <Text>📞 Téléphone: <strong>{update.livreur.tele}</strong></Text>
-              </div>
-            )}
-          </Timeline.Item>
-        ))}
-      </Timeline>
-    </Card>
+        <Text strong style={{ marginBottom: '10px', display: 'block' }} >
+          Code de Suivi: {trackingData?.code_suivi}
+        </Text>
+        <Timeline 
+          mode="left" 
+          style={{ padding: '10px 0', background: '#f9f9f9', borderRadius: '8px' }}
+          className="timeline-container"
+          pending={false}
+        >
+          {trackingData?.status_updates.map((update, index) => (
+            <Timeline.Item
+              key={update._id}
+              label={
+                <Text type="secondary">
+                  {new Date(update.date).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+              }
+              color={getStatusColor(update.status)}
+              dot={getStatusIcon(update.status)}
+            >
+              <Text strong>{update.status}</Text>
+              {update.status === 'Expediée' && update.livreur && (
+                <div style={{ marginTop: '8px' }}>
+                  <Text>🛵 Livreur: <strong>{update.livreur.nom}</strong></Text>
+                  <br />
+                  <Text>📞 Téléphone: <strong>{update.livreur.tele}</strong></Text>
+                </div>
+              )}
+            </Timeline.Item>
+          ))}
+        </Timeline>
+      </Card>
+    </div>
   );
 };
 
