@@ -25,7 +25,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 
-const UpdateColis = () => {
+const UpdateColis = ({theme}) => {
   const dispatch = useDispatch();
   const { selectedColis, loading, error, villes, stores, livreurs, produits } = useSelector((state) => state.colis);
   const { data: villesData, loading: villesLoading } = villes;
@@ -87,7 +87,7 @@ const UpdateColis = () => {
   const loadingIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
   return (
-    <Row justify="center" style={{ marginTop: '20px' }}>
+    <Row justify="center"  style={{padding:"16px" , borderRadius:"8px" , width:"100%"}}>
       <Col xs={24} sm={20} md={16} lg={12}>
         {loading && <Spin indicator={loadingIcon} />}
         {error && <Alert message="Error" description={error} type="error" showIcon />}
@@ -96,6 +96,8 @@ const UpdateColis = () => {
             form={form}
             layout="vertical"
             onFinish={onFinish}
+            style={{padding:"16px" , borderRadius:"8px" , width:"100%"}}
+            className={theme === 'dark' ? 'dark-mode' : ''}
             initialValues={{
               ...selectedColis,
               ouvrir: selectedColis.ouvrir,
@@ -212,7 +214,7 @@ const UpdateColis = () => {
               name="prix"
               rules={[{ required: true, message: 'Please enter the price' }]}
             >
-              <InputNumber
+              <Input
                 prefix="DH"
                 min={0}
                 style={{ width: '100%' }}
@@ -233,7 +235,7 @@ const UpdateColis = () => {
                       { type: 'number', min: 0, message: 'Value must be at least 0' },
                     ]}
                   >
-                    <InputNumber
+                    <Input
                       placeholder="Valeur du tarif"
                       min={0}
                       style={{ width: '100%' }}

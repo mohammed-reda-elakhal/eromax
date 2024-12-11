@@ -37,7 +37,7 @@ function Profile() {
                         }} 
                     >
                         <div className="container-profile">
-                            <ProfileInfo />
+                            <ProfileInfo theme={theme} />
                         </div>
                     </div>
                 </div>

@@ -28,7 +28,7 @@ const calculateCompletion = (store) => {
   return (completed / total) * 100;
 };
 
-function StoreInfo() {
+function StoreInfo({theme}) {
   const dispatch = useDispatch();
   const { stores, loading, error } = useSelector((state) => state.store);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -98,7 +98,7 @@ function StoreInfo() {
   };
 
   return (
-    <div>
+    <div  className={theme === 'dark' ? 'dark-mode' : ''}>
       {loading && (
         <div style={{ textAlign: 'center', padding: '50px 0' }}>
           <Spin size="large" />

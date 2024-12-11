@@ -8,6 +8,8 @@ import '../portfeuille.css'
 import SoldeCart from '../components/SoldeCart';
 import Solde from '../components/Solde';
 import DemandeRetrait from '../components/DemandeRetrait';
+import DemandeRetraitTable from '../../payement/page/DemandeRetraitTable';
+import TransactionTable from '../../payement/page/TransactionTable';
 
 function Portfeuille() {
     const { theme } = useContext(ThemeContext);
@@ -35,6 +37,7 @@ function Portfeuille() {
                                 <SoldeCart theme={theme}/>
                                 <DemandeRetrait theme={theme}/>
                             </div>
+                            <TransactionTable />
                             
                       </div>
                   </div>

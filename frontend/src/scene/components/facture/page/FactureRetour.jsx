@@ -36,7 +36,7 @@ function FactureRetour() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <FactureRetourTable />
+                        <FactureRetourTable theme={theme} />
                     </div>
                 </div>
             </main>

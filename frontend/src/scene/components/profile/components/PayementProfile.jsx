@@ -41,7 +41,7 @@ import { toast } from 'react-toastify';
 const { Meta } = Card;
 const { Option } = Select;
 
-function PayementProfile() {
+function PayementProfile({theme}) {
   // Retrieve the logged-in user from cookies
   const { user  } = useSelector((state) => state.auth);
   
@@ -200,7 +200,7 @@ function PayementProfile() {
   };
 
   return (
-    <>
+    <div >
       {/* Button to add a new payment */}
       <Button 
         type="primary" 
@@ -246,6 +246,7 @@ function PayementProfile() {
             <Col xs={24} sm={12} md={8} lg={6} key={payement._id}>
               <Card
                 hoverable
+                className={theme === 'dark' ? 'dark-mode' : ''}
                 style={{
                   borderColor: undefined, // Remove if not needed
                   borderRadius: '10px',
@@ -395,7 +396,7 @@ function PayementProfile() {
           </Form.Item>
         </Form>
       </Drawer>
-    </>
+    </div>
   );
 }
 

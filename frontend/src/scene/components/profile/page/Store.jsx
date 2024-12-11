@@ -34,7 +34,7 @@ function Store() {
                         }} 
                     >
                         <h4>Bussniss</h4>
-                        <StoreInfo />
+                        <StoreInfo theme={theme} />
                     </div>
                 </div>
             </main>

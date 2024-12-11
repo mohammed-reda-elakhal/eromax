@@ -181,9 +181,6 @@ function Menubar() {
                 <Menu.Item icon={<BiTagAlt />}>
                   <Link to={"/dashboard/demande-retrait"}>List Demandes</Link>
                 </Menu.Item>
-                <Menu.Item icon={<BiTagAlt />}>
-                  <Link to={'/dashboard/transaction'}>List transactions</Link>
-                </Menu.Item>
               </Menu.SubMenu>
               <Drawer
                 title="Portfeuille"

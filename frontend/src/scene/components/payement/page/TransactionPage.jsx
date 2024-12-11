@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import { getAllTransaction, getTransactionByClient } from '../../../../redux/apiCalls/trasactionApiCallls';
 
-function TransactionTable() {
+function TransactionPage() {
     const { theme } = useContext(ThemeContext);
     const { transactions, user, store } = useSelector((state) => ({
         transactions: state.transaction.transactions,
@@ -131,7 +131,19 @@ function TransactionTable() {
 
     return (
         <div className='page-dashboard'>
-            <main className="page-main" style={{marginTop:"16px"}}>
+            <Menubar />
+            <main className="page-main">
+                <Topbar />
+                <div
+                    className="page-content"
+                    style={{
+                        backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
+                        color: theme === 'dark' ? '#fff' : '#002242',
+                    }}
+                >
+                    <div className="page-content-header">
+                        <Title nom='Transaction' />
+                    </div>
                     <div
                         className="content"
                         style={{
@@ -178,9 +190,10 @@ function TransactionTable() {
                             data={filteredData}
                         />
                     </div>
+                </div>
             </main>
         </div>
     );
 }
 
-export default TransactionTable;
+export default TransactionPage

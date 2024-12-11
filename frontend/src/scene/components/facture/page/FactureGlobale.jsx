@@ -35,7 +35,7 @@ function FactureGlobale() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <FactureGlobaleTable />
+                        <FactureGlobaleTable theme={theme} />
                     </div>
                 </div>
             </main>
