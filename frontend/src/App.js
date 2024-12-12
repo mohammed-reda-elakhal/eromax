@@ -218,7 +218,6 @@ function App() {
             <Route path="scan">
               <Route path="recherche" element={<ScanRecherche/>}  />
               <Route path="statu/:statu" element={<ScanUpdateStatu/>}  />
-              
             </Route>
 
             <Route path="compte">
