@@ -10,19 +10,17 @@ import {
   Input,
   Select,
   message,
-  Card,
-  Col,
-  Row,
   Tag,
   Typography,
   Grid,
   Space,
+  Table,
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { MdAccessTimeFilled, MdOutlineDangerous } from "react-icons/md";
 import { CgDanger } from "react-icons/cg";
 import { IoMdRefresh } from 'react-icons/io';
-import { IoQrCodeSharp } from 'react-icons/io5'; // Corrected import path
+import { IoQrCodeSharp } from 'react-icons/io5';
 import { FiRefreshCcw } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -30,12 +28,11 @@ import {
   getColisForLivreur,
   updateStatut,
 } from '../../../../redux/apiCalls/colisApiCalls';
+import TableDashboard from '../../../global/TableDashboard';
 
 const { Option } = Select;
 const { Text, Title: TextTitle } = Typography;
 const { useBreakpoint } = Grid;
-
-// List of allowed statuses for the modal
 
 const allowedStatuses = [
   "Livrée",
@@ -74,7 +71,6 @@ const allowedStatusesGet = [
   "Mise en Distribution",
 ];
 
-// Predefined comments for specific statuses
 const statusComments = {
   "Annulée": [
     "Client a annulé la commande",
@@ -86,7 +82,6 @@ const statusComments = {
     "Le destinataire était absent",
     "Le produit était endommagé",
   ],
-  // Add more statuses with predefined comments if needed
 };
 
 function ColisMiseDistribution({ search }) {
@@ -111,14 +106,9 @@ function ColisMiseDistribution({ search }) {
   const getDataColis = () => {
     setLoading(true);
     if (user?.role === "livreur") {
-      // Fetch colis for livreur with allowed statuses
       dispatch(getColisForLivreur(user._id, allowedStatusesGet))
-        .then(() => {
-          setLoading(false);
-        })
-        .catch(() => {
-          setLoading(false);
-        });
+        .then(() => setLoading(false))
+        .catch(() => setLoading(false));
     }
     // Handle other roles if needed
   };
@@ -128,25 +118,21 @@ function ColisMiseDistribution({ search }) {
     setData(colisData);
   }, [colisData]);
 
-  // Function to handle opening the Change Status modal
   const handleChangeStatus = (record) => {
     setSelectedColis(record);
-    setStatusType(""); // Reset status type
+    setStatusType("");
     setIsStatusModalVisible(true);
   };
 
-  // Function to handle confirming the status change
   const handleStatusOk = () => {
     form.validateFields().then(values => {
       const { status, comment, deliveryTime } = values;
 
-      // If status is 'Programmée', ensure deliveryTime is provided
       if (status === "Programmée" && !deliveryTime) {
         message.error("Veuillez sélectionner un temps de livraison pour une livraison programmée.");
         return;
       }
 
-      // Dispatch updateStatut with or without deliveryTime
       if (status === "Programmée") {
         dispatch(updateStatut(selectedColis._id, status, comment, deliveryTime));
       } else {
@@ -166,7 +152,6 @@ function ColisMiseDistribution({ search }) {
     });
   };
 
-  // Function to handle cancelling the status change
   const handleStatusCancel = () => {
     setIsStatusModalVisible(false);
     setSelectedColis(null);
@@ -174,22 +159,6 @@ function ColisMiseDistribution({ search }) {
     form.resetFields();
   };
 
-  // Function to display success messages
-  const success = (text) => {
-    messageApi.open({
-      type: 'success',
-      content: text,
-    });
-  };
-
-  // Function to format date strings
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  };
-
-  // Function to determine Tag color based on status
   const getStatusTagColor = (status) => {
     switch (status) {
       case "Livrée":
@@ -228,6 +197,73 @@ function ColisMiseDistribution({ search }) {
     }
   };
 
+  const columns = [
+    {
+      title: 'Code Suivi',
+      dataIndex: 'code_suivi',
+      key: 'code_suivi',
+      render: (text, record) => (
+        <>
+          {text}
+          {record.replacedColis && (
+            <Tag icon={<FiRefreshCcw />} color="geekblue" style={{ marginLeft: '8px' }}>
+              Remplacée
+            </Tag>
+          )}
+        </>
+      ),
+    },
+    {
+      title: 'Destinataire',
+      dataIndex: 'nom',
+      key: 'nom',
+      render: (text, record) => `${text} - ${record.tele}`,
+    },
+    {
+      title: 'Ville',
+      dataIndex: ['ville', 'nom'],
+      key: 'ville',
+    },
+    {
+      title: 'Adresse',
+      dataIndex: 'adresse',
+      key: 'adresse',
+    },
+    {
+      title: 'Prix (DH)',
+      dataIndex: 'prix',
+      key: 'prix',
+    },
+    {
+      title: 'Statut',
+      dataIndex: 'statut',
+      key: 'statut',
+      render: (status, record) => (
+        <>
+          <Tag color={getStatusTagColor(status)}>{status}</Tag>
+          {status === "Programmée" && record.deliveryTime && (
+            <div><strong>Temps de Livraison: </strong>{record.deliveryTime}</div>
+          )}
+        </>
+      ),
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (text, record) => (
+        <Button
+          type="default"
+          icon={<CgDanger />}
+          onClick={() => handleChangeStatus(record)}
+          style={{ backgroundColor: '#f5222d', borderColor: '#f5222d', color: '#fff' }}
+          title="Changer Statut"
+        >
+          Changer Statut
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className='page-dashboard'>
       <Menubar />
@@ -262,69 +298,21 @@ function ColisMiseDistribution({ search }) {
               <Button
                 icon={<IoQrCodeSharp />}
                 type="primary"
-                onClick={() => navigate("/scan")} // Adjust the route as needed
+                onClick={() => navigate("/dashboard/scan")}
                 loading={loading}
               >
                 Scan
               </Button>
             </div>
 
-            {/* Responsive Cards for Colis */}
-            <Row gutter={[16, 16]}>
-              {data.map(item => (
-                <Col
-                  xs={24} sm={12} md={8} lg={6} xl={6}
-                  key={item._id}
-                >
-                  <Card
-                    hoverable
-                    bordered={false}
-                    style={{ borderRadius: '10px', overflow: 'hidden' }}
-                    loading={loading}
-                    title={
-                      <TextTitle level={4}>
-                        {item.code_suivi}
-                        <Space />
-                        {
-                          item.replacedColis &&
-                            <Tag icon={<FiRefreshCcw />} color="geekblue">
-                              Remplacée
-                            </Tag>
-                        }
-                      </TextTitle>
-                    }
-                    actions={[
-                      <Button
-                        type="default"
-                        icon={<CgDanger />}
-                        onClick={() => handleChangeStatus(item)}
-                        style={{ backgroundColor: '#f5222d', borderColor: '#f5222d', color: '#fff' }}
-                        title="Changer Statut"
-                      >
-                        Changer Statut
-                      </Button>
-                    ]}
-                  >
-                    <p><Text strong>Destinataire:</Text> {item.nom} - {item.tele}</p>
-                    <p><Text strong>Ville:</Text> {item.ville.nom}</p>
-                    <p><Text strong>Adresse:</Text> {item.adresse}</p>
-                    <p><Text strong>Prix:</Text> {item.prix} DH</p>
-                    <p>
-                      <Text strong>Statut:</Text>{' '}
-                      <Tag
-                        color={getStatusTagColor(item.statut)}
-                      >
-                        {item.statut}
-                      </Tag>
-                    </p>
-                    {/* Display Delivery Time if status is 'Programmée' */}
-                    {item.statut === "Programmée" && item.deliveryTime && (
-                      <p><Text strong>Temps de Livraison:</Text> {item.deliveryTime}</p>
-                    )}
-                  </Card>
-                </Col>
-              ))}
-            </Row>
+            {/* Table for Colis */}
+            <TableDashboard
+              data={data}
+              column={columns}
+              rowKey="_id"
+              theme={theme}
+              loading={loading}
+            />
           </div>
         </div>
       </main>
@@ -345,7 +333,6 @@ function ColisMiseDistribution({ search }) {
             label="Nouveau Statut"
             rules={[{ required: true, message: 'Veuillez sélectionner un statut!' }]}
           >
-            {/* Display statuses as a list of clickable Tags */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {allowedStatuses.map((status, index) => (
                 <Tag.CheckableTag
@@ -364,7 +351,6 @@ function ColisMiseDistribution({ search }) {
             </div>
           </Form.Item>
 
-          {/* Conditionally render comment field based on selected status */}
           {statusType && (statusComments[statusType] ? (
             <Form.Item
               name="comment"
@@ -383,13 +369,11 @@ function ColisMiseDistribution({ search }) {
             <Form.Item
               name="comment"
               label="Commentaire"
-              rules={[{ required: false, message: 'Ajouter un commentaire (facultatif)' }]}
             >
-              <Input.TextArea placeholder="Ajouter un commentaire" rows={3} />
+              <Input.TextArea placeholder="Ajouter un commentaire (facultatif)" rows={3} />
             </Form.Item>
           ))}
 
-          {/* Conditionally render deliveryTime field if status is 'Programmée' */}
           {statusType === "Programmée" && (
             <Form.Item
               name="deliveryTime"

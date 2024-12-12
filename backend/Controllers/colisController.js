@@ -554,16 +554,6 @@ exports.getColisByClient = asyncHandler(async (req, res) => {
 
 });
 
-
-
-
-
-
-
-
-
-
-
 /**
  * -------------------------------------------------------------------
  * @desc     delete colis
@@ -1062,6 +1052,8 @@ module.exports.getColisByIdLivreur = asyncHandler(async (req, res) => {
 
 
 });
+
+
 module.exports.getColisByTeam = asyncHandler(async (req, res) => {
 
   const id_team = req.params.id_team;
@@ -1244,6 +1236,8 @@ exports.createFactureByClient = async (req, res) => {
 
   }
 };
+
+
 exports.annulerColis = async (req, res) => {
   try {
     const {idColis,commentaire}=req.body

@@ -123,40 +123,69 @@ export function getColisByCodeSuivi(code_suivi) {
         dispatch(colisActions.setLoading(false));
       }
     };
-  }
+}
   
-  // Update a Colis by _id
-  export function updateColisById(id, colisData) {
-    return async (dispatch) => {
-      dispatch(colisActions.setLoading(true));
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          toast.error('Authentication token is missing');
-          dispatch(colisActions.setLoading(false));
-          return;
-        }
-  
-        const config = {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        };
-  
-        const { data } = await request.put(`/api/colis/${id}`, colisData, config);
-        dispatch(colisActions.updateColis(data));
-        toast.success('Colis updated successfully');
-      } catch (error) {
-        console.error("Failed to update colis:", error);
-        dispatch(colisActions.setError(error.message));
-        toast.error('Failed to update colis');
-      } finally {
+// Update a Colis by _id
+export function updateColisById(id, colisData) {
+  return async (dispatch) => {
+    dispatch(colisActions.setLoading(true));
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token is missing');
         dispatch(colisActions.setLoading(false));
+        return;
       }
-    };
-  }
-  
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      const { data } = await request.put(`/api/colis/${id}`, colisData, config);
+      dispatch(colisActions.updateColis(data));
+      toast.success('Colis updated successfully');
+    } catch (error) {
+      console.error("Failed to update colis:", error);
+      dispatch(colisActions.setError(error.message));
+      toast.error('Failed to update colis');
+    } finally {
+      dispatch(colisActions.setLoading(false));
+    }
+  };
+}
+
+// delete colis 
+export function deleteColis(id) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token is missing');
+        return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      const { data } = await request.put(`/api/colis/${id}` , config);
+      toast.success('Colis delete avec successfully');
+    } catch (error) {
+      console.error("Failed to update colis:", error);
+      dispatch(colisActions.setError(error.message));
+      toast.error('Failed to update colis');
+    }
+  };
+}
+
+
+
   // Fetch options for Select fields
   export function fetchOptions() {
     return async (dispatch) => {
@@ -398,6 +427,7 @@ export const affecterLivreur=(colisId,livreurId)=>async(dispatch)=>{
 
     }
 }
+
 export const updateStatut = (colisId, newStatus , comment) => async (dispatch) => {
     if (!colisId) {
         toast.error('ID de colis manquant');
@@ -438,6 +468,7 @@ export const updateStatut = (colisId, newStatus , comment) => async (dispatch) =
         console.error("Update status error:", error);
     }
 };
+
 export const colisProgramme=(colisId,daysToAdd)=>async(dispatch)=>{
     try {
         // Dispatch the loading action
@@ -466,6 +497,7 @@ export const colisProgramme=(colisId,daysToAdd)=>async(dispatch)=>{
     
 
 }
+
 export const annulerColis = (idColis, commentaire) => async (dispatch) => {
     try {
         // Faire la requête API pour annuler le colis
