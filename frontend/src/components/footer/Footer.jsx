@@ -64,7 +64,7 @@ function Footer({handleChangeTheme , mode}) {
             </div>
         </div>
         <div className='footer-copyright'>
-            <p>copyright @ Créer par Mohammed Reda</p>         
+            <p>copyright @ Créer par <a href="https://www.mohammedreda.site/" blank >Mohammed Reda</a> </p>         
         </div>
         
     </footer>
