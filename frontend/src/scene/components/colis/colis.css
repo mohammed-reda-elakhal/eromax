@@ -458,6 +458,14 @@
     color: #ccc;
 }
 
+.option_colis_form{
+    margin-top:20px ;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+}
+
 
 
 /* Responsive adjustments */
@@ -474,10 +482,16 @@
     .colis-form-footer {
         flex-direction: column;
     }
+    .option_colis_form{
+        flex-direction: column;
+    }
 }
 
 @media only screen and (min-width: 601px) and (max-width: 900px) {
     .colis-form-header {
+        flex-direction: column;
+    }
+    .option_colis_form{
         flex-direction: column;
     }
 }

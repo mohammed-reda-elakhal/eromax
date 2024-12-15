@@ -576,7 +576,7 @@ module.exports.deleteColis = asyncHandler(async (req, res) => {
  * @desc     Update Colis by _id
  * @route    /api/colis/:id
  * @method   PUT
- * @access   Private (only admin)
+ * @access   Private
  * -------------------------------------------------------------------
  **/
 module.exports.updateColis = asyncHandler(async (req, res) => {

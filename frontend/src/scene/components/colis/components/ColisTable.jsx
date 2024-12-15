@@ -1,12 +1,51 @@
-// ColisTable.js
+// ColisTable.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, Button, Input, Drawer, Typography, Tag, Descriptions, Divider, Tooltip, Form, Select, message } from 'antd';
-import { FaWhatsapp, FaPrint, FaPenFancy, FaTicketAlt, FaDownload, FaAmazonPay } from 'react-icons/fa';
-import { Si1001Tracklists } from 'react-icons/si';
-import { TbPhoneCall, TbTruckDelivery } from 'react-icons/tb';
-import { IoSearch } from "react-icons/io5";
-import { IoMdRefresh } from 'react-icons/io';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, MinusCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { 
+  Modal, 
+  Button, 
+  Input, 
+  Drawer, 
+  Typography, 
+  Tag, 
+  Descriptions, 
+  Divider, 
+  Tooltip, 
+  Form, 
+  Select, 
+  message, 
+  Spin 
+} from 'antd';
+import { 
+  FaWhatsapp, 
+  FaPrint, 
+  FaPenFancy, 
+  FaTicketAlt, 
+  FaDownload, 
+  FaAmazonPay 
+} from 'react-icons/fa';
+import { 
+  Si1001Tracklists 
+} from 'react-icons/si';
+import { 
+  TbPhoneCall, 
+  TbTruckDelivery 
+} from 'react-icons/tb';
+import { 
+  IoSearch 
+} from "react-icons/io5";
+import { 
+  IoMdRefresh 
+} from 'react-icons/io';
+import { 
+  CheckCircleOutlined, 
+  ClockCircleOutlined, 
+  CloseCircleOutlined, 
+  ExclamationCircleOutlined, 
+  MinusCircleOutlined, 
+  SyncOutlined,
+  LoadingOutlined // <-- Imported LoadingOutlined
+} from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -16,7 +55,14 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
-import { deleteColis, getColis, getColisForClient, getColisForLivreur, setColisPayant, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { 
+  deleteColis, 
+  getColis, 
+  getColisForClient, 
+  getColisForLivreur, 
+  setColisPayant, 
+  updateStatut 
+} from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import TrackingColis from '../../../global/TrackingColis ';
 import moment from 'moment';
@@ -115,7 +161,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     reclamationType: 'Type de reclamation',
     subject: '',
     message: '',
-    loading: false,
   });
 
   // New states for Status Modal
@@ -130,10 +175,12 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { colisData, user, store } = useSelector((state) => ({
+  // Extracting Redux states including loading
+  const { colisData, user, store, loading } = useSelector((state) => ({
     colisData: state.colis.colis || [],
     user: state.auth.user,
     store: state.auth.store,
+    loading: state.colis.loading, // <-- Extract loading from Redux
   }));
 
   // Fetch data based on user role
@@ -202,7 +249,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       ...prevState,
       selectedColis,
       infoModalVisible: true,
-      loading: false,
     }));
   };
 
@@ -301,40 +347,40 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           )}
           <Divider />
           <div style={{display:'flex' , width:"100%" , justifyContent:"space-around"}}>
-          <Tooltip title="Contact via WhatsApp">
-            <Button 
-              type="primary" 
-              icon={<FaWhatsapp />} 
-              onClick={() => {
-                // Constructing the message
-                const message = `Bonjour, je suis ${user.nom} ${user.prenom}, j'ai besoin de discuter pour le colis de code ${record.code_suivi}.`;
-                
-                // Ensure the message is properly URL-encoded
-                const encodedMessage = encodeURIComponent(message);
-                
-                // Open WhatsApp with the encoded message
-                const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}&text=${encodedMessage}`;
-                window.open(whatsappUrl, '_blank');
-              }}
-              style={{
-                backgroundColor: '#25D366',
-                borderColor: '#25D366',
-                color: '#fff'
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Call Support">
-            <Button 
-              type="primary" 
-              icon={<TbPhoneCall />} 
-              onClick={() => window.location.href = `tel:${phoneNumber}`}
-              style={{
-                backgroundColor: '#007bff',
-                borderColor: '#007bff',
-                color: '#fff'
-              }}
-            />
-          </Tooltip>
+            <Tooltip title="Contact via WhatsApp">
+              <Button 
+                type="primary" 
+                icon={<FaWhatsapp />} 
+                onClick={() => {
+                  // Constructing the message
+                  const messageText = `Bonjour, je suis ${user.nom} ${user.prenom}, j'ai besoin de discuter pour le colis de code ${record.code_suivi}.`;
+                  
+                  // Ensure the message is properly URL-encoded
+                  const encodedMessage = encodeURIComponent(messageText);
+                  
+                  // Open WhatsApp with the encoded message
+                  const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}&text=${encodedMessage}`;
+                  window.open(whatsappUrl, '_blank');
+                }}
+                style={{
+                  backgroundColor: '#25D366',
+                  borderColor: '#25D366',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Call Support">
+              <Button 
+                type="primary" 
+                icon={<TbPhoneCall />} 
+                onClick={() => window.location.href = `tel:${phoneNumber}`}
+                style={{
+                  backgroundColor: '#007bff',
+                  borderColor: '#007bff',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
           </div>
         </>
       ),
@@ -347,9 +393,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         <>
           <strong>{record.store?.storeName} - {record.store?.tele || 'N/A'}</strong>
           {
-            user?.role === "admin"? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p>:""
+            user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
           }
-         
         </>
       )
     },
@@ -581,24 +626,21 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             </Tooltip>
           )}
           {
-            record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis" || record?.statut === "Ramassée"
-            ?
+            (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis" || record?.statut === "Ramassée") &&
             <Tooltip title="Supprimer colis">
-            <Button 
-              type="danger" 
-              onClick={() => dispatch(deleteColis(record._id))} 
-              style={{
-                backgroundColor: '#dc3545',
-                borderColor: '#dc3545',
-                color: '#fff'
-              }}
-              icon={<MdDelete />}
-            >
-            </Button>
-          </Tooltip>
-          :''
+              <Button 
+                type="danger" 
+                onClick={() => dispatch(deleteColis(record._id))} 
+                style={{
+                  backgroundColor: '#dc3545',
+                  borderColor: '#dc3545',
+                  color: '#fff'
+                }}
+                icon={<MdDelete />}
+              >
+              </Button>
+            </Tooltip>
           }
-          
         </div>
       ),
     }
@@ -706,6 +748,12 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   return (
     <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`} style={{width:"100%", overflowX: 'auto'}}>
       {contextHolder}
+      {/* Spinner for Global Loading */}
+      {loading && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+        </div>
+      )}
       {/* Action Bar */}
       <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
         <Button 
@@ -743,7 +791,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         suffix={<IoSearch />}
       />
 
-      {/* Main Table without Expandable Rows */}
+      {/* Main Table with Loading */}
       <TableDashboard
         column={columns}
         data={state.filteredData}
@@ -753,7 +801,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           selectedRowKeys: state.selectedRowKeys,
           onChange: handleRowSelection,
         }}
-        // Removed expandable prop
+        loading={loading} // Pass loading prop to TableDashboard
         scroll={{ x: 'max-content' }} // Added horizontal scroll for large number of columns
       />
 

@@ -106,7 +106,7 @@ function ColisForm({ type }) {
     produit: '',
     colisType: ColisTypes[0].name,
     remplaceColis: false,
-    ouvrirColis: true,
+    ouvrirColis: true, // Default to true (Ouvrir Colis)
     is_fragile: false,
     oldColis: null,
   };
@@ -115,6 +115,7 @@ function ColisForm({ type }) {
   const [phoneError, setPhoneError] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [openOption, setOpenOption] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -449,9 +450,64 @@ function ColisForm({ type }) {
             />
           </div>
 
+          {
+            openOption 
+            ?
+            <div className="option_colis_form">
+              {/* Replaced Select with Checkbox for Ouvrir Colis */}
+              <Checkbox
+                checked={formData.ouvrirColis}
+                onChange={(e) => handleInputChange('ouvrirColis', e.target.checked)}
+                className={`colis-checkbox ${theme === 'dark' ? 'dark-mode' : ''}`}
+                style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
+              >
+                Ouvrir Colis
+              </Checkbox>
+
+              <Checkbox
+                onChange={(e) => handleInputChange('is_fragile', e.target.checked)}
+                checked={formData.is_fragile}
+                style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
+              >
+                Colis fragile
+              </Checkbox>
+              <br />
+
+              <Checkbox
+                onChange={(e) => handleInputChange('remplaceColis', e.target.checked)}
+                checked={formData.remplaceColis}
+                style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
+              >
+                Colis à remplacer
+                <p style={{ fontSize: '12px', marginTop: '4px' }}>
+                  (Le colis sera remplacé avec l'ancien à la livraison.)
+                </p>
+              </Checkbox>
+
+              {formData.remplaceColis && !formData.oldColis && (
+                <Button type="primary" onClick={handleOpenModal} style={{ marginBottom: '16px' }}>
+                  Rechercher l'ancien colis
+                </Button>
+              )}
+
+              {formData.remplaceColis && formData.oldColis && (
+                <div className='colis-form-header-oldColis' style={{ marginTop: '16px' }}>
+                  <span><strong>Code Suivi</strong> : {formData.oldColis.code_suivi}</span>
+                  <span><strong>Ville</strong> : {formData.oldColis.ville}</span>
+                  <Button type="primary" onClick={handleOpenModal} style={{ marginTop: '8px' }}>
+                    Modifier
+                  </Button>
+                </div>
+              )}
+            </div>
+            :""
+
+          }
+         
+
           {/* Footer Buttons */}
           <div className="colis-form-footer" style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
-            <Button type="primary" onClick={showDrawer} icon={<TfiMenuAlt />}>
+            <Button type="primary" onClick={()=>setOpenOption(prev => !prev)} icon={<TfiMenuAlt />}>
               Options Avancées
             </Button>
             <Button
@@ -492,74 +548,7 @@ function ColisForm({ type }) {
         />
       </Modal>
 
-      {/* Drawer for advanced options */}
-      <Drawer
-        title="Options Avancées"
-        placement="right"
-        onClose={closeDrawer}
-        visible={isDrawerVisible}
-        className={theme === 'dark' ? 'dark-mode' : ''}
-      >
-        <div className="option_colis_form">
-          <Select
-            options={ColisTypes.map((option) => ({
-              value: option.name,
-              label: option.name,
-            }))}
-            value={formData.colisType}
-            onChange={(value) => handleInputChange('colisType', value)}
-            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-            style={{ marginBottom: '16px', width: '100%' }}
-          />
 
-          <Select
-            options={ColisOuvrir.map((option) => ({
-              value: option.value,
-              label: option.name,
-            }))}
-            value={formData.ouvrirColis}
-            onChange={(value) => handleInputChange('ouvrirColis', value)}
-            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-            style={{ marginBottom: '16px', width: '100%' }}
-          />
-
-          <Checkbox
-            onChange={(e) => handleInputChange('is_fragile', e.target.checked)}
-            checked={formData.is_fragile}
-            style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
-          >
-            Colis fragile
-          </Checkbox>
-          <br />
-
-          <Checkbox
-            onChange={(e) => handleInputChange('remplaceColis', e.target.checked)}
-            checked={formData.remplaceColis}
-            style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
-          >
-            Colis à remplacer
-            <p style={{ fontSize: '12px', marginTop: '4px' }}>
-              (Le colis sera remplacé avec l'ancien à la livraison.)
-            </p>
-          </Checkbox>
-
-          {formData.remplaceColis && !formData.oldColis && (
-            <Button type="primary" onClick={handleOpenModal} style={{ marginBottom: '16px' }}>
-              Rechercher l'ancien colis
-            </Button>
-          )}
-
-          {formData.remplaceColis && formData.oldColis && (
-            <div className='colis-form-header-oldColis' style={{ marginTop: '16px' }}>
-              <span><strong>Code Suivi</strong> : {formData.oldColis.code_suivi}</span>
-              <span><strong>Ville</strong> : {formData.oldColis.ville}</span>
-              <Button type="primary" onClick={handleOpenModal} style={{ marginTop: '8px' }}>
-                Modifier
-              </Button>
-            </div>
-          )}
-        </div>
-      </Drawer>
     </div>
   );
 }
