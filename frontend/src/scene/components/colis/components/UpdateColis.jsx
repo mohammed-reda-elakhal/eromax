@@ -16,26 +16,29 @@ import {
   Col,
   DatePicker,
   Tooltip,
+  message,
 } from 'antd';
 import { LoadingOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
-
-const UpdateColis = ({theme}) => {
+const UpdateColis = ({ theme }) => {
   const dispatch = useDispatch();
-  const { selectedColis, loading, error, villes, stores, livreurs, produits } = useSelector((state) => state.colis);
+  const navigate = useNavigate();
+  const { selectedColis, loading, error, villes, stores, livreurs, produits, availableColisForReplacement } = useSelector((state) => state.colis);
   const { data: villesData, loading: villesLoading } = villes;
   const { data: storesData, loading: storesLoading } = stores;
   const { data: livreursData, loading: livreursLoading } = livreurs;
   const { data: produitsData, loading: produitsLoading } = produits;
+  const { data: availableColisData, loading: availableColisLoading } = { data: availableColisForReplacement, loading: false }; // Adjust as per your state
   const [form] = Form.useForm();
   const { codeSuivi } = useParams();
 
-  const {user} = useSelector(state => state.auth );
+  const { user } = useSelector(state => state.auth);
+  const isAdmin = user.role === 'admin';
 
   useEffect(() => {
     dispatch(getColisByCodeSuivi(codeSuivi));
@@ -44,50 +47,55 @@ const UpdateColis = ({theme}) => {
 
   useEffect(() => {
     if (selectedColis) {
-      form.setFieldsValue({
+      const formValues = {
         ...selectedColis,
-        ville: selectedColis.ville?._id,
+        ville: isAdmin ? selectedColis.ville?._id : undefined,
         store: selectedColis.store?._id,
         livreur: selectedColis.livreur?._id,
         date_programme: selectedColis.date_programme ? moment(selectedColis.date_programme) : null,
         date_livraisant: selectedColis.date_livraisant ? moment(selectedColis.date_livraisant) : null,
         produits: selectedColis.produits.map(p => p.produit),
-        tarif_ajouter: {
+        tarif_ajouter: isAdmin ? {
           value: selectedColis.tarif_ajouter?.value || 0,
           description: selectedColis.tarif_ajouter?.description || '',
-        },
-      });
+        } : undefined,
+        is_remplace: selectedColis.is_remplace || false,
+        replacedColis: selectedColis.replacedColis ? selectedColis.replacedColis._id : null,
+      };
+
+      form.setFieldsValue(formValues);
     }
-  }, [selectedColis, form]);
+  }, [selectedColis, form, dispatch, isAdmin]);
 
   const onFinish = (values) => {
+    if (values.is_remplace && !values.replacedColis) {
+      message.error('Veuillez sélectionner un colis à remplacer.');
+      return;
+    }
+
     const updatedData = {
       ...values,
-      ville: values.ville,
-      store: values.store,
-      tarif_ajouter: {
-        value: values.tarif_ajouter.value || 0,
-        description: values.tarif_ajouter.description || '',
-      },
+      date_programme: values.date_programme ? values.date_programme.toISOString() : null,
+      date_livraisant: values.date_livraisant ? values.date_livraisant.toISOString() : null,
+      produits: values.produits, // Ensure produits are correctly formatted
     };
 
-    // If is_remplace is true, include replacedColis ID
-    if (values.is_remplace) {
-      if (!values.replacedColis) {
-        // Display an error message or toast
-        Alert.error('Veuillez sélectionner un colis à remplacer.');
-        return;
-      }
-      updatedData.replacedColis = values.replacedColis;
+    if (isAdmin) {
+      updatedData.tarif_ajouter = {
+        value: values.tarif_ajouter?.value || 0,
+        description: values.tarif_ajouter?.description || '',
+      };
+      updatedData.ville = values.ville;
     }
 
     dispatch(updateColisById(selectedColis._id, updatedData));
+    navigate('/dashboard/list-colis');
   };
 
   const loadingIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
   return (
-    <Row justify="center"  style={{padding:"16px" , borderRadius:"8px" , width:"100%"}}>
+    <Row justify="center" style={{ padding: "16px", borderRadius: "8px", width: "100%" }}>
       <Col xs={24} sm={20} md={16} lg={12}>
         {loading && <Spin indicator={loadingIcon} />}
         {error && <Alert message="Error" description={error} type="error" showIcon />}
@@ -96,19 +104,8 @@ const UpdateColis = ({theme}) => {
             form={form}
             layout="vertical"
             onFinish={onFinish}
-            style={{padding:"16px" , borderRadius:"8px" , width:"100%"}}
+            style={{ padding: "16px", borderRadius: "8px", width: "100%" }}
             className={theme === 'dark' ? 'dark-mode' : ''}
-            initialValues={{
-              ...selectedColis,
-              ouvrir: selectedColis.ouvrir,
-              is_simple: selectedColis.is_simple,
-              is_remplace: selectedColis.is_remplace,
-              is_fragile: selectedColis.is_fragile,
-              tarif_ajouter: {
-                value: selectedColis.tarif_ajouter?.value || 0,
-                description: selectedColis.tarif_ajouter?.description || '',
-              },
-            }}
           >
             {/* Store Selection */}
             <Form.Item
@@ -146,25 +143,25 @@ const UpdateColis = ({theme}) => {
               <Input />
             </Form.Item>
 
-            {/* Ville */}
-            {user.role === 'admin' && (
-            <Form.Item
-              label="Ville"
-              name="ville"
-              rules={[{ required: true, message: 'Please select a city' }]}
-            >
-              <Select
-                placeholder="Select a city"
-                loading={villesLoading}
-                allowClear
+            {/* Ville (Admin Only) */}
+            {isAdmin && (
+              <Form.Item
+                label="Ville"
+                name="ville"
+                rules={[{ required: true, message: 'Please select a city' }]}
               >
-                {villesData.map((ville) => (
-                  <Option key={ville._id} value={ville._id}>
-                    {ville.nom}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+                <Select
+                  placeholder="Select a city"
+                  loading={villesLoading}
+                  allowClear
+                >
+                  {villesData.map((ville) => (
+                    <Option key={ville._id} value={ville._id}>
+                      {ville.nom}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
             )}
 
             {/* Adresse */}
@@ -184,8 +181,6 @@ const UpdateColis = ({theme}) => {
               <TextArea rows={4} />
             </Form.Item>
 
-           
-
             {/* Nature Produit */}
             <Form.Item
               label="Nature Produit"
@@ -194,8 +189,6 @@ const UpdateColis = ({theme}) => {
             >
               <Input />
             </Form.Item>
-
-            
 
             {/* Boolean Fields */}
             <Form.Item name="ouvrir" valuePropName="checked">
@@ -219,61 +212,62 @@ const UpdateColis = ({theme}) => {
                 min={0}
                 style={{ width: '100%' }}
                 formatter={value => `${value}`}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                parser={value => value.replace(/DH\s?|(,*)/g, '')}
               />
             </Form.Item>
-            {/* Tarif Ajouter Section */}
-            {user.role === 'admin' && (
-            <Form.Item label="Tarif Ajouter">
-              <Row gutter={16}>
-                {/* Value Input */}
-                <Col span={12}>
-                  <Form.Item
-                    name={['tarif_ajouter', 'value']}
-                    rules={[
-                      { required: true, message: 'Please enter the tarif value' },
-                      { type: 'number', min: 0, message: 'Value must be at least 0' },
-                    ]}
-                  >
-                    <Input
-                      placeholder="Valeur du tarif"
-                      min={0}
-                      style={{ width: '100%' }}
-                      formatter={value => `${value}`}
-                      parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                      prefix={<InfoCircleOutlined />}
-                      suffix={
-                        <Tooltip title="Entrez la valeur additionnelle du tarif">
-                          <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
-                        </Tooltip>
-                      }
-                    />
-                  </Form.Item>
-                </Col>
 
-                {/* Description Input */}
-                <Col span={12}>
-                  <Form.Item
-                    name={['tarif_ajouter', 'description']}
-                    rules={[
-                      { required: true, message: 'Please enter the tarif description' },
-                      { type: 'string', max: 300, message: 'Description cannot exceed 300 characters' },
-                    ]}
-                  >
-                    <Input
-                      placeholder="Description du tarif"
-                      style={{ width: '100%' }}
-                      prefix={<InfoCircleOutlined />}
-                      suffix={
-                        <Tooltip title="Entrez une description pour le tarif additionnel">
-                          <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
-                        </Tooltip>
-                      }
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Form.Item>
+            {/* Tarif Ajouter Section (Admin Only) */}
+            {isAdmin && (
+              <Form.Item label="Tarif Ajouter">
+                <Row gutter={16}>
+                  {/* Value Input */}
+                  <Col span={12}>
+                    <Form.Item
+                      name={['tarif_ajouter', 'value']}
+                      rules={[
+                        { required: false, message: 'Please enter the tarif value' },
+                        { type: 'number', min: 0, message: 'Value must be at least 0' },
+                      ]}
+                    >
+                      <InputNumber
+                        placeholder="Valeur du tarif"
+                        min={0}
+                        style={{ width: '100%' }}
+                        formatter={value => `${value} DH`}
+                        parser={value => value.replace(/ DH$/, '')}
+                        prefix={<InfoCircleOutlined />}
+                        suffix={
+                          <Tooltip title="Entrez la valeur additionnelle du tarif">
+                            <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                          </Tooltip>
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  {/* Description Input */}
+                  <Col span={12}>
+                    <Form.Item
+                      name={['tarif_ajouter', 'description']}
+                      rules={[
+                        { required: false, message: 'Please enter the tarif description' },
+                        { type: 'string', max: 300, message: 'Description cannot exceed 300 characters' },
+                      ]}
+                    >
+                      <Input
+                        placeholder="Description du tarif"
+                        style={{ width: '100%' }}
+                        prefix={<InfoCircleOutlined />}
+                        suffix={
+                          <Tooltip title="Entrez une description pour le tarif additionnel">
+                            <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                          </Tooltip>
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form.Item>
             )}
 
             {/* Replaced Colis Selection */}
@@ -285,16 +279,14 @@ const UpdateColis = ({theme}) => {
               >
                 <Select
                   placeholder="Sélectionnez le Colis à remplacer"
-                  loading={loading}
+                  loading={availableColisLoading}
                   allowClear
                 >
-                  {/* Populate options based on available colis */}
-                  {/* Assuming you have a list of colis to replace, replace the below example with actual data */}
-                  {selectedColis && selectedColis.replacedColis && (
-                    <Option value={selectedColis.replacedColis._id}>
-                      {selectedColis.replacedColis.code_suivi} - {selectedColis.replacedColis.nom}
+                  {availableColisData.map((colis) => (
+                    <Option key={colis._id} value={colis._id}>
+                      {colis.code_suivi} - {colis.nom}
                     </Option>
-                  )}
+                  ))}
                 </Select>
               </Form.Item>
             )}
@@ -302,7 +294,7 @@ const UpdateColis = ({theme}) => {
             {/* Submit Button */}
             <Form.Item>
               <Button type="primary" htmlType="submit" loading={loading}>
-                Update Colis
+                {isAdmin ? 'Mettre à jour le Colis' : 'Update Colis'}
               </Button>
             </Form.Item>
           </Form>

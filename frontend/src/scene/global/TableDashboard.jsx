@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Table } from 'antd';
 
-const TableDashboard = ({ column, data, id, theme, onSelectChange, ...rest }) => {
+const TableDashboard = ({ column, data, id, theme, onSelectChange, loading, ...rest }) => {
   const [client, setClient] = useState(false);
   
   const rowSelection = {
@@ -20,6 +20,7 @@ const TableDashboard = ({ column, data, id, theme, onSelectChange, ...rest }) =>
         defaultPageSize: 50, // Default page size
       }} 
       className={theme === 'dark' ? 'table-dark' : 'table-light'}
+      loading={loading} // Ensure loading prop is passed here
       {...(!client && { rowSelection })}
       {...rest} // Spread any additional props (e.g., expandable)
     />
