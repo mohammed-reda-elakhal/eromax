@@ -6,6 +6,8 @@ require('dotenv').config;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { findOrCreateLivreur } = require("./Controllers/livreurController");
+// Import your public routes
+const apiIntegrationRoute = require("./routes/apiIntegrationRoute");
 const scheduleCronJobs = require('./Middlewares/CronScheduler'); // Import the cronJobs.js file
 
 

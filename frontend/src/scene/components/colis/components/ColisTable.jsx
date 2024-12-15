@@ -124,7 +124,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
 
-  const phoneNumber = '+212664201873';
+  const phoneNumber = '+212630087302';
 
   const componentRef = useRef();
   const dispatch = useDispatch();
