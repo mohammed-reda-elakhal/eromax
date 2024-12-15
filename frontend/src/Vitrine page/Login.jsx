@@ -1,39 +1,49 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input, Button, Radio } from 'antd';
 import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import './login.css';
-import { loginUser } from '../redux/apiCalls/authApiCalls';
+import { loginUser, logoutUser } from '../redux/apiCalls/authApiCalls';
 import { FaFacebook, FaInstagram, FaWhatsapp } from 'react-icons/fa';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('client');
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Handle login submission
+  // Clear data and possibly logout user on component mount
+  useEffect(() => {
+    // If you're using Redux for user data, you can dispatch a logout or clear action
+    // to remove old user data. Or clear localStorage/sessionStorage here if needed.
+    dispatch(logoutUser()); 
+    setEmail('');
+    setPassword('');
+    // You could also explicitly clear localStorage if you store user info there:
+    // localStorage.removeItem('user');
+    // sessionStorage.removeItem('user');
+  }, [dispatch]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = { email, password };
-    dispatch(loginUser(formData, role, navigate)); // dispatch login
+    dispatch(loginUser(formData, role, navigate));
     clearData();
   };
 
-  // Handle navigation based on role
   const handleRegisterNavigation = () => {
     if (role === 'client') {
-      navigate('/register'); // Navigate to client registration
+      navigate('/register'); 
     } else if (role === 'livreur') {
-      navigate('/register/livreur'); // Navigate to livreur registration
+      navigate('/register/livreur'); 
     } else if (role === 'staf') {
-      navigate('/'); // Navigate to staf registration (if needed)
+      navigate('/'); 
     }
   };
 
-  // Clear form data
   const clearData = () => {
     setEmail('');
     setPassword('');

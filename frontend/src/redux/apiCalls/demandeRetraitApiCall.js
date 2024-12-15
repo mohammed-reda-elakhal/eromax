@@ -28,7 +28,7 @@ export function createDemandeRetrait(demandeRetraitData) {
     return async (dispatch) => {
       try {
         // Send the request to create a "Demande de Retrait"
-        const { data } = await request.post(`/api/demande-retrait/`, demandeRetraitData);
+        const { data } = await request.post(`/api/demande-retrait`, demandeRetraitData);
   
         // If successful, add the new demande to the store
         dispatch(demandeRetraitActions.addDemandeRetrait(data.data));

@@ -6,7 +6,6 @@ const Payement = require('../Models/Payement');
 const { Store } = require('../Models/Store');
 const Transaction = require('../Models/Transaction')
 
-
 exports.createDemandeRetrait = async (req, res) => {
   try {
     const { id_store, id_payement, montant } = req.body;
@@ -24,6 +23,46 @@ exports.createDemandeRetrait = async (req, res) => {
       });
     }
 
+    // Validation: Check if montant is >= 100
+    if (montant < 100) {
+      return res.status(400).json({
+        message: "Le montant doit être supérieur ou égal à 100 DH.",
+      });
+    }
+
+    // Fetch the store to verify solde
+    const store = await Store.findById(id_store);
+    if (!store) {
+      return res.status(404).json({
+        message: "Store non trouvé.",
+      });
+    }
+
+    // Validation: Check if store.solde >= montant
+    if (store.solde < montant) {
+      return res.status(400).json({
+        message: "Solde insuffisant pour effectuer cette demande de retrait.",
+      });
+    }
+
+
+    const latestDemandeRetrait = await DemandeRetrait.findOne({ id_store })
+      .sort({ createdAt: -1 });
+
+    if (latestDemandeRetrait) {
+      const now = new Date();
+      const lastDemandeTime = latestDemandeRetrait.createdAt;
+      const hoursDifference = Math.abs(now - lastDemandeTime) / 36e5; // Convert milliseconds to hours
+
+      // Validation: Check if at least 24 hours have passed since the last DemandeRetrait
+      if (hoursDifference < 24) {
+        return res.status(400).json({
+          message: "Vous devez attendre 24 heures entre deux demandes de retrait.",
+        });
+      }
+    }
+    
+
     // Create a new DemandeRetrait instance
     const newDemandeRetrait = new DemandeRetrait({
       id_store,
@@ -33,8 +72,13 @@ exports.createDemandeRetrait = async (req, res) => {
       verser: false,
     });
 
-    // Save the new demandeRetrait to the database
+    // Save the new DemandeRetrait to the database
     const savedDemandeRetrait = await newDemandeRetrait.save();
+
+    // **New Operation:** Deduct the montant from the store's solde after successful creation
+    // It's better to use the already fetched store to avoid an additional database call
+    store.solde -= montant; // Deduct the original montant
+    await store.save();
 
     // Send a success response
     res.status(201).json({
@@ -49,8 +93,6 @@ exports.createDemandeRetrait = async (req, res) => {
     });
   }
 };
-
-
 
 
 
@@ -114,13 +156,7 @@ exports.verserDemandeRetrait = async (req, res) => {
     demandeRetrait.verser = true;
     await demandeRetrait.save();
 
-    // Retrieve the associated store
-    const store = await Store.findById(demandeRetrait.id_store);
-
-    // Deduct the montant from the store's solde
-    store.solde -= demandeRetrait.montant;
-    await store.save();
-
+    
     // Create a new Transaction
     const transaction = new Transaction({
       id_store: demandeRetrait.id_store,

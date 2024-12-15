@@ -161,20 +161,7 @@ export function updateColisById(id, colisData) {
 export function deleteColis(id) {
   return async (dispatch) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Authentication token is missing');
-        return;
-      }
-
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await request.put(`/api/colis/${id}` , config);
+      const { data } = await request.delete(`/api/colis/${id}` );
       toast.success('Colis delete avec successfully');
     } catch (error) {
       console.error("Failed to update colis:", error);
