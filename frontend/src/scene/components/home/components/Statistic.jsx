@@ -20,7 +20,7 @@ function Statistic({theme , userRole}) {
         <TopCitiesChart />
         <Divider />
         {
-          userRole === " admin" ?  <ClientChart /> : ""
+          userRole === "admin" ?  <ClientChart /> : ""
         }
        
     </div>

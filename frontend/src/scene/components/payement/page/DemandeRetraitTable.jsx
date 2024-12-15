@@ -130,22 +130,12 @@ function DemandeRetraitTable() {
             )
         },
         {
-            title: 'Tarif',
-            dataIndex: 'tarif',
-            key: 'tarif',
-            render: (text, record) => (
-                <div>
-                    <strong>{record?.tarif} </strong> DH
-                </div>
-            )
-        },
-        {
             title: 'Montant',
             dataIndex: 'montant',
             key: 'montant',
             render: (text, record) => (
                 <div>
-                    <strong>{record?.montant} </strong> DH
+                    <strong>{user?.role === "admin" ? record?.montant : record?.montant +5} </strong> DH
                 </div>
             )
         },

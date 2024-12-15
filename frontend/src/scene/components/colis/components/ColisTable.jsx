@@ -16,7 +16,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
-import { getColis, getColisForClient, getColisForLivreur, setColisPayant, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { deleteColis, getColis, getColisForClient, getColisForLivreur, setColisPayant, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import TrackingColis from '../../../global/TrackingColis ';
 import moment from 'moment';
@@ -27,6 +27,7 @@ const { Text } = Typography;
 const { Option } = Select;
 
 const allowedStatuses = [
+  "Ramassée",
   "Mise en Distribution",
   "Reçu",
   "Livrée",
@@ -286,7 +287,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       render: (text, record) => (
         <>
           {record.replacedColis ? 
-            <Tag icon={<FiRefreshCcw />}></Tag> : ""
+            <Tag icon={<FiRefreshCcw />} color="default" style={{ marginRight: '5px' }} />
+            : ""
           }
           <Typography.Text
             copyable
@@ -294,61 +296,96 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           >
             {text}
           </Typography.Text>
-         
-          {
-            record.expedation_type ==="ameex" ? 
-            <p style={{color:"gray" , size:"10px"}}>{record.code_suivi_ameex}</p> : ""
-          }
-          <Divider/>
-          <div className="expanded-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
-            {user.role !== 'team' && user.role !== 'livreur' && user.role !== 'admin' && (
-              <Tooltip title="Contact via WhatsApp">
-                <Button 
-                  type="primary" 
-                  icon={<FaWhatsapp />} 
-                  onClick={() => {
-                    // Constructing the message
-                    const message = `Bonjour, je suis ${user.nom} ${user.prenom}, j'ai besoin de discuter pour le colis de code ${text}.`;
-                    
-                    // Ensure the message is properly URL-encoded
-                    const encodedMessage = encodeURIComponent(message);
-                    
-                    // Open WhatsApp with the encoded message
-                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}&text=${encodedMessage}`;
-                    window.open(whatsappUrl, '_blank');
-                  }}
-                  style={{
-                    backgroundColor: '#25D366',
-                    borderColor: '#25D366',
-                    color: '#fff'
-                  }}
-                />
-              </Tooltip>
-            )}
-            <Tooltip title="Call Support">
-              <Button 
-                type="primary" 
-                icon={<TbPhoneCall />} 
-                onClick={() => window.location.href = `tel:${phoneNumber}`}
-                style={{
-                  backgroundColor: '#007bff',
-                  borderColor: '#007bff',
-                  color: '#fff'
-                }}
-              />
-            </Tooltip>
+          {record.expedation_type ==="ameex" && (
+            <p style={{color:"gray", fontSize:"10px", margin: 0}}>{record.code_suivi_ameex}</p>
+          )}
+          <Divider />
+          <div style={{display:'flex' , width:"100%" , justifyContent:"space-around"}}>
+          <Tooltip title="Contact via WhatsApp">
+            <Button 
+              type="primary" 
+              icon={<FaWhatsapp />} 
+              onClick={() => {
+                // Constructing the message
+                const message = `Bonjour, je suis ${user.nom} ${user.prenom}, j'ai besoin de discuter pour le colis de code ${record.code_suivi}.`;
+                
+                // Ensure the message is properly URL-encoded
+                const encodedMessage = encodeURIComponent(message);
+                
+                // Open WhatsApp with the encoded message
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}&text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+              }}
+              style={{
+                backgroundColor: '#25D366',
+                borderColor: '#25D366',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Call Support">
+            <Button 
+              type="primary" 
+              icon={<TbPhoneCall />} 
+              onClick={() => window.location.href = `tel:${phoneNumber}`}
+              style={{
+                backgroundColor: '#007bff',
+                borderColor: '#007bff',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
           </div>
         </>
       ),
-    },       
+    },
     {
-      title: 'Bussness',
+      title: 'Bussiness',
       dataIndex: 'store',
       key: 'store',
       render : (text , record) => (
-        <strong>{record.store?.storeName}</strong>
+        <>
+          <strong>{record.store?.storeName} - {record.store?.tele || 'N/A'}</strong>
+          {
+            user?.role === "admin"? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p>:""
+          }
+         
+        </>
       )
     },
+    {
+      title: 'Livreur',
+      dataIndex: ['livreur', 'nom'],
+      key: 'livreur_nom',
+      render: (text ,record) => (
+        <>
+           {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
+        </>
+      ),
+    },
+    {
+      title: 'Statut',
+      dataIndex: 'statut',
+      key: 'statut',
+      ...search('statut'),
+      render: (status, record) => {
+        return user?.role === 'admin' ? (
+          <Tag
+            color={getStatusTagColor(status)}
+            style={{ cursor: 'pointer' }}
+            onClick={() => handleStatusClick(record)}
+          >
+            {status}
+          </Tag>
+        ) : (
+          <Tag
+            color={getStatusTagColor(status)}
+          >
+            {status}
+          </Tag>
+        );
+      },
+    },    
     {
       title: 'Destinataire',
       dataIndex: 'nom',
@@ -396,7 +433,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Ville',
       dataIndex: ['ville', 'nom'],
       key: 'ville',
-      ...search('ville'),
+      ...search('ville.nom'),
     },
     {
       title: 'Adresse',
@@ -410,31 +447,72 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       ...search('prix'),
     },
     {
-      title: 'Statut',
-      dataIndex: 'statut',
-      key: 'statut',
-      render: (status, record) => {
-        return user?.role === 'admin' ? (
-          <Tag
-            color={getStatusTagColor(status)}
-            style={{ cursor: 'pointer' }}
-            onClick={() => handleStatusClick(record)}
-          >
-            {status}
+      title: 'Nature de Produit',
+      dataIndex: 'nature_produit',
+      key: 'nature_produit',
+      ...search('nature_produit'),
+      render: (text) => text || 'N/A',
+    },
+    {
+      title: 'Commentaire',
+      dataIndex: 'commentaire',
+      key: 'commentaire',
+      ...search('commentaire'),
+      render: (text) => text || 'N/A',
+    },
+    {
+      title: 'État',
+      dataIndex: 'etat',
+      key: 'etat',
+      render: (etat) => (
+        etat ? 
+          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+          : 
+          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+      ),
+    },
+    {
+      title: 'Prés payant',
+      dataIndex: 'pret_payant',
+      key: 'pret_payant',
+      render: (pret_payant) => (
+        pret_payant ? 
+          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+          : 
+          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+      ),
+    },
+    {
+      title: 'Autres Options',
+      key: 'options',
+      render: (record) => (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          <Tag color={record.ouvrir ? 'green' : 'red'}>
+            Ouvrir: {record.ouvrir ? 'Oui' : 'Non'}
           </Tag>
-        ) : (
-          <Tag
-            color={getStatusTagColor(status)}
-          >
-            {status}
+          <Tag color={record.is_simple ? 'green' : 'red'}>
+            Is Simple: {record.is_simple ? 'Oui' : 'Non'}
           </Tag>
-        );
-      },
-    },    
+          <Tag color={record.is_remplace ? 'green' : 'red'}>
+            Is Remplace: {record.is_remplace ? 'Oui' : 'Non'}
+          </Tag>
+          <Tag color={record.is_fragile ? 'green' : 'red'}>
+            Is Fragile: {record.is_fragile ? 'Oui' : 'Non'}
+          </Tag>
+        </div>
+      ),
+    },
+    {
+      title: 'Date de Création',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (text) => formatDate(text),
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+    },
     {
       title: 'Options',
       render: (text, record) => (
-        <div className="expanded-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+        <div className="options-actions" style={{ display: 'flex', gap: '10px' }}>
           <Tooltip title="Suivi colis">
             <Button 
               type="primary" 
@@ -489,7 +567,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             </Tooltip>
           )}
           {user?.role === 'admin' && (
-            <Tooltip title="colis et deja payant">
+            <Tooltip title="Colis est déjà payant">
               <Button 
                 type="primary" 
                 onClick={() => dispatch(setColisPayant(record._id))} 
@@ -499,14 +577,16 @@ const ColisTable = ({ theme, darkStyle, search }) => {
                   color: '#fff'
                 }}
                 icon={<MdOutlinePayment />}
-              >
-              </Button>
+              />
             </Tooltip>
           )}
-          <Tooltip title="supremer colis">
+          {
+            record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis" || record?.statut === "Ramassée"
+            ?
+            <Tooltip title="Supprimer colis">
             <Button 
               type="danger" 
-              onClick={() => dispatch(setColisPayant(record._id))} 
+              onClick={() => dispatch(deleteColis(record._id))} 
               style={{
                 backgroundColor: '#dc3545',
                 borderColor: '#dc3545',
@@ -516,54 +596,13 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             >
             </Button>
           </Tooltip>
+          :''
+          }
+          
         </div>
       ),
     }
   ];
-
-  const expandedRowRender = (record) => (
-    <div style={{ padding: '10px 20px' }}>
-      <Descriptions title="Detail de Colis" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
-        <Descriptions.Item label="Dernière Mise à Jour">{formatDate(record.updatedAt)}</Descriptions.Item>
-        <Descriptions.Item label="Commentaire">{record.commentaire || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="Nature de Produit">{record.nature_produit || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="État">
-          {record.etat ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>}
-        </Descriptions.Item>
-        <Descriptions.Item label="Prés payant">
-          {record.pret_payant ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>}
-        </Descriptions.Item>
-        <Descriptions.Item label="Ouvrir">{record.ouvrir ? 'Oui' : 'Non'}</Descriptions.Item>
-        <Descriptions.Item label="Is Simple">{record.is_simple ? 'Oui' : 'Non'}</Descriptions.Item>
-        <Descriptions.Item label="Is Remplace">{record.is_remplace ? 'Oui' : 'Non'}</Descriptions.Item>
-        <Descriptions.Item label="Is Fragile">{record.is_fragile ? 'Oui' : 'Non'}</Descriptions.Item>
-        <Descriptions.Item label="Date de Création">{formatDate(record.createdAt)}</Descriptions.Item>
-      </Descriptions>
-
-      {
-        record.replacedColis 
-        ?
-        <Descriptions title="Colis Remplacée" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
-          <Descriptions.Item label="Code suivi">{record?.replacedColis?.code_suivi || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label="Ville">{record?.replacedColis?.ville?.nom || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label="Prix">{record?.replacedColis?.prix || 'N/A'}</Descriptions.Item>
-        </Descriptions>
-        : ""
-      }
-
-      <Descriptions title="Information de Bussness" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
-        <Descriptions.Item label="Store Name">{record.store?.storeName || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="Adresse">{record.store?.adress || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="Téléphone">{record.store?.tele || 'N/A'}</Descriptions.Item>
-      </Descriptions>
-
-      <Descriptions title="Livreur" bordered size="small" column={1} style={{ marginBottom: '20px' }}>
-        <Descriptions.Item label="Livreur">
-          {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
-        </Descriptions.Item>
-      </Descriptions>
-    </div>
-  );
 
   const columns = columnsColis;
 
@@ -636,7 +675,24 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       "Ville": colis.ville?.nom || 'N/A',
       "Adresse": colis.adresse || 'N/A',
       "Prix (DH)": colis.prix,
-      "Nature de Produit": colis.nature_produit
+      "Nature de Produit": colis.nature_produit,
+      "Commentaire": colis.commentaire || 'N/A',
+      "État": colis.etat ? "Payée" : "Non Payée",
+      "Prés payant": colis.pret_payant ? "Payée" : "Non Payée",
+      "Ouvrir": colis.ouvrir ? "Oui" : "Non",
+      "Is Simple": colis.is_simple ? "Oui" : "Non",
+      "Is Remplace": colis.is_remplace ? "Oui" : "Non",
+      "Is Fragile": colis.is_fragile ? "Oui" : "Non",
+      "Dernière Mise à Jour": formatDate(colis.updatedAt),
+      "Date de Création": formatDate(colis.createdAt),
+      "Replaced Code Suivi": colis.replacedColis?.code_suivi || 'N/A',
+      "Replaced Ville": colis.replacedColis?.ville?.nom || 'N/A',
+      "Replaced Prix (DH)": colis.replacedColis?.prix || 'N/A',
+      "Store Adresse": colis.store?.adress || 'N/A',
+      "Store Téléphone": colis.store?.tele || 'N/A',
+      "Livreur Nom": colis.livreur?.nom || 'N/A',
+      "Livreur Téléphone": colis.livreur?.tele || 'N/A',
+      "Statut": colis.statut,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -648,10 +704,10 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   };
 
   return (
-    <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`} style={{width:"max-content"}}>
+    <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`} style={{width:"100%", overflowX: 'auto'}}>
       {contextHolder}
       {/* Action Bar */}
-      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' , width:'max-content' }}>
+      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
         <Button 
           icon={<IoMdRefresh />} 
           type="primary" 
@@ -687,7 +743,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         suffix={<IoSearch />}
       />
 
-      {/* Main Table with Expandable Rows */}
+      {/* Main Table without Expandable Rows */}
       <TableDashboard
         column={columns}
         data={state.filteredData}
@@ -697,10 +753,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           selectedRowKeys: state.selectedRowKeys,
           onChange: handleRowSelection,
         }}
-        expandable={{
-          expandedRowRender: expandedRowRender,
-          rowExpandable: (record) => true,
-        }}
+        // Removed expandable prop
+        scroll={{ x: 'max-content' }} // Added horizontal scroll for large number of columns
       />
 
       {/* Reclamation Modal */}

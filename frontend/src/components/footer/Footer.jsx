@@ -33,10 +33,13 @@ function Footer({handleChangeTheme , mode}) {
             </div>
             <div className="footer-links">
                 <h2 className='footer-title-section'>Liens Rapide</h2>
-                <Link className='footer-link' to="">
+                <Link className='footer-link' to="/register">
                     Devenir Client
                 </Link>
-                <Link className='footer-link' to="">
+                <Link className='footer-link' to="/register/livreur">
+                    Devenir Livreur
+                </Link>
+                <Link className='footer-link' to="/login">
                     Espace Client
                 </Link>
             </div>
@@ -48,24 +51,34 @@ function Footer({handleChangeTheme , mode}) {
                         EROMAX.MA works with speed and agility and ensures seamless end-to-end distribution with passion and commitment.
                     </p>
                     <div className="footer-icons">
-                        <Link  className='footer-icon'>
+                        <Link  className='footer-icon' to={`https://api.whatsapp.com/send?phone=212630087302`}>
                             <FaWhatsapp />
                         </Link>
-                        <Link  className='footer-icon'>
+                        <Link  className='footer-icon' to={`https://web.facebook.com/profile.php?id=61561358108705`}>
                             <FaFacebook/>
                         </Link>
-                        <Link  className='footer-icon'>
+                        <Link  className='footer-icon' to={`https://www.instagram.com/eromax.ma/profilecard/?igsh=MTg0bDQ5ZmlpZDVraw==`}>
                             <FaInstagram />
                         </Link>
-                        <Link  className='footer-icon'>
+                        <Link  className='footer-icon' to={`https://www.tiktok.com/@eromax.ma?_t=8sBRoCXyCCz&_r=1`}>
                             <FaTiktok/>
                         </Link>
                     </div>
             </div>
         </div>
         <div className='footer-copyright'>
-            <p>copyright @ Créer par <a href="https://www.mohammedreda.site/" blank >Mohammed Reda</a> </p>         
+            <p>
+                copyright @ Créer par 
+                <a 
+                href="https://www.mohammedreda.site/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                >
+                    Mohammed Reda
+                </a>
+            </p>
         </div>
+
         
     </footer>
   )

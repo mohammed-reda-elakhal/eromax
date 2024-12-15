@@ -43,7 +43,6 @@ function DemandeRetrait({ theme , setOpenWallet }) {
         setMontant('');          // Reset montant field
         setSelectedBank(null);   // Reset selectedBank field
 
-        setOpenWallet(false);
     };
 
     const darkStyle = {

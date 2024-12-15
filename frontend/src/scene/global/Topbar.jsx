@@ -34,6 +34,7 @@ function Topbar() {
   const logoutFunction = () => {
     navigate('/login');
     dispatch(logoutUser(navigate));
+    window.location.reload();
   };
 
   useEffect(() => {
