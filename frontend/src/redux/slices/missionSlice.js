@@ -4,8 +4,10 @@ const missionSlice = createSlice({
     name: "mission",
     initialState: {
         demandeRetrait: [],
+        client: [],
         reclamations: [],
         colis: [],
+        colisR: [],
         colisExp : [],
         colisPret : [],
     },
@@ -14,6 +16,10 @@ const missionSlice = createSlice({
         setDemandeRetrait(state, action) {
             state.demandeRetrait = action.payload;
         },
+        // Set new client data
+        setNouveauClient(state, action) {
+            state.client = action.payload;
+        },
         // Set Reclamation data
         setReclamation(state, action) {
             state.reclamations = action.payload;
@@ -21,6 +27,10 @@ const missionSlice = createSlice({
         // Set Colis data
         setColis(state, action) {
             state.colis = action.payload;
+        },
+        // Set Colis Ramasse data
+        setColisR(state, action) {
+            state.colisR = action.payload;
         },
         // Set Colis expidée data
         setColisExp(state, action) {

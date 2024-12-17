@@ -70,6 +70,7 @@ import DocumentProfile from "./scene/components/profile/components/DocumentProfi
 import { useSelector } from "react-redux";
 import UpdateColisPage from "./scene/components/colis/pages/UpdateColisPage";
 import TransactionPage from "./scene/components/payement/page/TransactionPage";
+import ColisAmeex from "./scene/components/colis/pages/ColisAmeex";
 
 
 function App() {
@@ -255,6 +256,7 @@ function App() {
             <Route path="colis-rc" element={<ColisReçu search = {getColumnSearchProps} />} />
             <Route path="colis-md" element={<ColisMiseDistribution search = {getColumnSearchProps} />} />
             <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
+            <Route path="ameex" element={<ColisAmeex search = {getColumnSearchProps} />} />
             <Route path="ajouter-colis/:type" element={<AjouterColis />} />
             <Route path="import-colis" element={<ColisImport />} />
             <Route path="colis/update/:codeSuivi" element={<UpdateColisPage />} />

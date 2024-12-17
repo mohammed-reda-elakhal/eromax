@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Button, Drawer, Menu } from 'antd';
+import { Badge, Button, Drawer, Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -20,6 +20,7 @@ import { MdPayment } from "react-icons/md";
 import { RiDiscountPercentLine } from "react-icons/ri";
 import { CiMenuFries } from 'react-icons/ci';
 import { IoIosAdd } from 'react-icons/io';
+import { getColisATRToday, getColisExpidée, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
 
 function Menubar() {
   const { theme } = useContext(ThemeContext);
@@ -29,11 +30,40 @@ function Menubar() {
   const [openMenu, setOpenMenu] = useState(false);
   const [userData , setUserData] = useState({})
   const {user} = useSelector(state => state.auth );
+  
 
+    const { demandeRetrait, colis, reclamations , colisExp , colisPret , client , colisR } = useSelector((state) => ({
+          demandeRetrait: state.mission.demandeRetrait,
+          colis: state.mission.colis,
+          colisR: state.mission.colisR,
+          colisExp: state.mission.colisExp,
+          colisPret: state.mission.colisPret,
+          reclamations: state.mission.reclamations,
+          client : state.mission.client,
+      }));
+
+      let totaleColisAdmin = colis.length + colisR.length; 
+      let totaleCompteAdmin = client.length ; 
+  
+      const dispatch = useDispatch();
+  
+      // Function to dispatch actions based on the user role
+      const getData = () => {
+          if(user?.role === "admin"){
+              dispatch(getDemandeRetraitToday());
+              dispatch(getReclamationToday());
+              dispatch(getColisATRToday());
+              dispatch(getColisRamasser());
+          }else if(user?.role === "livreur"){
+              dispatch(getColisExpidée())
+              dispatch(getColisPret())
+          } 
+      };
 
   useEffect(()=>{
     setUserData(user)
-  },[])
+    getData()
+  },[dispatch])
 
   
  
@@ -140,9 +170,13 @@ function Menubar() {
 
         {
           userData.role ==="admin" && (
-            <Menu.SubMenu icon={<FaUserFriends />} title="Comptes">
+            <Menu.SubMenu icon={<FaUserFriends />} title={
+              <span>
+                Compte <Badge count={totaleCompteAdmin} color="#faad14" />
+              </span>
+            }>
               <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/compte/client">Client</Link>
+                <Link to="/dashboard/compte/client">Client <Badge count={client.length} color="#faad14" /></Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/compte/livreur">Livreur</Link>
@@ -211,24 +245,41 @@ function Menubar() {
           )
         }
 
-        {
-          (userData.role === "admin" || userData.role === "team") && (
-            <Menu.SubMenu icon={<LuBox />} title="Colis">
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/list-colis">List Colis</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/colis-r">Colis Ramasse</Link>
-              </Menu.Item>
-              <Menu.Item icon={<MdFactCheck />}>
-                <Link to="/dashboard/facture/globale">Fichier</Link>
-              </Menu.Item>
-            </Menu.SubMenu>
-          )
-        }
+{
+  (userData.role === "admin" || userData.role === "team") && (
+    <Menu.SubMenu
+      icon={<LuBox />}
+      title={
+        <span>
+          Colis <Badge count={totaleColisAdmin} color="#faad14" />
+        </span>
+      }
+    >
+      <Menu.Item icon={<BiTagAlt />}>
+        <Link to="/dashboard/list-colis">List Colis</Link>
+      </Menu.Item>
+      <Menu.Item icon={<BiTagAlt />}>
+        <Link to="/dashboard/colis-ar">
+          Colis Pour Ramassage <Badge count={colis.length} color="#faad14" />
+        </Link>
+      </Menu.Item>
+      <Menu.Item icon={<BiTagAlt />}>
+        <Link to="/dashboard/colis-r">
+          Colis Ramasse <Badge count={colisR.length} color="#faad14" />
+        </Link>
+      </Menu.Item>
+      <Menu.Item icon={<BiTagAlt />}>
+        <Link to="/dashboard/ameex">
+          Colis Ameex 
+        </Link>
+      </Menu.Item>
+      <Menu.Item icon={<MdFactCheck />}>
+        <Link to="/dashboard/facture/globale">Fichier</Link>
+      </Menu.Item>
+    </Menu.SubMenu>
+  )
+}
+
 
         {
           userData.role ==="client" && (

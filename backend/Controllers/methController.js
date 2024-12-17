@@ -79,18 +79,47 @@ const getMethPayementById = asyncHandler(async (req, res) => {
     }
 });
 
-// Update a bank payment method
 const updateMethPayement = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const updatedData = req.body;
+        const { bank } = req.body;
 
-        const updatedMethPayement = await Meth_Payement.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
-
-        if (!updatedMethPayement) {
+        // Find the existing payment method
+        const existingMethPayement = await Meth_Payement.findById(id);
+        if (!existingMethPayement) {
             return res.status(404).json({ message: 'Bank payment method not found' });
         }
 
+        // If a new image is uploaded, handle the upload and deletion of the old image
+        if (req.file) {
+            // Upload the new image to Cloudinary
+            const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+            const result = await cloudinaryUploadImage(imagePath);
+
+            if (result instanceof Error) {
+                return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: result.message });
+            }
+
+
+            // Update the image fields
+            existingMethPayement.image.url = result.secure_url;
+            existingMethPayement.image.public_id = result.public_id;
+
+            // Remove the local file after upload
+            try {
+                fs.unlinkSync(imagePath);
+            } catch (err) {
+                console.error("Failed to delete local image:", err);
+            }
+        }
+
+        // Update the bank name if provided
+        if (bank) {
+            existingMethPayement.Bank = bank;
+        }
+
+        // Save the updated payment method
+        const updatedMethPayement = await existingMethPayement.save();
         res.status(200).json(updatedMethPayement);
     } catch (error) {
         res.status(400).json({ error: error.message });

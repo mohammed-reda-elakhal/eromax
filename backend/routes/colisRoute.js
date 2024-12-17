@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
 const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin, verifyTokenAndLivreur, verifyTokenAdminTeam, verifyTokenAndClient, verifyToken} = require("../Middlewares/VerifyToken"); 
-const { updateSuiviColis, updateMultipleSuiviColis, updateMultipleColisStatus } = require("../Controllers/suivi_colisController");
+const { updateSuiviColis, updateMultipleSuiviColis, updateMultipleColisStatus, syncColisStatusWithAmeex } = require("../Controllers/suivi_colisController");
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
@@ -37,6 +37,9 @@ router.route('/pret_payant/:id')
         .patch(colisController.toggleColisPayant)
 
 
+router.route('/send/ameex')
+        .get(colisController.getColisAmeexCtrl)
+        .put(syncColisStatusWithAmeex)
 
 
 //router api/colis/St

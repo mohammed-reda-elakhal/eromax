@@ -72,7 +72,68 @@ export function getColis(statut) {
         }
     };
 }
+// Fetch post
+export function getColisAmeex() {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            if(!token){
+                toast.error('Authentification token is missing')
+            }
+            const config = {
+                headers: {
+                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+                    'Content-Type': 'application/json',
+                }
+            };
+            const { data } = await request.get(`/api/colis/send/ameex`, config);
+            dispatch(colisActions.setColis(data)); // Use action creator
+        } catch (error) {
+            console.error("Failed to fetch colis:", error);
+            dispatch(colisActions.setError(error.message));
+        }
+    };
+}
 
+// Fetch Colis Ameex Status Async Action
+export function getColisAmeexAsyncStatu() {
+  return async (dispatch) => {
+      try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentication token is missing');
+              throw new Error('Authentication token is missing');
+          }
+
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`, // Correct capitalization
+                  'Content-Type': 'application/json',
+              }
+          };
+
+          // Dispatch loading state
+          dispatch(colisActions.setLoading(true));
+
+          // Correctly formatted PUT request
+          const { data } = await request.put(`/api/colis/send/ameex`, {}, config);
+
+          // Dispatch loading end
+          dispatch(colisActions.setLoading(false));
+
+          // Show success message
+          toast.success(data.message);
+
+          // Optionally, refresh the colis data
+          dispatch(getColisAmeex()); // Ensure getColisAmeex is correctly imported
+      } catch (error) {
+          console.error("Failed to fetch colis:", error);
+          dispatch(colisActions.setError(error.response?.data?.message || error.message));
+          dispatch(colisActions.setLoading(false));
+          toast.error(error.response?.data?.message || 'Failed to fetch colis');
+      }
+  };
+}
 
 // set colis pret payant 
 export const setColisPayant = (id) => async (dispatch) => {

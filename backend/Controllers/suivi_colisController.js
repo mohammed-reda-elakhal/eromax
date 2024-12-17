@@ -403,7 +403,7 @@ async function syncColisStatusWithAmeexCore() {
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
     const colisList = await Colis.find({
-      expedation_type: 'ameex',
+        expedation_type: 'ameex',
       createdAt: { $gte: twoWeeksAgo }
     }).populate('store');
 

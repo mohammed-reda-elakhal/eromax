@@ -129,21 +129,39 @@ function ColisRamasse({ search }) {
 
   const columns = [
     { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi', ...search('code_suivi') },
-    { title: 'Livreur', dataIndex: 'livreur', key: 'livreur', render: (text, record) => (
-      <span>
-        {record.livreur ? record.livreur.nom + ' - ' + record.livreur.tele : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
-      </span>
-    ) },
-    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
-    { title: 'Destinataire', dataIndex: 'nom', key: 'nom' },
-    { title: 'Téléphone', dataIndex: 'tele', key: 'tele' },
-    { title: 'État', dataIndex: 'etat', key: 'etat', render: (text, record) => (
-      record.etat ? <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-    ) },
+    {
+      title: 'Bussiness',
+      dataIndex: 'store',
+      key: 'store',
+      render : (text , record) => (
+        <>
+          <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
+          {
+            user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
+          }
+        </>
+      )
+    },
+   
+    {
+      title: 'Destinataire',
+      dataIndex: 'nom',
+      key: 'nom',
+      render : (text , record) =>(
+        <>
+          <span>{record.nom}</span>
+          <br />
+          <span>{record.tele}</span>
+          <br />
+          <span>{record.ville.nom}</span>
+          <br />
+          <span>{record.prix}</span>
+        </>
+      )
+    },
     { title: 'Statut', dataIndex: 'statut', key: 'statut', render: (text, record) => (
       <Tag icon={<SyncOutlined spin />} color="processing">{record.statut}</Tag>
     ) },
-    { title: 'Ville', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.nom}</span> },
   ];
 
   // Collect unique villes from selected colis

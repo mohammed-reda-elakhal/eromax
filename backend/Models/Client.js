@@ -4,19 +4,6 @@ const Joi = require("joi");
 
 const ClientSchema= new mongoose.Schema({
  
-
-    // chois 1 Pro
-    // id ( 100 => incr ) , key  (9435a2-921aa4-67fc55-ced90c-1bafbc) regenaration
-    // select store condtion id_client  + store default 
-
-
-    // chois 2
-    // api/client/integration/login
-    // api/client/integration/addColis ....
-    // use token ( login , ajoutColis ( code suivi ) , getInfoColis ( colis , livreur ) , getTruck ( suivi colis ) , updateColis )
-
-    // 
-    //add additional attributes
     nom: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
     prenom: { type: String, required: true, minlength: 2 },
     username: { type: String, required: false , minlength : 2 },
