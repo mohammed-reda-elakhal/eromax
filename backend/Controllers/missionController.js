@@ -1,6 +1,7 @@
 const DemandeRetrait = require('../Models/Demande_Retrait');
 const { Reclamation } = require('../Models/Reclamation');
 const { Colis } = require('../Models/Colis');
+const { Client } = require('../Models/Client');
 
 // Get all Demande Retrait without date condition
 const getDemandeRetraitToday = async (req, res) => {
@@ -12,6 +13,24 @@ const getDemandeRetraitToday = async (req, res) => {
         res.status(200).json(demandes);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching withdrawal requests', error });
+    }
+};
+const getNouveauClient = async (req, res) => {
+    try {
+        const { days } = req.query; // Number of days to consider as "new"
+        const daysNumber = parseInt(days) || 30; // Default to last 30 days if not specified
+
+        // Calculate the date from which to consider new clients
+        const sinceDate = new Date();
+        sinceDate.setDate(sinceDate.getDate() - daysNumber);
+
+        // Fetch clients created after sinceDate
+        const newClients = await Client.find({ createdAt: { $gte: sinceDate } });
+
+        res.status(200).json(newClients);
+    } catch (error) {
+        console.error("Error fetching new clients:", error);
+        res.status(500).json({ message: 'Error fetching new clients', error: error.message });
     }
 };
 
@@ -33,6 +52,21 @@ const getColisATRToday = async (req, res) => {
     try {
         const colis = await Colis.find({
             statut: 'attente de ramassage', // Assuming this is the correct status
+            expedation_type : 'eromax'
+        });
+
+        res.status(200).json(colis);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching packages', error });
+    }
+};
+
+// Get all Colis without date condition
+const getColisR = async (req, res) => {
+    try {
+        const colis = await Colis.find({
+            statut: 'Ramassée', // Assuming this is the correct status
+            expedation_type : 'eromax'
         });
 
         res.status(200).json(colis);
@@ -107,5 +141,7 @@ module.exports = {
     getReclamationToday,
     getColisATRToday,
     countExpedieColisForLivreur,
-    countPretToLivreeColisForLivreur
+    countPretToLivreeColisForLivreur,
+    getNouveauClient,
+    getColisR
 };

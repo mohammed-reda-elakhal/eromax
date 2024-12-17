@@ -32,8 +32,7 @@ import { Typography } from 'antd';
 import { ExclamationCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { IoMdRefresh } from 'react-icons/io';
 
-
-function ColisPourRamassage({ search }) {
+function ColisPourRamassage() { // Removed 'search' prop as it's handled internally
   const { theme } = useContext(ThemeContext);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
@@ -45,6 +44,10 @@ function ColisPourRamassage({ search }) {
   const [form] = Form.useForm();
   const navigate = useNavigate(); // Get history for redirection
   const [loading, setLoading] = useState(false);
+  
+  
+  // **Add search state**
+  const [searchQuery, setSearchQuery] = useState('');
 
   const success = (text) => {
     messageApi.open({
@@ -94,7 +97,28 @@ function ColisPourRamassage({ search }) {
   // Filter colis for "Attente de Ramassage"
   useEffect(() => {
     setData(colisData);
+
   }, [colisData]);
+
+  // **Implement search functionality**
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setData(colisData);
+    } else {
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      const filteredData = colisData.filter(colis => {
+        // Customize the fields you want to search through
+        return (
+          colis.code_suivi.toLowerCase().includes(lowerCaseQuery) ||
+          colis.nom.toLowerCase().includes(lowerCaseQuery) ||
+          colis.tele.toLowerCase().includes(lowerCaseQuery) ||
+          (colis.ville?.nom && colis.ville.nom.toLowerCase().includes(lowerCaseQuery)) ||
+          (colis.store?.storeName && colis.store.storeName.toLowerCase().includes(lowerCaseQuery))
+        );
+      });
+      setData(filteredData);
+    }
+  }, [searchQuery, colisData]);
 
   // Hide page for "livreur" role
   if (user?.role === 'livreur') {
@@ -255,7 +279,6 @@ function ColisPourRamassage({ search }) {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      ...search('code_suivi'),
       render: (text, record) => (
         <>
           {record.replacedColis ? 
@@ -278,51 +301,43 @@ function ColisPourRamassage({ search }) {
       ),
     },
     {
-      title: 'Livreur',
-      dataIndex: 'livreur',
-      key: 'livreur',
-      render: (text, record) => (
-        <span>
-          {record.livreur 
-            ? `${record.livreur.nom} - ${record.livreur.tele}` 
-            : <Tag icon={<ClockCircleOutlined />} color="default">Opération de Ramassage</Tag>
+      title: 'Bussiness',
+      dataIndex: 'store',
+      key: 'store',
+      render : (text , record) => (
+        <>
+          <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
+          {
+            user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
           }
-        </span>
+        </>
       )
     },
-    { 
-      title: 'Dernière Mise à Jour', 
-      dataIndex: 'updatedAt', 
-      key: 'updatedAt', 
-      render: formatDate 
+    {
+      title: 'Livreur',
+      dataIndex: ['livreur', 'nom'],
+      key: 'livreur_nom',
+      render: (text ,record) => (
+        <>
+            {record.livreur ? <p>{record.livreur.nom} <br/> {record.livreur.tele} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
+        </>
+      ),
     },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',
-      ...search('nom'),
-    },
-    {
-      title: 'Téléphone',
-      dataIndex: 'tele',
-      key: 'tele',
-      ...search('tele'),
-    },
-    {
-      title: 'État',
-      dataIndex: 'etat',
-      key: 'etat',
-      render: (text, record) => (
-        record.etat ? (
-          <Tag color="success" icon={<CheckCircleOutlined />}>
-            Payée
-          </Tag>
-        ) : (
-          <Tag color="error" icon={<CloseCircleOutlined />}>
-            Non Payée
-          </Tag>
-        )
-      ),
+      render : (text , record) =>(
+        <>
+          <span>{record.nom}</span>
+          <br />
+          <span>{record.tele}</span>
+          <br />
+          <span>{record.ville.nom}</span>
+          <br />
+          <span>{record.prix}</span>
+        </>
+      )
     },
     {
       title: 'Statut',
@@ -362,28 +377,9 @@ function ColisPourRamassage({ search }) {
       },
     },
     {
-      title: 'Date de Livraison',
-      dataIndex: 'date_livraison',
-      key: 'date_livraison',
-      ...search('date_livraison'),
-      render: (text) => text ? formatDate(text) : 'N/A',
-    },
-    {
-      title: 'Ville',
-      dataIndex: 'ville',
-      key: 'ville',
-      ...search('ville.nom'),
-      render: (text, record) => (
-        <span>
-          {record.ville?.nom || 'N/A'}
-        </span>
-      ),
-    },
-    {
       title: 'Tarif',
       dataIndex: 'ville',
       key: 'tarif',
-      ...search('ville.tarif'),
       render: (text, record) => (
         <span>
           {record.ville?.tarif || 'N/A'}
@@ -391,17 +387,9 @@ function ColisPourRamassage({ search }) {
       ),
     },
     {
-      title: 'Prix',
-      dataIndex: 'prix',
-      key: 'prix',
-      ...search('prix'),
-      render: (text) => text ? `${text} DH` : 'N/A',
-    },
-    {
       title: 'Nature de Produit',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
-      ...search('nature_produit'),
       render: (text) => text || 'N/A',
     },
   ];
@@ -438,7 +426,7 @@ function ColisPourRamassage({ search }) {
             {
               user?.role === "admin" 
               ?
-              <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+              <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <Button 
                   icon={<IoMdRefresh />} 
                   type="primary" 
@@ -477,6 +465,18 @@ function ColisPourRamassage({ search }) {
               :
               "" 
             }
+
+            {/* **Add Search Input Here** */}
+            <div style={{ marginBottom: '16px' }}>
+              <Input
+                placeholder="Rechercher des colis..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                allowClear
+                style={{ width: '300px' }}
+              />
+            </div>
+
             <TableDashboard
               column={columns}
               data={data}

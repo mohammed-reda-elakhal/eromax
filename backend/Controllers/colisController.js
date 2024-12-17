@@ -333,6 +333,9 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
     if (statut) {
       filter.statut = statut;
     }
+    if(statut == "attente de ramassage" || statut == "Ramassée" ){
+      filter.expedation_type = "eromax"
+    }
 
     // Find colis with optional filtering by 'statut'
     const colis = await Colis.find(filter)
@@ -469,6 +472,37 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
 
   res.status(200).json(colis);
 });
+/**
+ * -------------------------------------------------------------------
+ * @desc     get colis by code suivi
+ * @route    /api/colis/statu
+ * @method   GET
+ * @access   private (only logger in user )
+ * -------------------------------------------------------------------
+**/
+exports.getColisAmeexCtrl = asyncHandler(async (req, res) => {
+  const colis = await Colis.find({expedation_type: 'ameex'})
+    .populate('livreur')
+    .populate('store')
+    .populate('team')
+    .populate('ville')     
+    .populate({
+      path: 'replacedColis',
+      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
+      populate: {
+        path: 'ville',
+        select: 'nom', // Include the ville name if needed
+      },
+    })
+    .sort({ updatedAt: -1 });
+
+
+  if (!colis) {
+    return res.status(404).json({ message: "Colis not found" });
+  }
+
+  res.status(200).json(colis);
+});
 
 
 
@@ -486,18 +520,18 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
   let team = req.user.id;  
   let store = req.user.store;  
   let filter = {};  
-
   const { statut } = req.query;  
   if (req.user.role === "team" || req.user.role === "admin") {    
     filter.team = team;  
   } else {    
     filter.store = store;  
   }  
-
   if (statut) {    
     filter.statut = statut;  
   }  
-
+  if(statut == "attente de ramassage" || statut == "Ramassée"  ){
+    filter.expedation_type = "eromax"
+  }
   // Chaining populate to access id_client through store
   colis = await Colis.find(filter)
     .populate('team')

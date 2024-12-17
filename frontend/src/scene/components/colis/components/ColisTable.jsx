@@ -14,7 +14,9 @@ import {
   Form, 
   Select, 
   message, 
-  Spin 
+  Spin, 
+  Badge,
+  Col
 } from 'antd';
 import { 
   FaWhatsapp, 
@@ -22,7 +24,8 @@ import {
   FaPenFancy, 
   FaTicketAlt, 
   FaDownload, 
-  FaAmazonPay 
+  FaAmazonPay, 
+  FaInfoCircle
 } from 'react-icons/fa';
 import { 
   Si1001Tracklists 
@@ -242,23 +245,24 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     }));
   };
 
-  // Show info modal
-  const handleInfo = (id) => {
-    const selectedColis = state.data.find(item => item._id === id);
-    setState(prevState => ({
-      ...prevState,
-      selectedColis,
-      infoModalVisible: true,
-    }));
-  };
+// Show info modal
+const handleInfo = (id) => {
+  const selectedColis = state.data.find(item => item._id === id);
+  setState(prevState => ({
+    ...prevState,
+    selectedColis,
+    infoModalVisible: true,
+  }));
+};
 
-  const closeInfoModal = () => {
-    setState(prevState => ({
-      ...prevState,
-      infoModalVisible: false,
-      selectedColis: null,
-    }));
-  };
+const closeInfoModal = () => {
+  setState(prevState => ({
+    ...prevState,
+    infoModalVisible: false,
+    selectedColis: null,
+  }));
+};
+
 
   const handleTicket = (record) => {
     setState(prevState => ({
@@ -391,7 +395,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'store',
       render : (text , record) => (
         <>
-          <strong>{record.store?.storeName} - {record.store?.tele || 'N/A'}</strong>
+          <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
           {
             user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
           }
@@ -404,7 +408,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'livreur_nom',
       render: (text ,record) => (
         <>
-           {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
+           {record.livreur ? <p>{record.livreur.nom} <br/> {record.livreur.tele} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
         </>
       ),
     },
@@ -430,19 +434,12 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           </Tag>
         );
       },
-    },    
-    {
-      title: 'Destinataire',
-      dataIndex: 'nom',
-      key: 'nom',
-      ...search('nom'),
     },
     {
-      title: 'Téléphone',
+      title: 'Distinataire',
       dataIndex: 'tele',
       key: 'tele',
-      ...search('tele'),
-      render: (text) => {
+      render: (text , record) => {
         // Validate phone number
         const phoneRegex = /^0[67]\d{8}$/;
         const isValidPhoneNumber = phoneRegex.test(text);
@@ -461,35 +458,35 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         if (!isValidPhoneNumber && errorMessage) {
           return (
             <Tooltip title={errorMessage} placement="topLeft">
-              <Typography.Text style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}>
-                {text}
+              <Typography.Text >
+                <span >{record.nom}</span>
+                <br />
+                <span style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}> {text} </span>
+                <br />
+                <span>{record?.ville.nom}</span>
+                <br />
+                <span >{record?.prix} DH</span>
               </Typography.Text>
             </Tooltip>
           );
         }
         return (
-          <Typography.Text style={{ color: 'green', fontWeight: 'bold' }}>
-            {text}
+          <Typography.Text>
+            <span>{record.nom}</span>
+            <br />
+            <span style={{ color: 'green', fontWeight: 'bold' }}> {text} </span>
+            <br />
+            <span >{record?.ville.nom}</span>
+            <br />
+            <span >{record?.prix} DH</span>
           </Typography.Text>
         );
       },
-    },
-    {
-      title: 'Ville',
-      dataIndex: ['ville', 'nom'],
-      key: 'ville',
-      ...search('ville.nom'),
-    },
+    }, 
     {
       title: 'Adresse',
       dataIndex: 'adresse',
       key: 'adresse',
-    },
-    {
-      title: 'Prix (DH)',
-      dataIndex: 'prix',
-      key: 'prix',
-      ...search('prix'),
     },
     {
       title: 'Nature de Produit',
@@ -499,65 +496,21 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       render: (text) => text || 'N/A',
     },
     {
-      title: 'Commentaire',
-      dataIndex: 'commentaire',
-      key: 'commentaire',
-      ...search('commentaire'),
-      render: (text) => text || 'N/A',
-    },
-    {
-      title: 'État',
-      dataIndex: 'etat',
-      key: 'etat',
-      render: (etat) => (
-        etat ? 
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
-          : 
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-      ),
-    },
-    {
-      title: 'Prés payant',
-      dataIndex: 'pret_payant',
-      key: 'pret_payant',
-      render: (pret_payant) => (
-        pret_payant ? 
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
-          : 
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-      ),
-    },
-    {
-      title: 'Autres Options',
-      key: 'options',
-      render: (record) => (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-          <Tag color={record.ouvrir ? 'green' : 'red'}>
-            Ouvrir: {record.ouvrir ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={record.is_simple ? 'green' : 'red'}>
-            Is Simple: {record.is_simple ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={record.is_remplace ? 'green' : 'red'}>
-            Is Remplace: {record.is_remplace ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={record.is_fragile ? 'green' : 'red'}>
-            Is Fragile: {record.is_fragile ? 'Oui' : 'Non'}
-          </Tag>
-        </div>
-      ),
-    },
-    {
-      title: 'Date de Création',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (text) => formatDate(text),
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-    },
-    {
       title: 'Options',
       render: (text, record) => (
         <div className="options-actions" style={{ display: 'flex', gap: '10px' }}>
+          <Tooltip title="plus d'information">
+            <Button 
+              type="primary" 
+              icon={<FaInfoCircle />} 
+              onClick={()=>handleInfo(record._id)}
+              style={{
+                backgroundColor: '#17a2b8',
+                borderColor: '#17a2b8',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
           <Tooltip title="Suivi colis">
             <Button 
               type="primary" 
@@ -804,6 +757,125 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         loading={loading} // Pass loading prop to TableDashboard
         scroll={{ x: 'max-content' }} // Added horizontal scroll for large number of columns
       />
+      <Modal
+        title="Détails du Colis"
+        visible={state.infoModalVisible}
+        onCancel={closeInfoModal}
+        footer={null}
+        className={theme === 'dark' ? 'dark-mode' : ''}
+        width={'90%'}
+      >
+       {state.selectedColis && (
+        <Descriptions
+          bordered
+          layout="vertical"
+          className="responsive-descriptions"
+        >
+          <Descriptions.Item label="Code Suivi">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.code_suivi}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Destinataire">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.nom}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Téléphone">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.tele}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Adresse">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.adresse}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Ville">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.ville?.nom || 'N/A'}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Business">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.store?.storeName || 'N/A'}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Nature de Produit">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.nature_produit || 'N/A'}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Prix (DH)">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.prix}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Statut">
+            <Col xs={24} sm={12} md={8}>
+              <Badge status="processing" text={state.selectedColis.statut} />
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Commentaire">
+            <Col xs={24} sm={12} md={8}>
+              {state.selectedColis.commentaire || 'N/A'}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Date de Création">
+            <Col xs={24} sm={12} md={8}>
+              {formatDate(state.selectedColis.createdAt)}
+            </Col>
+          </Descriptions.Item>
+          <Descriptions.Item label="Dérniére mise à jour">
+            <Col xs={24} sm={12} md={8}>
+              {formatDate(state.selectedColis.updatedAt)}
+            </Col>
+          </Descriptions.Item>
+          {/* New Data Added */}
+    <Descriptions.Item label="État">
+      <Col xs={24} sm={12} md={8}>
+        {state.selectedColis.etat ? 
+          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+          : 
+          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+        }
+      </Col>
+    </Descriptions.Item>
+
+    <Descriptions.Item label="Prés payant">
+      <Col xs={24} sm={12} md={8}>
+        {state.selectedColis.pret_payant ? 
+          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+          : 
+          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+        }
+      </Col>
+    </Descriptions.Item>
+
+    <Descriptions.Item label="Autres Options">
+      <Col xs={24} sm={12} md={8}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          <Tag color={state.selectedColis.ouvrir ? 'green' : 'red'}>
+            Ouvrir: {state.selectedColis.ouvrir ? 'Oui' : 'Non'}
+          </Tag>
+          <Tag color={state.selectedColis.is_simple ? 'green' : 'red'}>
+            Is Simple: {state.selectedColis.is_simple ? 'Oui' : 'Non'}
+          </Tag>
+          <Tag color={state.selectedColis.is_remplace ? 'green' : 'red'}>
+            Is Remplace: {state.selectedColis.is_remplace ? 'Oui' : 'Non'}
+          </Tag>
+          <Tag color={state.selectedColis.is_fragile ? 'green' : 'red'}>
+            Is Fragile: {state.selectedColis.is_fragile ? 'Oui' : 'Non'}
+          </Tag>
+        </div>
+      </Col>
+    </Descriptions.Item>
+        </Descriptions>
+      )}
+
+
+      </Modal>
+
 
       {/* Reclamation Modal */}
       <Modal 

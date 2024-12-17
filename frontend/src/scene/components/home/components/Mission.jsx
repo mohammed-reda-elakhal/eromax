@@ -1,19 +1,20 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getColisATRToday, getColisExpidée, getColisPret, getDemandeRetraitToday, getReclamationToday } from '../../../../redux/apiCalls/missionApiCalls';
+import { getColisATRToday, getColisExpidée, getColisPret, getDemandeRetraitToday, getNouveauClient, getReclamationToday } from '../../../../redux/apiCalls/missionApiCalls';
 import { Card, Row, Col } from 'antd';
 import { MailOutlined, DropboxOutlined, SolutionOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { FaParachuteBox } from 'react-icons/fa';
+import { FaParachuteBox, FaUser } from 'react-icons/fa';
 import { TbTruckDelivery } from 'react-icons/tb';
 
 function Mission({ theme }) {
-    const { demandeRetrait, colis, reclamations, user , colisExp , colisPret } = useSelector((state) => ({
+    const { demandeRetrait, colis, reclamations, user , colisExp , colisPret , client } = useSelector((state) => ({
         demandeRetrait: state.mission.demandeRetrait,
         colis: state.mission.colis,
         colisExp: state.mission.colisExp,
         colisPret: state.mission.colisPret,
         reclamations: state.mission.reclamations,
+        client : state.mission.client,
         user: state.auth.user,
     }));
 
@@ -26,6 +27,7 @@ function Mission({ theme }) {
             dispatch(getDemandeRetraitToday());
             dispatch(getReclamationToday());
             dispatch(getColisATRToday());
+            dispatch(getNouveauClient(15))
         }else if(user?.role === "livreur"){
             dispatch(getColisExpidée())
             dispatch(getColisPret())
@@ -57,6 +59,12 @@ function Mission({ theme }) {
             count: demandeRetrait.length,
             icon: <MailOutlined style={{ fontSize: '20px', color: theme === 'dark' ? '#95de64' : '#52c41a' }} />,
             link: '/dashboard/demande-retrait',
+        },
+        {
+            title: 'Nouveau Client',
+            count: client.length,
+            icon: <FaUser style={{ fontSize: '20px', color: theme === 'dark' ? '#95de64' : '#52c41a' }} />,
+            link: '/dashboard/compte/client',
         },
     ];
 

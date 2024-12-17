@@ -30,6 +30,34 @@ export function getDemandeRetraitToday() {
         }
     };
 }
+// Get new clients with optional 'days' parameter
+export function getNouveauClient(days) {
+    return async (dispatch) => {
+        
+        try {
+
+            // Get token from cookies
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+            const { data } = await request.get(`/api/mission/new-client?days=${days}`);
+            dispatch(missionActions.setNouveauClient(data));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch new clients");
+        } 
+    };
+}
 
 // Fetch today's unresolved reclamations
 export function getReclamationToday() {
@@ -83,6 +111,35 @@ export function getColisATRToday() {
         try {
             const { data } = await request.get(`/api/mission/colis-ATR` , config);
             dispatch(missionActions.setColis(data));
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to fetch today's packages");
+        }
+    };
+}
+
+// Fetch today's packages waiting for pickup (Colis ATR)
+export function getColisRamasser() {
+    return async (dispatch) => {
+
+          // Get token from cookies
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+
+
+        try {
+            const { data } = await request.get(`/api/mission/colis-R` , config);
+            dispatch(missionActions.setColisR(data));
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to fetch today's packages");
         }

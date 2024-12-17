@@ -11,11 +11,21 @@
   }
   
   .payment-card {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+  }
+  .action_card_content{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
   
+  .card_content_pay{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
   .payment-card-img {
     max-height: 250px;
     object-fit: cover;
