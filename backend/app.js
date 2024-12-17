@@ -25,11 +25,13 @@ app.use(express.json());
 //Cors Policy 
 
 app.use(cors({
-    // https://eromax.vercel.app
-    // http://localhost:3000
-    origin: process.env.BASE_URL, // Removed trailing slash
-    credentials: true
-}));
+     origin: '*',
+     methods: '*',           // Allow all HTTP methods
+     allowedHeaders: '*',    // Allow all headers
+     credentials: true, // To include cookies if necessary
+     }));
+
+
 app.use(cookieParser());
 
 
@@ -70,7 +72,7 @@ app.use("/api/images", require("./routes/imageRoute"));
 app.use("/api/statistic", require("./routes/staticRoute"));
 app.use('/api/promotions', require('./routes/promotionRoutes'));
 app.use('/api/mission', require('./routes/missionRoutes'));
-app.use('/api/integration', require('./routes/apiIntegrationRoute'));
+app.use('/api/external', require('./routes/apiIntegrationRoute'));
 
 // Initialize cron jobs
 scheduleCronJobs();
