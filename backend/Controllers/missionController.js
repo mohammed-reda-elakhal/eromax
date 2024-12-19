@@ -17,15 +17,8 @@ const getDemandeRetraitToday = async (req, res) => {
 };
 const getNouveauClient = async (req, res) => {
     try {
-        const { days } = req.query; // Number of days to consider as "new"
-        const daysNumber = parseInt(days) || 30; // Default to last 30 days if not specified
-
-        // Calculate the date from which to consider new clients
-        const sinceDate = new Date();
-        sinceDate.setDate(sinceDate.getDate() - daysNumber);
-
-        // Fetch clients created after sinceDate
-        const newClients = await Client.find({ createdAt: { $gte: sinceDate } });
+        // Fetch clients where verify is false
+        const newClients = await Client.find({ verify: false });
 
         res.status(200).json(newClients);
     } catch (error) {
@@ -33,6 +26,7 @@ const getNouveauClient = async (req, res) => {
         res.status(500).json({ message: 'Error fetching new clients', error: error.message });
     }
 };
+
 
 // Get all Reclamation without date condition
 const getReclamationToday = async (req, res) => {
@@ -94,6 +88,8 @@ const countExpedieColisForLivreur = async (req, res) => {
         res.status(500).json({ message: 'Error counting colis', error });
     }
 };
+
+
 // Controller to count Colis for a specific Livreur where statut is in the "pret to livrée" statuses
 const countPretToLivreeColisForLivreur = async (req, res) => {
     try {

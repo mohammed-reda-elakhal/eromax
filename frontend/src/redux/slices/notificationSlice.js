@@ -29,6 +29,10 @@ const notificationSlice = createSlice({
         removeNotificationUser(state, action) {
             state.notification_user = state.notification_user.filter(notification => notification._id !== action.payload);
         },
+        removeAllNotificationsUser(state) {
+            state.notification_user = [];
+        }
+        
     },
 });
 

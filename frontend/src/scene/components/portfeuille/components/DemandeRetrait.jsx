@@ -23,27 +23,37 @@ function DemandeRetrait({ theme , setOpenWallet }) {
     }, [dispatch]);
 
     // Handle form submission
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!montant || !selectedBank) {
-            return alert('Please fill in all required fields');
-        }
+   // Handle form submission
+const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!montant || !selectedBank) {
+        return alert('Please fill in all required fields');
+    }
 
-        // Prepare data
-        const demandeData = {
-            id_store: store._id,
-            id_payement: selectedBank,
-            montant
-        };
-
-        // Dispatch the createDemandeRetrait action
-        dispatch(createDemandeRetrait(demandeData));
-
-        // Clear the form fields after submission
-        setMontant('');          // Reset montant field
-        setSelectedBank(null);   // Reset selectedBank field
-
+    // Prepare data
+    const demandeData = {
+        id_store: store._id,
+        id_payement: selectedBank,
+        montant
     };
+
+    // Dispatch the createDemandeRetrait action and reload on success
+    dispatch(createDemandeRetrait(demandeData))
+        .then(() => {
+            // Wait 3 seconds before reloading the page
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        })
+        .catch(err => {
+            console.error("Error creating demande de retrait:", err);
+        });
+
+    // Clear the form fields after submission
+    setMontant('');
+    setSelectedBank(null);
+};
+
 
     const darkStyle = {
         backgroundColor: 'transparent',

@@ -11,7 +11,7 @@ const phoneNumber = '+212630087302';
 const ProtectedRoute = () => {
     const { user } = useSelector((state) => state.auth);
     const token = localStorage.getItem('token');
-    
+
     if (!user) {
         return <Navigate to="/login" />;
     }
@@ -20,30 +20,21 @@ const ProtectedRoute = () => {
         return <Navigate to="/login" />;
     }
 
-    
-
-
-    return(
+    return (
         <>
             <Outlet />
             <Tooltip title="Contactez-nous sur WhatsApp">
                 <FloatButton 
-                    icon={<FaWhatsapp />} 
-                    type="primary" 
+                    icon={<FaWhatsapp style={{ color: 'green' }} />} 
                     onClick={() => {
-                        // Constructing the message
                         const message = `Bonjour, je suis ${user.nom} ${user.prenom}.`;
-                        
-                        // Ensure the message is properly URL-encoded
                         const encodedMessage = encodeURIComponent(message);
-                        
-                        // Open WhatsApp with the encoded message
                         const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}&text=${encodedMessage}`;
                         window.open(whatsappUrl, '_blank');
-                      }}
+                    }}
                     style={{ 
                         insetInlineEnd: 20,
-                        backgroundColor: '#25D366',
+                        backgroundColor: '#25D366', // WhatsApp Green
                         borderColor: '#25D366',
                         color: '#fff'
                     }} 

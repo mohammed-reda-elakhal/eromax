@@ -180,3 +180,30 @@ export function toggleActiveClient(clientId) {
     };
    }
 
+
+   // Verify Client
+export function verifyClient(clientId) {
+    return async (dispatch) => {
+        dispatch(profileActions.verifyClientStart());
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No token found');
+            }
+
+            const { data } = await request.patch(`/api/client/verify/${clientId}`, {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            dispatch(profileActions.verifyClientSuccess(data.client));
+            toast.success(data.message || "Client verified successfully");
+        } catch (error) {
+            console.error('Verify client error:', error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to verify client";
+            dispatch(profileActions.verifyClientFailure(errorMessage));
+            toast.error(errorMessage);
+        }
+    };
+}
