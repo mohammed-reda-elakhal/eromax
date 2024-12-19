@@ -14,7 +14,7 @@
   disponibility: {
     type: [String], // Array of strings representing days of the week
     enum: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Demanche'], // restrict to valid days
-    default: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'] // Default availability, if any
+    default: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi' ,'Samedi'] // Default availability, if any
   }
   });
 

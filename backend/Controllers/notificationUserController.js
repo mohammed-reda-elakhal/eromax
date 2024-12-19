@@ -64,3 +64,21 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
+
+exports.deleteAllNotificationsByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Delete all notifications for the given userId
+    const result = await NotificationUser.deleteMany({ user: userId });
+
+    // Optionally, you can also check the result.deletedCount to inform how many were deleted.
+    res.status(200).json({
+      message: `touts les notifications supprimer.`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error("Error deleting notifications:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -96,3 +96,24 @@ export function deleteNotification(id) {
         }
     };
 }
+
+// Delete all notifications for a user
+export function deleteAllNotifications(userId) {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            const { data } = await request.delete(`/api/notification-user/delete/${userId}`, config);
+            dispatch(notificationActions.removeAllNotificationsUser());
+            toast.success(data.message || "All notifications have been deleted.");
+        } catch (error) {
+            toast.error(error.response?.data?.message || error.message || "Failed to delete all notifications");
+        }
+    };
+}

@@ -214,7 +214,7 @@ function Menubar() {
                   <Link to={"/dashboard/portfeuille"}>Portfeuille</Link>
                 </Menu.Item>
                 <Menu.Item icon={<BiTagAlt />}>
-                  <Link to={"/dashboard/demande-retrait"}>List Demandes</Link>
+                  <Link to={'/dashboard/transaction'}>List transactions</Link>
                 </Menu.Item>
               </Menu.SubMenu>
               <Drawer
