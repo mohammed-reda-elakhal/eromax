@@ -20,6 +20,9 @@ router.route('/user/:id_user')
         .post(verifyTokenStoreTeamAdminClient ,colisController.CreateColisCtrl)
         .get(verifyTokenStoreTeamAdminClient , colisController.getColisByUserOrStore);
 
+router.route('/admin/:storeId')
+        .post(verifyTokenAndAdmin , colisController.CreateColisAdmin)
+
 
 // Router api/colis/:id
 router.route('/:id')

@@ -1,22 +1,25 @@
-import React, { useContext, useEffect, useState } from 'react';
+// Admin.jsx
+
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
 import { FaPenFancy, FaInfoCircle, FaPlus } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { Avatar, Button, Modal, Drawer } from 'antd';
+import { Avatar, Button, Modal, Drawer, Input } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProfile, getProfileList } from '../../../../redux/apiCalls/profileApiCalls';
 import { useNavigate } from 'react-router-dom';
 import Topbar from '../../../global/Topbar';
-import Title from '../../../global/Title';
 import Menubar from '../../../global/Menubar';
-import TeamFormAdd from '../components/TeamFormAdd';
 import AdminFormAdd from '../components/AdminFormAdd';
+import { ReloadOutlined } from '@ant-design/icons'; // Import the refresh icon
 
 function Admin() {
     const { theme } = useContext(ThemeContext);
     const [drawerVisible, setDrawerVisible] = useState(false); // For Drawer visibility
-    const navigate = useNavigate()
+    const [searchQuery, setSearchQuery] = useState(''); // State for search query
+
+    const navigate = useNavigate();
 
     const dispatch = useDispatch();
     const { profileList, user } = useSelector((state) => ({
@@ -31,8 +34,7 @@ function Admin() {
         window.scrollTo(0, 0);
     }, [dispatch, user]);
 
-
-    const openDrawer = (client) => {
+    const openDrawer = () => {
         setDrawerVisible(true);
     };
 
@@ -40,9 +42,9 @@ function Admin() {
         setDrawerVisible(false);
     };
 
-    const handleDeleteProfile = (id) =>{
-        dispatch(deleteProfile("admin" , id))
-    }
+    const handleDeleteProfile = (id) => {
+        dispatch(deleteProfile("admin", id));
+    };
 
     // Define table columns
     const columns = [
@@ -81,6 +83,16 @@ function Admin() {
             key: 'role',
         },
         {
+            title: 'Type',
+            dataIndex: 'type',
+            key: 'type',
+        },
+        {
+            title: 'Permission',
+            dataIndex: 'permission',
+            key: 'permission',
+        },
+        {
             title: 'Action',
             dataIndex: 'action',
             render: (text, record) => (
@@ -88,7 +100,7 @@ function Admin() {
                     <Button 
                         style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
                         icon={<FaPenFancy size={20} />}
-                        onClick={() => navigate(`/dashboard/compte/admin/${record._id}` ,  { state: { from: '/dashboard/compte/admin' } })}
+                        onClick={() => navigate(`/dashboard/compte/admin/${record._id}`, { state: { from: '/dashboard/compte/admin' } })}
                     />
                     <Button 
                         style={{ color: 'red', borderColor: "red" , background:"transparent"  }} 
@@ -104,6 +116,33 @@ function Admin() {
             )
         }
     ];
+
+    // Memoized filtered profiles based on search query
+    const filteredProfiles = useMemo(() => {
+        if (!searchQuery) return profileList;
+
+        return profileList.filter(profile => {
+            const fullName = `${profile.nom} ${profile.prenom}`.toLowerCase();
+            const username = profile.username.toLowerCase();
+            const email = profile.email.toLowerCase();
+            const tele = profile.tele.toLowerCase();
+            const role = profile.role.toLowerCase();
+            const type = profile.type.toLowerCase();
+            const permission = profile.permission.toLowerCase();
+
+            const query = searchQuery.toLowerCase();
+
+            return (
+                fullName.includes(query) ||
+                username.includes(query) ||
+                email.includes(query) ||
+                tele.includes(query) ||
+                role.includes(query) ||
+                type.includes(query) ||
+                permission.includes(query)
+            );
+        });
+    }, [searchQuery, profileList]);
 
     return (
         <div className='page-dashboard'>
@@ -132,7 +171,31 @@ function Admin() {
                         >
                             Ajouter Team
                         </Button>
-                        <TableDashboard theme={theme} column={columns} id="_id" data={profileList} />
+
+                        {/* Search Input and Refresh Button */}
+                        <div className='ville_header'  style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                            <Input
+                                placeholder="Rechercher par nom, username, email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ width: '300px' }}
+                                allowClear
+                            />
+                            <Button
+                                type="primary"
+                                icon={<ReloadOutlined />}
+                                onClick={() => dispatch(getProfileList("admin"))}
+                            >
+                                Rafraîchir
+                            </Button>
+                        </div>
+
+                        <TableDashboard 
+                            theme={theme} 
+                            column={columns} 
+                            id="_id" 
+                            data={filteredProfiles} 
+                        />
                         <Drawer
                             title={"Ajouter Livreur"}
                             placement="right"
@@ -140,7 +203,7 @@ function Admin() {
                             open={drawerVisible}
                             width={400}
                         >
-                            <AdminFormAdd  close={closeDrawer}/>
+                            <AdminFormAdd close={closeDrawer}/>
                         </Drawer>
                     </div>
                 </div>

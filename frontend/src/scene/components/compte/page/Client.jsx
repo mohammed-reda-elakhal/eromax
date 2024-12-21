@@ -386,6 +386,13 @@ function Client({ search }) {
                     >
                         <Typography.Title level={4} style={{ marginBottom: '16px' }}>Gestion des utilisateurs ( client )</Typography.Title>
                         
+                            <Button 
+                                type="primary" 
+                                icon={<FaPlus />} 
+                                onClick={() => openDrawer(null)}
+                            >
+                                Add Client
+                            </Button>
                         {/* Add your search input here */}
                         <div className='ville_header'  style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <Input
@@ -394,13 +401,14 @@ function Client({ search }) {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 style={{ width: 200 }}
                             />
-                            <Button 
-                                type="primary" 
-                                icon={<FaPlus />} 
-                                onClick={() => openDrawer(null)}
+                            <Button
+                                type="primary"
+                                icon={<ReloadOutlined />}
+                                onClick={() => dispatch(getProfileList("client"))}
                             >
-                                Add Client
+                                Rafraîchir
                             </Button>
+                            
                         </div>
                         
                         <TableDashboard theme={theme} column={columns} id="_id" data={filteredData} />

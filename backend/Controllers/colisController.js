@@ -157,6 +157,132 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 });
 
 
+/**
+ * -------------------------------------------------------------------
+ * @desc     Create new colis from admin
+ * @route    /api/colis/admin/:storeId
+ * @method   POST
+ * @access   private (only logged in user)
+ * -------------------------------------------------------------------
+**/
+
+module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
+  // Check if request body is provided
+  if (!req.body) {
+    return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
+  }
+
+
+  // Extract store and team information
+  let store = req.params.storeId || null;  // Assuming req.user.store should be used
+
+  // Validate and fetch the ville by its ID from the request body
+  const ville = await Ville.findOne({nom : req.body.ville});
+  if (!ville) {
+    return res.status(400).json({ message: "Ville not found" });
+  }
+
+  // Generate a unique code_suivi
+  let code_suivi;
+  let isUnique = false;
+  while (!isUnique) {
+    code_suivi = generateCodeSuivi(ville.ref);
+    const existingColis = await Colis.findOne({ code_suivi });
+    if (!existingColis) {
+      isUnique = true;
+    }
+  }
+
+  // Prepare new Colis data
+  const colisData = {
+    ...req.body,
+    store,
+    ville: ville._id,  // Add the ville reference
+    code_suivi,
+  };
+
+  // If is_remplace is true, handle replacement
+  if (req.body.is_remplace) {
+    const { replacedColis } = req.body;
+
+    if (!replacedColis) { // Now expecting a single ID 
+      return res.status(400).json({ message: "Aucun colis à remplacer sélectionné." });
+    }
+
+    // Validate that the replacedColis ID corresponds to a delivered Colis and not already replaced
+    const oldColis = await Colis.findOne({
+      _id: replacedColis,
+      statut: 'Livrée',
+      is_remplace: false,
+    });
+
+    if (!oldColis) {
+      return res.status(400).json({
+        message: "Le colis à remplacer est invalide (soit non livré, soit déjà remplacé).",
+      });
+    }
+
+    // Mark the old Colis as replaced
+    oldColis.is_remplace = true;
+    await oldColis.save();
+
+    // Link the old Colis to the new Colis
+    colisData.replacedColis = replacedColis;
+  }
+
+  // Create and save the new Colis
+  const newColis = new Colis(colisData);
+  const saveColis = await newColis.save();
+
+  // Populate store, team, and ville data
+  await saveColis.populate('store');
+  await saveColis.populate('team');
+  await saveColis.populate('ville');
+
+  // Verify that code_suivi is not null before proceeding
+  if (!newColis.code_suivi) {
+    return res.status(500).json({ message: "Internal server error: code_suivi is null" });
+  }
+
+  // Create a notification for the user when a new colis is added
+  if (saveColis.store) {
+    try {
+      const notification = new Notification_User({
+        id_store: store,
+        colisId: saveColis._id,
+        title: 'Nouvelle colis',
+        description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
+      });
+      await notification.save();  // Save the notification
+    } catch (error) {
+      console.log(error);
+      // Continue without failing the request
+    }
+  }
+
+  // Create and save the new Suivi_Colis
+  const suivi_colis = new Suivi_Colis({
+    id_colis: saveColis._id,
+    code_suivi: saveColis.code_suivi,
+    date_create: saveColis.createdAt,
+    status_updates: [
+      { status: "Attente de Ramassage", date: new Date() }  // Initial status
+    ]
+  });
+
+  const save_suivi = await suivi_colis.save();
+
+  // Respond with both the saved Colis and Suivi_Colis
+  res.status(201).json({
+    message: 'Colis créé avec succès, merci ',
+    colis: saveColis,
+    suiviColis: save_suivi,
+  });
+});
+
+
+
+
 // controllers/colisController.js
 
 
