@@ -25,7 +25,8 @@ import {
 import { 
     EnvironmentOutlined, 
     PhoneOutlined, 
-    DollarCircleOutlined 
+    DollarCircleOutlined, 
+    ReloadOutlined
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
