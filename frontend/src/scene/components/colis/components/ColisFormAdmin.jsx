@@ -1,4 +1,4 @@
-// ColisForm.jsx
+// ColisFormAdmin.jsx
 
 import React, { useEffect, useState, useContext } from 'react';
 import {
@@ -13,13 +13,12 @@ import {
   Checkbox,
   Button,
   Modal,
-  Drawer,
+  Avatar,
 } from 'antd';
-import { MdOutlineWidgets } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  createColis,
+  createColisAdmin, // Changed to createColisAdmin as per your latest code
   fetchOptions,
   searchColisByCodeSuivi,
 } from '../../../../redux/apiCalls/colisApiCalls';
@@ -28,6 +27,7 @@ import {
   getVilleById,
   resetVille,
 } from '../../../../redux/apiCalls/villeApiCalls';
+import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls'; // Import getStoreList
 import { toast } from 'react-toastify';
 import SelectAsync from 'react-select/async';
 import debounce from 'lodash/debounce';
@@ -37,6 +37,7 @@ import { FaMapLocation } from "react-icons/fa6";
 import { ThemeContext } from '../../../ThemeContext'; // Ensure ThemeContext is imported
 
 const { TextArea } = Input;
+const { Option } = Select; // Destructure Option from Select
 
 const daysOfWeek = [
   'Lundi',
@@ -94,7 +95,7 @@ const debouncedLoadOptions = debounce(
   500
 );
 
-function ColisForm({ type }) {
+function ColisFormAdmin({ type }) {
   const { theme } = useContext(ThemeContext); // Access theme from ThemeContext
   const initialFormData = {
     nom: '',
@@ -109,23 +110,26 @@ function ColisForm({ type }) {
     ouvrirColis: true, // Default to true (Ouvrir Colis)
     is_fragile: false,
     oldColis: null,
+    store: '', // Added store to formData
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [phoneError, setPhoneError] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [openOption, setOpenOption] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { villes, selectedVille } = useSelector((state) => state.ville);
+  const { stores } = useSelector((state) => state.store); // Access stores from Redux state
   const { loading } = useSelector((state) => state.colis);
 
   useEffect(() => {
-    dispatch(getAllVilles());
-    dispatch(fetchOptions());
+    dispatch(getStoreList()); // Fetch the list of stores
+    dispatch(resetVille()); // Reset villes to prevent duplicates
+    dispatch(getAllVilles()); // Fetch all villes
+    dispatch(fetchOptions()); // Fetch additional options
   }, [dispatch]);
 
   useEffect(() => {
@@ -162,7 +166,7 @@ function ColisForm({ type }) {
     const {
       nom,
       tele,
-      ville,
+      ville, // This is the ville ID
       adress,
       commentaire,
       prix,
@@ -171,7 +175,14 @@ function ColisForm({ type }) {
       remplaceColis,
       is_fragile,
       oldColis,
+      store, // Store ID
     } = formData;
+
+    // Validate store selection
+    if (!store) {
+      toast.error('Veuillez sélectionner un magasin.');
+      return;
+    }
 
     const phoneRegex = /^0\d{9}$/;
     if (!phoneRegex.test(tele)) {
@@ -185,10 +196,16 @@ function ColisForm({ type }) {
       return;
     }
 
+    // Ensure that selectedVille is available
+    if (!selectedVille || !selectedVille.nom) {
+      toast.error('Ville sélectionnée invalide.');
+      return;
+    }
+
     const colis = {
       nom,
       tele,
-      ville,
+      ville: selectedVille.nom, // Send ville name instead of ID
       adresse: adress,
       commentaire,
       prix: parseFloat(prix),
@@ -196,6 +213,7 @@ function ColisForm({ type }) {
       ouvrir: ouvrirColis,
       is_remplace: remplaceColis,
       is_fragile,
+      store, // Include store ID in colis object
     };
 
     if (remplaceColis) {
@@ -207,7 +225,7 @@ function ColisForm({ type }) {
     }
 
     try {
-      await dispatch(createColis(colis));
+      await dispatch(createColisAdmin(colis));
       setFormData(initialFormData);
       setPhoneError('');
       dispatch(resetVille());
@@ -230,13 +248,20 @@ function ColisForm({ type }) {
     setIsModalVisible(false);
   };
 
-  const showDrawer = () => {
-    setIsDrawerVisible(true);
+  // Helper function to deduplicate villes based on _id
+  const getUniqueVilles = (villes) => {
+    const unique = [];
+    const seen = new Set();
+    for (const ville of villes) {
+      if (!seen.has(ville._id)) {
+        seen.add(ville._id);
+        unique.push(ville);
+      }
+    }
+    return unique;
   };
 
-  const closeDrawer = () => {
-    setIsDrawerVisible(false);
-  };
+  const uniqueVilles = getUniqueVilles(villes);
 
   return (
     <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`}>
@@ -297,7 +322,36 @@ function ColisForm({ type }) {
 
           {/* Container for simple inputs in multiple columns */}
           <div className="colis-form-line" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-            <div className="colis-form-input" >
+            {/* Store Selection Dropdown */}
+            <div className="colis-form-input" style={{ flex: '1 1 100%' }}>
+              <label htmlFor="store">
+                Magasin <span style={{ color: 'red' }}>*</span>
+              </label>
+              <Select
+                showSearch
+                placeholder="Sélectionner un magasin"
+                value={formData.store}
+                onChange={(value) => handleInputChange('store', value)}
+                className={`colis-select-store ${theme === 'dark' ? 'dark-mode' : ''}`}
+                required
+                style={{ width: '100%' }}
+                optionFilterProp="label" // Use 'label' for filtering
+                filterOption={(input, option) =>
+                  option.label.toLowerCase().includes(input.toLowerCase())
+                }
+                loading={stores.length === 0} // Show loading if stores are not yet loaded
+              >
+                {stores.map((store) => (
+                  <Option key={store._id} value={store._id} label={store.storeName}>
+                    <Avatar src={store.image.url} style={{ marginRight: '8px' }} />
+                    {store.storeName}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+
+            {/* Name Input */}
+            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
               <label htmlFor="nom">
                 Nom <span style={{ color: 'red' }}>*</span>
               </label>
@@ -316,7 +370,8 @@ function ColisForm({ type }) {
               />
             </div>
 
-            <div className="colis-form-input">
+            {/* Phone Input */}
+            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
               <label htmlFor="tele">
                 Téléphone <span style={{ color: 'red' }}>*</span>
               </label>
@@ -356,14 +411,15 @@ function ColisForm({ type }) {
               )}
             </div>
 
-            <div className="colis-form-input" >
+            {/* City Selection */}
+            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
               <label htmlFor="ville">
                 Ville <span style={{ color: 'red' }}>*</span>
               </label>
               <Select
                 showSearch
                 placeholder="Rechercher une ville"
-                options={villes.map((ville) => ({
+                options={uniqueVilles.map((ville) => ({
                   value: ville._id,
                   label: ville.nom,
                 }))}
@@ -378,7 +434,8 @@ function ColisForm({ type }) {
               />
             </div>
 
-            <div className="colis-form-input" >
+            {/* Price Input */}
+            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
               <label htmlFor="prix">
                 Prix <span style={{ color: 'red' }}>*</span>
               </label>
@@ -398,7 +455,8 @@ function ColisForm({ type }) {
               />
             </div>
 
-            <div className="colis-form-input" >
+            {/* Product Nature Input */}
+            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
               <label htmlFor="produit">
                 Nature de produit <span style={{ color: 'red' }}>*</span>
               </label>
@@ -417,7 +475,8 @@ function ColisForm({ type }) {
               />
             </div>
 
-            <div className="colis-form-input" >
+            {/* Address Input */}
+            <div className="colis-form-input" style={{ flex: '1 1 100%' }}>
               <label htmlFor="adress">
                 Adresse <span style={{ color: 'red' }}>*</span>
               </label>
@@ -450,63 +509,61 @@ function ColisForm({ type }) {
           </div>
 
           {
-            openOption 
-            ?
-            <div className="option_colis_form">
-              {/* Replaced Select with Checkbox for Ouvrir Colis */}
-              <Checkbox
-                checked={formData.ouvrirColis}
-                onChange={(e) => handleInputChange('ouvrirColis', e.target.checked)}
-                className={`colis-checkbox ${theme === 'dark' ? 'dark-mode' : ''}`}
-                style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
-              >
-                Ouvrir Colis
-              </Checkbox>
+            openOption
+              ?
+              <div className="option_colis_form">
+                {/* Replaced Select with Checkbox for Ouvrir Colis */}
+                <Checkbox
+                  checked={formData.ouvrirColis}
+                  onChange={(e) => handleInputChange('ouvrirColis', e.target.checked)}
+                  className={`colis-checkbox ${theme === 'dark' ? 'dark-mode' : ''}`}
+                  style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
+                >
+                  Ouvrir Colis
+                </Checkbox>
 
-              <Checkbox
-                onChange={(e) => handleInputChange('is_fragile', e.target.checked)}
-                checked={formData.is_fragile}
-                style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
-              >
-                Colis fragile
-              </Checkbox>
-              <br />
+                <Checkbox
+                  onChange={(e) => handleInputChange('is_fragile', e.target.checked)}
+                  checked={formData.is_fragile}
+                  style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
+                >
+                  Colis fragile
+                </Checkbox>
+                <br />
 
-              <Checkbox
-                onChange={(e) => handleInputChange('remplaceColis', e.target.checked)}
-                checked={formData.remplaceColis}
-                style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
-              >
-                Colis à remplacer
-                <p style={{ fontSize: '12px', marginTop: '4px' }}>
-                  (Le colis sera remplacé avec l'ancien à la livraison.)
-                </p>
-              </Checkbox>
+                <Checkbox
+                  onChange={(e) => handleInputChange('remplaceColis', e.target.checked)}
+                  checked={formData.remplaceColis}
+                  style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
+                >
+                  Colis à remplacer
+                  <p style={{ fontSize: '12px', marginTop: '4px' }}>
+                    (Le colis sera remplacé avec l'ancien à la livraison.)
+                  </p>
+                </Checkbox>
 
-              {formData.remplaceColis && !formData.oldColis && (
-                <Button type="primary" onClick={handleOpenModal} style={{ marginBottom: '16px' }}>
-                  Rechercher l'ancien colis
-                </Button>
-              )}
-
-              {formData.remplaceColis && formData.oldColis && (
-                <div className='colis-form-header-oldColis' style={{ marginTop: '16px' }}>
-                  <span><strong>Code Suivi</strong> : {formData.oldColis.code_suivi}</span>
-                  <span><strong>Ville</strong> : {formData.oldColis.ville}</span>
-                  <Button type="primary" onClick={handleOpenModal} style={{ marginTop: '8px' }}>
-                    Modifier
+                {formData.remplaceColis && !formData.oldColis && (
+                  <Button type="primary" onClick={handleOpenModal} style={{ marginBottom: '16px' }}>
+                    Rechercher l'ancien colis
                   </Button>
-                </div>
-              )}
-            </div>
-            :""
+                )}
 
+                {formData.remplaceColis && formData.oldColis && (
+                  <div className='colis-form-header-oldColis' style={{ marginTop: '16px' }}>
+                    <span><strong>Code Suivi</strong> : {formData.oldColis.code_suivi}</span>
+                    <span><strong>Ville</strong> : {formData.oldColis.ville}</span>
+                    <Button type="primary" onClick={handleOpenModal} style={{ marginTop: '8px' }}>
+                      Modifier
+                    </Button>
+                  </div>
+                )}
+              </div>
+              : ""
           }
-         
 
           {/* Footer Buttons */}
           <div className="colis-form-footer" style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
-            <Button type="primary" onClick={()=>setOpenOption(prev => !prev)} icon={<TfiMenuAlt />}>
+            <Button type="primary" onClick={() => setOpenOption(prev => !prev)} icon={<TfiMenuAlt />}>
               Options Avancées
             </Button>
             <Button
@@ -547,9 +604,8 @@ function ColisForm({ type }) {
         />
       </Modal>
 
-
     </div>
   );
 }
 
-export default ColisForm;
+export default ColisFormAdmin;

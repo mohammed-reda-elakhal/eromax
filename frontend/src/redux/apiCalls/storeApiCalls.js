@@ -11,6 +11,8 @@ export function getStoreList() {
     try {
       const { data } = await request.get(`/api/store`);
       dispatch(storeActions.fetchStoresSuccess(data));
+      console.log(data);
+      
     } catch (error) {
       const errorMsg =
         error.response?.data?.message || error.message || "Failed to fetch stores";

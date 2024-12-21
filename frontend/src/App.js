@@ -71,6 +71,7 @@ import { useSelector } from "react-redux";
 import UpdateColisPage from "./scene/components/colis/pages/UpdateColisPage";
 import TransactionPage from "./scene/components/payement/page/TransactionPage";
 import ColisAmeex from "./scene/components/colis/pages/ColisAmeex";
+import AjouterColisAdmin from "./scene/components/colis/pages/AjouterColisAdmin";
 
 
 function App() {
@@ -258,6 +259,7 @@ function App() {
             <Route path="colis-l" element={<ColisLivrée search = {getColumnSearchProps} />} />
             <Route path="ameex" element={<ColisAmeex search = {getColumnSearchProps} />} />
             <Route path="ajouter-colis/:type" element={<AjouterColis />} />
+            <Route path="ajouter/colis/admin/:type" element={<AjouterColisAdmin />} />
             <Route path="import-colis" element={<ColisImport />} />
             <Route path="colis/update/:codeSuivi" element={<UpdateColisPage />} />
 

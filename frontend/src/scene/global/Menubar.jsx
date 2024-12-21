@@ -22,6 +22,9 @@ import { CiMenuFries } from 'react-icons/ci';
 import { IoIosAdd } from 'react-icons/io';
 import { getColisATRToday, getColisExpidée, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
 
+
+const colorBadge = "rgb(0, 106, 177)"
+
 function Menubar() {
   const { theme } = useContext(ThemeContext);
   const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
@@ -44,6 +47,8 @@ function Menubar() {
 
       let totaleColisAdmin = colis.length + colisR.length; 
       let totaleCompteAdmin = client.length ; 
+      let totalRetrait = demandeRetrait.length ;
+      let totalReclamation = reclamations.length 
   
       const dispatch = useDispatch();
   
@@ -125,12 +130,125 @@ function Menubar() {
         </div>
 
    
-          
+
+        {/* admin menu items  */}
 
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
 
+        {
+          (userData.role === "admin" || userData.role === "team") && (
+            <Menu.SubMenu
+              icon={<LuBox />}
+              title={
+                <span>
+                  Colis {totaleColisAdmin > 0 ? <Badge count={totaleColisAdmin} color={colorBadge} /> : ""}
+                </span>
+              }
+            >
+              <Menu.Item icon={<IoIosAdd />}>
+                <Link to="/dashboard/ajouter/colis/admin/simple">Ajouter Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/list-colis">List Colis</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-ar">
+                  Colis Pour Ramassage {colis.length > 0 ? <Badge count={colis.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/colis-r">
+                  Colis Ramasse {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/ameex">
+                  Colis Ameex 
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<MdFactCheck />}>
+                <Link to="/dashboard/facture/globale">Fichier</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
+
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<LuScanLine />}>
+              <Link to="/dashboard/scan">Scan</Link>
+            </Menu.Item>
+          )
+        } 
+         {
+          userData.role ==="admin" && (
+            <Menu.SubMenu 
+              icon={<MdPayment />} 
+              title={
+                <span>
+                  Payements {totalRetrait > 0 ? <Badge count={totalRetrait} color={colorBadge} /> : ""}
+                </span>
+              }
+            >
+              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/demande-retrait">
+                  Demande retrait {demandeRetrait.length > 0 ? <Badge count={demandeRetrait.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to={'/dashboard/transaction'}>
+                  List transactions
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/payement/list">
+                  List Methode Payement
+                </Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+        {
+          userData.role === "admin" &&(
+            <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
+                  <Menu.Item icon={<BiTagAlt />}>
+                    <Link to="/dashboard/facture/client">Facture ( client )</Link>
+                  </Menu.Item>
+                  <Menu.Item icon={<BiTagAlt />}>
+                    <Link to="/dashboard/facture/retour">Bon Retour</Link>
+                  </Menu.Item>
+                  <Menu.Item icon={<BiTagAlt />}>
+                    <Link to="/dashboard/facture/livreur">Facture ( Livreur )</Link>
+                  </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+        {
+          userData.role ==="admin" && (
+            <Menu.SubMenu icon={<FaUserFriends />} title={
+              <span>
+                Compte {totaleCompteAdmin > 0 ? <Badge count={totaleCompteAdmin} color={colorBadge} /> : ""}
+              </span>
+            }>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/compte/client">Client {client.length > 0 ? <Badge count={client.length} color={colorBadge} /> : ""}</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/compte/livreur">Livreur</Link>
+              </Menu.Item>
+              {
+                userData.type ==="super" && (
+                  <Menu.Item icon={<BiTagAlt />}>
+                    <Link to="/dashboard/compte/admin">Admin</Link>
+                  </Menu.Item>
+                )
+              }
+            </Menu.SubMenu>
+          )
+        }
         {
           userData.role ==="admin" && (
             <Menu.Item icon={<RiDiscountPercentLine />}>
@@ -141,52 +259,29 @@ function Menubar() {
 
         {
           userData.role ==="admin" && (
-            <Menu.SubMenu icon={<CgDanger />} title="Reclamations">
+            <Menu.SubMenu 
+              icon={<CgDanger />} 
+              title={
+                <span>
+                  Reclamations {reclamations.length > 0 ? <Badge count={totalReclamation} color={colorBadge} /> : ""}
+                </span>
+              }
+            >
               <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/reclamation">Reclamation Non Complete</Link>
+                <Link to="/dashboard/reclamation">
+                  Reclamation Non Complete {reclamations.length > 0 ? <Badge count={reclamations.length} color={colorBadge} /> : ""}
+                </Link>
               </Menu.Item>
               <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/reclamation-complete">Reclamation Complete</Link>
+                <Link to="/dashboard/reclamation-complete">List Reclamation</Link>
               </Menu.Item>
             </Menu.SubMenu>
           )
         }
 
-        {
-          userData.role ==="admin" && (
-            <Menu.SubMenu icon={<MdPayment />} title="Payements">
-              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/demande-retrait">Demande retrait</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to={'/dashboard/transaction'}>List transactions</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/payement/list">List Methode Payement</Link>
-              </Menu.Item>
-            </Menu.SubMenu>
-          )
-        }
+       
 
-        {
-          userData.role ==="admin" && (
-            <Menu.SubMenu icon={<FaUserFriends />} title={
-              <span>
-                Compte <Badge count={totaleCompteAdmin} color="#faad14" />
-              </span>
-            }>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/compte/client">Client <Badge count={client.length} color="#faad14" /></Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/compte/livreur">Livreur</Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/compte/admin">Admin</Link>
-              </Menu.Item>
-            </Menu.SubMenu>
-          )
-        }
+        
         
         {
           userData.role ==="admin" && (
@@ -195,7 +290,6 @@ function Menubar() {
               </Menu.Item>
           )
         }
-
         {
           userData.role ==="admin" && (
             <Menu.Item icon={<FaCity />}>
@@ -203,9 +297,6 @@ function Menubar() {
             </Menu.Item>
           )
         }
-
-        
-
         {
           userData.role ==="client" && (
             <>
@@ -229,56 +320,9 @@ function Menubar() {
           )
         }
 
-        {
-          userData.role ==="admin" && (
-            <Menu.Item icon={<LuScanLine />}>
-              <Link to="/dashboard/scan">Scan</Link>
-            </Menu.Item>
-          )
-        }
+       
 
-        {
-          userData.role ==="livreur" && (
-            <Menu.Item icon={<LuScanLine />}>
-              <Link to="/dashboard/scan">Scan</Link>
-            </Menu.Item>
-          )
-        }
-
-{
-  (userData.role === "admin" || userData.role === "team") && (
-    <Menu.SubMenu
-      icon={<LuBox />}
-      title={
-        <span>
-          Colis <Badge count={totaleColisAdmin} color="#faad14" />
-        </span>
-      }
-    >
-      <Menu.Item icon={<BiTagAlt />}>
-        <Link to="/dashboard/list-colis">List Colis</Link>
-      </Menu.Item>
-      <Menu.Item icon={<BiTagAlt />}>
-        <Link to="/dashboard/colis-ar">
-          Colis Pour Ramassage <Badge count={colis.length} color="#faad14" />
-        </Link>
-      </Menu.Item>
-      <Menu.Item icon={<BiTagAlt />}>
-        <Link to="/dashboard/colis-r">
-          Colis Ramasse <Badge count={colisR.length} color="#faad14" />
-        </Link>
-      </Menu.Item>
-      <Menu.Item icon={<BiTagAlt />}>
-        <Link to="/dashboard/ameex">
-          Colis Ameex 
-        </Link>
-      </Menu.Item>
-      <Menu.Item icon={<MdFactCheck />}>
-        <Link to="/dashboard/facture/globale">Fichier</Link>
-      </Menu.Item>
-    </Menu.SubMenu>
-  )
-}
+        
 
 
         {
@@ -300,6 +344,13 @@ function Menubar() {
                 <Link to="/dashboard/facture/globale">Fichier</Link>
               </Menu.Item>
             </Menu.SubMenu>
+          )
+        }
+        {
+          userData.role ==="livreur" && (
+            <Menu.Item icon={<LuScanLine />}>
+              <Link to="/dashboard/scan">Scan</Link>
+            </Menu.Item>
           )
         }
 
@@ -325,26 +376,30 @@ function Menubar() {
           )
         }
 
-        <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
-          {
-            (userData.role === "client" || userData.role === "admin") && (
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/facture/client">Facture ( client )</Link>
-              </Menu.Item>
-            )
-          }
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/facture/retour">Bon Retour</Link>
-              </Menu.Item>
-          
-          {
-            (userData.role === "livreur" || userData.role === "admin") && (
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/facture/livreur">Facture ( Livreur )</Link>
-              </Menu.Item>
-            )
-          }
-        </Menu.SubMenu>
+        {
+          userData.role === "client" || userData.role==="livreur" && (
+            <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
+              {
+                (userData.role === "client" ) && (
+                  <Menu.Item icon={<BiTagAlt />}>
+                    <Link to="/dashboard/facture/client">Facture ( client )</Link>
+                  </Menu.Item>
+                )
+              }
+                  <Menu.Item icon={<BiTagAlt />}>
+                    <Link to="/dashboard/facture/retour">Bon Retour</Link>
+                  </Menu.Item>
+              
+              {
+                (userData.role === "livreur") && (
+                  <Menu.Item icon={<BiTagAlt />}>
+                    <Link to="/dashboard/facture/livreur">Facture ( Livreur )</Link>
+                  </Menu.Item>
+                )
+              }
+            </Menu.SubMenu>
+          )
+        }
 
       </Menu>
       

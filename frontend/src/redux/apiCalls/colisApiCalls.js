@@ -8,6 +8,40 @@ import axios from 'axios';
 
 
 // Create Multiple Colis Function
+export function createColisAdmin(colis) {
+  return async (dispatch) => {
+    try {
+      // Get token and user data from cookies
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+
+      // Check for token and user data
+      if (!token || !user) {
+        throw new Error('Missing authentication token or user information.');
+      }
+
+      // Set up headers with the token
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      // Send a POST request to create a single colis with `replacedColis` if available
+      const { data } = await request.post(`/api/colis/admin/${colis?.store}`, colis, config);
+
+      // Display success notification
+      toast.success(data.message);
+    } catch (error) {
+      // Error handling
+      toast.error(error.response?.data?.message || error.message || "Failed to create colis");
+      console.error("Error creating colis:", error);
+      dispatch(colisActions.setError(error.response?.data?.message || "Failed to create colis"));
+    }
+  };
+}
+// Create Multiple Colis Function
 export function createMultipleColis(colisList) {
   return async (dispatch) => {
       try {
