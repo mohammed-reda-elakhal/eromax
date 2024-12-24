@@ -8,11 +8,12 @@ import { logoutUser } from '../../redux/apiCalls/authApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoIosNotifications, IoMdExit, IoMdWallet } from 'react-icons/io';
 import { FaFileArchive, FaPaypal, FaRegEyeSlash, FaStore } from 'react-icons/fa';
-import { getNotificationUserByStore, notificationRead } from '../../redux/apiCalls/notificationApiCalls';
+import { deleteAllNotifications, getNotificationUserByStore, notificationRead } from '../../redux/apiCalls/notificationApiCalls';
 import { getStoreById } from '../../redux/apiCalls/profileApiCalls';
 import SoldeCart from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { notificationActions } from '../../redux/slices/notificationSlice';
+import { toast } from 'react-toastify';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -45,6 +46,16 @@ function Topbar() {
       dispatch(getNotificationUserByStore());
     }
   }, [dispatch]);
+
+  const handleDeleteAll = () => {
+    // Assuming we have the user ID in user._id
+    if (user && user._id) {
+      dispatch(deleteAllNotifications(user._id));
+    } else {
+      toast.error("User not found");
+    }
+  };
+
 
   // Dropdown menu based on role
   const getMenuItems = () => {
@@ -144,28 +155,63 @@ function Topbar() {
          
 
           {/* Notification drawer */}
-          <Drawer  className={theme === 'dark' ? 'dark-mode' : ''} title="Notification" onClose={() => setOpenNot(prev => !prev)} open={openNot} width={400}>
+          <Drawer
+            className={theme === 'dark' ? 'dark-mode' : ''}
+            title={
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Notification</span>
+                <Button 
+                  type="primary" 
+                  danger 
+                  icon={<DeleteOutlined />} 
+                  onClick={handleDeleteAll}
+                  size="small"
+                >
+                  Touts
+                </Button>
+              </div>
+            }
+            onClose={() => setOpenNot(prev => !prev)}
+            open={openNot}
+            width={400}
+          >
             <List
               dataSource={notificationUser}
+              itemLayout="vertical"
               renderItem={(not) => (
-                <List.Item key={not._id}>
-                  <Card
-                    style={{ width: '100%' }}
-                    actions={[
-                      <Button type="text" onClick={() => onDelete(not._id)} icon={<DeleteOutlined />} />,
-                    ]}
-                  >
-                    <h4>{not.title}</h4>
-                    <div className="content_notification">
-                      <Text>{not.description}</Text>
-                      <Divider />
-                      <Text type="secondary">{new Date(not.createdAt).toLocaleString()}</Text>
-                    </div>
-                  </Card>
+                <List.Item
+                  key={not._id}
+                  extra={
+                    <Button 
+                      type="text" 
+                      size="small" 
+                      onClick={() => onDelete(not._id)} 
+                      icon={<DeleteOutlined />} 
+                    />
+                  }
+                  style={{ padding: '8px 0' }}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Text strong style={{ fontSize: '14px', marginBottom: '4px', display: 'block' }}>
+                        {not.title}
+                      </Text>
+                    }
+                    description={
+                      <>
+                        <Text style={{ fontSize: '13px' }}>{not.description}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          {new Date(not.createdAt).toLocaleString()}
+                        </Text>
+                      </>
+                    }
+                  />
                 </List.Item>
               )}
             />
           </Drawer>
+
 
           {/* Theme toggle */}
           <Avatar onClick={toggleTheme} style={{ cursor: 'pointer' }} icon={theme === 'dark' ? <MdLightMode size={24} color="#fff" /> : <MdNightlight size={24} color="#000" />} />

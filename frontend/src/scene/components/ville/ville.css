@@ -1,0 +1,13 @@
+.ville_header{
+    display: flex;
+    flex-direction: row;
+}
+
+/* Responsive adjustments */
+@media only screen and (max-width: 600px) {
+    .ville_header{
+        align-items: start;
+        gap: 20px;
+        flex-direction: column;
+    }
+}

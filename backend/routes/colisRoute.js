@@ -2,13 +2,13 @@ const express = require("express");
 const router = express.Router();
 const colisController = require("../Controllers/colisController");
 const {verifyTokenStoreTeamAdminClient, verifyTokenAndAdmin, verifyTokenAndLivreurOrAdmin, verifyTokenAndLivreur, verifyTokenAdminTeam, verifyTokenAndClient, verifyToken} = require("../Middlewares/VerifyToken"); 
-const { updateSuiviColis, updateMultipleSuiviColis, updateMultipleColisStatus } = require("../Controllers/suivi_colisController");
+const { updateSuiviColis, updateMultipleSuiviColis, updateMultipleColisStatus, syncColisStatusWithAmeex } = require("../Controllers/suivi_colisController");
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
 //Router api/colis
 router.route('/')
-        .get( verifyTokenAndAdmin , colisController.getAllColisCtrl)
+        .get( verifyToken , colisController.getAllColisCtrl)
         .post(verifyToken , colisController.CreateMultipleColisCtrl)
 
 //Router api/colis/select/status
@@ -19,6 +19,12 @@ router.route('/select/status')
 router.route('/user/:id_user')
         .post(verifyTokenStoreTeamAdminClient ,colisController.CreateColisCtrl)
         .get(verifyTokenStoreTeamAdminClient , colisController.getColisByUserOrStore);
+
+router.route('/admin/:storeId')
+        .post(verifyTokenAndAdmin , colisController.CreateColisAdmin)
+
+router.route('/copie/:id_colis')
+        .post( colisController.CloneColisCtrl)
 
 
 // Router api/colis/:id
@@ -37,6 +43,9 @@ router.route('/pret_payant/:id')
         .patch(colisController.toggleColisPayant)
 
 
+router.route('/send/ameex')
+        .get(colisController.getColisAmeexCtrl)
+        .put(syncColisStatusWithAmeex)
 
 
 //router api/colis/St

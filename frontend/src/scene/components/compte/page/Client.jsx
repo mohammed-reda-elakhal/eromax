@@ -1,10 +1,9 @@
-// Client.js
-
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
 import { FaPenFancy, FaPlus } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { GoVerified } from "react-icons/go";
 import { 
     Drawer, 
     Modal, 
@@ -20,65 +19,68 @@ import {
     Tag, 
     Descriptions,
     Switch ,
-    Image
+    Image,
+    Input // Import Input from antd if you prefer
 } from 'antd';
 import { 
     EnvironmentOutlined, 
     PhoneOutlined, 
-    DollarCircleOutlined 
+    DollarCircleOutlined, 
+    ReloadOutlined
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
     deleteProfile, 
     getProfileList, 
-    toggleActiveClient 
+    toggleActiveClient,
+    verifyClient 
 } from '../../../../redux/apiCalls/profileApiCalls';
 import { 
     getStoreByUser, 
     deleteStore,
     toggleAutoDR
-} from '../../../../redux/apiCalls/storeApiCalls'; // Import toggleAutoDR
+} from '../../../../redux/apiCalls/storeApiCalls'; 
 import { 
     fetchUserDocuments,  
-} from '../../../../redux/apiCalls/docApiCalls'; // Import fetchUserDocuments and docActions
+} from '../../../../redux/apiCalls/docApiCalls'; 
 import { docActions } from '../../../../redux/slices/docSlices';
 import { useNavigate } from 'react-router-dom';
 import ClientFormAdd from '../components/ClientFormAdd';
 import Topbar from '../../../global/Topbar';
 import Menubar from '../../../global/Menubar';
 import StoreForm from '../../profile/components/StoreForm';
+import { IoDocumentAttach } from 'react-icons/io5';
 
 function Client({ search }) {
     const { theme } = useContext(ThemeContext);
 
     const [isModalStoreOpen, setIsModalStoreOpen] = useState(false);
     const [selectedStores, setSelectedStores] = useState([]);
-    const [drawerVisible, setDrawerVisible] = useState(false); // For Drawer visibility
-    const [currentClient, setCurrentClient] = useState(null); // Current client being edited or added
-    const [loadingStores, setLoadingStores] = useState(false); // Loading state for stores
+    const [drawerVisible, setDrawerVisible] = useState(false);
+    const [currentClient, setCurrentClient] = useState(null);
+    const [loadingStores, setLoadingStores] = useState(false);
     const [isStoreFormVisible, setIsStoreFormVisible] = useState(false);
     const [storeToEdit, setStoreToEdit] = useState(null);
 
-    // New state for Documents Modal
     const [isDocumentsModalVisible, setIsDocumentsModalVisible] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
+
+    const [searchTerm, setSearchTerm] = useState(""); // New state for search input
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    // Select necessary state from Redux
-    const { profileList, user } = useSelector((state) => ({
+    const { profileList, user, loading, error } = useSelector((state) => ({
         profileList: state.profile.profileList,
-        user: state.auth.user
+        user: state.auth.user,
+        loading: state.profile.loading,
+        error: state.profile.error
     }));
 
-    const { stores, loading, error } = useSelector((state) => ({
+    const { stores } = useSelector((state) => ({
         stores: state.store.stores,
-        loading: state.store.loading,
-        error: state.store.error
     }));
 
-    // Select documents, loading, and error from Redux state for documents
     const { files, loading: loadingDocs, error: errorDocs } = useSelector((state) => state.file);
 
     useEffect(() => {
@@ -86,12 +88,10 @@ function Client({ search }) {
         window.scrollTo(0, 0);
     }, [dispatch, user]);
 
-    // Handle opening the modal and fetching stores
     const openStoresModal = async (client) => {
-        setLoadingStores(true); // Start loading
+        setLoadingStores(true);
         try {
-            // Assuming client.userId holds the user ID associated with the client
-            await dispatch(getStoreByUser(client.userId || client._id)); // Fetch stores
+            await dispatch(getStoreByUser(client.userId || client._id));
             setIsModalStoreOpen(true);
         } catch (err) {
             console.error("Failed to fetch stores:", err);
@@ -100,11 +100,10 @@ function Client({ search }) {
                 content: 'Impossible de récupérer les magasins associés au client.',
             });
         } finally {
-            setLoadingStores(false); // End loading
+            setLoadingStores(false);
         }
     };
 
-    // Set selectedStores when stores are updated
     useEffect(() => {
         if (isModalStoreOpen) {
             setSelectedStores(stores);
@@ -113,7 +112,6 @@ function Client({ search }) {
 
     const toggleActiveCompte = (id) => {
         dispatch(toggleActiveClient(id));
-        dispatch(getProfileList("client"));
     };
 
     const handleOk = () => {
@@ -122,7 +120,7 @@ function Client({ search }) {
     };
 
     const openDrawer = (client) => {
-        setCurrentClient(client || {}); // If no client is passed, assume it's an 'Add' operation
+        setCurrentClient(client || {});
         setDrawerVisible(true);
     };
 
@@ -149,29 +147,47 @@ function Client({ search }) {
         return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     };
 
-    // Function to open Documents Modal
     const openDocumentsModal = (client) => {
         setSelectedClient(client);
         setIsDocumentsModalVisible(true);
         dispatch(fetchUserDocuments(client.role, client._id))
             .catch(() => {
-                // Handle fetch error if needed
+                // Handle error if needed
             });
     };
 
-    // Function to close Documents Modal
     const closeDocumentsModal = () => {
         setIsDocumentsModalVisible(false);
         setSelectedClient(null);
     };
 
-    // Define table columns
+    const handleVerifyClient = (clientId) => {
+        Modal.confirm({
+            title: 'Vérifier le client',
+            content: 'Êtes-vous sûr de vouloir vérifier ce compte client?',
+            okText: 'Oui',
+            cancelText: 'Non',
+            onOk: () => {
+                dispatch(verifyClient(clientId));
+            },
+        });
+    };
+
     const columns = [
         {
             title: 'Profile',
             dataIndex: 'profile',
             render: (text, record) => (
-                <Avatar src={record.profile?.url || '/image/user.png'} className='profile_image_user' />
+                <Tooltip title={record.verify ? "Compte vérifié" : "Compte non vérifié"}>
+                    <Avatar 
+                        src={record.profile?.url || '/image/user.png'} 
+                        className='profile_image_user' 
+                        style={{
+                            border: `2px solid ${record.verify ? 'green' : 'red'}`,
+                            boxSizing: 'border-box',
+                        }}
+                    />
+                </Tooltip>
             ),
         },
         {
@@ -197,7 +213,7 @@ function Client({ search }) {
         },
         {
             title: 'N° Store',
-            dataIndex: 'stores', // Adjusted to match the data structure
+            dataIndex: 'stores',
             render: (text, record) => (
                 <Tag 
                     color='green' 
@@ -237,6 +253,15 @@ function Client({ search }) {
             key: 'role',
         },
         {
+            title: 'Autre',
+            render: (text, record) => (
+                <>
+                    <span>Debut en : <strong>{record.start_date}</strong> </span> <br />
+                    <span>Envoyer : <strong>{record.number_colis} colis</strong> </span> 
+                </>
+            ),
+        },
+        {
             title: 'Activation de compte',
             dataIndex: 'active',
             key: 'active',
@@ -269,32 +294,40 @@ function Client({ search }) {
             )
         },
         {
-            title: 'Documents',
-            dataIndex: 'documents',
-            key: 'documents',
-            render: (text, record) => (
-                <Button 
-                    type="link" 
-                    onClick={() => openDocumentsModal(record)}
-                >
-                    Voir Documents
-                </Button>
-            )
-        },
-        {
             title: 'Action',
             dataIndex: 'action',
             render: (text, record) => (
                 <div className='action_user'>
-                    <Tooltip title="Edit Client" key="edit">
+                    <Tooltip title="Voir Documents" key="docs">
                         <Button 
-                            style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent" }} 
+                            type="link" 
+                            style={{ color: '#0080ff', borderColor: "#0080ff", background: "transparent", marginRight: '8px' }} 
+                            icon={<IoDocumentAttach size={20} />}
+                            onClick={() => openDocumentsModal(record)}
+                        />
+                    </Tooltip>
+                    {!record.verify && (
+                        <Tooltip title="Vérifier le client" key="verify">
+                            <Button 
+                                type="link" 
+                                style={{ color: 'green', borderColor: "green", background: "transparent", marginRight: '8px' }} 
+                                icon={<GoVerified size={20} />}
+                                onClick={() => handleVerifyClient(record._id)}
+                            />
+                        </Tooltip>
+                    )}
+                    
+                    <Tooltip title="Edit Client" key="editClient">
+                        <Button 
+                            type="link" 
+                            style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent", marginRight: '8px' }} 
                             icon={<FaPenFancy size={20} />}
                             onClick={() => navigate(`/dashboard/compte/client/${record._id}`, { state: { from: '/dashboard/compte/client' } })}
                         />
                     </Tooltip>
-                    <Tooltip title="Delete Client" key="delete">
+                    <Tooltip title="Delete Client" key="deleteClient">
                         <Button 
+                            type="link" 
                             style={{ color: 'red', borderColor: "red", background: "transparent" }} 
                             icon={<MdDelete size={20} />}
                             onClick={() => handleDeleteProfile(record._id)}
@@ -305,18 +338,31 @@ function Client({ search }) {
         }
     ];
 
-    // Store Form Handlers
+    // Filter the profileList based on the searchTerm
+    const filteredData = profileList.filter(client => {
+        const fullText = [
+            client.nom,
+            client.prenom,
+            client.username,
+            client.email,
+            client.tele,
+            client.ville,
+            client.adresse
+        ].join(' ').toLowerCase();
+
+        return fullText.includes(searchTerm.toLowerCase());
+    });
+
     const openStoreForm = (store) => {
-        setStoreToEdit(store); // Set the store to edit, or null for adding
-        setIsStoreFormVisible(true); // Open the StoreForm drawer
+        setStoreToEdit(store);
+        setIsStoreFormVisible(true);
     };
 
     const closeStoreForm = () => {
-        setIsStoreFormVisible(false); // Close the StoreForm drawer
-        setStoreToEdit(null); // Reset the store to edit
+        setIsStoreFormVisible(false);
+        setStoreToEdit(null);
     };
 
-    // Handle toggleAutoDR
     const handleToggleAutoDR = (storeId) => {
         dispatch(toggleAutoDR(storeId));
     };
@@ -340,14 +386,33 @@ function Client({ search }) {
                         }} 
                     >
                         <Typography.Title level={4} style={{ marginBottom: '16px' }}>Gestion des utilisateurs ( client )</Typography.Title>
-                        <Button 
-                            type="primary" 
-                            icon={<FaPlus />} 
-                            style={{ marginBottom: 16 }} 
-                            onClick={() => openDrawer(null)}>
-                            Add Client
-                        </Button>
-                        <TableDashboard theme={theme} column={columns} id="_id" data={profileList} />
+                        
+                            <Button 
+                                type="primary" 
+                                icon={<FaPlus />} 
+                                onClick={() => openDrawer(null)}
+                            >
+                                Add Client
+                            </Button>
+                        {/* Add your search input here */}
+                        <div className='ville_header'  style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                            <Input
+                                placeholder="Rechercher..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{ width: 200 }}
+                            />
+                            <Button
+                                type="primary"
+                                icon={<ReloadOutlined />}
+                                onClick={() => dispatch(getProfileList("client"))}
+                            >
+                                Rafraîchir
+                            </Button>
+                            
+                        </div>
+                        
+                        <TableDashboard theme={theme} column={columns} id="_id" data={filteredData} />
                         
                         {/* Stores Modal */}
                         <Modal
@@ -535,7 +600,6 @@ function Client({ search }) {
             </main>
         </div>
     );
-
 }
 
 export default Client;

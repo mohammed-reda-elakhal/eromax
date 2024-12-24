@@ -8,6 +8,40 @@ import axios from 'axios';
 
 
 // Create Multiple Colis Function
+export function createColisAdmin(colis) {
+  return async (dispatch) => {
+    try {
+      // Get token and user data from cookies
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+
+      // Check for token and user data
+      if (!token || !user) {
+        throw new Error('Missing authentication token or user information.');
+      }
+
+      // Set up headers with the token
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      // Send a POST request to create a single colis with `replacedColis` if available
+      const { data } = await request.post(`/api/colis/admin/${colis?.store}`, colis, config);
+
+      // Display success notification
+      toast.success(data.message);
+    } catch (error) {
+      // Error handling
+      toast.error(error.response?.data?.message || error.message || "Failed to create colis");
+      console.error("Error creating colis:", error);
+      dispatch(colisActions.setError(error.response?.data?.message || "Failed to create colis"));
+    }
+  };
+}
+// Create Multiple Colis Function
 export function createMultipleColis(colisList) {
   return async (dispatch) => {
       try {
@@ -50,8 +84,47 @@ export function createMultipleColis(colisList) {
   };
 }
 
+
+
+export function getColis(filters = {}) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token is missing');
+        return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+          'Content-Type': 'application/json',
+        },
+        params: {
+          statut: filters.statut || '',
+          store: filters.store || '',
+          ville: filters.ville || '',
+          dateFrom: filters.dateFrom || '',
+          dateTo: filters.dateTo || '',
+        },
+      };
+
+      dispatch(colisActions.setLoading()); // Set loading state
+
+      const { data } = await request.get(`/api/colis`, config);
+      console.log(data.colis);
+      
+      dispatch(colisActions.setColis(data)); // Use action creator
+    } catch (error) {
+      console.error("Failed to fetch colis:", error);
+      dispatch(colisActions.setError(error.message));
+      toast.error("Failed to load colis.");
+    }
+  };
+}
+
 // Fetch post
-export function getColis(statut) {
+export function getColisAmeex() {
     return async (dispatch) => {
         try {
             const token = localStorage.getItem('token');
@@ -64,7 +137,7 @@ export function getColis(statut) {
                     'Content-Type': 'application/json',
                 }
             };
-            const { data } = await request.get(`/api/colis?statut=${statut}`, config);
+            const { data } = await request.get(`/api/colis/send/ameex`, config);
             dispatch(colisActions.setColis(data)); // Use action creator
         } catch (error) {
             console.error("Failed to fetch colis:", error);
@@ -73,6 +146,45 @@ export function getColis(statut) {
     };
 }
 
+// Fetch Colis Ameex Status Async Action
+export function getColisAmeexAsyncStatu() {
+  return async (dispatch) => {
+      try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentication token is missing');
+              throw new Error('Authentication token is missing');
+          }
+
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`, // Correct capitalization
+                  'Content-Type': 'application/json',
+              }
+          };
+
+          // Dispatch loading state
+          dispatch(colisActions.setLoading(true));
+
+          // Correctly formatted PUT request
+          const { data } = await request.put(`/api/colis/send/ameex`, {}, config);
+
+          // Dispatch loading end
+          dispatch(colisActions.setLoading(false));
+
+          // Show success message
+          toast.success(data.message);
+
+          // Optionally, refresh the colis data
+          dispatch(getColisAmeex()); // Ensure getColisAmeex is correctly imported
+      } catch (error) {
+          console.error("Failed to fetch colis:", error);
+          dispatch(colisActions.setError(error.response?.data?.message || error.message));
+          dispatch(colisActions.setLoading(false));
+          toast.error(error.response?.data?.message || 'Failed to fetch colis');
+      }
+  };
+}
 
 // set colis pret payant 
 export const setColisPayant = (id) => async (dispatch) => {
@@ -162,7 +274,20 @@ export function deleteColis(id) {
   return async (dispatch) => {
     try {
       const { data } = await request.delete(`/api/colis/${id}` );
-      toast.success('Colis delete avec successfully');
+      toast.success(data.message);
+    } catch (error) {
+      console.error("Failed to update colis:", error);
+      dispatch(colisActions.setError(error.message));
+      toast.error('Failed to update colis');
+    }
+  };
+}
+// cloner colis 
+export function copieColis(id) {
+  return async (dispatch) => {
+    try {
+      const { data } = await request.post(`/api/colis/copie/${id}` );
+      toast.success(data.message);
     } catch (error) {
       console.error("Failed to update colis:", error);
       dispatch(colisActions.setError(error.message));

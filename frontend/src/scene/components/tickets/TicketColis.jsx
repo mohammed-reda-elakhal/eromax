@@ -75,7 +75,7 @@ function TicketColis({ colis }) {
               <p>{colis?.store?.message || "current message"}</p>
             </div>
             <div className="ticket-colis-footer-eromax">
-              <p>Message Eromax</p>
+              <p>اروماكس مسؤولة على التوصيل فقط</p>
             </div>
           </div>
         </div>

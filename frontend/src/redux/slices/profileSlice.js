@@ -80,7 +80,26 @@ const profileSlice = createSlice({
             if (state.profile && state.profile._id === action.payload._id) {
                 state.profile.active = action.payload.active;
             }
-        }
+        },
+        verifyClientStart(state) {
+            state.loading = true;
+            state.error = null;
+        },
+        verifyClientSuccess(state, action) {
+            state.loading = false;
+            // Update the specific client in profileList
+            state.profileList = state.profileList.map(profile => 
+                profile._id === action.payload._id ? action.payload : profile
+            );
+            // If profile is being viewed individually, update it too
+            if (state.profile && state.profile._id === action.payload._id) {
+                state.profile = action.payload;
+            }
+        },
+        verifyClientFailure(state, action) {
+            state.loading = false;
+            state.error = action.payload;
+        },
     },
 });
 

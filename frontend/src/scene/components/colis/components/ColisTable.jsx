@@ -14,7 +14,13 @@ import {
   Form, 
   Select, 
   message, 
-  Spin 
+  Spin,
+  Badge,
+  Col,
+  Popconfirm,
+  Card,
+  Avatar,
+  DatePicker,
 } from 'antd';
 import { 
   FaWhatsapp, 
@@ -22,11 +28,13 @@ import {
   FaPenFancy, 
   FaTicketAlt, 
   FaDownload, 
-  FaAmazonPay 
+  FaInfoCircle, 
+  FaClone,
+  FaSearch,
 } from 'react-icons/fa';
 import { 
-  Si1001Tracklists 
-} from 'react-icons/si';
+  FiRefreshCcw 
+} from "react-icons/fi";
 import { 
   TbPhoneCall, 
   TbTruckDelivery 
@@ -41,37 +49,39 @@ import {
   CheckCircleOutlined, 
   ClockCircleOutlined, 
   CloseCircleOutlined, 
-  ExclamationCircleOutlined, 
-  MinusCircleOutlined, 
-  SyncOutlined,
-  LoadingOutlined // <-- Imported LoadingOutlined
+  LoadingOutlined 
 } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { FiRefreshCcw } from "react-icons/fi";
+import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md';
+import { BsFillInfoCircleFill } from "react-icons/bs";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
 import { 
+  copieColis,
   deleteColis, 
   getColis, 
-  getColisForClient, 
-  getColisForLivreur, 
   setColisPayant, 
   updateStatut 
 } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
-import TrackingColis from '../../../global/TrackingColis ';
+import TrackingColis from '../../../global/TrackingColis '; // Fixed Import
 import moment from 'moment';
-import { BsBroadcast } from 'react-icons/bs';
-import { MdDelete, MdOutlinePayment } from 'react-icons/md';
+import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
+import request from '../../../../utils/request';
+import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
+import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls';
+import { debounce } from 'lodash'; // Import debounce
 
 const { Text } = Typography;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
+// Define allowed statuses and their comments
 const allowedStatuses = [
   "Ramassée",
   "Mise en Distribution",
@@ -108,6 +118,7 @@ const statusComments = {
   ],
 };
 
+// Function to determine the color of the status tag
 function getStatusTagColor(status) {
   switch (status) {
     case "Livrée":
@@ -161,13 +172,34 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     reclamationType: 'Type de reclamation',
     subject: '',
     message: '',
+    filters: {
+      store: '',
+      ville: '',
+      statut: '',
+      dateRange: [],
+    },
+    appliedFilters: {
+      store: '',
+      ville: '',
+      statut: '',
+      dateFrom: '',
+      dateTo: '',
+    },
   });
 
-  // New states for Status Modal
+  // Custom loading state for the table
+  const [tableLoading, setTableLoading] = useState(false);
+
+  // States for Status Modal
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [statusType, setStatusType] = useState("");
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
+
+  // States for Assign Livreur Modal
+  const [assignModalVisible, setAssignModalVisible] = useState(false);
+  const [assignSelectedLivreur, setAssignSelectedLivreur] = useState(null);
+  const [loadingAssign, setLoadingAssign] = useState(false); // Loading state for assignment
 
   const phoneNumber = '+212630087302';
 
@@ -176,61 +208,140 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   const navigate = useNavigate();
 
   // Extracting Redux states including loading
-  const { colisData, user, store, loading } = useSelector((state) => ({
-    colisData: state.colis.colis || [],
+  const { livreurList, colisData, user, stores, villes, loading } = useSelector((state) => ({
+    colisData: state.colis, // Extract the entire 'colis' slice
+    livreurList: state.livreur.livreurList,
     user: state.auth.user,
-    store: state.auth.store,
-    loading: state.colis.loading, // <-- Extract loading from Redux
+    stores: state.store.stores || [],
+    villes: state.ville.villes || [],
+    loading: state.colis.loading, // Extract loading from Redux
   }));
 
-  // Fetch data based on user role
+  // Debounced Search
+  const debouncedSearch = useRef(
+    debounce((value) => {
+      setState(prevState => ({ ...prevState, searchTerm: value }));
+    }, 300)
+  ).current;
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
+  // Fetch data based on user role and appliedFilters
   const getDataColis = () => {
-    if (user?.role) {
-      switch (user.role) {
-        case 'admin':
-          dispatch(getColis(''));
-          break;
-        case 'client':
-          dispatch(getColisForClient(store._id, ''));
-          break;
-        case 'livreur':
-          dispatch(getColisForLivreur(user._id, ''));
-          break;
-        case 'team':
-          dispatch(getColisForClient(user._id, ''));
-          break;
-        default:
-          break;
-      }
-    }
+    setTableLoading(true); // Start loading
+    const { appliedFilters } = state;
+    const queryParams = {
+      statut: appliedFilters.statut,
+      store: appliedFilters.store,
+      ville: appliedFilters.ville,
+      dateFrom: appliedFilters.dateFrom,
+      dateTo: appliedFilters.dateTo,
+    };
+    dispatch(getColis(queryParams));
   };
 
   useEffect(() => {
     getDataColis();
-  }, [dispatch, user?.role, store?._id, user._id]);
+    dispatch(getLivreurList());
+    dispatch(getStoreList()); // Ensure stores are fetched
+    dispatch(getAllVilles()); // Ensure villes are fetched
+  }, [dispatch, user?.role, user?.store, user?.id, state.appliedFilters]);
 
   // Update state when colisData changes
   useEffect(() => {
     setState(prevState => ({
       ...prevState,
-      data: Array.isArray(colisData) ? colisData : [],
-      filteredData: Array.isArray(colisData) ? colisData : [],
+      data: Array.isArray(colisData.colis) ? colisData.colis : [],
+      filteredData: Array.isArray(colisData.colis) ? colisData.colis : [],
+      total: colisData.total || 0,
     }));
+    setTableLoading(false); // End loading
   }, [colisData]);
 
-  // Filter data based on search term
+  // Handle Search Term
   useEffect(() => {
     const { searchTerm, data } = state;
-    const filteredData = data.filter(item =>
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
+
+    setTableLoading(true); // Start loading
+
+    let filteredData = data;
+
+    // Apply search term
+    if (searchTerm) {
+      filteredData = filteredData.filter(item =>
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
     setState(prevState => ({ ...prevState, filteredData }));
+    setTableLoading(false); // End loading
   }, [state.searchTerm, state.data]);
 
   const handleSearch = (e) => {
-    setState(prevState => ({ ...prevState, searchTerm: e.target.value }));
+    debouncedSearch(e.target.value);
+  };
+
+  // Handle Filters Change
+  const handleFilterChange = (value, key) => {
+    setState(prevState => ({
+      ...prevState,
+      filters: {
+        ...prevState.filters,
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleDateRangeChange = (dates) => {
+    setState(prevState => ({
+      ...prevState,
+      filters: {
+        ...prevState.filters,
+        dateRange: dates,
+      },
+    }));
+  };
+
+  // Handle Apply Filters
+  const handleApplyFilters = () => {
+    const { store, ville, statut, dateRange } = state.filters;
+    setState(prevState => ({
+      ...prevState,
+      appliedFilters: {
+        store: store || '',
+        ville: ville || '',
+        statut: statut || '',
+        dateFrom: dateRange[0] ? moment(dateRange[0]).startOf('day').toISOString() : '',
+        dateTo: dateRange[1] ? moment(dateRange[1]).endOf('day').toISOString() : '',
+      },
+    }));
+  };
+
+  // Handle Reset Filters
+  const handleResetFilters = () => {
+    setState(prevState => ({
+      ...prevState,
+      filters: {
+        store: '',
+        ville: '',
+        statut: '',
+        dateRange: [],
+      },
+      appliedFilters: {
+        store: '',
+        ville: '',
+        statut: '',
+        dateFrom: '',
+        dateTo: '',
+      },
+      searchTerm: '',
+    }));
   };
 
   // Handle row selection
@@ -301,7 +412,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
       const newData = state.data.map(item => {
         if (item._id === state.selectedColis._id) {
-          return { ...item, statut: status, comment, deliveryTime };
+          return { ...item, statut: status, commentaire: comment, deliveryTime };
         }
         return item;
       });
@@ -310,8 +421,10 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         ...prevState,
         data: newData,
         filteredData: newData,
+        isStatusModalVisible: false,
+        selectedColis: null,
       }));
-      setIsStatusModalVisible(false);
+      form.resetFields();
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
@@ -323,12 +436,79 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     form.resetFields();
   };
 
+  // Function to open the Assign Livreur modal
+  const handleAssignLivreur = () => {
+    setAssignSelectedLivreur(null);
+    setAssignModalVisible(true);
+  };
+
+  // Function to select a livreur
+  const selectAssignLivreur = (livreur) => {
+    setAssignSelectedLivreur(livreur);
+  };
+
+  // Function to handle the assignment confirmation
+  const handleConfirmAssignLivreur = async () => {
+    if (!assignSelectedLivreur) {
+      message.error("Veuillez sélectionner un livreur.");
+      return;
+    }
+
+    try {
+      setLoadingAssign(true);
+      // Send a PUT request to assign the livreur
+      const response = await request.put('/api/colis/statu/affecter', {
+        codesSuivi: state.selectedRowKeys,
+        livreurId: assignSelectedLivreur._id
+      });
+      setLoadingAssign(false);
+      toast.success(response.data.message);
+      handleCancelAssignLivreur();
+      // Refresh data after assignment
+      getDataColis();
+    } catch (err) {
+      setLoadingAssign(false);
+      toast.error("Erreur lors de l'assignation du livreur.");
+      console.error(err);
+    }
+  };
+
+  // Function to cancel the assignment modal
+  const handleCancelAssignLivreur = () => {
+    setAssignModalVisible(false);
+    setAssignSelectedLivreur(null);
+  };
+
+  // Compute filteredLivreurs based on the selected colis's villes
+  const selectedColisVilles = state.data
+    .filter(colis => state.selectedRowKeys.includes(colis.code_suivi))
+    .map(colis => colis.ville.nom);
+
+  const uniqueSelectedColisVilles = [...new Set(selectedColisVilles)];
+
+  // **Added Filter to Exclude Livreur with username 'ameex'**
+  const filteredLivreurs = livreurList
+    .filter(livreur => livreur.username !== 'ameex') // Exclude 'ameex'
+    .reduce(
+      (acc, livreur) => {
+        const personVilles = livreur.villes || [];
+        const coversAllVilles = uniqueSelectedColisVilles.every(ville => personVilles.includes(ville));
+        if (coversAllVilles) {
+          acc.preferred.push(livreur);
+        } else {
+          acc.other.push(livreur);
+        }
+        return acc;
+      },
+      { preferred: [], other: [] }
+    );
+
+  // Define columns for the table
   const columnsColis = [
     {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      ...search('code_suivi'),
       width: 200,
       render: (text, record) => (
         <>
@@ -342,7 +522,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           >
             {text}
           </Typography.Text>
-          {record.expedation_type ==="ameex" && (
+          {record.expedation_type === "ameex" && (
             <p style={{color:"gray", fontSize:"10px", margin: 0}}>{record.code_suivi_ameex}</p>
           )}
           <Divider />
@@ -386,14 +566,14 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       ),
     },
     {
-      title: 'Bussiness',
+      title: 'Business',
       dataIndex: 'store',
       key: 'store',
       render : (text , record) => (
         <>
-          <strong>{record.store?.storeName} - {record.store?.tele || 'N/A'}</strong>
+          <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
           {
-            user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
+            user?.role === "admin" ? <p> <strong>Adresse : </strong>{record.store?.adress || 'N/A'} </p> : ""
           }
         </>
       )
@@ -404,7 +584,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'livreur_nom',
       render: (text ,record) => (
         <>
-           {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
+           {record.livreur ? <p>{record.livreur.nom} <br/> {record.livreur.tele} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Opération de Ramassage</Tag>}
         </>
       ),
     },
@@ -412,7 +592,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
-      ...search('statut'),
       render: (status, record) => {
         return user?.role === 'admin' ? (
           <Tag
@@ -430,19 +609,12 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           </Tag>
         );
       },
-    },    
-    {
-      title: 'Destinataire',
-      dataIndex: 'nom',
-      key: 'nom',
-      ...search('nom'),
     },
     {
-      title: 'Téléphone',
+      title: 'Destinataire',
       dataIndex: 'tele',
       key: 'tele',
-      ...search('tele'),
-      render: (text) => {
+      render: (text , record) => {
         // Validate phone number
         const phoneRegex = /^0[67]\d{8}$/;
         const isValidPhoneNumber = phoneRegex.test(text);
@@ -461,103 +633,58 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         if (!isValidPhoneNumber && errorMessage) {
           return (
             <Tooltip title={errorMessage} placement="topLeft">
-              <Typography.Text style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}>
-                {text}
+              <Typography.Text >
+                <span>{record.nom}</span>
+                <br />
+                <span style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}> {text} </span>
+                <br />
+                <span>{record?.ville.nom}</span>
+                <br />
+                <span>{record?.prix} DH</span>
               </Typography.Text>
             </Tooltip>
           );
         }
         return (
-          <Typography.Text style={{ color: 'green', fontWeight: 'bold' }}>
-            {text}
+          <Typography.Text>
+            <span>{record.nom}</span>
+            <br />
+            <span style={{ color: 'green', fontWeight: 'bold' }}> {text} </span>
+            <br />
+            <span>{record?.ville.nom}</span>
+            <br />
+            <span>{record?.prix} DH</span>
           </Typography.Text>
         );
       },
-    },
-    {
-      title: 'Ville',
-      dataIndex: ['ville', 'nom'],
-      key: 'ville',
-      ...search('ville.nom'),
-    },
+    }, 
     {
       title: 'Adresse',
       dataIndex: 'adresse',
       key: 'adresse',
     },
     {
-      title: 'Prix (DH)',
-      dataIndex: 'prix',
-      key: 'prix',
-      ...search('prix'),
-    },
-    {
       title: 'Nature de Produit',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
-      ...search('nature_produit'),
       render: (text) => text || 'N/A',
-    },
-    {
-      title: 'Commentaire',
-      dataIndex: 'commentaire',
-      key: 'commentaire',
-      ...search('commentaire'),
-      render: (text) => text || 'N/A',
-    },
-    {
-      title: 'État',
-      dataIndex: 'etat',
-      key: 'etat',
-      render: (etat) => (
-        etat ? 
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
-          : 
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-      ),
-    },
-    {
-      title: 'Prés payant',
-      dataIndex: 'pret_payant',
-      key: 'pret_payant',
-      render: (pret_payant) => (
-        pret_payant ? 
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
-          : 
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-      ),
-    },
-    {
-      title: 'Autres Options',
-      key: 'options',
-      render: (record) => (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-          <Tag color={record.ouvrir ? 'green' : 'red'}>
-            Ouvrir: {record.ouvrir ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={record.is_simple ? 'green' : 'red'}>
-            Is Simple: {record.is_simple ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={record.is_remplace ? 'green' : 'red'}>
-            Is Remplace: {record.is_remplace ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={record.is_fragile ? 'green' : 'red'}>
-            Is Fragile: {record.is_fragile ? 'Oui' : 'Non'}
-          </Tag>
-        </div>
-      ),
-    },
-    {
-      title: 'Date de Création',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (text) => formatDate(text),
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
     },
     {
       title: 'Options',
       render: (text, record) => (
         <div className="options-actions" style={{ display: 'flex', gap: '10px' }}>
+          <Tooltip title="Plus d'information">
+            <Button 
+              type="primary" 
+              icon={<FaInfoCircle />} 
+              onClick={()=>handleInfo(record._id)}
+              style={{
+                backgroundColor: '#17a2b8',
+                borderColor: '#17a2b8',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
           <Tooltip title="Suivi colis">
             <Button 
               type="primary" 
@@ -612,33 +739,94 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             </Tooltip>
           )}
           {user?.role === 'admin' && (
-            <Tooltip title="Colis est déjà payant">
-              <Button 
-                type="primary" 
-                onClick={() => dispatch(setColisPayant(record._id))} 
-                style={{
-                  backgroundColor: 'green',
-                  borderColor: 'green',
-                  color: '#fff'
+            <>
+              <Tooltip title="Copie de colis">
+              <Popconfirm
+                title="Êtes-vous sûr de vouloir copier ce colis?"
+                description={`Code Suivi: ${record.code_suivi}`}
+                okText="Oui"
+                okType="warning"
+                cancelText="Non"
+                onConfirm={() => {
+                  dispatch(copieColis(record._id));
+                  message.success(`Colis avec le code ${record.code_suivi} a été cloné avec succès.`);
                 }}
-                icon={<MdOutlinePayment />}
-              />
-            </Tooltip>
+                onCancel={() => {
+                  // Optional: Handle cancellation if needed
+                  message.info('Copie annulée.');
+                }}
+              >
+                <Button 
+                  type="primary" 
+                  style={{
+                    backgroundColor: ' #5CB338',
+                    borderColor: ' #5CB338',
+                    color: '#fff'
+                  }}
+                  icon={<FaClone />}
+                />
+              </Popconfirm>
+              </Tooltip>
+              <Tooltip title="Colis est déjà payant">
+                <Button 
+                  type="primary" 
+                  onClick={() => dispatch(setColisPayant(record._id))} 
+                  style={{
+                    backgroundColor: 'green',
+                    borderColor: 'green',
+                    color: '#fff'
+                  }}
+                  icon={<MdOutlinePayment />}
+                />
+              </Tooltip>
+              <Tooltip title="Affecter Livreur">
+                <Button 
+                  type="primary" 
+                  icon={<MdDeliveryDining />} 
+                  onClick={() => {
+                    setState(prevState => ({
+                      ...prevState,
+                      selectedRowKeys: [record.code_suivi]
+                    }));
+                    handleAssignLivreur();
+                  }}
+                  style={{
+                    backgroundColor: '#ff9800',
+                    borderColor: '#ff9800',
+                    color: '#fff'
+                  }}
+                />
+              </Tooltip>
+            </>
           )}
           {
-            (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis" || record?.statut === "Ramassée") &&
+            (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis") &&
             <Tooltip title="Supprimer colis">
-              <Button 
-                type="danger" 
-                onClick={() => dispatch(deleteColis(record._id))} 
-                style={{
-                  backgroundColor: '#dc3545',
-                  borderColor: '#dc3545',
-                  color: '#fff'
+              <Popconfirm
+                title="Êtes-vous sûr de vouloir supprimer ce colis?"
+                description={`Code Suivi: ${record.code_suivi}`}
+                okText="Oui"
+                okType="danger"
+                cancelText="Non"
+                onConfirm={() => {
+                  dispatch(deleteColis(record._id));
+                  message.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
                 }}
-                icon={<MdDelete />}
+                onCancel={() => {
+                  // Optional: Handle cancellation if needed
+                  message.info('Suppression annulée.');
+                }}
               >
-              </Button>
+                <Button 
+                  type="primary" 
+                  style={{
+                    backgroundColor: '#dc3545',
+                    borderColor: '#dc3545',
+                    color: '#fff'
+                  }}
+                  icon={<MdDelete />}
+                />
+              </Popconfirm>
             </Tooltip>
           }
         </div>
@@ -660,12 +848,12 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     const { subject, message, selectedColis } = state;
 
     if (!subject || !message || !selectedColis) {
-      toast.error("Please fill in all the fields.");
+      toast.error("Veuillez remplir tous les champs.");
       return;
     }
 
     const reclamationData = {
-      clientId: store._id,
+      clientId: user.store, // Assuming user.store holds the store ID
       colisId: selectedColis._id,
       subject,
       description: message,
@@ -695,7 +883,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   const handleBatchTickets = () => {
     if (state.selectedRows.length === 0) {
-      toast.error("Please select at least one colis.");
+      toast.error("Veuillez sélectionner au moins un colis.");
       return;
     }
     navigate('/dashboard/tickets', { state: { selectedColis: state.selectedRows } });
@@ -706,7 +894,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     const { selectedRows } = state;
 
     if (selectedRows.length === 0) {
-      toast.error("Please select at least one colis to export.");
+      toast.error("Veuillez sélectionner au moins un colis à exporter.");
       return;
     }
 
@@ -748,21 +936,143 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   return (
     <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`} style={{width:"100%", overflowX: 'auto'}}>
       {contextHolder}
-      {/* Spinner for Global Loading */}
-      {loading && (
+      {/* Spinner for Table Loading */}
+      {tableLoading && (
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
         </div>
       )}
+      
+      {/* Filter Bar */}
+      <div className="filter_bar" style={{ margin: '16px 0px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {/* Store Selection */}
+        {user.role === 'admin' && (
+          <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+            <label htmlFor="store">
+              Magasin
+            </label>
+            <Select
+              showSearch
+              placeholder="Sélectionner un magasin"
+              value={state.filters.store || undefined}
+              onChange={(value) => handleFilterChange(value, 'store')}
+              className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+              style={{ width: '100%' }}
+              optionFilterProp="label" // Use 'label' for filtering
+              filterOption={(input, option) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+              }
+              allowClear
+            >
+              {stores.map((store) => (
+                <Option key={store._id} value={store._id} label={store.storeName}>
+                  <Avatar src={store.image?.url} style={{ marginRight: '8px' }} />
+                  {store.storeName}
+                </Option>
+              ))}
+            </Select>
+          </div>
+        )}
+
+        {/* Ville Selection */}
+        <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+          <label htmlFor="ville">
+            Ville
+          </label>
+          <Select
+            showSearch
+            placeholder="Rechercher une ville"
+            value={state.filters.ville || undefined}
+            onChange={(value) => handleFilterChange(value, 'ville')}
+            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+            style={{ width: '100%' }}
+            optionFilterProp="label"
+            filterOption={(input, option) =>
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+            allowClear
+          >
+            {villes.map((ville) => (
+              <Option key={ville._id} value={ville._id} label={ville.nom}>
+                {ville.nom}
+              </Option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Statut Selection */}
+        <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+          <label htmlFor="statut">
+            Statut
+          </label>
+          <Select
+            showSearch
+            placeholder="Sélectionner un statut"
+            value={state.filters.statut || undefined}
+            onChange={(value) => handleFilterChange(value, 'statut')}
+            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+            style={{ width: '100%' }}
+            optionFilterProp="label"
+            filterOption={(input, option) =>
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+            allowClear
+          >
+            {allowedStatuses.map((status, index) => (
+              <Option key={index} value={status} label={status}>
+                {status}
+              </Option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Date Range Picker */}
+        <div className="colis-form-input" style={{ flex: '1 1 300px' }}>
+          <label htmlFor="dateRange">
+            Date de Création
+          </label>
+          <RangePicker
+            value={state.filters.dateRange}
+            onChange={handleDateRangeChange}
+            style={{ width: '100%' }}
+            format="DD/MM/YYYY"
+            allowClear
+          />
+        </div>
+
+        {/* Apply Filters Button */}
+        <div className="colis-form-input" style={{ flex: '1 1 150px', alignSelf: 'end' }}>
+          <Button 
+            type="primary" 
+            onClick={handleApplyFilters} 
+            style={{ width: '100%' }}
+            icon={<FaSearch />}
+          >
+            Filter
+          </Button>
+        </div>
+        
+        {/* Reset Filters Button */}
+        <div className="colis-form-input" style={{ flex: '1 1 100px', alignSelf: 'end' }}>
+          <Button 
+            type="default" 
+            onClick={handleResetFilters} 
+            style={{ width: '100%' }}
+          >
+            Réinitialiser
+          </Button>
+        </div>
+      </div>
+
       {/* Action Bar */}
-      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <Button 
           icon={<IoMdRefresh />} 
           type="primary" 
           onClick={getDataColis} 
           style={{ marginRight: '8px' }}
         >
-          Refresh
+          Rafraîchir
         </Button>
         <Button 
           icon={<FaTicketAlt />} 
@@ -777,14 +1087,13 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           onClick={exportToExcel}
           disabled={state.selectedRowKeys.length === 0}
         >
-          Export to Excel
+          Exporter en Excel
         </Button>
       </div>
 
       {/* Search Input */}
       <Input
         placeholder="Recherche ..."
-        value={state.searchTerm}
         onChange={handleSearch}
         style={{ marginBottom: '16px', width: "300px" }}
         size='large'
@@ -794,16 +1103,134 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       {/* Main Table with Loading */}
       <TableDashboard
         column={columns}
-        data={state.filteredData}
+        data={state.filteredData} // Pass the filtered data
         id="_id"
         theme={theme}
         rowSelection={{
           selectedRowKeys: state.selectedRowKeys,
           onChange: handleRowSelection,
         }}
-        loading={loading} // Pass loading prop to TableDashboard
-        scroll={{ x: 'max-content' }} // Added horizontal scroll for large number of columns
+        loading={tableLoading} // Use the custom loading state
+        scroll={{ x: 'max-content' }} // Enable horizontal scroll if needed
       />
+
+      {/* Info Modal */}
+      <Modal
+        title="Détails du Colis"
+        visible={state.infoModalVisible}
+        onCancel={closeInfoModal}
+        footer={null}
+        className={theme === 'dark' ? 'dark-mode' : ''}
+        width={'90%'}
+      >
+        {state.selectedColis && (
+          <Descriptions
+            bordered
+            layout="vertical"
+            className="responsive-descriptions"
+          >
+            <Descriptions.Item label="Code Suivi">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.code_suivi}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Destinataire">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.nom}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Téléphone">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.tele}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Adresse">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.adresse}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Ville">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.ville?.nom || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Business">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.store?.storeName || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Nature de Produit">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.nature_produit || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Prix (DH)">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.prix}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Statut">
+              <Col xs={24} sm={12} md={8}>
+                <Badge status="processing" text={state.selectedColis.statut} />
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Commentaire">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.commentaire || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Date de Création">
+              <Col xs={24} sm={12} md={8}>
+                {formatDate(state.selectedColis.createdAt)}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Dernière mise à jour">
+              <Col xs={24} sm={12} md={8}>
+                {formatDate(state.selectedColis.updatedAt)}
+              </Col>
+            </Descriptions.Item>
+            {/* New Data Added */}
+            <Descriptions.Item label="État">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.etat ? 
+                  <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+                  : 
+                  <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+                }
+              </Col>
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Prés payant">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.pret_payant ? 
+                  <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+                  : 
+                  <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+                }
+              </Col>
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Autres Options">
+              <Col xs={24} sm={12} md={8}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  <Tag color={state.selectedColis.ouvrir ? 'green' : 'red'}>
+                    Ouvrir: {state.selectedColis.ouvrir ? 'Oui' : 'Non'}
+                  </Tag>
+                  <Tag color={state.selectedColis.is_simple ? 'green' : 'red'}>
+                    Is Simple: {state.selectedColis.is_simple ? 'Oui' : 'Non'}
+                  </Tag>
+                  <Tag color={state.selectedColis.is_remplace ? 'green' : 'red'}>
+                    Is Remplace: {state.selectedColis.is_remplace ? 'Oui' : 'Non'}
+                  </Tag>
+                  <Tag color={state.selectedColis.is_fragile ? 'green' : 'red'}>
+                    Is Fragile: {state.selectedColis.is_fragile ? 'Oui' : 'Non'}
+                  </Tag>
+                </div>
+              </Col>
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
 
       {/* Reclamation Modal */}
       <Modal 
@@ -814,7 +1241,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         onCancel={() => setState(prevState => ({ ...prevState, reclamationModalVisible: false }))}
       >
         <Input 
-          placeholder="Subject" 
+          placeholder="Sujet" 
           value={state.subject} 
           onChange={(e) => setState(prevState => ({ ...prevState, subject: e.target.value }))} 
           style={{ marginBottom: '10px' }} 
@@ -845,7 +1272,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
       {/* Tracking Drawer */}
       <Drawer 
-        title="Les données de colis suivre" 
+        title="Les données de suivi du colis" 
         onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))} 
         visible={state.drawerOpen}
         className={theme === 'dark' ? 'dark-mode' : ''}
@@ -919,7 +1346,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
               rules={[{ required: true, message: 'Veuillez sélectionner un temps de livraison!' }]}
             >
               <Select placeholder="Sélectionner un temps de livraison">
-                <Option value="1 jours">Demain</Option>
+                <Option value="1 jour">Demain</Option>
                 <Option value="2 jours">Dans 2 jours</Option>
                 <Option value="3 jours">Dans 3 jours</Option>
                 <Option value="4 jours">Dans 4 jours</Option>
@@ -927,6 +1354,96 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             </Form.Item>
           )}
         </Form>
+      </Modal>
+
+      {/* Assign Livreur Modal */}
+      <Modal
+        title={`Affecter un Livreur aux Colis Sélectionnés`}
+        visible={assignModalVisible}
+        onOk={handleConfirmAssignLivreur}
+        onCancel={handleCancelAssignLivreur}
+        okText="Affecter"
+        cancelText="Annuler"
+        width={"80vw"}
+        confirmLoading={loadingAssign}
+      >
+        <div className='livreur_list_modal'>
+          <h3>Livreurs Préférés</h3>
+          <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {filteredLivreurs.preferred.length ? filteredLivreurs.preferred.map(person => (
+              <Card
+                key={person._id}
+                hoverable
+                style={{
+                  width: 240,
+                  margin: '10px',
+                  border:
+                    assignSelectedLivreur && assignSelectedLivreur._id === person._id
+                      ? '2px solid #1890ff'
+                      : '1px solid #f0f0f0',
+                }}
+                onClick={() => selectAssignLivreur(person)}
+              >
+                <Card.Meta
+                  title={<div>{person.username}</div>}
+                  description={
+                    <>
+                      {person.tele}
+                      <Button
+                        icon={<BsFillInfoCircleFill />}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering the card's onClick
+                          toast.info(`Villes: ${person.villes.join(', ')}`);
+                        }}
+                        type='primary'
+                        style={{ float: 'right' }}
+                      />
+                    </>
+                  }
+                />
+              </Card>
+            )) : <p>Aucun livreur préféré disponible</p>}
+          </div>
+        </div>
+        <Divider />
+        <div className='livreur_list_modal'>
+          <h3>Autres Livreurs</h3>
+          <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {filteredLivreurs.other.length ? filteredLivreurs.other.map(person => (
+              <Card
+                key={person._id}
+                hoverable
+                style={{
+                  width: 240,
+                  margin: '10px',
+                  border:
+                    assignSelectedLivreur && assignSelectedLivreur._id === person._id
+                      ? '2px solid #1890ff'
+                      : '1px solid #f0f0f0',
+                }}
+                onClick={() => selectAssignLivreur(person)}
+              >
+                <Card.Meta
+                  title={<div>{person.username}</div>}
+                  description={
+                    <>
+                      {person.tele}
+                      <Button
+                        icon={<BsFillInfoCircleFill />}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering the card's onClick
+                          toast.info(`Villes: ${person.villes.join(', ')}`);
+                        }}
+                        type='primary'
+                        style={{ float: 'right' }}
+                      />
+                    </>
+                  }
+                />
+              </Card>
+            )) : <p>Aucun autre livreur disponible</p>}
+          </div>
+        </div>
       </Modal>
     </div>
   );

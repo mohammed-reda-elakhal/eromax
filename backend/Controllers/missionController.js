@@ -1,6 +1,7 @@
 const DemandeRetrait = require('../Models/Demande_Retrait');
 const { Reclamation } = require('../Models/Reclamation');
 const { Colis } = require('../Models/Colis');
+const { Client } = require('../Models/Client');
 
 // Get all Demande Retrait without date condition
 const getDemandeRetraitToday = async (req, res) => {
@@ -14,6 +15,18 @@ const getDemandeRetraitToday = async (req, res) => {
         res.status(500).json({ message: 'Error fetching withdrawal requests', error });
     }
 };
+const getNouveauClient = async (req, res) => {
+    try {
+        // Fetch clients where verify is false
+        const newClients = await Client.find({ verify: false });
+
+        res.status(200).json(newClients);
+    } catch (error) {
+        console.error("Error fetching new clients:", error);
+        res.status(500).json({ message: 'Error fetching new clients', error: error.message });
+    }
+};
+
 
 // Get all Reclamation without date condition
 const getReclamationToday = async (req, res) => {
@@ -33,6 +46,21 @@ const getColisATRToday = async (req, res) => {
     try {
         const colis = await Colis.find({
             statut: 'attente de ramassage', // Assuming this is the correct status
+            expedation_type : 'eromax'
+        });
+
+        res.status(200).json(colis);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching packages', error });
+    }
+};
+
+// Get all Colis without date condition
+const getColisR = async (req, res) => {
+    try {
+        const colis = await Colis.find({
+            statut: 'Ramassée', // Assuming this is the correct status
+            expedation_type : 'eromax'
         });
 
         res.status(200).json(colis);
@@ -60,6 +88,8 @@ const countExpedieColisForLivreur = async (req, res) => {
         res.status(500).json({ message: 'Error counting colis', error });
     }
 };
+
+
 // Controller to count Colis for a specific Livreur where statut is in the "pret to livrée" statuses
 const countPretToLivreeColisForLivreur = async (req, res) => {
     try {
@@ -107,5 +137,7 @@ module.exports = {
     getReclamationToday,
     getColisATRToday,
     countExpedieColisForLivreur,
-    countPretToLivreeColisForLivreur
+    countPretToLivreeColisForLivreur,
+    getNouveauClient,
+    getColisR
 };

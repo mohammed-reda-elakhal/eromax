@@ -43,7 +43,7 @@ function MethodePayemet() {
                     }}
                 >
                     <div className="page-content-header">
-                        <Title nom='Notification' />
+                        <Title nom='Payements Methode' />
                         <Link to={`/dashboard/payement/ajouter`} className='btn-dashboard'>
                             <PlusCircleFilled style={{marginRight:"8px"}} />
                             Ajouter Methode Payement

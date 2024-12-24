@@ -1,17 +1,19 @@
-import React, { useContext, useEffect, useState } from 'react';
+// Livreur.jsx
+
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
 import { FaPenFancy, FaInfoCircle, FaPlus } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { Avatar, Button, Modal, Drawer } from 'antd';
+import { Avatar, Button, Modal, Drawer, Input } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProfile, getProfileList } from '../../../../redux/apiCalls/profileApiCalls';
 import { useNavigate } from 'react-router-dom';
-import ClientFormAdd from '../components/ClientFormAdd';
+import LivreurFormAdd from '../components/LivreurFormAdd';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import Menubar from '../../../global/Menubar';
-import LivreurFormAdd from '../components/LivreurFormAdd';
+import { ReloadOutlined } from '@ant-design/icons'; // Import the refresh icon
 
 function Livreur() {
     const { theme } = useContext(ThemeContext);
@@ -20,12 +22,15 @@ function Livreur() {
     const [selectedStores, setSelectedStores] = useState([]);
     const [drawerVisible, setDrawerVisible] = useState(false); // For Drawer visibility
     const [currentClient, setCurrentClient] = useState(null); // Current client being edited or added
-    const navigate = useNavigate()
+    const [searchQuery, setSearchQuery] = useState(''); // State for search query
+
+    const navigate = useNavigate();
 
     const dispatch = useDispatch();
-    const { profileList, user } = useSelector((state) => ({
+    const { profileList, user, loading } = useSelector((state) => ({
         profileList: state.profile.profileList,
-        user: state.auth.user
+        user: state.auth.user,
+        loading: state.profile.loading, // Assuming you have a loading state
     }));
 
     useEffect(() => {
@@ -49,9 +54,9 @@ function Livreur() {
         setCurrentClient(null);
     };
 
-    const handleDeleteProfile = (id) =>{
-        dispatch(deleteProfile("livreur" , id))
-    }
+    const handleDeleteProfile = (id) => {
+        dispatch(deleteProfile("livreur", id));
+    };
 
     // Define table columns
     const columns = [
@@ -102,7 +107,6 @@ function Livreur() {
                         <p style={{color:"red"}}>
                             {remainingCount > 0 ? `${remainingCount} Autres Villes` : ''}
                         </p>
-                        
                     </>
                 );
             },
@@ -121,7 +125,6 @@ function Livreur() {
             title: 'Type de Livreur', // Adding the type of livreur
             dataIndex: 'type',
             key: 'type',
-           
         },
         {
             title: 'Role',
@@ -154,7 +157,7 @@ function Livreur() {
                     <Button 
                         style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
                         icon={<FaPenFancy size={20} />}
-                        onClick={() => navigate(`/dashboard/compte/livreur/${record._id}` ,  { state: { from: '/dashboard/compte/livreur' } })}
+                        onClick={() => navigate(`/dashboard/compte/livreur/${record._id}`, { state: { from: '/dashboard/compte/livreur' } })}
                     />
                     <Button 
                         style={{ color: 'red', borderColor: "red" , background:"transparent"  }} 
@@ -165,6 +168,33 @@ function Livreur() {
             )
         }
     ];
+
+    // Memoized filtered profiles based on search query
+    const filteredProfiles = useMemo(() => {
+        if (!searchQuery) return profileList;
+
+        return profileList.filter(profile => {
+            const fullName = `${profile.nom} ${profile.prenom}`.toLowerCase();
+            const username = profile.username.toLowerCase();
+            const email = profile.email.toLowerCase();
+            const tele = profile.tele.toLowerCase();
+            const role = profile.role.toLowerCase();
+            const type = profile.type.toLowerCase();
+            const permission = profile.permission ? profile.permission.toLowerCase() : ''; // Handle if permission exists
+
+            const query = searchQuery.toLowerCase();
+
+            return (
+                fullName.includes(query) ||
+                username.includes(query) ||
+                email.includes(query) ||
+                tele.includes(query) ||
+                role.includes(query) ||
+                type.includes(query) ||
+                permission.includes(query)
+            );
+        });
+    }, [searchQuery, profileList]);
 
     return (
         <div className='page-dashboard'>
@@ -193,7 +223,31 @@ function Livreur() {
                         >
                             Ajouter Livreur
                         </Button>
-                        <TableDashboard theme={theme} column={columns} id="_id" data={profileList} />
+
+                        {/* Search Input and Refresh Button */}
+                        <div className='ville_header'  style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                            <Input
+                                placeholder="Rechercher par nom, username, email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ width: '300px' }}
+                                allowClear
+                            />
+                            <Button
+                                type="primary"
+                                icon={<ReloadOutlined />}
+                                onClick={() => dispatch(getProfileList("livreur"))}
+                            >
+                                Rafraîchir
+                            </Button>
+                        </div>
+
+                        <TableDashboard 
+                            theme={theme} 
+                            column={columns} 
+                            id="_id" 
+                            data={filteredProfiles} 
+                        />
                         <Drawer
                             title={"Ajouter Livreur"}
                             placement="right"
@@ -201,7 +255,7 @@ function Livreur() {
                             open={drawerVisible}
                             width={400}
                         >
-                            <LivreurFormAdd  close={closeDrawer}/>
+                            <LivreurFormAdd close={closeDrawer}/>
                         </Drawer>
                     </div>
                 </div>
