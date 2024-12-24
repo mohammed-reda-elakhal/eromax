@@ -14,9 +14,11 @@ import {
   Form, 
   Select, 
   message, 
-  Spin, 
+  Spin,
   Badge,
-  Col
+  Col,
+  Popconfirm,
+  Card
 } from 'antd';
 import { 
   FaWhatsapp, 
@@ -24,12 +26,12 @@ import {
   FaPenFancy, 
   FaTicketAlt, 
   FaDownload, 
-  FaAmazonPay, 
-  FaInfoCircle
+  FaInfoCircle, 
+  FaClone
 } from 'react-icons/fa';
 import { 
-  Si1001Tracklists 
-} from 'react-icons/si';
+  FiRefreshCcw 
+} from "react-icons/fi";
 import { 
   TbPhoneCall, 
   TbTruckDelivery 
@@ -44,21 +46,20 @@ import {
   CheckCircleOutlined, 
   ClockCircleOutlined, 
   CloseCircleOutlined, 
-  ExclamationCircleOutlined, 
-  MinusCircleOutlined, 
-  SyncOutlined,
-  LoadingOutlined // <-- Imported LoadingOutlined
+  LoadingOutlined 
 } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { FiRefreshCcw } from "react-icons/fi";
+import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md'; // Imported MdDeliveryDining
+import { BsFillInfoCircleFill } from "react-icons/bs"; // Imported BsFillInfoCircleFill
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import TicketColis from '../../tickets/TicketColis';
 import TableDashboard from '../../../global/TableDashboard';
 import { 
+  copieColis,
   deleteColis, 
   getColis, 
   getColisForClient, 
@@ -69,12 +70,14 @@ import {
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import TrackingColis from '../../../global/TrackingColis ';
 import moment from 'moment';
-import { BsBroadcast } from 'react-icons/bs';
-import { MdDelete, MdOutlinePayment } from 'react-icons/md';
+import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
+import axios from 'axios'; // Import Axios
+import request from '../../../../utils/request';
 
 const { Text } = Typography;
 const { Option } = Select;
 
+// Define allowed statuses and their comments
 const allowedStatuses = [
   "Ramassée",
   "Mise en Distribution",
@@ -111,6 +114,7 @@ const statusComments = {
   ],
 };
 
+// Function to determine the color of the status tag
 function getStatusTagColor(status) {
   switch (status) {
     case "Livrée":
@@ -166,11 +170,16 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     message: '',
   });
 
-  // New states for Status Modal
+  // States for Status Modal
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [statusType, setStatusType] = useState("");
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
+
+  // States for Assign Livreur Modal
+  const [assignModalVisible, setAssignModalVisible] = useState(false);
+  const [assignSelectedLivreur, setAssignSelectedLivreur] = useState(null);
+  const [loadingAssign, setLoadingAssign] = useState(false); // Loading state for assignment
 
   const phoneNumber = '+212630087302';
 
@@ -179,8 +188,9 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   const navigate = useNavigate();
 
   // Extracting Redux states including loading
-  const { colisData, user, store, loading } = useSelector((state) => ({
+  const { livreurList, colisData, user, store, loading } = useSelector((state) => ({
     colisData: state.colis.colis || [],
+    livreurList: state.livreur.livreurList,
     user: state.auth.user,
     store: state.auth.store,
     loading: state.colis.loading, // <-- Extract loading from Redux
@@ -210,6 +220,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   useEffect(() => {
     getDataColis();
+    dispatch(getLivreurList());
   }, [dispatch, user?.role, store?._id, user._id]);
 
   // Update state when colisData changes
@@ -245,24 +256,23 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     }));
   };
 
-// Show info modal
-const handleInfo = (id) => {
-  const selectedColis = state.data.find(item => item._id === id);
-  setState(prevState => ({
-    ...prevState,
-    selectedColis,
-    infoModalVisible: true,
-  }));
-};
+  // Show info modal
+  const handleInfo = (id) => {
+    const selectedColis = state.data.find(item => item._id === id);
+    setState(prevState => ({
+      ...prevState,
+      selectedColis,
+      infoModalVisible: true,
+    }));
+  };
 
-const closeInfoModal = () => {
-  setState(prevState => ({
-    ...prevState,
-    infoModalVisible: false,
-    selectedColis: null,
-  }));
-};
-
+  const closeInfoModal = () => {
+    setState(prevState => ({
+      ...prevState,
+      infoModalVisible: false,
+      selectedColis: null,
+    }));
+  };
 
   const handleTicket = (record) => {
     setState(prevState => ({
@@ -314,8 +324,10 @@ const closeInfoModal = () => {
         ...prevState,
         data: newData,
         filteredData: newData,
+        isStatusModalVisible: false,
+        selectedColis: null,
       }));
-      setIsStatusModalVisible(false);
+      form.resetFields();
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
@@ -327,6 +339,82 @@ const closeInfoModal = () => {
     form.resetFields();
   };
 
+  // Function to open the Assign Livreur modal
+  const handleAssignLivreur = () => {
+    setAssignSelectedLivreur(null);
+    setAssignModalVisible(true);
+  };
+
+  // Function to select a livreur
+  const selectAssignLivreur = (livreur) => {
+    setAssignSelectedLivreur(livreur);
+  };
+
+  // Function to handle the assignment confirmation
+  const handleConfirmAssignLivreur = async () => {
+    if (!assignSelectedLivreur) {
+      message.error("Veuillez sélectionner un livreur.");
+      return;
+    }
+
+    try {
+      setLoadingAssign(true);
+      // Send a PUT request to assign the livreur
+      const response = await request.put('/api/colis/statu/affecter', {
+        codesSuivi: state.selectedRowKeys,
+        livreurId: assignSelectedLivreur._id
+      });
+      setLoadingAssign(false);
+      toast.success(response.data.message);
+      handleCancelAssignLivreur();
+      // Update the local data to remove the assigned colis
+      const newData = state.data.filter(item => !state.selectedRowKeys.includes(item.code_suivi));
+      setState(prevState => ({
+        ...prevState,
+        data: newData,
+        filteredData: newData,
+        selectedRowKeys: [],
+        assignModalVisible: false,
+        selectedLivreur: null,
+      }));
+    } catch (err) {
+      setLoadingAssign(false);
+      toast.error("Erreur lors de l'assignation du livreur.");
+      console.error(err);
+    }
+  };
+
+  // Function to cancel the assignment modal
+  const handleCancelAssignLivreur = () => {
+    setAssignModalVisible(false);
+    setAssignSelectedLivreur(null);
+  };
+
+  // Compute filteredLivreurs based on the selected colis's villes
+  const selectedColisVilles = state.data
+    .filter(colis => state.selectedRowKeys.includes(colis.code_suivi))
+    .map(colis => colis.ville.nom);
+
+  const uniqueSelectedColisVilles = [...new Set(selectedColisVilles)];
+
+  // **Added Filter to Exclude Livreur with username 'ameex'**
+  const filteredLivreurs = livreurList
+    .filter(livreur => livreur.username !== 'ameex') // Exclude 'ameex'
+    .reduce(
+      (acc, livreur) => {
+        const personVilles = livreur.villes || [];
+        const coversAllVilles = uniqueSelectedColisVilles.every(ville => personVilles.includes(ville));
+        if (coversAllVilles) {
+          acc.preferred.push(livreur);
+        } else {
+          acc.other.push(livreur);
+        }
+        return acc;
+      },
+      { preferred: [], other: [] }
+    );
+
+  // Define columns for the table
   const columnsColis = [
     {
       title: 'Code Suivi',
@@ -346,7 +434,7 @@ const closeInfoModal = () => {
           >
             {text}
           </Typography.Text>
-          {record.expedation_type ==="ameex" && (
+          {record.expedation_type === "ameex" && (
             <p style={{color:"gray", fontSize:"10px", margin: 0}}>{record.code_suivi_ameex}</p>
           )}
           <Divider />
@@ -397,7 +485,7 @@ const closeInfoModal = () => {
         <>
           <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
           {
-            user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
+            user?.role === "admin" ? <p> <strong>Adresse : </strong>{record.store?.adress || 'N/A'} </p> : ""
           }
         </>
       )
@@ -408,7 +496,7 @@ const closeInfoModal = () => {
       key: 'livreur_nom',
       render: (text ,record) => (
         <>
-           {record.livreur ? <p>{record.livreur.nom} <br/> {record.livreur.tele} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
+           {record.livreur ? <p>{record.livreur.nom} <br/> {record.livreur.tele} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Opération de Ramassage</Tag>}
         </>
       ),
     },
@@ -436,7 +524,7 @@ const closeInfoModal = () => {
       },
     },
     {
-      title: 'Distinataire',
+      title: 'Destinataire',
       dataIndex: 'tele',
       key: 'tele',
       render: (text , record) => {
@@ -459,13 +547,13 @@ const closeInfoModal = () => {
           return (
             <Tooltip title={errorMessage} placement="topLeft">
               <Typography.Text >
-                <span >{record.nom}</span>
+                <span>{record.nom}</span>
                 <br />
                 <span style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}> {text} </span>
                 <br />
                 <span>{record?.ville.nom}</span>
                 <br />
-                <span >{record?.prix} DH</span>
+                <span>{record?.prix} DH</span>
               </Typography.Text>
             </Tooltip>
           );
@@ -476,9 +564,9 @@ const closeInfoModal = () => {
             <br />
             <span style={{ color: 'green', fontWeight: 'bold' }}> {text} </span>
             <br />
-            <span >{record?.ville.nom}</span>
+            <span>{record?.ville.nom}</span>
             <br />
-            <span >{record?.prix} DH</span>
+            <span>{record?.prix} DH</span>
           </Typography.Text>
         );
       },
@@ -499,7 +587,7 @@ const closeInfoModal = () => {
       title: 'Options',
       render: (text, record) => (
         <div className="options-actions" style={{ display: 'flex', gap: '10px' }}>
-          <Tooltip title="plus d'information">
+          <Tooltip title="Plus d'information">
             <Button 
               type="primary" 
               icon={<FaInfoCircle />} 
@@ -565,33 +653,94 @@ const closeInfoModal = () => {
             </Tooltip>
           )}
           {user?.role === 'admin' && (
-            <Tooltip title="Colis est déjà payant">
-              <Button 
-                type="primary" 
-                onClick={() => dispatch(setColisPayant(record._id))} 
-                style={{
-                  backgroundColor: 'green',
-                  borderColor: 'green',
-                  color: '#fff'
+            <>
+              <Tooltip title="Copie de colis">
+              <Popconfirm
+                title="Êtes-vous sûr de vouloir copie ce colis?"
+                description={`Code Suivi: ${record.code_suivi}`}
+                okText="Oui"
+                okType="warning"
+                cancelText="Non"
+                onConfirm={() => {
+                  dispatch(copieColis(record._id));
+                  message.success(`Colis avec le code ${record.code_suivi} a été cloner avec succès.`);
                 }}
-                icon={<MdOutlinePayment />}
-              />
-            </Tooltip>
+                onCancel={() => {
+                  // Optional: Handle cancellation if needed
+                  message.info('Copie annulée.');
+                }}
+              >
+                <Button 
+                  type="primary" 
+                  style={{
+                    backgroundColor: ' #5CB338',
+                    borderColor: ' #5CB338',
+                    color: '#fff'
+                  }}
+                  icon={<FaClone />}
+                />
+              </Popconfirm>
+              </Tooltip>
+              <Tooltip title="Colis est déjà payant">
+                <Button 
+                  type="primary" 
+                  onClick={() => dispatch(setColisPayant(record._id))} 
+                  style={{
+                    backgroundColor: 'green',
+                    borderColor: 'green',
+                    color: '#fff'
+                  }}
+                  icon={<MdOutlinePayment />}
+                />
+              </Tooltip>
+              <Tooltip title="Affecter Livreur">
+                <Button 
+                  type="primary" 
+                  icon={<MdDeliveryDining />} 
+                  onClick={() => {
+                    setState(prevState => ({
+                      ...prevState,
+                      selectedRowKeys: [record.code_suivi]
+                    }));
+                    handleAssignLivreur();
+                  }}
+                  style={{
+                    backgroundColor: '#ff9800',
+                    borderColor: '#ff9800',
+                    color: '#fff'
+                  }}
+                />
+              </Tooltip>
+            </>
           )}
           {
-            (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis" || record?.statut === "Ramassée") &&
+            (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis") &&
             <Tooltip title="Supprimer colis">
-              <Button 
-                type="danger" 
-                onClick={() => dispatch(deleteColis(record._id))} 
-                style={{
-                  backgroundColor: '#dc3545',
-                  borderColor: '#dc3545',
-                  color: '#fff'
+              <Popconfirm
+                title="Êtes-vous sûr de vouloir supprimer ce colis?"
+                description={`Code Suivi: ${record.code_suivi}`}
+                okText="Oui"
+                okType="danger"
+                cancelText="Non"
+                onConfirm={() => {
+                  dispatch(deleteColis(record._id));
+                  message.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
                 }}
-                icon={<MdDelete />}
+                onCancel={() => {
+                  // Optional: Handle cancellation if needed
+                  message.info('Suppression annulée.');
+                }}
               >
-              </Button>
+                <Button 
+                  type="primary" 
+                  style={{
+                    backgroundColor: '#dc3545',
+                    borderColor: '#dc3545',
+                    color: '#fff'
+                  }}
+                  icon={<MdDelete />}
+                />
+              </Popconfirm>
             </Tooltip>
           }
         </div>
@@ -613,7 +762,7 @@ const closeInfoModal = () => {
     const { subject, message, selectedColis } = state;
 
     if (!subject || !message || !selectedColis) {
-      toast.error("Please fill in all the fields.");
+      toast.error("Veuillez remplir tous les champs.");
       return;
     }
 
@@ -648,7 +797,7 @@ const closeInfoModal = () => {
 
   const handleBatchTickets = () => {
     if (state.selectedRows.length === 0) {
-      toast.error("Please select at least one colis.");
+      toast.error("Veuillez sélectionner au moins un colis.");
       return;
     }
     navigate('/dashboard/tickets', { state: { selectedColis: state.selectedRows } });
@@ -659,7 +808,7 @@ const closeInfoModal = () => {
     const { selectedRows } = state;
 
     if (selectedRows.length === 0) {
-      toast.error("Please select at least one colis to export.");
+      toast.error("Veuillez sélectionner au moins un colis à exporter.");
       return;
     }
 
@@ -715,7 +864,7 @@ const closeInfoModal = () => {
           onClick={getDataColis} 
           style={{ marginRight: '8px' }}
         >
-          Refresh
+          Rafraîchir
         </Button>
         <Button 
           icon={<FaTicketAlt />} 
@@ -730,7 +879,7 @@ const closeInfoModal = () => {
           onClick={exportToExcel}
           disabled={state.selectedRowKeys.length === 0}
         >
-          Export to Excel
+          Exporter en Excel
         </Button>
       </div>
 
@@ -757,6 +906,8 @@ const closeInfoModal = () => {
         loading={loading} // Pass loading prop to TableDashboard
         scroll={{ x: 'max-content' }} // Added horizontal scroll for large number of columns
       />
+
+      {/* Info Modal */}
       <Modal
         title="Détails du Colis"
         visible={state.infoModalVisible}
@@ -765,117 +916,114 @@ const closeInfoModal = () => {
         className={theme === 'dark' ? 'dark-mode' : ''}
         width={'90%'}
       >
-       {state.selectedColis && (
-        <Descriptions
-          bordered
-          layout="vertical"
-          className="responsive-descriptions"
-        >
-          <Descriptions.Item label="Code Suivi">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.code_suivi}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Destinataire">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.nom}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Téléphone">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.tele}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Adresse">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.adresse}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Ville">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.ville?.nom || 'N/A'}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Business">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.store?.storeName || 'N/A'}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Nature de Produit">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.nature_produit || 'N/A'}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Prix (DH)">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.prix}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Statut">
-            <Col xs={24} sm={12} md={8}>
-              <Badge status="processing" text={state.selectedColis.statut} />
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Commentaire">
-            <Col xs={24} sm={12} md={8}>
-              {state.selectedColis.commentaire || 'N/A'}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Date de Création">
-            <Col xs={24} sm={12} md={8}>
-              {formatDate(state.selectedColis.createdAt)}
-            </Col>
-          </Descriptions.Item>
-          <Descriptions.Item label="Dérniére mise à jour">
-            <Col xs={24} sm={12} md={8}>
-              {formatDate(state.selectedColis.updatedAt)}
-            </Col>
-          </Descriptions.Item>
-          {/* New Data Added */}
-    <Descriptions.Item label="État">
-      <Col xs={24} sm={12} md={8}>
-        {state.selectedColis.etat ? 
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
-          : 
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-        }
-      </Col>
-    </Descriptions.Item>
+        {state.selectedColis && (
+          <Descriptions
+            bordered
+            layout="vertical"
+            className="responsive-descriptions"
+          >
+            <Descriptions.Item label="Code Suivi">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.code_suivi}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Destinataire">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.nom}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Téléphone">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.tele}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Adresse">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.adresse}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Ville">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.ville?.nom || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Business">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.store?.storeName || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Nature de Produit">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.nature_produit || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Prix (DH)">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.prix}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Statut">
+              <Col xs={24} sm={12} md={8}>
+                <Badge status="processing" text={state.selectedColis.statut} />
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Commentaire">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.commentaire || 'N/A'}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Date de Création">
+              <Col xs={24} sm={12} md={8}>
+                {formatDate(state.selectedColis.createdAt)}
+              </Col>
+            </Descriptions.Item>
+            <Descriptions.Item label="Dernière mise à jour">
+              <Col xs={24} sm={12} md={8}>
+                {formatDate(state.selectedColis.updatedAt)}
+              </Col>
+            </Descriptions.Item>
+            {/* New Data Added */}
+            <Descriptions.Item label="État">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.etat ? 
+                  <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+                  : 
+                  <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+                }
+              </Col>
+            </Descriptions.Item>
 
-    <Descriptions.Item label="Prés payant">
-      <Col xs={24} sm={12} md={8}>
-        {state.selectedColis.pret_payant ? 
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
-          : 
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-        }
-      </Col>
-    </Descriptions.Item>
+            <Descriptions.Item label="Prés payant">
+              <Col xs={24} sm={12} md={8}>
+                {state.selectedColis.pret_payant ? 
+                  <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+                  : 
+                  <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+                }
+              </Col>
+            </Descriptions.Item>
 
-    <Descriptions.Item label="Autres Options">
-      <Col xs={24} sm={12} md={8}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-          <Tag color={state.selectedColis.ouvrir ? 'green' : 'red'}>
-            Ouvrir: {state.selectedColis.ouvrir ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={state.selectedColis.is_simple ? 'green' : 'red'}>
-            Is Simple: {state.selectedColis.is_simple ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={state.selectedColis.is_remplace ? 'green' : 'red'}>
-            Is Remplace: {state.selectedColis.is_remplace ? 'Oui' : 'Non'}
-          </Tag>
-          <Tag color={state.selectedColis.is_fragile ? 'green' : 'red'}>
-            Is Fragile: {state.selectedColis.is_fragile ? 'Oui' : 'Non'}
-          </Tag>
-        </div>
-      </Col>
-    </Descriptions.Item>
-        </Descriptions>
-      )}
-
-
+            <Descriptions.Item label="Autres Options">
+              <Col xs={24} sm={12} md={8}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  <Tag color={state.selectedColis.ouvrir ? 'green' : 'red'}>
+                    Ouvrir: {state.selectedColis.ouvrir ? 'Oui' : 'Non'}
+                  </Tag>
+                  <Tag color={state.selectedColis.is_simple ? 'green' : 'red'}>
+                    Is Simple: {state.selectedColis.is_simple ? 'Oui' : 'Non'}
+                  </Tag>
+                  <Tag color={state.selectedColis.is_remplace ? 'green' : 'red'}>
+                    Is Remplace: {state.selectedColis.is_remplace ? 'Oui' : 'Non'}
+                  </Tag>
+                  <Tag color={state.selectedColis.is_fragile ? 'green' : 'red'}>
+                    Is Fragile: {state.selectedColis.is_fragile ? 'Oui' : 'Non'}
+                  </Tag>
+                </div>
+              </Col>
+            </Descriptions.Item>
+          </Descriptions>
+        )}
       </Modal>
-
 
       {/* Reclamation Modal */}
       <Modal 
@@ -886,7 +1034,7 @@ const closeInfoModal = () => {
         onCancel={() => setState(prevState => ({ ...prevState, reclamationModalVisible: false }))}
       >
         <Input 
-          placeholder="Subject" 
+          placeholder="Sujet" 
           value={state.subject} 
           onChange={(e) => setState(prevState => ({ ...prevState, subject: e.target.value }))} 
           style={{ marginBottom: '10px' }} 
@@ -917,7 +1065,7 @@ const closeInfoModal = () => {
 
       {/* Tracking Drawer */}
       <Drawer 
-        title="Les données de colis suivre" 
+        title="Les données de suivi du colis" 
         onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))} 
         visible={state.drawerOpen}
         className={theme === 'dark' ? 'dark-mode' : ''}
@@ -999,6 +1147,96 @@ const closeInfoModal = () => {
             </Form.Item>
           )}
         </Form>
+      </Modal>
+
+      {/* Assign Livreur Modal */}
+      <Modal
+        title={`Affecter un Livreur aux Colis Sélectionnés`}
+        visible={assignModalVisible}
+        onOk={handleConfirmAssignLivreur}
+        onCancel={handleCancelAssignLivreur}
+        okText="Affecter"
+        cancelText="Annuler"
+        width={"80vw"}
+        confirmLoading={loadingAssign}
+      >
+        <div className='livreur_list_modal'>
+          <h3>Livreurs Préférés</h3>
+          <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {filteredLivreurs.preferred.length ? filteredLivreurs.preferred.map(person => (
+              <Card
+                key={person._id}
+                hoverable
+                style={{
+                  width: 240,
+                  margin: '10px',
+                  border:
+                    assignSelectedLivreur && assignSelectedLivreur._id === person._id
+                      ? '2px solid #1890ff'
+                      : '1px solid #f0f0f0',
+                }}
+                onClick={() => selectAssignLivreur(person)}
+              >
+                <Card.Meta
+                  title={<div>{person.username}</div>}
+                  description={
+                    <>
+                      {person.tele}
+                      <Button
+                        icon={<BsFillInfoCircleFill />}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering the card's onClick
+                          toast.info(`Villes: ${person.villes.join(', ')}`);
+                        }}
+                        type='primary'
+                        style={{ float: 'right' }}
+                      />
+                    </>
+                  }
+                />
+              </Card>
+            )) : <p>Aucun livreur préféré disponible</p>}
+          </div>
+        </div>
+        <Divider />
+        <div className='livreur_list_modal'>
+          <h3>Autres Livreurs</h3>
+          <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {filteredLivreurs.other.length ? filteredLivreurs.other.map(person => (
+              <Card
+                key={person._id}
+                hoverable
+                style={{
+                  width: 240,
+                  margin: '10px',
+                  border:
+                    assignSelectedLivreur && assignSelectedLivreur._id === person._id
+                      ? '2px solid #1890ff'
+                      : '1px solid #f0f0f0',
+                }}
+                onClick={() => selectAssignLivreur(person)}
+              >
+                <Card.Meta
+                  title={<div>{person.username}</div>}
+                  description={
+                    <>
+                      {person.tele}
+                      <Button
+                        icon={<BsFillInfoCircleFill />}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering the card's onClick
+                          toast.info(`Villes: ${person.villes.join(', ')}`);
+                        }}
+                        type='primary'
+                        style={{ float: 'right' }}
+                      />
+                    </>
+                  }
+                />
+              </Card>
+            )) : <p>Aucun autre livreur disponible</p>}
+          </div>
+        </div>
       </Modal>
     </div>
   );

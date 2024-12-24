@@ -97,7 +97,6 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
   // Filter colis for "Attente de Ramassage"
   useEffect(() => {
     setData(colisData);
-
   }, [colisData]);
 
   // **Implement search functionality**
