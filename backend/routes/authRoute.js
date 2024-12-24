@@ -1,7 +1,8 @@
 const router = require("express").Router();
-const { loginProfileCtrl , registerAdmin , registerClient, registerLivreur, selectStoreCtrl, registerTeam } = require("../Controllers/authController");
+const { loginProfileCtrl , registerAdmin , registerClient, registerLivreur, selectStoreCtrl, registerTeam, getPasswordCtrl, resetUserPasswordCtrl, resetOwnPasswordCtrl } = require("../Controllers/authController");
 const { createClientFile } = require("../Controllers/clientControllers");
 const fileup = require("../Middlewares/fileUpload");
+const { verifyToken, verifyTokenAndAdmin } = require("../Middlewares/VerifyToken");
 
 
 
@@ -21,6 +22,11 @@ router.post("/login/:role",loginProfileCtrl);
 router.get("/selectStore",selectStoreCtrl);
 
 router.post("/login",loginProfileCtrl);
+
+router.put('/reset-password', verifyToken, resetOwnPasswordCtrl);
+router.put('/:role/reset-password/', verifyTokenAndAdmin, resetUserPasswordCtrl);
+
+
 
 
 module.exports= router;
