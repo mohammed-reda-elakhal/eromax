@@ -18,7 +18,9 @@ import {
   Badge,
   Col,
   Popconfirm,
-  Card
+  Card,
+  Avatar,
+  DatePicker,
 } from 'antd';
 import { 
   FaWhatsapp, 
@@ -27,7 +29,8 @@ import {
   FaTicketAlt, 
   FaDownload, 
   FaInfoCircle, 
-  FaClone
+  FaClone,
+  FaSearch,
 } from 'react-icons/fa';
 import { 
   FiRefreshCcw 
@@ -52,8 +55,8 @@ import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md'; // Imported MdDeliveryDining
-import { BsFillInfoCircleFill } from "react-icons/bs"; // Imported BsFillInfoCircleFill
+import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md';
+import { BsFillInfoCircleFill } from "react-icons/bs";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import TicketColis from '../../tickets/TicketColis';
@@ -62,20 +65,21 @@ import {
   copieColis,
   deleteColis, 
   getColis, 
-  getColisForClient, 
-  getColisForLivreur, 
   setColisPayant, 
   updateStatut 
 } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
-import TrackingColis from '../../../global/TrackingColis ';
+import TrackingColis from '../../../global/TrackingColis '; // Fixed Import
 import moment from 'moment';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
-import axios from 'axios'; // Import Axios
 import request from '../../../../utils/request';
+import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
+import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls';
+import { debounce } from 'lodash'; // Import debounce
 
 const { Text } = Typography;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 // Define allowed statuses and their comments
 const allowedStatuses = [
@@ -168,7 +172,23 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     reclamationType: 'Type de reclamation',
     subject: '',
     message: '',
+    filters: {
+      store: '',
+      ville: '',
+      statut: '',
+      dateRange: [],
+    },
+    appliedFilters: {
+      store: '',
+      ville: '',
+      statut: '',
+      dateFrom: '',
+      dateTo: '',
+    },
   });
+
+  // Custom loading state for the table
+  const [tableLoading, setTableLoading] = useState(false);
 
   // States for Status Modal
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
@@ -188,63 +208,140 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   const navigate = useNavigate();
 
   // Extracting Redux states including loading
-  const { livreurList, colisData, user, store, loading } = useSelector((state) => ({
-    colisData: state.colis.colis || [],
+  const { livreurList, colisData, user, stores, villes, loading } = useSelector((state) => ({
+    colisData: state.colis, // Extract the entire 'colis' slice
     livreurList: state.livreur.livreurList,
     user: state.auth.user,
-    store: state.auth.store,
-    loading: state.colis.loading, // <-- Extract loading from Redux
+    stores: state.store.stores || [],
+    villes: state.ville.villes || [],
+    loading: state.colis.loading, // Extract loading from Redux
   }));
 
-  // Fetch data based on user role
+  // Debounced Search
+  const debouncedSearch = useRef(
+    debounce((value) => {
+      setState(prevState => ({ ...prevState, searchTerm: value }));
+    }, 300)
+  ).current;
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
+  // Fetch data based on user role and appliedFilters
   const getDataColis = () => {
-    if (user?.role) {
-      switch (user.role) {
-        case 'admin':
-          dispatch(getColis(''));
-          break;
-        case 'client':
-          dispatch(getColisForClient(store._id, ''));
-          break;
-        case 'livreur':
-          dispatch(getColisForLivreur(user._id, ''));
-          break;
-        case 'team':
-          dispatch(getColisForClient(user._id, ''));
-          break;
-        default:
-          break;
-      }
-    }
+    setTableLoading(true); // Start loading
+    const { appliedFilters } = state;
+    const queryParams = {
+      statut: appliedFilters.statut,
+      store: appliedFilters.store,
+      ville: appliedFilters.ville,
+      dateFrom: appliedFilters.dateFrom,
+      dateTo: appliedFilters.dateTo,
+    };
+    dispatch(getColis(queryParams));
   };
 
   useEffect(() => {
     getDataColis();
     dispatch(getLivreurList());
-  }, [dispatch, user?.role, store?._id, user._id]);
+    dispatch(getStoreList()); // Ensure stores are fetched
+    dispatch(getAllVilles()); // Ensure villes are fetched
+  }, [dispatch, user?.role, user?.store, user?.id, state.appliedFilters]);
 
   // Update state when colisData changes
   useEffect(() => {
     setState(prevState => ({
       ...prevState,
-      data: Array.isArray(colisData) ? colisData : [],
-      filteredData: Array.isArray(colisData) ? colisData : [],
+      data: Array.isArray(colisData.colis) ? colisData.colis : [],
+      filteredData: Array.isArray(colisData.colis) ? colisData.colis : [],
+      total: colisData.total || 0,
     }));
+    setTableLoading(false); // End loading
   }, [colisData]);
 
-  // Filter data based on search term
+  // Handle Search Term
   useEffect(() => {
     const { searchTerm, data } = state;
-    const filteredData = data.filter(item =>
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
+
+    setTableLoading(true); // Start loading
+
+    let filteredData = data;
+
+    // Apply search term
+    if (searchTerm) {
+      filteredData = filteredData.filter(item =>
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
     setState(prevState => ({ ...prevState, filteredData }));
+    setTableLoading(false); // End loading
   }, [state.searchTerm, state.data]);
 
   const handleSearch = (e) => {
-    setState(prevState => ({ ...prevState, searchTerm: e.target.value }));
+    debouncedSearch(e.target.value);
+  };
+
+  // Handle Filters Change
+  const handleFilterChange = (value, key) => {
+    setState(prevState => ({
+      ...prevState,
+      filters: {
+        ...prevState.filters,
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleDateRangeChange = (dates) => {
+    setState(prevState => ({
+      ...prevState,
+      filters: {
+        ...prevState.filters,
+        dateRange: dates,
+      },
+    }));
+  };
+
+  // Handle Apply Filters
+  const handleApplyFilters = () => {
+    const { store, ville, statut, dateRange } = state.filters;
+    setState(prevState => ({
+      ...prevState,
+      appliedFilters: {
+        store: store || '',
+        ville: ville || '',
+        statut: statut || '',
+        dateFrom: dateRange[0] ? moment(dateRange[0]).startOf('day').toISOString() : '',
+        dateTo: dateRange[1] ? moment(dateRange[1]).endOf('day').toISOString() : '',
+      },
+    }));
+  };
+
+  // Handle Reset Filters
+  const handleResetFilters = () => {
+    setState(prevState => ({
+      ...prevState,
+      filters: {
+        store: '',
+        ville: '',
+        statut: '',
+        dateRange: [],
+      },
+      appliedFilters: {
+        store: '',
+        ville: '',
+        statut: '',
+        dateFrom: '',
+        dateTo: '',
+      },
+      searchTerm: '',
+    }));
   };
 
   // Handle row selection
@@ -315,7 +412,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
       const newData = state.data.map(item => {
         if (item._id === state.selectedColis._id) {
-          return { ...item, statut: status, comment, deliveryTime };
+          return { ...item, statut: status, commentaire: comment, deliveryTime };
         }
         return item;
       });
@@ -367,16 +464,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       setLoadingAssign(false);
       toast.success(response.data.message);
       handleCancelAssignLivreur();
-      // Update the local data to remove the assigned colis
-      const newData = state.data.filter(item => !state.selectedRowKeys.includes(item.code_suivi));
-      setState(prevState => ({
-        ...prevState,
-        data: newData,
-        filteredData: newData,
-        selectedRowKeys: [],
-        assignModalVisible: false,
-        selectedLivreur: null,
-      }));
+      // Refresh data after assignment
+      getDataColis();
     } catch (err) {
       setLoadingAssign(false);
       toast.error("Erreur lors de l'assignation du livreur.");
@@ -420,7 +509,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      ...search('code_suivi'),
       width: 200,
       render: (text, record) => (
         <>
@@ -478,7 +566,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       ),
     },
     {
-      title: 'Bussiness',
+      title: 'Business',
       dataIndex: 'store',
       key: 'store',
       render : (text , record) => (
@@ -504,7 +592,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
-      ...search('statut'),
       render: (status, record) => {
         return user?.role === 'admin' ? (
           <Tag
@@ -580,7 +667,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Nature de Produit',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
-      ...search('nature_produit'),
       render: (text) => text || 'N/A',
     },
     {
@@ -656,14 +742,14 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             <>
               <Tooltip title="Copie de colis">
               <Popconfirm
-                title="Êtes-vous sûr de vouloir copie ce colis?"
+                title="Êtes-vous sûr de vouloir copier ce colis?"
                 description={`Code Suivi: ${record.code_suivi}`}
                 okText="Oui"
                 okType="warning"
                 cancelText="Non"
                 onConfirm={() => {
                   dispatch(copieColis(record._id));
-                  message.success(`Colis avec le code ${record.code_suivi} a été cloner avec succès.`);
+                  message.success(`Colis avec le code ${record.code_suivi} a été cloné avec succès.`);
                 }}
                 onCancel={() => {
                   // Optional: Handle cancellation if needed
@@ -767,7 +853,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     }
 
     const reclamationData = {
-      clientId: store._id,
+      clientId: user.store, // Assuming user.store holds the store ID
       colisId: selectedColis._id,
       subject,
       description: message,
@@ -850,14 +936,136 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   return (
     <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`} style={{width:"100%", overflowX: 'auto'}}>
       {contextHolder}
-      {/* Spinner for Global Loading */}
-      {loading && (
+      {/* Spinner for Table Loading */}
+      {tableLoading && (
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
         </div>
       )}
+      
+      {/* Filter Bar */}
+      <div className="filter_bar" style={{ margin: '16px 0px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {/* Store Selection */}
+        {user.role === 'admin' && (
+          <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+            <label htmlFor="store">
+              Magasin
+            </label>
+            <Select
+              showSearch
+              placeholder="Sélectionner un magasin"
+              value={state.filters.store || undefined}
+              onChange={(value) => handleFilterChange(value, 'store')}
+              className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+              style={{ width: '100%' }}
+              optionFilterProp="label" // Use 'label' for filtering
+              filterOption={(input, option) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+              }
+              allowClear
+            >
+              {stores.map((store) => (
+                <Option key={store._id} value={store._id} label={store.storeName}>
+                  <Avatar src={store.image?.url} style={{ marginRight: '8px' }} />
+                  {store.storeName}
+                </Option>
+              ))}
+            </Select>
+          </div>
+        )}
+
+        {/* Ville Selection */}
+        <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+          <label htmlFor="ville">
+            Ville
+          </label>
+          <Select
+            showSearch
+            placeholder="Rechercher une ville"
+            value={state.filters.ville || undefined}
+            onChange={(value) => handleFilterChange(value, 'ville')}
+            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+            style={{ width: '100%' }}
+            optionFilterProp="label"
+            filterOption={(input, option) =>
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+            allowClear
+          >
+            {villes.map((ville) => (
+              <Option key={ville._id} value={ville._id} label={ville.nom}>
+                {ville.nom}
+              </Option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Statut Selection */}
+        <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+          <label htmlFor="statut">
+            Statut
+          </label>
+          <Select
+            showSearch
+            placeholder="Sélectionner un statut"
+            value={state.filters.statut || undefined}
+            onChange={(value) => handleFilterChange(value, 'statut')}
+            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+            style={{ width: '100%' }}
+            optionFilterProp="label"
+            filterOption={(input, option) =>
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+            allowClear
+          >
+            {allowedStatuses.map((status, index) => (
+              <Option key={index} value={status} label={status}>
+                {status}
+              </Option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Date Range Picker */}
+        <div className="colis-form-input" style={{ flex: '1 1 300px' }}>
+          <label htmlFor="dateRange">
+            Date de Création
+          </label>
+          <RangePicker
+            value={state.filters.dateRange}
+            onChange={handleDateRangeChange}
+            style={{ width: '100%' }}
+            format="DD/MM/YYYY"
+            allowClear
+          />
+        </div>
+
+        {/* Apply Filters Button */}
+        <div className="colis-form-input" style={{ flex: '1 1 150px', alignSelf: 'end' }}>
+          <Button 
+            type="primary" 
+            onClick={handleApplyFilters} 
+            style={{ width: '100%' }}
+            icon={<FaSearch />}
+          >
+            Filter
+          </Button>
+        </div>
+        
+        {/* Reset Filters Button */}
+        <div className="colis-form-input" style={{ flex: '1 1 100px', alignSelf: 'end' }}>
+          <Button 
+            type="default" 
+            onClick={handleResetFilters} 
+            style={{ width: '100%' }}
+          >
+            Réinitialiser
+          </Button>
+        </div>
+      </div>
+
       {/* Action Bar */}
-      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <Button 
           icon={<IoMdRefresh />} 
           type="primary" 
@@ -886,7 +1094,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       {/* Search Input */}
       <Input
         placeholder="Recherche ..."
-        value={state.searchTerm}
         onChange={handleSearch}
         style={{ marginBottom: '16px', width: "300px" }}
         size='large'
@@ -896,15 +1103,15 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       {/* Main Table with Loading */}
       <TableDashboard
         column={columns}
-        data={state.filteredData}
+        data={state.filteredData} // Pass the filtered data
         id="_id"
         theme={theme}
         rowSelection={{
           selectedRowKeys: state.selectedRowKeys,
           onChange: handleRowSelection,
         }}
-        loading={loading} // Pass loading prop to TableDashboard
-        scroll={{ x: 'max-content' }} // Added horizontal scroll for large number of columns
+        loading={tableLoading} // Use the custom loading state
+        scroll={{ x: 'max-content' }} // Enable horizontal scroll if needed
       />
 
       {/* Info Modal */}
@@ -1139,7 +1346,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
               rules={[{ required: true, message: 'Veuillez sélectionner un temps de livraison!' }]}
             >
               <Select placeholder="Sélectionner un temps de livraison">
-                <Option value="1 jours">Demain</Option>
+                <Option value="1 jour">Demain</Option>
                 <Option value="2 jours">Dans 2 jours</Option>
                 <Option value="3 jours">Dans 3 jours</Option>
                 <Option value="4 jours">Dans 4 jours</Option>

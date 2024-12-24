@@ -84,28 +84,45 @@ export function createMultipleColis(colisList) {
   };
 }
 
-// Fetch post
-export function getColis(statut) {
-    return async (dispatch) => {
-        try {
-            const token = localStorage.getItem('token');
-            if(!token){
-                toast.error('Authentification token is missing')
-            }
-            const config = {
-                headers: {
-                    'authorization': `Bearer ${token}`, // Correct capitalization of Bearer
-                    'Content-Type': 'application/json',
-                }
-            };
-            const { data } = await request.get(`/api/colis?statut=${statut}`, config);
-            dispatch(colisActions.setColis(data)); // Use action creator
-        } catch (error) {
-            console.error("Failed to fetch colis:", error);
-            dispatch(colisActions.setError(error.message));
-        }
-    };
+
+
+export function getColis(filters = {}) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token is missing');
+        return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Correct capitalization of Bearer
+          'Content-Type': 'application/json',
+        },
+        params: {
+          statut: filters.statut || '',
+          store: filters.store || '',
+          ville: filters.ville || '',
+          dateFrom: filters.dateFrom || '',
+          dateTo: filters.dateTo || '',
+        },
+      };
+
+      dispatch(colisActions.setLoading()); // Set loading state
+
+      const { data } = await request.get(`/api/colis`, config);
+      console.log(data.colis);
+      
+      dispatch(colisActions.setColis(data)); // Use action creator
+    } catch (error) {
+      console.error("Failed to fetch colis:", error);
+      dispatch(colisActions.setError(error.message));
+      toast.error("Failed to load colis.");
+    }
+  };
 }
+
 // Fetch post
 export function getColisAmeex() {
     return async (dispatch) => {

@@ -377,26 +377,27 @@ function Menubar() {
         }
 
         {
-          userData.role === "client" || userData.role==="livreur" && (
+          userData.role === "client"&& (
             <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
-              {
-                (userData.role === "client" ) && (
-                  <Menu.Item icon={<BiTagAlt />}>
-                    <Link to="/dashboard/facture/client">Facture ( client )</Link>
-                  </Menu.Item>
-                )
-              }
-                  <Menu.Item icon={<BiTagAlt />}>
-                    <Link to="/dashboard/facture/retour">Bon Retour</Link>
-                  </Menu.Item>
-              
-              {
-                (userData.role === "livreur") && (
-                  <Menu.Item icon={<BiTagAlt />}>
-                    <Link to="/dashboard/facture/livreur">Facture ( Livreur )</Link>
-                  </Menu.Item>
-                )
-              }
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/client">Facture ( client )</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/retour">Bon Retour</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
+        {
+          userData.role === "livreur"&& (
+            <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/retour">Bon Retour</Link>
+              </Menu.Item>
+              <Menu.Item icon={<BiTagAlt />}>
+                <Link to="/dashboard/facture/livreur">Facture ( Livreur )</Link>
+              </Menu.Item>
             </Menu.SubMenu>
           )
         }
