@@ -280,3 +280,87 @@ module.exports.registerTeam = asyncHandler(async (req, res) => {
         role: team.role,
     });
 });
+
+
+module.exports.resetUserPasswordCtrl = asyncHandler(async (req, res) => {
+    const {userId, newPassword } = req.body;
+    const { role } = req.params; // Récupérer le rôle depuis les paramètres
+
+
+    // Vérifier si l'utilisateur authentifié est un admin
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ message: "Accès interdit, seul un administrateur peut réinitialiser les mots de passe" });
+    }
+
+    let user;
+
+    // Identifier l'utilisateur en fonction de son rôle
+    if (role === "staf") {
+        user = await Admin.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé pour le rôle 'staf'" });
+        }
+    } else if (role === "client") {
+        user = await Client.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé pour le rôle 'client'" });
+        }
+    } else if (role === "livreur") {
+        user = await Livreur.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé pour le rôle 'livreur'" });
+        }
+    } else {
+        return res.status(400).json({ message: "Rôle invalide" });
+    }
+
+    // Hacher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Mettre à jour le mot de passe de l'utilisateur
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+        message: `Le mot de passe de l'utilisateur a été réinitialisé avec succès`,
+        email: user.email,
+    });
+});
+
+module.exports.resetOwnPasswordCtrl = asyncHandler(async (req, res) => {
+    const {newPassword } = req.body; // Récupérer l'ancien et le nouveau mot de passe depuis le corps de la requête
+    const { id, role } = req.user; // Extraire l'ID et le rôle depuis le token
+    let user;
+
+    // Identifier l'utilisateur en fonction de son rôle
+    if (role === "staf") {
+        user = await Admin.findById(id);
+    } else if (role === "client") {
+        user = await Client.findById(id);
+    } else if (role === "livreur") {
+        user = await Livreur.findById(id);
+    } else {
+        return res.status(400).json({ message: "Rôle invalide" });
+    }
+
+    if (!user) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    // Hacher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Mettre à jour le mot de passe
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+        message: "Votre mot de passe a été mis à jour avec succès",
+    });
+});
+
+
+

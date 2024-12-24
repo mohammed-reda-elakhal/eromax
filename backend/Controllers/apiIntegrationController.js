@@ -302,6 +302,128 @@ module.exports.deleteColisController = asyncHandler(async (req, res) => {
   }
 });
 
+module.exports.updateMultipleColisStatus = asyncHandler(async (req, res) => {
+  const { colisCodes, new_status, comment } = req.body;
+
+  // Liste des statuts valides
+  const validStatuses = [
+    "Nouveau Colis",
+    "attente de ramassage",
+    "Ramassée",
+    "Expediée",
+    "Reçu",
+    "Mise en Distribution",
+    "Livrée",
+    "Annulée",
+    "Programmée",
+    "Refusée",
+    "En Retour",
+    "Remplacée",
+    "Fermée",
+    "Boite vocale",
+    "Pas de reponse jour 1",
+    "Pas de reponse jour 2",
+    "Pas de reponse jour 3",
+    "Pas reponse + sms / + whatsap",
+    "En voyage",
+    "Injoignable",
+    "Hors-zone",
+    "Intéressé",
+    "Numéro Incorrect",
+    "Reporté",
+    "Confirmé Par Livreur",
+    "Endomagé",
+  ];
+
+  // Validation des entrées
+  if (!colisCodes || !Array.isArray(colisCodes) || colisCodes.length === 0) {
+    return res.status(400).json({ message: "colisCodes must be a non-empty array" });
+  }
+  if (!new_status) {
+    return res.status(400).json({ message: "new_status is required" });
+  }
+  if (!validStatuses.includes(new_status)) {
+    return res.status(400).json({ message: "Invalid status value" });
+  }
+
+  const updatedColisList = [];
+  const trackingUpdates = [];
+  const failedUpdates = [];
+
+  for (const codeSuivi of colisCodes) {
+    try {
+      const colis = await Colis.findOne({ code_suivi: codeSuivi }).populate('store');
+      if (!colis) {
+        console.log(`Colis with code_suivi ${codeSuivi} not found`);
+        failedUpdates.push({ codeSuivi, error: "Colis not found" });
+        continue;
+      }
+
+      if (new_status === "Annulée" && comment) {
+        colis.comment_annule = comment;
+      } else if (new_status === "Refusée" && comment) {
+        colis.comment_refuse = comment;
+      }
+
+      colis.statut = new_status;
+      await colis.save();
+      updatedColisList.push({
+        code_suivi: colis.code_suivi,
+        nom: colis.nom,
+        tele: colis.tele,
+        adresse: colis.adresse,
+        statut: colis.statut,
+        storeName: colis.store?.storeName,
+        livreur: colis.livreur ? {
+          nom: colis.livreur.nom,
+          prenom: colis.livreur.prenom,
+          tele: colis.livreur.tele,
+          email: colis.livreur.email
+        } : null,
+      });
+
+      /* if (new_status === "Ramassée") {
+        await handleFactureRamasser(colis.store, colis._id);
+      } */
+
+      let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+      if (!suivi_colis) {
+        suivi_colis = new Suivi_Colis({
+          id_colis: colis._id,
+          code_suivi: colis.code_suivi,
+          status_updates: [{ status: new_status, date: new Date() }]
+        });
+      } else {
+        suivi_colis.status_updates.push({ status: new_status, date: new Date() });
+      }
+
+      await suivi_colis.save();
+      trackingUpdates.push({
+        code_suivi: suivi_colis.code_suivi,
+        status_updates: suivi_colis.status_updates.map(update => ({
+          status: update.status,
+          date: update.date
+        })),
+      });
+    } catch (err) {
+      console.error(`Error updating colis with code_suivi ${codeSuivi}:`, err);
+      failedUpdates.push({ codeSuivi, error: err.message });
+    }
+  }
+
+  if (updatedColisList.length === 0) {
+    return res.status(404).json({ message: "No colis found or updated", failedUpdates });
+  }
+
+  // Réponse filtrée sans données sensibles
+  res.status(200).json({
+    message: "Colis status updated successfully",
+    updatedColisList,
+    trackingUpdates,
+    failedUpdates
+  });
+});
+
 
 
 
