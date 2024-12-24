@@ -24,7 +24,7 @@ router.get("/selectStore",selectStoreCtrl);
 router.post("/login",loginProfileCtrl);
 
 router.put('/reset-password', verifyToken, resetOwnPasswordCtrl);
-router.put('/:role/reset-password/', verifyTokenAndAdmin, resetUserPasswordCtrl);
+router.put('/:role/reset-password', verifyTokenAndAdmin, resetUserPasswordCtrl);
 
 
 

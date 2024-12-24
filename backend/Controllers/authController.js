@@ -281,41 +281,6 @@ module.exports.registerTeam = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports.getPasswordCtrl = asyncHandler(async (req, res) => {
-    const { id, role } = req.user; // Récupérer l'ID et le rôle depuis le token
-    let user;
-
-    // Récupérer l'utilisateur en fonction du rôle
-    if (role === "staf") {
-        user = await Admin.findById(id);
-
-        if (!user) {
-            return res.status(404).json({ message: "Utilisateur non trouvé pour le rôle 'staf'" });
-        }
-    } else if (role === "client") {
-        user = await Client.findById(id);
-
-        if (!user) {
-            return res.status(404).json({ message: "Utilisateur non trouvé pour le rôle 'client'" });
-        }
-    } else if (role === "livreur") {
-        user = await Livreur.findById(id);
-
-        if (!user) {
-            return res.status(404).json({ message: "Utilisateur non trouvé pour le rôle 'livreur'" });
-        }
-    } else {
-        return res.status(400).json({ message: "Rôle invalide" });
-    }
-
-    // Retourner le mot de passe en clair
-    res.status(200).json({
-        message: "Voici votre mot de passe en clair",
-        email: user.email,
-        password: user.password, // Attention : nécessite que les mots de passe soient stockés en clair
-    });
-});
-
 
 module.exports.resetUserPasswordCtrl = asyncHandler(async (req, res) => {
     const {userId, newPassword } = req.body;
