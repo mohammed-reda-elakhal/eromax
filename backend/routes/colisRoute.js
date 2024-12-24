@@ -23,6 +23,9 @@ router.route('/user/:id_user')
 router.route('/admin/:storeId')
         .post(verifyTokenAndAdmin , colisController.CreateColisAdmin)
 
+router.route('/copie/:id_colis')
+        .post( colisController.CloneColisCtrl)
+
 
 // Router api/colis/:id
 router.route('/:id')

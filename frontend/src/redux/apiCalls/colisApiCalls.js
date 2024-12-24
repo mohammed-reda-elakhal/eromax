@@ -257,7 +257,20 @@ export function deleteColis(id) {
   return async (dispatch) => {
     try {
       const { data } = await request.delete(`/api/colis/${id}` );
-      toast.success('Colis delete avec successfully');
+      toast.success(data.message);
+    } catch (error) {
+      console.error("Failed to update colis:", error);
+      dispatch(colisActions.setError(error.message));
+      toast.error('Failed to update colis');
+    }
+  };
+}
+// cloner colis 
+export function copieColis(id) {
+  return async (dispatch) => {
+    try {
+      const { data } = await request.post(`/api/colis/copie/${id}` );
+      toast.success(data.message);
     } catch (error) {
       console.error("Failed to update colis:", error);
       dispatch(colisActions.setError(error.message));

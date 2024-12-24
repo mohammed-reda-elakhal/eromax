@@ -281,6 +281,110 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
 });
 
 
+/**
+ * -------------------------------------------------------------------
+ * @desc     Clone an existing colis by duplicating its data into a new colis
+ * @route    /api/colis/clone/:id_colis
+ * @method   POST
+ * @access   Private (only authenticated users)
+ * -------------------------------------------------------------------
+ **/
+module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
+  const { id_colis } = req.params;
+
+
+
+  // Fetch the existing colis
+  const existingColis = await Colis.findById(id_colis).populate('ville').populate('livreur').populate('store').populate('team');
+
+  if (!existingColis) {
+    return res.status(404).json({ message: "Colis non trouvé." });
+  }
+
+  // Generate a unique code_suivi for the new colis
+  let code_suivi;
+  let isUnique = false;
+  while (!isUnique) {
+    code_suivi = generateCodeSuivi(existingColis.ville.ref); // Adjust the generateCodeSuivi function as needed
+    const existing = await Colis.findOne({ code_suivi });
+    if (!existing) {
+      isUnique = true;
+    }
+  }
+
+  // Prepare new Colis data based on the existing one
+  const colisData = {
+    nom: existingColis.nom,
+    tele: existingColis.tele,
+    ville: existingColis.ville,
+    adresse: existingColis.adresse,
+    commentaire: existingColis.commentaire,
+    prix: existingColis.prix,
+    nature_produit: existingColis.nature_produit,
+    ouvrir: existingColis.ouvrir, // Reset to default or as needed
+    is_remplace: existingColis.is_remplace, // Reset
+    is_fragile: existingColis.is_fragile, // Retain or reset based on requirements
+    store: existingColis.store, // Assign to the current user's store
+    team: null, // Assign to the current user's team (adjust as needed)
+    code_suivi: code_suivi,
+    livreur: null, // Exclude the livreur data
+    // Optionally, add other fields as necessary
+  };
+
+  // **Optional:** If you want to link the new colis to the original one
+  // colisData.originalColis = existingColis._id;
+
+  // Create and save the new Colis
+  const newColis = new Colis(colisData);
+  const savedColis = await newColis.save();
+
+  // Populate store, team, and ville data
+  await savedColis.populate('store');
+  await savedColis.populate('team');
+  await savedColis.populate('ville');
+
+  // Create a notification for the user when a new colis is added
+  if (savedColis.store) {
+    try {
+      const notification = new Notification_User({
+        id_store: savedColis.store._id,
+        colisId: savedColis._id,
+        title: 'Nouvelle colis',
+        description: `Un nouveau colis avec le code de suivi ${savedColis.code_suivi} est en attente de Ramassage.`,
+      });
+      await notification.save();  // Save the notification
+    } catch (error) {
+      console.error('Erreur lors de la création de la notification:', error);
+      // Continue without failing the request
+    }
+  }
+
+  // Create and save the new Suivi_Colis for the new colis
+  const suivi_colis = new Suivi_Colis({
+    id_colis: savedColis._id,
+    code_suivi: savedColis.code_suivi,
+    date_create: savedColis.createdAt,
+    status_updates: [
+      { status: "Attente de Ramassage", date: new Date() }  // Initial status
+    ]
+  });
+
+  const save_suivi = await suivi_colis.save();
+
+  // **Optional:** Mark the existing colis as cloned or perform other operations
+  // existingColis.is_cloned = true; // Ensure your model has this field
+  // await existingColis.save();
+
+  // Respond with both the new Colis and Suivi_Colis
+  res.status(201).json({
+    message: 'Colis cloné et créé avec succès.',
+    colis: savedColis,
+    suiviColis: save_suivi,
+  });
+});
+
+
+
 
 
 // controllers/colisController.js
@@ -597,6 +701,64 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json(colis);
+});
+/**
+ * -------------------------------------------------------------------
+ * @desc     get colis by code suivi
+ * @route    /api/colis/statu
+ * @method   GET
+ * @access   private (only logger in user )
+ * -------------------------------------------------------------------
+**/
+exports.ChangeLivreurCtrl  = asyncHandler(async (req, res) => {
+
+  const { id } = req.params; // Colis ID from route parameters
+  const { newLivreurId } = req.body; // New Livreur ID from request body
+
+  // 4. Check if the new Livreur exists
+  const newLivreur = await Livreur.findById(newLivreurId);
+  if (!newLivreur) {
+    return res.status(404).json({ message: "New Livreur not found." });
+  }
+
+  // 5. Find the Colis by ID
+  const colis = await Colis.findById(id).populate("livreur").populate("store");
+  if (!colis) {
+    return res.status(404).json({ message: "Colis not found." });
+  }
+
+  // 6. Update the Colis: Remove existing Livreur and expedation_type, then set new Livreur and expedation_type
+  colis.livreur = newLivreurId;
+  colis.expedation_type = "eromax";
+  colis.statut = "Expediée";
+
+  // 7. Save the updated Colis
+  await colis.save();
+
+  // 9. Create a notification for the store about the Livreur change
+  if (colis.store) {
+    try {
+      const notification = new Notification_User({
+        id_store: colis.store,
+        colisId: colis._id,
+        title: "Livreur changé",
+        description: `Le livreur du colis avec le code de suivi ${colis.code_suivi} a été changé pour ${newLivreur.nom}.`,
+      });
+      await notification.save();
+    } catch (error) {
+      console.error("Failed to create notification:", error);
+      // Continue without failing the request
+    }
+  }
+
+  // 10. Populate the updated Livreur field for the response
+  await colis.populate("livreur");
+
+  // 11. Respond with the updated Colis
+  res.status(200).json({
+    message: "Livreur du colis mis à jour avec succès.",
+    colis,
+  });
 });
 /**
  * -------------------------------------------------------------------
@@ -1118,76 +1280,126 @@ module.exports.affecterLivreur = async (req, res) => {
 };
 
 
+
 module.exports.affecterLivreurMultipleByCodeSuivi = asyncHandler(async (req, res) => {
-  const { codesSuivi, livreurId } = req.body;  // Assuming you pass an array of codesSuivi and a single livreurId
+  const { codesSuivi, livreurId } = req.body; // Expecting an array of codesSuivi and a single livreurId
 
   try {
-    // Find the livreur
-    const livreur = await Livreur.findById(livreurId);
-    if (!livreur) {
-      return res.status(404).json({ message: "Livreur not found" });
+    // Validate input
+    if (!Array.isArray(codesSuivi) || codesSuivi.length === 0) {
+      return res.status(400).json({ message: "codesSuivi must be a non-empty array" });
+    }
+
+    if (!livreurId) {
+      return res.status(400).json({ message: "livreurId is required" });
+    }
+
+    // Find the new livreur
+    const newLivreur = await Livreur.findById(livreurId);
+    if (!newLivreur) {
+      return res.status(404).json({ message: "New Livreur not found" });
     }
 
     const results = [];
 
-    // Iterate over each code_suivi to assign it to the livreur
+    // Iterate over each code_suivi to assign or reassign it to the new livreur
     for (const codeSuivi of codesSuivi) {
-      // Récupérer le colis par son code_suivi
-      const colis = await Colis.findOne({ code_suivi: codeSuivi });
-      if (!colis) {
-        results.push({ codeSuivi, message: "Colis not found" });
-        continue;  // Skip to the next codeSuivi
-      }
-
-      // Vérifier si le statut est 'Ramassée'
-      if (colis.statut !== "Ramassée") {
-        results.push({ codeSuivi, message: "Colis is not in the 'Ramassé' status" });
-        continue;  // Skip to the next codeSuivi
-      }
-
-      // Affecter le livreur et mettre à jour le statut du colis
-      colis.livreur = livreurId;
-      colis.statut = 'Expediée';  // Update the status to 'Expediée'
-      await colis.save();  // Save the updated colis
-
-      // Récupérer le suivi de colis, ou en créer un nouveau s'il n'existe pas
-      let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
-      if (!suivi_colis) {
-        suivi_colis = new Suivi_Colis({
-          id_colis: colis._id,
-          code_suivi: colis.code_suivi,
-          status_updates: [
-            { status: 'Expediée', date: new Date(), livreur: livreurId }
-          ]
-        });
-      } else {
-        // Ajouter une nouvelle mise à jour du statut avec le livreur affecté
-        suivi_colis.status_updates.push({ status: 'Expediée', date: new Date(), livreur: livreurId });
-      }
-      await suivi_colis.save();  // Save the updated suivi_colis
-
-      // Créer une notification pour le livreur
-      const notification = new NotificationUser({
-        id_livreur: livreurId,
-        colisId: colis._id,
-        title: 'Nouveau Colis',
-        description: `Bonjour, un nouveau colis a été affecté pour vous.`,
-      });
-      await notification.save();  // Save the notification
-
-      // Add result to response data
-      results.push({
-        codeSuivi,
-        message: "Livreur assigned successfully",
-        livreur: {
-          nom: livreur.nom,
-          tele: livreur.tele
-        },
-        colis: {
-          code_suivi: colis.code_suivi,
-          statut: colis.statut
+      try {
+        // Retrieve the colis by its code_suivi
+        const colis = await Colis.findOne({ code_suivi: codeSuivi });
+        if (!colis) {
+          results.push({ codeSuivi, message: "Colis not found" });
+          continue; // Skip to the next codeSuivi
         }
-      });
+        const oldLivreurId = colis.livreur;
+        let isReassigned = false;
+
+        if (oldLivreurId && oldLivreurId.toString() !== livreurId) {
+          // Reassign to the new livreur
+          const oldLivreur = await Livreur.findById(oldLivreurId);
+          colis.livreur = livreurId;
+          isReassigned = true;
+
+          // **New Code: Clear `code_suivi_ameex` and set `expedition_type` to 'eromax'**
+          colis.code_suivi_ameex = undefined; // Alternatively, you can set it to null: colis.code_suivi_ameex = null;
+          colis.expedition_type = 'eromax';
+
+          // Optionally, notify the old livreur about the reassignment
+          if (oldLivreur) {
+            const oldNotification = new NotificationUser({
+              id_livreur: oldLivreurId,
+              colisId: colis._id,
+              title: 'Colis Réassigné',
+              description: `Le colis avec le code de suivi ${colis.code_suivi} a été réassigné à un autre livreur.`,
+            });
+            await oldNotification.save();
+          }
+        } else if (!oldLivreurId) {
+          // Assign to the new livreur
+          colis.livreur = livreurId;
+        } else {
+          // Colis is already assigned to the same livreur
+          results.push({
+            codeSuivi,
+            message: "Colis is already assigned to this Livreur",
+            livreur: {
+              nom: newLivreur.nom,
+              tele: newLivreur.tele
+            },
+            colis: {
+              code_suivi: colis.code_suivi,
+              statut: colis.statut
+            }
+          });
+          continue; // Skip to the next codeSuivi
+        }
+
+        // Update the status to 'Expediée'
+        colis.statut = 'Expediée';
+        await colis.save(); // Save the updated colis
+
+        // Retrieve or create the suivi_colis
+        let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
+        if (!suivi_colis) {
+          suivi_colis = new Suivi_Colis({
+            id_colis: colis._id,
+            code_suivi: colis.code_suivi,
+            status_updates: [
+              { status: 'Expediée', date: new Date(), livreur: livreurId }
+            ]
+          });
+        } else {
+          // Add a new status update with the new livreur
+          suivi_colis.status_updates.push({ status: 'Expediée', date: new Date(), livreur: livreurId });
+        }
+        await suivi_colis.save(); // Save the updated suivi_colis
+
+        // Create a notification for the new livreur
+        const notification = new NotificationUser({
+          id_livreur: livreurId,
+          colisId: colis._id,
+          title: 'Nouveau Colis',
+          description: `Bonjour, un nouveau colis a été affecté pour vous. Code de suivi: ${colis.code_suivi}`,
+        });
+        await notification.save(); // Save the notification
+
+        // Add result to response data
+        results.push({
+          codeSuivi,
+          message: isReassigned ? "Livreur reassigned successfully" : "Livreur assigned successfully",
+          livreur: {
+            nom: newLivreur.nom,
+            tele: newLivreur.tele
+          },
+          colis: {
+            code_suivi: colis.code_suivi,
+            statut: colis.statut
+          }
+        });
+      } catch (innerError) {
+        console.error(`Error processing codeSuivi ${codeSuivi}:`, innerError);
+        results.push({ codeSuivi, message: "Error processing this colis", error: innerError.message });
+      }
     }
 
     // Send the response after processing all code_suivi
