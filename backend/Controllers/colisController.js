@@ -546,28 +546,92 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
 });
 
 
+
+
 /**
  * -------------------------------------------------------------------
- * @desc     Get all colis, optionally filter by statut, and populate specific data of replacedColis
+ * @desc     Get all colis, filter based on user role and optional store, ville, statut, and date
  * @route    /api/colis/
  * @method   GET
  * @access   Private (only logged-in users)
  * -------------------------------------------------------------------
-**/
+ **/
 module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
   try {
-    const { statut } = req.query; // Extract 'statut' from the query params
+    const { statut, store, ville, dateFrom, dateTo } = req.query; // Extract query params
+    const user = req.user; // Extract user information from request (set by verifyToken middleware)
+
     let filter = {};
 
-    // Add 'statut' to the filter if it's provided
-    if (statut) {
-      filter.statut = statut;
-    }
-    if(statut == "attente de ramassage" || statut == "Ramassée" ){
-      filter.expedation_type = "eromax"
+    // Role-based filtering
+    switch (user.role) {
+      case 'admin':
+        // Admin can see all colis; additional store filter if provided
+        if (store) {
+          filter.store = store;
+        }
+        break;
+
+      case 'livreur':
+        // Livreur can see only colis assigned to them
+        filter.livreur = user.id;
+        break;
+
+      case 'client':
+        // Client can see only colis associated with their store
+        if (user.store) {
+          filter.store = user.store;
+        } else {
+          // If the client doesn't have a store associated, respond with an error
+          return res.status(400).json({ message: "Client does not have an associated store." });
+        }
+        break;
+
+      default:
+        // For any other roles, deny access
+        return res.status(403).json({ message: "Access denied: insufficient permissions." });
     }
 
-    // Find colis with optional filtering by 'statut'
+    // Optional statut filtering
+    if (statut) {
+      filter.statut = statut;
+
+      // Additional filtering based on statut
+      if (statut === "attente de ramassage" || statut === "Ramassée") {
+        filter.expedation_type = "eromax";
+      }
+    }
+
+    // Optional ville filtering
+    if (ville) {
+      filter.ville = ville;
+    }
+
+    // Optional date range filtering based on createdAt
+    if (dateFrom || dateTo) {
+      filter.createdAt = {}; // Assuming you want to filter based on creation date
+
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        if (!isNaN(fromDate)) {
+          filter.createdAt.$gte = fromDate;
+        }
+      }
+
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        if (!isNaN(toDate)) {
+          filter.createdAt.$lte = toDate;
+        }
+      }
+
+      // Remove createdAt filter if invalid dates are provided
+      if (Object.keys(filter.createdAt).length === 0) {
+        delete filter.createdAt;
+      }
+    }
+
+    // Fetch colis based on the constructed filter
     const colis = await Colis.find(filter)
       .populate('team')        // Populate the team details
       .populate('livreur')     // Populate the livreur details
@@ -575,21 +639,26 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       .populate('ville')     
       .populate({
         path: 'replacedColis',
-        select: 'code_suivi prix statut', // Include the fields you want from replacedColis
+        select: 'code_suivi prix statut', // Include specific fields from replacedColis
         populate: {
           path: 'ville',
-          select: 'nom', // Include the ville name if needed
+          select: 'nom', // Include the ville name
         },
       })
-      .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
+      .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order
 
-    res.status(200).json(colis);
+    // Get total count for reference (optional since no pagination)
+    const total = await Colis.countDocuments(filter);
+
+    res.status(200).json({
+      total,
+      colis,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching colis:", error);
     res.status(500).json({ message: "Failed to fetch colis.", error: error.message });
   }
 });
-
 
 
 

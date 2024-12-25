@@ -20,7 +20,7 @@
     "html2pdf.js": "^0.10.2",
     "html5-qrcode": "^2.3.8",
     "https-browserify": "^1.0.0",
-    "i18next": "^23.16.0", 
+    "i18next": "^23.16.0",
     "jspdf": "^2.5.2",
     "jsqr": "^1.4.0",
     "moment": "^2.30.1",

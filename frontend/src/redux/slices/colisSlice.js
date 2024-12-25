@@ -33,15 +33,11 @@ const colisSlice = createSlice({
     },
   },
   reducers: {
-    setColis(state, action) {
-      if (Array.isArray(action.payload)) {
-        state.colis = action.payload;
-        state.error = null;
-      } else {
-        console.error("Invalid payload format:", action.payload);
-        state.error = "Invalid data format received from server.";
-      }
+    setColis: (state, action) => {
+      state.colis = action.payload.colis;
+      state.total = action.payload.total;
       state.loading = false;
+      state.error = null;
     },
     setSelectedColis(state, action) {
       state.selectedColis = action.payload;

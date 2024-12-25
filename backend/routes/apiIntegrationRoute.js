@@ -6,7 +6,8 @@ const {
   getColisInfoByCodeSuivi, 
   updateColisController, 
   deleteColisController, 
-  login
+  login,
+  updateMultipleColisStatus
 } = require('../Controllers/apiIntegrationController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
 
@@ -26,5 +27,7 @@ router
 
 // Route spécifique pour le suivi des colis
 router.get('/colis/track/:code_suivi', verifyToken, getSuiviColis);
+router.post('/statut/update',verifyToken,updateMultipleColisStatus);
+
 
 module.exports = router;

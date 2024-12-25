@@ -8,7 +8,7 @@ const { ajoutVille } = require("../Controllers/villeCtrl");
 
 //Router api/colis
 router.route('/')
-        .get( verifyTokenAndAdmin , colisController.getAllColisCtrl)
+        .get( verifyToken , colisController.getAllColisCtrl)
         .post(verifyToken , colisController.CreateMultipleColisCtrl)
 
 //Router api/colis/select/status
