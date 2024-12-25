@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
+  Tag,
   Modal, 
   Button, 
   Input, 
   Drawer, 
   Typography, 
-  Tag, 
+  Badge, 
   Descriptions, 
   Divider, 
   Tooltip, 
@@ -15,7 +16,6 @@ import {
   Select, 
   message, 
   Spin,
-  Badge,
   Col,
   Popconfirm,
   Card,
@@ -31,6 +31,17 @@ import {
   FaInfoCircle, 
   FaClone,
   FaSearch,
+  FaQuestionCircle,
+  FaSms,
+  FaPlane,
+  FaPhoneSlash,
+  FaMapMarkerAlt,
+  FaHeart,
+  FaExclamationCircle,
+  FaBrokenImage,
+  FaTruck,
+  FaClock,
+  FaCheck,
 } from 'react-icons/fa';
 import { 
   FiRefreshCcw 
@@ -49,7 +60,8 @@ import {
   CheckCircleOutlined, 
   ClockCircleOutlined, 
   CloseCircleOutlined, 
-  LoadingOutlined 
+  LoadingOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux';
@@ -76,6 +88,7 @@ import request from '../../../../utils/request';
 import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
 import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls';
 import { debounce } from 'lodash'; // Import debounce
+import shortid from 'shortid';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -118,44 +131,36 @@ const statusComments = {
   ],
 };
 
-// Function to determine the color of the status tag
-function getStatusTagColor(status) {
-  switch (status) {
-    case "Livrée":
-      return "green";
-    case "Annulée":
-      return "volcano";
-    case "Programmée":
-      return "geekblue";
-    case "Refusée":
-      return "red";
-    case "Boite vocale":
-      return "purple";
-    case "Pas de reponse jour 1":
-    case "Pas de reponse jour 2":
-    case "Pas de reponse jour 3":
-    case "Pas reponse + sms / + whatsap":
-      return "gold";
-    case "En voyage":
-      return "cyan";
-    case "Injoignable":
-      return "magenta";
-    case "Hors-zone":
-      return "red";
-    case "Intéressé":
-      return "blue";
-    case "Numéro Incorrect":
-      return "orange";
-    case "Reporté":
-      return "geekblue";
-    case "Confirmé Par Livreur":
-      return "blue";
-    case "Endomagé":
-      return "red";
-    default:
-      return "default";
-  }
-}
+// Define statusBadgeConfig mapping each statut to color and icon
+const statusBadgeConfig = {
+  "Ramassée": { color: 'blue', icon: <TbTruckDelivery /> },
+  "Mise en Distribution": { color: 'geekblue', icon: <FaTruck /> },
+  "Reçu": { color: 'cyan', icon: <CheckCircleOutlined /> },
+  "Livrée": { color: 'green', icon: <CheckCircleOutlined /> },
+  "Annulée": { color: 'volcano', icon: <CloseCircleOutlined /> },
+  "Programmée": { color: 'geekblue', icon: <ClockCircleOutlined /> },
+  "Refusée": { color: 'red', icon: <CloseCircleOutlined /> },
+  "Boite vocale": { color: 'purple', icon: <FaInfoCircle /> },
+  "Pas de reponse jour 1": { color: 'gold', icon: <FaQuestionCircle /> },
+  "Pas de reponse jour 2": { color: 'gold', icon: <FaQuestionCircle /> },
+  "Pas de reponse jour 3": { color: 'gold', icon: <FaQuestionCircle /> },
+  "Pas reponse + sms / + whatsap": { color: 'gold', icon: <FaSms /> },
+  "En voyage": { color: 'cyan', icon: <FaPlane /> },
+  "Injoignable": { color: 'magenta', icon: <FaPhoneSlash /> },
+  "Hors-zone": { color: 'red', icon: <FaMapMarkerAlt /> },
+  "Intéressé": { color: 'blue', icon: <FaHeart /> },
+  "Numéro Incorrect": { color: 'orange', icon: <FaHeart /> },
+  "Reporté": { color: 'geekblue', icon: <FaClock /> },
+  "Confirmé Par Livreur": { color: 'blue', icon: <FaCheck /> },
+  "Endomagé": { color: 'red', icon: <FaHeart /> },
+};
+
+// Function to generate code_facture
+const generateCodeFacture = (date) => {
+  const formattedDate = moment(date).format('YYYYMMDD');
+  const randomNumber = shortid.generate().slice(0, 6).toUpperCase(); // Shorten and uppercase for readability
+  return `FCTL${formattedDate}-${randomNumber}`;
+};
 
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
@@ -384,7 +389,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
-  // Handle opening the status modal when clicking on the status Tag
+  // Handle opening the status modal when clicking on the status Badge
   const handleStatusClick = (record) => {
     setState(prevState => ({
       ...prevState,
@@ -512,7 +517,9 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       render: (text, record) => (
         <>
           {record.replacedColis ? 
-            <Tag icon={<FiRefreshCcw />} color="default" style={{ marginRight: '5px' }} />
+            <Badge color="default" dot style={{ marginRight: '5px' }}>
+              <FiRefreshCcw />
+            </Badge>
             : ""
           }
           <Typography.Text
@@ -660,20 +667,29 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       dataIndex: 'statut',
       key: 'statut',
       render: (status, record) => {
+        const { color, icon } = statusBadgeConfig[status] || { color: 'default', icon: <InfoCircleOutlined /> };
+        const content = (
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            {icon}
+            <span style={{ marginLeft: 8 }}>{status}</span>
+          </span>
+        );
+
         return user?.role === 'admin' ? (
-          <Tag
-            color={getStatusTagColor(status)}
+          <Badge 
+            dot 
+            color={color} 
             style={{ cursor: 'pointer' }}
-            onClick={() => handleStatusClick(record)}
           >
-            {status}
-          </Tag>
+            <span onClick={() => handleStatusClick(record)}>{content}</span>
+          </Badge>
         ) : (
-          <Tag
-            color={getStatusTagColor(status)}
+          <Badge 
+            dot 
+            color={color}
           >
-            {status}
-          </Tag>
+            {content}
+          </Badge>
         );
       },
     },
@@ -694,7 +710,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       }
        },
    
-   
+    
     {
       title: 'Options',
       render: (text, record) => (
@@ -1197,14 +1213,21 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             </Descriptions.Item>
             <Descriptions.Item label="Statut">
               <Col xs={24} sm={12} md={8}>
-                <Badge status="processing" text={state.selectedColis.statut} />
+                <Badge dot color={statusBadgeConfig[state.selectedColis.statut]?.color || 'default'}>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    {statusBadgeConfig[state.selectedColis.statut]?.icon || <InfoCircleOutlined />}
+                    <span style={{ marginLeft: 8 }}>{state.selectedColis.statut}</span>
+                  </span>
+                </Badge>
               </Col>
             </Descriptions.Item>
+
             <Descriptions.Item label="Commentaire">
               <Col xs={24} sm={12} md={8}>
                 {state.selectedColis.commentaire || 'N/A'}
               </Col>
             </Descriptions.Item>
+
             <Descriptions.Item label="Date de Création">
               <Col xs={24} sm={12} md={8}>
                 {formatDate(state.selectedColis.createdAt)}
@@ -1219,38 +1242,52 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             <Descriptions.Item label="État">
               <Col xs={24} sm={12} md={8}>
                 {state.selectedColis.etat ? 
-                  <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+                  <Badge 
+                    dot 
+                    color="green" 
+                    style={{ marginRight: '8px' }}
+                  />
                   : 
-                  <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+                  <Badge 
+                    dot 
+                    color="red" 
+                    style={{ marginRight: '8px' }}
+                  />
                 }
+                <Text>{state.selectedColis.etat ? "Payée" : "Non Payée"}</Text>
               </Col>
             </Descriptions.Item>
 
             <Descriptions.Item label="Prés payant">
               <Col xs={24} sm={12} md={8}>
                 {state.selectedColis.pret_payant ? 
-                  <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag> 
+                  <Badge 
+                    dot 
+                    color="green" 
+                    style={{ marginRight: '8px' }}
+                  />
                   : 
-                  <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+                  <Badge 
+                    dot 
+                    color="red" 
+                    style={{ marginRight: '8px' }}
+                  />
                 }
+                <Text>{state.selectedColis.pret_payant ? "Payée" : "Non Payée"}</Text>
               </Col>
             </Descriptions.Item>
 
             <Descriptions.Item label="Autres Options">
               <Col xs={24} sm={12} md={8}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  <Tag color={state.selectedColis.ouvrir ? 'green' : 'red'}>
-                    Ouvrir: {state.selectedColis.ouvrir ? 'Oui' : 'Non'}
-                  </Tag>
-                  <Tag color={state.selectedColis.is_simple ? 'green' : 'red'}>
-                    Is Simple: {state.selectedColis.is_simple ? 'Oui' : 'Non'}
-                  </Tag>
-                  <Tag color={state.selectedColis.is_remplace ? 'green' : 'red'}>
-                    Is Remplace: {state.selectedColis.is_remplace ? 'Oui' : 'Non'}
-                  </Tag>
-                  <Tag color={state.selectedColis.is_fragile ? 'green' : 'red'}>
-                    Is Fragile: {state.selectedColis.is_fragile ? 'Oui' : 'Non'}
-                  </Tag>
+                  <Badge dot color={state.selectedColis.ouvrir ? 'green' : 'red'} />
+                  <Text>Ouvrir: {state.selectedColis.ouvrir ? 'Oui' : 'Non'}</Text>
+                  <Badge dot color={state.selectedColis.is_simple ? 'green' : 'red'} />
+                  <Text>Is Simple: {state.selectedColis.is_simple ? 'Oui' : 'Non'}</Text>
+                  <Badge dot color={state.selectedColis.is_remplace ? 'green' : 'red'} />
+                  <Text>Is Remplace: {state.selectedColis.is_remplace ? 'Oui' : 'Non'}</Text>
+                  <Badge dot color={state.selectedColis.is_fragile ? 'green' : 'red'} />
+                  <Text>Is Fragile: {state.selectedColis.is_fragile ? 'Oui' : 'Non'}</Text>
                 </div>
               </Col>
             </Descriptions.Item>
@@ -1326,18 +1363,22 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           >
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {allowedStatuses.map((status, index) => (
-                <Tag.CheckableTag
-                  key={index}
-                  checked={statusType === status}
-                  onChange={() => {
-                    form.setFieldsValue({ status, comment: undefined, deliveryTime: undefined });
-                    setStatusType(status);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                  color={getStatusTagColor(status)}
+                <Badge 
+                  key={index} 
+                  dot 
+                  color={statusBadgeConfig[status]?.color || 'default'}
                 >
-                  {status}
-                </Tag.CheckableTag>
+                  <Tag.CheckableTag
+                    checked={statusType === status}
+                    onChange={() => {
+                      form.setFieldsValue({ status, comment: undefined, deliveryTime: undefined });
+                      setStatusType(status);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {statusBadgeConfig[status]?.icon} {status}
+                  </Tag.CheckableTag>
+                </Badge>
               ))}
             </div>
           </Form.Item>
