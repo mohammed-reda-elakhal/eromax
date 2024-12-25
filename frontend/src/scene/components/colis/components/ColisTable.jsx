@@ -681,7 +681,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             color={color} 
             style={{ cursor: 'pointer' }}
           >
-            <span onClick={() => handleStatusClick(record)}>{content}</span>
+            <span onClick={() => handleStatusClick(record)} style={{cursor:"pointer"}}>{content}</span>
           </Badge>
         ) : (
           <Badge 
