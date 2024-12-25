@@ -29,22 +29,26 @@ function TicketColis({ colis }) {
     });
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  };
+
   return (
     <>
       <div ref={componentRef} className="ticket-colis">
         <div className="ticket-colis-header">
           <div className="ticket-colis-header-logo">
-            <h2>Eromax Service</h2>
-            <img src="/image/logo-light.png" alt="" width="90px" />
+            <h2>Eromax</h2>
+            <img src="/image/logo-light.png" alt="" width="70px" />
           </div>
           <div className="ticket-colis-header-code">
             <div className="code-bar">
-              <Barcode value={colis.code_suivi} width={0.6} height={30} fontSize={12} />
+              <Barcode value={colis.code_suivi} width={1.2} height={50} fontSize={12} />
             </div>
             <div className="qr-code">
-              <QRCode value={colis.code_suivi} size={50} />
+              <QRCode value={colis.code_suivi} size={100} />
             </div>
-            <p>{colis.ville.ref}</p> {/* Ensure you're accessing the correct string property */}
           </div>
         </div>
         <div className="ticket-colis-main">
@@ -59,22 +63,22 @@ function TicketColis({ colis }) {
               <img src={colis?.store?.image?.url} alt="" width="80px" />
               <h3>{colis?.store?.storeName}</h3>
               <p>{colis?.store?.id_client?.tele}</p>
-              <p>{colis?.createdAt}</p>
+              <p>{formatDate(colis?.createdAt)}</p>
             </div>
             <div className="ticket-colis-main-destinataire">
-              <h5>Destinataire :</h5>
               <p><strong>Nom :</strong> {colis?.nom}</p> {/* Access 'nom' field */}
               <p><strong>Téléphone :</strong> {colis?.tele}</p>
               <p><strong>Ville :</strong> {colis?.ville?.nom}</p> {/* Access 'nom' field in 'ville' */}
               <p><strong>Adresse :</strong> {colis?.adresse}</p>
-              <h2>{colis?.prix} DH</h2> {/* Ensure 'prix' is a valid number or string */}
+              <p><strong>Produit :</strong> {colis?.nature_produit}</p>
+              <h3 style={{color:"green"}}>{colis?.prix} DH</h3> {/* Ensure 'prix' is a valid number or string */}
             </div>
           </div>
           <div className="ticket-colis-footer">
             <div className="ticket-colis-footer-store">
               <p>{colis?.store?.message || "current message"}</p>
             </div>
-            <div className="ticket-colis-footer-eromax">
+            <div className="ticket-colis-footer-eromax" style={{textAlign: "center"}}>
               <p>اروماكس مسؤولة على التوصيل فقط</p>
             </div>
           </div>
