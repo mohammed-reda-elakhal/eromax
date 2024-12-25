@@ -472,7 +472,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       console.error(err);
     }
   };
-
   // Function to cancel the assignment modal
   const handleCancelAssignLivreur = () => {
     setAssignModalVisible(false);
@@ -566,51 +565,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       ),
     },
     {
-      title: 'Business',
-      dataIndex: 'store',
-      key: 'store',
-      render : (text , record) => (
-        <>
-          <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
-          {
-            user?.role === "admin" ? <p> <strong>Adresse : </strong>{record.store?.adress || 'N/A'} </p> : ""
-          }
-        </>
-      )
-    },
-    {
-      title: 'Livreur',
-      dataIndex: ['livreur', 'nom'],
-      key: 'livreur_nom',
-      render: (text ,record) => (
-        <>
-           {record.livreur ? <p>{record.livreur.nom} <br/> {record.livreur.tele} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Opération de Ramassage</Tag>}
-        </>
-      ),
-    },
-    {
-      title: 'Statut',
-      dataIndex: 'statut',
-      key: 'statut',
-      render: (status, record) => {
-        return user?.role === 'admin' ? (
-          <Tag
-            color={getStatusTagColor(status)}
-            style={{ cursor: 'pointer' }}
-            onClick={() => handleStatusClick(record)}
-          >
-            {status}
-          </Tag>
-        ) : (
-          <Tag
-            color={getStatusTagColor(status)}
-          >
-            {status}
-          </Tag>
-        );
-      },
-    },
-    {
       title: 'Destinataire',
       dataIndex: 'tele',
       key: 'tele',
@@ -651,9 +605,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             <br />
             <span style={{ color: 'green', fontWeight: 'bold' }}> {text} </span>
             <br />
-            <span>{record?.ville.nom}</span>
-            <br />
-            <span>{record?.prix} DH</span>
+            <b>{record?.prix} DH</b>
           </Typography.Text>
         );
       },
@@ -662,13 +614,84 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Adresse',
       dataIndex: 'adresse',
       key: 'adresse',
-    },
+      width: 200,
+      render : (text , record) =>{
+        return(
+          <>
+            <strong>{record?.ville.nom}</strong>
+            <br />
+            <span>{text}</span>
+          </>
+        )
+        
+      }
+       },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      width: 200,
+      render : (text , record) =>{
+        return(
+          <>
+            <strong>Créer en : </strong><span>{formatDate(record?.createdAt)}</span>
+            <br />
+            <strong>Modifier en : </strong><span>{formatDate(record?.updatedAt)}</span>          </>
+        )
+        
+      }
+       },
     {
       title: 'Nature de Produit',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
       render: (text) => text || 'N/A',
     },
+    {
+      title: 'Business',
+      dataIndex: 'store',
+      key: 'store',
+      width: 150,
+      render : (text , record) => (
+        <>
+          <strong>{record.store?.storeName}</strong>
+        </>
+      )
+    },
+    {
+      title: 'Livreur',
+      dataIndex: ['livreur', 'nom'],
+      key: 'livreur_nom',
+      render: (text ,record) => (
+        <>
+           {record.livreur ? <p>{record.livreur.nom} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Non</Tag>}
+        </>
+      ),
+    },
+    {
+      title: 'Statut',
+      dataIndex: 'statut',
+      key: 'statut',
+      render: (status, record) => {
+        return user?.role === 'admin' ? (
+          <Tag
+            color={getStatusTagColor(status)}
+            style={{ cursor: 'pointer' }}
+            onClick={() => handleStatusClick(record)}
+          >
+            {status}
+          </Tag>
+        ) : (
+          <Tag
+            color={getStatusTagColor(status)}
+          >
+            {status}
+          </Tag>
+        );
+      },
+    },
+   
+   
     {
       title: 'Options',
       render: (text, record) => (
