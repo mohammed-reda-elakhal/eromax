@@ -10,7 +10,7 @@ import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { affectationColisAmeex, getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, MinusCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { toast } from 'react-toastify';
 import { BsFillInfoCircleFill } from "react-icons/bs";
 import { FaBoxesStacked } from 'react-icons/fa6';
@@ -39,13 +39,10 @@ function ColisRamasse({ search }) {
 
   const getDataColis = () => {
     if (user?.role) {
-      if (user.role === "admin" || user.role === "team") {
-        dispatch(getColis("Ramassée"));
-      } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id, "Ramassée"));
-      } else if (user.role === "team") {
-        dispatch(getColisForClient(user._id, 'Ramassée'));
-      }
+      const queryParams = {
+        statut: "Ramassée",
+      };
+      dispatch(getColis(queryParams));
     }
   };
 
@@ -130,19 +127,20 @@ function ColisRamasse({ search }) {
   const columns = [
     { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi', ...search('code_suivi') },
     {
-      title: 'Bussiness',
-      dataIndex: 'store',
-      key: 'store',
-      render : (text , record) => (
-        <>
-          <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
-          {
-            user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
-          }
-        </>
-      )
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      width: 150,
+      render : (text , record) =>{
+        return(
+          <>
+            <strong>Créer en : </strong><br /><span>{formatDate(record?.createdAt)}</span>
+            <br />
+            <strong>Modifier en : </strong><br /><span>{formatDate(record?.updatedAt)}</span>          </>
+        )
+        
+      }
     },
-   
     {
       title: 'Destinataire',
       dataIndex: 'nom',
@@ -159,9 +157,71 @@ function ColisRamasse({ search }) {
         </>
       )
     },
-    { title: 'Statut', dataIndex: 'statut', key: 'statut', render: (text, record) => (
-      <Tag icon={<SyncOutlined spin />} color="processing">{record.statut}</Tag>
-    ) },
+    {
+      title: 'Tarif',
+      dataIndex: 'ville',
+      key: 'tarif',
+      wtidth: 40,
+      render: (text, record) => (
+        <span>
+          {record.ville?.tarif || 'N/A'}
+        </span>
+      ),
+    },
+    {
+      title: 'Nature de Produit',
+      dataIndex: 'nature_produit',
+      key: 'nature_produit',
+      width: 100,
+      render: (text) => text || 'N/A',
+    },
+    {
+      title: 'Bussiness',
+      dataIndex: 'store',
+      key: 'store',
+      render : (text , record) => (
+        <>
+          <strong>{record.store?.storeName} </strong>
+        </>
+      )
+    },
+    {
+      title: 'Statut',
+      dataIndex: 'statut',
+      key: 'statut',
+      render: (text, record) => {
+        let color = 'processing';
+        let icon = <SyncOutlined spin />;
+        switch (record.statut) {
+          case 'Livrée':
+            color = 'success';
+            icon = <CheckCircleOutlined />;
+            break;
+          case 'Annulée':
+          case 'Refusée':
+            color = 'error';
+            icon = <CloseCircleOutlined />;
+            break;
+          case 'Programme':
+            color = 'default';
+            icon = <ClockCircleOutlined />;
+            break;
+          case 'Remplacée':
+          case 'En Retour':
+            color = 'warning';
+            icon = <ExclamationCircleOutlined />;
+            break;
+          case 'Fermée':
+            color = 'default';
+            icon = <MinusCircleOutlined />;
+            break;
+          default:
+            color = 'processing';
+            icon = <SyncOutlined spin />;
+        }
+        return <Tag icon={icon} color={color}>{record.statut}</Tag>;
+      },
+     },
   ];
 
   // Collect unique villes from selected colis

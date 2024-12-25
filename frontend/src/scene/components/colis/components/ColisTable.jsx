@@ -592,9 +592,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
                 <br />
                 <span style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}> {text} </span>
                 <br />
-                <span>{record?.ville.nom}</span>
-                <br />
-                <span>{record?.prix} DH</span>
+                <b>{record?.prix} DH</b>
               </Typography.Text>
             </Tooltip>
           );
@@ -614,7 +612,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Adresse',
       dataIndex: 'adresse',
       key: 'adresse',
-      width: 200,
+      width: 150,
       render : (text , record) =>{
         return(
           <>
@@ -626,32 +624,19 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         
       }
        },
-    {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      width: 200,
-      render : (text , record) =>{
-        return(
-          <>
-            <strong>Créer en : </strong><span>{formatDate(record?.createdAt)}</span>
-            <br />
-            <strong>Modifier en : </strong><span>{formatDate(record?.updatedAt)}</span>          </>
-        )
-        
-      }
-       },
+   
     {
       title: 'Nature de Produit',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
+      width: 100,
       render: (text) => text || 'N/A',
     },
     {
       title: 'Business',
       dataIndex: 'store',
       key: 'store',
-      width: 150,
+      width: 100,
       render : (text , record) => (
         <>
           <strong>{record.store?.storeName}</strong>
@@ -662,9 +647,11 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       title: 'Livreur',
       dataIndex: ['livreur', 'nom'],
       key: 'livreur_nom',
+      width: 100,
       render: (text ,record) => (
         <>
-           {record.livreur ? <p>{record.livreur.nom} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Non</Tag>}
+           {record.livreur ? <p>{record.livreur.nom} </p> : ""}
+           {record?.expedation_type === "ameex" ? "ameex" : ""}
         </>
       ),
     },
@@ -690,6 +677,22 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         );
       },
     },
+   
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      width: 200,
+      render : (text , record) =>{
+        return(
+          <>
+            <strong>Créer en : </strong><span>{formatDate(record?.createdAt)}</span>
+            <br />
+            <strong>Modifier en : </strong><span>{formatDate(record?.updatedAt)}</span>          </>
+        )
+        
+      }
+       },
    
    
     {

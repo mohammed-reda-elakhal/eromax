@@ -79,13 +79,10 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
   // Recuperation des colis selon le role
   const getDataColis = () => {
     if (user?.role) {
-      if (user.role === "admin") {
-        dispatch(getColis("attente de ramassage"));
-      } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id, "attente de ramassage"));
-      } else if (user.role === "team") {
-        dispatch(getColisForClient(user._id, 'attente de ramassage'));  // Use getColisForLivreur for 'livreur'
-      }
+        const queryParams = {
+          statut: "attente de ramassage",
+        };
+        dispatch(getColis(queryParams));
     }
   };
 
@@ -278,6 +275,7 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
+      width: 150,
       render: (text, record) => (
         <>
           {record.replacedColis ? 
@@ -300,27 +298,19 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
       ),
     },
     {
-      title: 'Bussiness',
-      dataIndex: 'store',
-      key: 'store',
-      render : (text , record) => (
-        <>
-          <strong>{record.store?.storeName} <br/> {record.store?.tele || 'N/A'}</strong>
-          {
-            user?.role === "admin" ? <p> <strong>Adress : </strong>{record.store?.adress || 'N/A'} </p> : ""
-          }
-        </>
-      )
-    },
-    {
-      title: 'Livreur',
-      dataIndex: ['livreur', 'nom'],
-      key: 'livreur_nom',
-      render: (text ,record) => (
-        <>
-            {record.livreur ? <p>{record.livreur.nom} <br/> {record.livreur.tele} </p> : <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>}
-        </>
-      ),
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      width: 150,
+      render : (text , record) =>{
+        return(
+          <>
+            <strong>Créer en : </strong><br /><span>{formatDate(record?.createdAt)}</span>
+            <br />
+            <strong>Modifier en : </strong><br /><span>{formatDate(record?.updatedAt)}</span>          </>
+        )
+        
+      }
     },
     {
       title: 'Destinataire',
@@ -335,6 +325,34 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
           <span>{record.ville.nom}</span>
           <br />
           <span>{record.prix}</span>
+        </>
+      )
+    },
+    {
+      title: 'Tarif',
+      dataIndex: 'ville',
+      key: 'tarif',
+      wtidth: 40,
+      render: (text, record) => (
+        <span>
+          {record.ville?.tarif || 'N/A'}
+        </span>
+      ),
+    },
+    {
+      title: 'Nature de Produit',
+      dataIndex: 'nature_produit',
+      key: 'nature_produit',
+      width: 100,
+      render: (text) => text || 'N/A',
+    },
+    {
+      title: 'Bussiness',
+      dataIndex: 'store',
+      key: 'store',
+      render : (text , record) => (
+        <>
+          <strong>{record.store?.storeName} </strong>
         </>
       )
     },
@@ -375,22 +393,7 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
         return <Tag icon={icon} color={color}>{record.statut}</Tag>;
       },
     },
-    {
-      title: 'Tarif',
-      dataIndex: 'ville',
-      key: 'tarif',
-      render: (text, record) => (
-        <span>
-          {record.ville?.tarif || 'N/A'}
-        </span>
-      ),
-    },
-    {
-      title: 'Nature de Produit',
-      dataIndex: 'nature_produit',
-      key: 'nature_produit',
-      render: (text) => text || 'N/A',
-    },
+    
   ];
 
   return (
