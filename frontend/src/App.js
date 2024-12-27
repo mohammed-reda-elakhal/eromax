@@ -72,6 +72,7 @@ import UpdateColisPage from "./scene/components/colis/pages/UpdateColisPage";
 import TransactionPage from "./scene/components/payement/page/TransactionPage";
 import ColisAmeex from "./scene/components/colis/pages/ColisAmeex";
 import AjouterColisAdmin from "./scene/components/colis/pages/AjouterColisAdmin";
+import InfoWalet from "./scene/components/portfeuille/page/InfoWalet";
 
 
 function App() {
@@ -207,14 +208,14 @@ function App() {
 
             
             <Route path="profile/:id" element={<Profile />} />
-            <Route path="portfeuille" element={<Portfeuille />} />
+            <Route path="portfeuille" element={<InfoWalet />} />
             <Route path="scan" element={<Scan />} /> 
             <Route path="ville" element={<Ville />} /> 
             <Route path="reclamation" element={<Reclamation />} />
             <Route path="reclamation-complete" element={<ReclamationOk />} />
             <Route path="gnotification" element={<Notification />} /> 
-            <Route path="demande-retrait" element={<DemandeRetraitTable />} /> 
-            <Route path="transaction" element={<TransactionPage />} /> 
+            <Route path="demande-retrait" element={<InfoWalet />} /> 
+            <Route path="transaction" element={<InfoWalet />} /> 
             <Route path="tickets" element={<TicketBatch />} /> 
             
             <Route path="scan">

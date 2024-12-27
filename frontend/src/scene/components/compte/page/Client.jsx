@@ -88,10 +88,10 @@ function Client({ search }) {
         window.scrollTo(0, 0);
     }, [dispatch, user]);
 
-    const openStoresModal = async (client) => {
+    const openStoresModal = async (id) => {
         setLoadingStores(true);
         try {
-            await dispatch(getStoreByUser(client.userId || client._id));
+            await dispatch(getStoreByUser(id));
             setIsModalStoreOpen(true);
         } catch (err) {
             console.error("Failed to fetch stores:", err);
@@ -218,7 +218,7 @@ function Client({ search }) {
                 <Tag 
                     color='green' 
                     style={{ cursor: 'pointer' }} 
-                    onClick={() => openStoresModal(record)}
+                    onClick={() => openStoresModal(record._id)}
                 >
                     {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
                 </Tag>

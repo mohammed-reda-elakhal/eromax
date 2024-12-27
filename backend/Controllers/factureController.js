@@ -93,210 +93,249 @@ const applyPromotion = (storeId, originalTarifLivraison, activePromotions) => {
 const createOrUpdateFacture = async (colisId) => {
     // Fetch the colis data with necessary populates
     const colis = await Colis.findById(colisId)
-        .populate('store')
-        .populate('livreur')
-        .populate('ville')
-        .exec();
-
+      .populate('store')
+      .populate('livreur')
+      .populate('ville')
+      .exec();
+  
     if (!colis) {
-        throw new Error('Colis not found');
+      throw new Error('Colis not found');
     }
-
+  
     // Determine if the facture is for a client (store) or livreur
     const isClientFacture = colis.store !== null;
     const isLivreurFacture = colis.livreur !== null;
-
+  
     if (!isClientFacture && !isLivreurFacture) {
-        throw new Error('Colis must be associated with either a store or a livreur');
+      throw new Error('Colis must be associated with either a store or a livreur');
     }
-
-    // Define the delivery date using `date_livraisant`
+  
+    // Use date_livraisant as the key date for the facture
     const dateLivraison = colis.date_livraisant;
     if (!dateLivraison) {
-        throw new Error('Delivery date (date_livraisant) not set for the colis');
+      throw new Error('Delivery date (date_livraisant) not set for the colis');
     }
-
+  
     // Fetch active promotions
     const now = new Date();
     const activePromotions = await Promotion.find({
-        isActive: true,
-        startDate: { $lte: now },
-        endDate: { $gte: now },
+      isActive: true,
+      startDate: { $lte: now },
+      endDate: { $gte: now },
     }).lean();
-
+  
     // Calculate original tarif_livraison for client
     let originalTarifLivraisonClient = 0;
     if (colis.statut === 'Livrée') {
-        originalTarifLivraisonClient = colis.ville?.tarif || 0;
+      originalTarifLivraisonClient = colis.ville?.tarif || 0;
     } else if (colis.statut === 'Annulée' || colis.statut === 'Refusée') {
-        originalTarifLivraisonClient = colis.ville?.tarif_refus || 0;
+      originalTarifLivraisonClient = colis.ville?.tarif_refus || 0;
     }
-
+  
     // Apply promotion for client
     let tarif_livraisonClient = originalTarifLivraisonClient;
     let appliedPromotion = null;
-
+  
     if (isClientFacture) {
-        const promotionResult = applyPromotion(colis.store._id, originalTarifLivraisonClient, activePromotions);
-        tarif_livraisonClient = promotionResult.tarif_livraison;
-        appliedPromotion = promotionResult.appliedPromotion;
+      const promotionResult = applyPromotion(
+        colis.store._id,
+        originalTarifLivraisonClient,
+        activePromotions
+      );
+      tarif_livraisonClient = promotionResult.tarif_livraison;
+      appliedPromotion = promotionResult.appliedPromotion;
     }
-
+  
     // Calculate original tarif_livraison for livreur
     let originalTarifLivraisonLivreur = 0;
     if (colis.statut === 'Livrée') {
-        originalTarifLivraisonLivreur = colis.livreur?.tarif || 0;
+      originalTarifLivraisonLivreur = colis.livreur?.tarif || 0;
     } else if (colis.statut === 'Annulée' || colis.statut === 'Refusée') {
-        originalTarifLivraisonLivreur = 0; // Assuming tarif_refus is 0 for livreur
+      // Assuming tarif_refus is 0 for livreur
+      originalTarifLivraisonLivreur = 0;
     }
-
-    // Calculate tarif_fragile and tarif_ajouter based on statut
+  
+    // Calculate tarif_fragile and tarif_ajouter if statut === 'Livrée'
     let tarif_fragile = 0;
     let tarif_ajouter = 0;
-
+  
     if (colis.statut === 'Livrée') {
-        tarif_fragile = colis.is_fragile ? 5 : 0;
-        tarif_ajouter = colis.tarif_ajouter?.value || 0;
+      tarif_fragile = colis.is_fragile ? 5 : 0;
+      tarif_ajouter = colis.tarif_ajouter?.value || 0;
     }
-
+  
     // Calculate total_tarif for client and livreur
     const tarif_totalClient = tarif_livraisonClient + tarif_fragile + tarif_ajouter;
     const tarif_totalLivreur = originalTarifLivraisonLivreur + tarif_fragile + tarif_ajouter;
-
-    // Calculate rest for the store
+  
+    // Calculate the 'rest' for the store (client side)
     const rest = colis.prix - tarif_totalClient;
-
+  
     // -------------------------
     // Handle Client Facture
     // -------------------------
     if (isClientFacture) {
-        // Find existing facture
-        const existingFactureClient = await Facture.findOne({
-            type: 'client',
-            store: colis.store._id,
-            date: moment(dateLivraison).startOf('day').toDate(),
-        });
-
-        if (existingFactureClient) {
-            // Update existing facture using atomic operators
-            await Facture.updateOne(
-                { _id: existingFactureClient._id },
-                {
-                    $push: { colis: colis._id },
-                    $inc: {
-                        totalPrix: colis.prix,
-                        totalTarifLivraison: tarif_livraisonClient,
-                        totalTarifFragile: tarif_fragile,
-                        totalTarifAjouter: tarif_ajouter,
-                        totalTarif: tarif_totalClient,
-                        ...(colis.statut === 'Annulée' || colis.statut === 'Refusée' ? { totalFraisRefus: tarif_livraisonClient } : {}),
-                    },
-                    ...(appliedPromotion && { promotion: appliedPromotion }),
-                }
-            );
+      // Find existing facture for this date + store
+      const existingFactureClient = await Facture.findOne({
+        type: 'client',
+        store: colis.store._id,
+        date: moment(dateLivraison).startOf('day').toDate(),
+      });
+  
+      if (existingFactureClient) {
+        // Check if this colis is already in the facture
+        const alreadyExists = existingFactureClient.colis.some(
+          (existingColisId) => existingColisId.toString() === colis._id.toString()
+        );
+        if (alreadyExists) {
+          // If it already exists, throw an error or skip
+          throw new Error(
+            `Facture already exists for this client/date and includes colis ${colis.code_suivi}.`
+          );
         } else {
-            // Create a new facture for the client
-            const newFactureClient = new Facture({
-                code_facture: generateCodeFacture(dateLivraison),
-                type: 'client',
-                store: colis.store._id,
-                date: moment(dateLivraison).startOf('day').toDate(),
-                colis: [colis._id],
+          // Update existing facture
+          await Facture.updateOne(
+            { _id: existingFactureClient._id },
+            {
+              $push: { colis: colis._id },
+              $inc: {
                 totalPrix: colis.prix,
                 totalTarifLivraison: tarif_livraisonClient,
                 totalTarifFragile: tarif_fragile,
                 totalTarifAjouter: tarif_ajouter,
                 totalTarif: tarif_totalClient,
-                totalFraisRefus: (colis.statut === 'Annulée' || colis.statut === 'Refusée') ? tarif_livraisonClient : 0,
-                promotion: appliedPromotion ? appliedPromotion : null,
-                originalTarifLivraison: originalTarifLivraisonClient,
-            });
-
-            await newFactureClient.save();
+                ...(colis.statut === 'Annulée' || colis.statut === 'Refusée'
+                  ? { totalFraisRefus: tarif_livraisonClient }
+                  : {}),
+              },
+              ...(appliedPromotion && { promotion: appliedPromotion }),
+            }
+          );
         }
-
-        // Update store solde
-        const store = await Store.findById(colis.store._id);
-        if (store) {
-            store.solde = (store.solde || 0) + (isNaN(rest) ? 0 : rest);
-            await store.save();
-        }
-
-        // Create transaction
-        const transactionClient = new Transaction({
-            id_store: colis.store._id,
-            montant: rest,
-            type: 'credit',
-            etat: true,
+      } else {
+        // Create a new facture for the client
+        const newFactureClient = new Facture({
+          code_facture: generateCodeFacture(dateLivraison),
+          type: 'client',
+          store: colis.store._id,
+          date: moment(dateLivraison).startOf('day').toDate(),
+          colis: [colis._id],
+          totalPrix: colis.prix,
+          totalTarifLivraison: tarif_livraisonClient,
+          totalTarifFragile: tarif_fragile,
+          totalTarifAjouter: tarif_ajouter,
+          totalTarif: tarif_totalClient,
+          totalFraisRefus:
+            colis.statut === 'Annulée' || colis.statut === 'Refusée'
+              ? tarif_livraisonClient
+              : 0,
+          promotion: appliedPromotion || null,
+          originalTarifLivraison: originalTarifLivraisonClient,
         });
-        await transactionClient.save();
+  
+        await newFactureClient.save();
+      }
+  
+      /**
+      // Update store solde
+      const store = await Store.findById(colis.store._id);
+      if (store) {
+        store.solde = (store.solde || 0) + (isNaN(rest) ? 0 : rest);
+        await store.save();
+      }
 
-        // Create notification
-        const notificationClient = new NotificationUser({
-            id_store: colis.store._id,
-            title: `+ ${rest} DH`,
-            description: `Votre portefeuille a été crédité de ${rest} DH suite à la livraison du colis ${colis.code_suivi}.`,
-        });
-        await notificationClient.save();
+  
+      // Create transaction
+      const transactionClient = new Transaction({
+        id_store: colis.store._id,
+        montant: rest,
+        type: 'credit',
+        etat: true,
+      });
+      await transactionClient.save();
+  
+      // Create notification for the client
+      const notificationClient = new NotificationUser({
+        id_store: colis.store._id,
+        title: `+ ${rest} DH`,
+        description: `Votre portefeuille a été crédité de ${rest} DH suite à la livraison du colis ${colis.code_suivi}.`,
+      });
+      await notificationClient.save();
+       */
     }
-
+  
     // -------------------------
     // Handle Livreur Facture
     // -------------------------
     if (isLivreurFacture) {
-        // Find existing facture
-        const existingFactureLivreur = await Facture.findOne({
-            type: 'livreur',
-            livreur: colis.livreur._id,
-            date: moment(dateLivraison).startOf('day').toDate(),
-        });
-
-        if (existingFactureLivreur) {
-            // Update facture
-            await Facture.updateOne(
-                { _id: existingFactureLivreur._id },
-                {
-                    $push: { colis: colis._id },
-                    $inc: {
-                        totalPrix: colis.prix,
-                        totalTarifLivraison: originalTarifLivraisonLivreur,
-                        totalTarifFragile: tarif_fragile,
-                        totalTarifAjouter: tarif_ajouter,
-                        totalTarif: tarif_totalLivreur,
-                        ...(colis.statut === 'Annulée' || colis.statut === 'Refusée' ? { totalFraisRefus: originalTarifLivraisonLivreur } : {}),
-                    },
-                }
-            );
+      // Find existing facture for this date + livreur
+      const existingFactureLivreur = await Facture.findOne({
+        type: 'livreur',
+        livreur: colis.livreur._id,
+        date: moment(dateLivraison).startOf('day').toDate(),
+      });
+  
+      if (existingFactureLivreur) {
+        // Check if this colis is already in the facture
+        const alreadyExists = existingFactureLivreur.colis.some(
+          (existingColisId) => existingColisId.toString() === colis._id.toString()
+        );
+        if (alreadyExists) {
+          throw new Error(
+            `Facture already exists for this livreur/date and includes colis ${colis.code_suivi}.`
+          );
         } else {
-            // Create new facture
-            const newFactureLivreur = new Facture({
-                code_facture: generateCodeFacture(dateLivraison),
-                type: 'livreur',
-                livreur: colis.livreur._id,
-                date: moment(dateLivraison).startOf('day').toDate(),
-                colis: [colis._id],
+          // Update existing facture
+          await Facture.updateOne(
+            { _id: existingFactureLivreur._id },
+            {
+              $push: { colis: colis._id },
+              $inc: {
                 totalPrix: colis.prix,
                 totalTarifLivraison: originalTarifLivraisonLivreur,
                 totalTarifFragile: tarif_fragile,
                 totalTarifAjouter: tarif_ajouter,
                 totalTarif: tarif_totalLivreur,
-                totalFraisRefus: (colis.statut === 'Annulée' || colis.statut === 'Refusée') ? originalTarifLivraisonLivreur : 0,
-                promotion: null, // Livreurs do not have promotions
-                originalTarifLivraison: originalTarifLivraisonLivreur,
-            });
-
-            await newFactureLivreur.save();
+                ...(colis.statut === 'Annulée' || colis.statut === 'Refusée'
+                  ? { totalFraisRefus: originalTarifLivraisonLivreur }
+                  : {}),
+              },
+            }
+          );
         }
-
-        // Optionally send notification to livreur
-        const notificationLivreur = new NotificationUser({
-            id_livreur: colis.livreur._id,
-            title: `Nouvelle Facture: ${generateCodeFacture(dateLivraison)}`,
-            description: `Vous avez une nouvelle facture pour le colis ${colis.code_suivi}.`,
+      } else {
+        // Create new facture
+        const newFactureLivreur = new Facture({
+          code_facture: generateCodeFacture(dateLivraison),
+          type: 'livreur',
+          livreur: colis.livreur._id,
+          date: moment(dateLivraison).startOf('day').toDate(),
+          colis: [colis._id],
+          totalPrix: colis.prix,
+          totalTarifLivraison: originalTarifLivraisonLivreur,
+          totalTarifFragile: tarif_fragile,
+          totalTarifAjouter: tarif_ajouter,
+          totalTarif: tarif_totalLivreur,
+          totalFraisRefus:
+            colis.statut === 'Annulée' || colis.statut === 'Refusée'
+              ? originalTarifLivraisonLivreur
+              : 0,
+          promotion: null, // No promotion for livreurs
+          originalTarifLivraison: originalTarifLivraisonLivreur,
         });
-        await notificationLivreur.save();
+  
+        await newFactureLivreur.save();
+      }
+  
+      // Optionally create notification for the livreur
+      const notificationLivreur = new NotificationUser({
+        id_livreur: colis.livreur._id,
+        title: `Nouvelle Facture: ${generateCodeFacture(dateLivraison)}`,
+        description: `Vous avez une nouvelle facture pour le colis ${colis.code_suivi}.`,
+      });
+      await notificationLivreur.save();
     }
-};
+  };
 
 
 

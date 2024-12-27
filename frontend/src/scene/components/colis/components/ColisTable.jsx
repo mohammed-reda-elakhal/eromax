@@ -430,6 +430,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         selectedColis: null,
       }));
       form.resetFields();
+      handleStatusCancel();
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
@@ -507,6 +508,29 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       { preferred: [], other: [] }
     );
 
+
+    // Instead of conditional && plus filter(Boolean), do:
+const adminColumns = [
+  {
+    title: 'Business',
+    dataIndex: 'store',
+    key: 'store',
+    render: (text, record) => (
+      <strong>{record.store?.storeName}</strong>
+    ),
+  },
+  {
+    title: 'Livreur',
+    dataIndex: ['livreur', 'nom'],
+    key: 'livreur_nom',
+    render: (text, record) => (
+      <>
+        {record.livreur ? <p>{record.livreur.nom}</p> : ''}
+        {record.expedation_type === 'ameex' ? 'ameex' : ''}
+      </>
+    ),
+  },
+];
   // Define columns for the table
   const columnsColis = [
     {
@@ -639,29 +663,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       width: 100,
       render: (text) => text || 'N/A',
     },
-    {
-      title: 'Business',
-      dataIndex: 'store',
-      key: 'store',
-      width: 100,
-      render : (text , record) => (
-        <>
-          <strong>{record.store?.storeName}</strong>
-        </>
-      )
-    },
-    {
-      title: 'Livreur',
-      dataIndex: ['livreur', 'nom'],
-      key: 'livreur_nom',
-      width: 100,
-      render: (text ,record) => (
-        <>
-           {record.livreur ? <p>{record.livreur.nom} </p> : ""}
-           {record?.expedation_type === "ameex" ? "ameex" : ""}
-        </>
-      ),
-    },
+    // Only append the admin columns if user is an admin
+    ...(user?.role === 'admin' ? adminColumns : []),
     {
       title: 'Statut',
       dataIndex: 'statut',
@@ -681,11 +684,10 @@ const ColisTable = ({ theme, darkStyle, search }) => {
             color={color} 
             style={{ cursor: 'pointer' }}
           >
-            <span onClick={() => handleStatusClick(record)}>{content}</span>
+            <span onClick={() => handleStatusClick(record)} style={{cursor:"pointer"}}>{content}</span>
           </Badge>
         ) : (
-          <Badge 
-            dot 
+          <Badge             
             color={color}
           >
             {content}

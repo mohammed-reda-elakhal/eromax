@@ -14,6 +14,7 @@ import SoldeCart from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { notificationActions } from '../../redux/slices/notificationSlice';
 import { toast } from 'react-toastify';
+import InfoWalet from '../components/portfeuille/page/InfoWalet';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -138,7 +139,7 @@ function Topbar() {
                 color: theme === 'dark' ? '#fff' : '#002242',
               }}
             >
-              <div className="solde-wallet" onClick={() => setShowSolde((prev) => !prev)}>
+              <div className="solde-wallet" /* onClick={/*() => setShowSolde((prev) => !prev)}*/>
                 {showSolde ? <p>{storeData.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>}
               </div>
               <Avatar icon={<IoMdWallet />} size={25} className='wallet_icon' onClick={() => setOpenRetrait(true)} />
@@ -225,8 +226,15 @@ function Topbar() {
 
       {/* Withdraw request drawer */}
       <Drawer  className={theme === 'dark' ? 'dark-mode' : ''} title="Demande De Retrait" onClose={() => setOpenRetrait((prev) => !prev)} open={openRetrait}>
-        <SoldeCart theme={theme} />
+        {
+          /**
+           * 
+           *  <SoldeCart theme={theme} />
         <DemandeRetrait setOpenWallet={setOpenRetrait} theme={theme} />
+           */
+        }
+        <InfoWalet/>
+       
       </Drawer>
     </Header>
   );
