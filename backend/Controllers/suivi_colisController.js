@@ -7,6 +7,7 @@ const { Store } = require("../Models/Store"); // Import Store model
 const axios = require('axios');
 const cron = require('node-cron');
 const { handleFactureRamasser } = require('./factureHelper');
+const { createOrUpdateFacture } = require("./factureController");
 
 
 /*
@@ -80,6 +81,10 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     colis.comment_refuse = comment;
   }
 
+  if(new_status ==="Livrée"){
+    colis.date_livraisant = new Date();
+  }
+
   // Update the Colis status
   colis.statut = new_status;
   await colis.save();
@@ -135,6 +140,18 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   } else {
     suivi_colis.status_updates.push({ status: new_status, date: new Date() });
   }
+
+
+  // **Invoke the Facture Creation/Update Function**
+  if (["Livrée", "Annulée"].includes(new_status)) {
+    try {
+        await createOrUpdateFacture(colis._id);
+    } catch (factureError) {
+        console.error(`Error creating/updating facture for colis ${id_colis}:`, factureError);
+        // Optionally, handle the error (e.g., send a notification to admin)
+        // Depending on requirements, you might want to rollback the colis status update
+    }
+}
 
   await suivi_colis.save();
 
@@ -264,6 +281,17 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
       } else {
         // Append the new status update to the existing tracking record
         suivi_colis.status_updates.push({ status: new_status, date: new Date() });
+      }
+
+      // **Invoke the Facture Creation/Update Function**
+      if (["Livrée", "Refusée"].includes(new_status)) {
+        try {
+            await createOrUpdateFacture(colis._id);
+        } catch (factureError) {
+            console.error(`Error creating/updating facture for colis ${id_colis}:`, factureError);
+            // Optionally, handle the error (e.g., send a notification to admin)
+            // Depending on requirements, you might want to rollback the colis status update
+        }
       }
 
       // Save the Suivi_Colis entry

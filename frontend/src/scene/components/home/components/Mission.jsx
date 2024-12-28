@@ -54,12 +54,14 @@ function Mission({ theme }) {
             icon: <SolutionOutlined style={{ fontSize: '20px', color: theme === 'dark' ? '#ffc069' : '#faad14' }} />,
             link: '/dashboard/reclamation',
         },
+        /*
         {
             title: 'Demandes Retrait',
             count: demandeRetrait.length,
             icon: <MailOutlined style={{ fontSize: '20px', color: theme === 'dark' ? '#95de64' : '#52c41a' }} />,
             link: '/dashboard/demande-retrait',
         },
+        */
         {
             title: 'Nouveau Client',
             count: client.length,

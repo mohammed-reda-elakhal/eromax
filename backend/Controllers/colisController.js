@@ -1007,14 +1007,14 @@ module.exports.toggleColisPayant = asyncHandler(async (req, res) => {
     }
 
     // Toggle the `etat` value
-    colis.pret_payant = !colis.etat;
+    colis.pret_payant = !colis.pret_payant;
 
     // Save the updated Colis
     const updatedColis = await colis.save();
 
     // Return the updated Colis
     res.status(200).json({
-      message: `Colis updated successfully. New etat: ${updatedColis.etat}`,
+      message: `Colis est modifier.`,
       data: updatedColis,
     });
   } catch (error) {

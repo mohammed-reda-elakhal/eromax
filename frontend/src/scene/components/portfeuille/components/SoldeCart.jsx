@@ -21,7 +21,7 @@ function SoldeCart({theme}) {
                     alt=""
                 />
             </div>
-            <h3>Mohammed reda</h3>
+            <h3>{storeData?.storeName}</h3>
             <div className="solde">
                 <h2 className="solde-value">
                     {storeData?.solde} DH

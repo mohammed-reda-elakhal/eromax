@@ -68,15 +68,10 @@ function ColisExpide({ search }) {
 
   const getDataColis = ()=>{
     if (user?.role) {
-      if (user.role === "admin" || user.role === "team") {
-        dispatch(getColis("Expediée"));
-      } else if (user.role === "client" && store?._id) {
-        dispatch(getColisForClient(store._id, "Expediée"));
-      } else if (user.role === "livreur") {
-        dispatch(getColisForLivreur(user._id, "Expediée"));
-      } else if (user.role === "team") {
-        dispatch(getColisForClient(user._id, 'Expediée'));
-      }
+      const queryParams = {
+        statut: "Expediée",
+      };
+      dispatch(getColis(queryParams));
     }
   }
   useEffect(() => {

@@ -28,9 +28,7 @@ export function getStoreByUser(userId) {
   return async (dispatch) => {
     dispatch(storeActions.fetchStoresStart());
     try {
-      const { data } = await request.get(`/api/store/user/${userId}`, {
-        withCredentials: true,
-      });
+      const { data } = await request.get(`/api/store/user/${userId}`);
       dispatch(storeActions.fetchStoresSuccess(data));
     } catch (error) {
       const errorMsg =
