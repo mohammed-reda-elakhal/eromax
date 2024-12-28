@@ -1,5 +1,5 @@
 const express = require("express");
-const { assignColisToGoodDelivery, getAllColisWithGoodDeliveryApi, getColisGoodDeliveryCtrl } = require("../Controllers/goodDeliveryController");
+const { assignColisToGoodDelivery, getAllColisWithGoodDeliveryApi, getColisGoodDeliveryCtrl, deleteAllGoodDeliveryColis } = require("../Controllers/goodDeliveryController");
 const router = express.Router();
 
 
@@ -9,7 +9,8 @@ router.route("/assign-colis")
 
 router.route('/Colis').get(getAllColisWithGoodDeliveryApi)
 router.route('/GD-Colis').get(getColisGoodDeliveryCtrl)
-
+router.route('/getColisGD').get(getColisGoodDeliveryCtrl)
+router.route('/delete').delete(deleteAllGoodDeliveryColis)
 /* router.route('/send')
         .get(colisController.getColisAmeexCtrl)
         .put(syncColisStatusWithAmeex) */
