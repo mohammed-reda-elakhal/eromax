@@ -9,6 +9,7 @@ const { findOrCreateLivreur } = require("./Controllers/livreurController");
 // Import your public routes
 const apiIntegrationRoute = require("./routes/apiIntegrationRoute");
 const scheduleCronJobs = require('./Middlewares/CronScheduler'); // Import the cronJobs.js file
+const { findOrCreateGDelLivreur } = require("./Controllers/goodDeliveryController");
 
 
 // Connection To DB
@@ -73,6 +74,7 @@ app.use("/api/statistic", require("./routes/staticRoute"));
 app.use('/api/promotions', require('./routes/promotionRoutes'));
 app.use('/api/mission', require('./routes/missionRoutes'));
 app.use('/api/external', require('./routes/apiIntegrationRoute'));
+app.use('/api/goodDelivery', require('./routes/goodDeliveryRoute'));
 
 // Initialize cron jobs
 scheduleCronJobs();
@@ -84,6 +86,9 @@ findOrCreateLivreur()
   .then(() => console.log("'ameex' livreur verified or created successfully"))
   .catch((error) => console.error("Error during 'ameex' livreur creation:", error));
 
+findOrCreateGDelLivreur()
+     .then(()=>console.log("'Good Delivery' Livreur veified and created successfully"))
+     .catch((error)=>console.error("Error during 'ameex' livreur creation:",error));
 //Running server 
 const port =process.env.PORT || 8084;
 app.listen(port,()=>{
