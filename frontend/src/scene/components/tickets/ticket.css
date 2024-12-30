@@ -1,179 +1,201 @@
-
-.list_ticket{
-    display: flex;
-    align-items: center;
-}
-.ticket-colis{
-    border: 1px solid black;
-    display: flex;
-    flex-direction: column;
-    width: 460px;
-    height: 520px;
-    margin: 12px;
-}
-.ticket-colis-header{
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-.ticket-colis-header-logo{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0px 8px;
-    border-bottom: 1px solid black;
-}
-.ticket-colis-header-logo h2{
-    font-size: 18px;
-}
-.ticket-colis-header-code{
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 8px;
-    align-items: center;
-    border-bottom: 1px solid black;
-}
-.ticket-colis-header-code img{
-    width: 70px;
+/* General Ticket Layout */
+.ticket-colis {
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  width: 530px;  /* Fixed width */
+  height: 530px; /* Fixed height */
+  margin: 12px;
+  padding: 10px;
 }
 
-.ticket-colis-main{
-    display: flex;
-    flex-direction: column;
+.ticket-colis-header {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
-.ticket-colis-main-header{
-    display: flex;
-    justify-content: space-around;
-    border-bottom: 1px solid black;
+
+.ticket-colis-header-logo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 8px;
+  border-bottom: 1px solid black;
 }
-.ticket-colis-main-content{
-    display: flex;
-    border-bottom: 1px solid black;
+
+.ticket-colis-header-logo h2 {
+  font-size: 18px;
 }
-.ticket-colis-main-expedateur{
-    width: 50%;
-    border-right: 1px solid black ;
-    text-align: center;
-    padding: 8px;
+
+.ticket-colis-header-code {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  align-items: center;
+  border-bottom: 1px solid black;
 }
-.ticket-colis-main-destinataire{
-    width: 50%;
-    padding: 8px;
+
+.ticket-colis-header-code img {
+  width: 70px;
 }
-.ticket-colis-footer{
-    display: flex;
-    flex-direction: column;
+
+.ticket-colis-main {
+  display: flex;
+  flex-direction: column;
 }
-.ticket-colis-footer-store{
-    text-align: center;
-    border-bottom: 1px solid black;
-    padding: 4px;
+
+.ticket-colis-main-header {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid black;
 }
+
+.ticket-colis-main-content {
+  display: flex;
+  border-bottom: 1px solid black;
+}
+
+.ticket-colis-main-expedateur {
+  width: 50%;
+  border-right: 1px solid black;
+  text-align: center;
+  padding: 8px;
+}
+
+.ticket-colis-main-destinataire {
+  width: 50%;
+  padding: 8px;
+}
+
+.ticket-colis-footer {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.ticket-colis-footer-store {
+  text-align: center;
+  border-bottom: 1px solid black;
+  padding: 4px;
+}
+
 .ticket-colis-footer-eromax {
-    padding: 4px;
+  padding: 4px;
 }
 
+/* Batch container for multiple tickets */
 .ticket-batch-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    margin: 0 auto;
-  }
-  
-  .ticket-list {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    max-width: 100%;
-    width: 90%;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 0 auto;
+}
+
+/* Layout for the batch ticket list */
+.ticket-list {
+  display: grid;
+  gap: 20px; /* Space between tickets */
+  width: 90%;
+  margin-top: 20px;
+  grid-template-columns: 1fr; /* One column for vertical stacking */
+}
+
+.ticket-item {
+  display: flex;
+  flex-direction: column; /* Ensures each ticket is stacked within its own container */
+  max-width: max-content; 
+  padding: 10px;
+  margin-bottom: 20px;
+  page-break-after: always; /* Ensure each ticket starts on a new page when printing */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 1/2 Format: Two tickets per page vertically */
+.ticket-item-half {
+  display: block;
+  width: max-content;  /* Fixed size for each ticket */
+  height: max-content; /* Fixed size for each ticket */
+  margin: 0 auto; /* Centering the tickets in the container */
+  page-break-inside: avoid; /* Prevent breaking tickets inside the page */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Styling for the ticket batch actions (e.g., download button) */
+.ticket-actions-all {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  box-shadow: 8px 8px 16px rgba(27, 27, 27, 0.1);
+  margin: 16px;
+  padding: 2em 0;
+  background-color: white;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.ticket-actions {
+  display: flex;
+  justify-content: center;
+  margin: 16px;
+}
+
+/* Responsive design for small screens */
+@media (max-width: 768px) {
   .ticket-item {
-    max-width: max-content; /* Set max width to 80mm to fit thermal printer */
-    padding: 10px;
-    margin-bottom: 20px;
-    page-break-after: always; /* Ensure each ticket starts on a new page when printing */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
- 
-  
-  
-  .ticket-actions-all {
-    display: flex;
-    justify-content: center;
     width: 100%;
-    box-shadow: 8px 8px 16px rgba(27, 27, 27, 0.1);
-    margin: 16px;
-    padding: 2em 0;
-    background-color: white;  /* Keep background to prevent transparency */
-    position: -webkit-sticky;  /* For Safari */
-    position: sticky;
-    top: 0;  /* Stick to the top of the page */
-    z-index: 100;  /* Ensure it's above other elements */
-  }
-  .ticket-actions{
-    display: flex;
-    justify-content: center;
-    margin: 16px;
-  }
-  
-  
-  /* Responsive design for small screens */
-  @media (max-width: 768px) {
-    .ticket-item {
-      width: 100%;
-      max-width: 100%; /* Ensure full width on smaller screens */
-      margin-bottom: 15px;
-    }
-  
-    .ticket-actions {
-      flex-direction: column;
-      width: 100%;
-      align-items: center;
-    }
-  
-    .ticket-actions button {
-      width: 90%; /* Make buttons full width on small screens */
-      margin-bottom: 10px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .ticket-batch-container {
-      padding: 10px;
-    }
-  
-    .ticket-item {
-      max-width: 100%;
-      padding: 5px;
-    }
-  
-    .ticket-actions {
-      width: 100%;
-    }
-  
-    .ticket-actions button {
-      width: 100%; /* Buttons take full width on mobile */
-    }
+    max-width: 100%; /* Ensure full width on smaller screens */
+    margin-bottom: 15px;
   }
 
- /* Ensure proper page layout when printing */
- @media print {
-    .ticket-item {
-      page-break-inside: avoid; /* Prevent content from breaking across pages */
-    }
-  
-    .ticket-actions {
-      display: none; /* Hide the buttons when printing */
-    }
-  
-    .ticket-list {
-      display: block; /* Ensure each ticket displays in block format */
-      max-width: 100%; /* Full width for print */
-    }
+  .ticket-actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
   }
-  
+
+  .ticket-actions button {
+    width: 90%; /* Make buttons full width on small screens */
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ticket-batch-container {
+    padding: 10px;
+  }
+
+  .ticket-item {
+    max-width: 100%;
+    padding: 5px;
+  }
+
+  .ticket-actions {
+    width: 100%;
+  }
+
+  .ticket-actions button {
+    width: 100%; /* Buttons take full width on mobile */
+  }
+}
+
+/* Ensure proper page layout when printing */
+@media print {
+  .ticket-item {
+    page-break-inside: avoid; /* Prevent content from breaking across pages */
+  }
+
+  .ticket-actions {
+    display: none; /* Hide the buttons when printing */
+  }
+
+  .ticket-list {
+    display: block; /* Ensure each ticket displays in block format */
+    max-width: 100%; /* Full width for print */
+  }
+}

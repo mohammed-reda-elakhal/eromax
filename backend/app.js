@@ -5,7 +5,6 @@ require('dotenv').config;
 
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const { findOrCreateLivreur } = require("./Controllers/livreurController");
 // Import your public routes
 const apiIntegrationRoute = require("./routes/apiIntegrationRoute");
 const scheduleCronJobs = require('./Middlewares/CronScheduler'); // Import the cronJobs.js file
@@ -24,14 +23,14 @@ const app = express();
 app.use(express.json());
 
 //Cors Policy 
+// CORS Configuration
+const allowedOrigin = process.env.BASE_URL;  // Use the BASE_URL from .env file
 
 app.use(cors({
-     origin: '*',
-     methods: '*',           // Allow all HTTP methods
-     allowedHeaders: '*',    // Allow all headers
-     credentials: true, // To include cookies if necessary
-     }));
-
+  origin: allowedOrigin,  // Allow only requests from this origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
+  credentials: true, // Allow cookies and authentication tokens
+}));
 
 app.use(cookieParser());
 
@@ -80,11 +79,6 @@ app.use('/api/goodDelivery', require('./routes/goodDeliveryRoute'));
 scheduleCronJobs();
 
 
-
-// Run `findOrCreateLivreur` after database connection to ensure `livreur` user is created if it doesn't exist
-findOrCreateLivreur()
-  .then(() => console.log("'ameex' livreur verified or created successfully"))
-  .catch((error) => console.error("Error during 'ameex' livreur creation:", error));
 
 findOrCreateGDelLivreur()
      .then(()=>console.log("'Good Delivery' Livreur veified and created successfully"))

@@ -92,7 +92,7 @@ export function updateStore(storeId, storeData, imageFile) {
         withCredentials: true,
       });
       dispatch(storeActions.updateStoreSuccess(data));
-      toast.success("Store updated successfully");
+      toast.success("Store est modifier .");
 
       // Upload New Image if provided
       if (imageFile) {

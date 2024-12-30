@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 import { IoMdDownload } from "react-icons/io";
 
 
-function TicketColis({ colis }) {
+function TicketColis({ colis , showDownloadButton }) {
   const componentRef = useRef();
 
   // Function to handle print
@@ -84,9 +84,12 @@ function TicketColis({ colis }) {
           </div>
         </div>
       </div>
-      <div className="ticket-actions">
-        <Button onClick={handleDownloadPdf} icon={<IoMdDownload/>} type="primary"></Button>
-      </div>
+      {showDownloadButton && (
+        <div className="ticket-actions">
+          <Button onClick={handleDownloadPdf} icon={<IoMdDownload />} type="primary">Download PDF</Button>
+        </div>
+      )}
+
     </>
   );
 }

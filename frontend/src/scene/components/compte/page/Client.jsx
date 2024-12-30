@@ -391,6 +391,7 @@ function Client({ search }) {
                                 type="primary" 
                                 icon={<FaPlus />} 
                                 onClick={() => openDrawer(null)}
+                                style={{ marginBottom: 16 }} 
                             >
                                 Add Client
                             </Button>

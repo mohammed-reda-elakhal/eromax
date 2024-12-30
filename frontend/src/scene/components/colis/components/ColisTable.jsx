@@ -1330,7 +1330,7 @@ const adminColumns = [
       >
         {state.selectedColis && (
           <div ref={componentRef}>
-            <TicketColis colis={state.selectedColis} />
+            <TicketColis colis={state.selectedColis} showDownloadButton={true} />
           </div>
         )}
       </Modal>

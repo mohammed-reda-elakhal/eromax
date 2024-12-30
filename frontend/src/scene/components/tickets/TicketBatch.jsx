@@ -1,73 +1,83 @@
-import React, { useRef } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Button } from 'antd';
-import { useReactToPrint } from 'react-to-print';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import TicketColis from './TicketColis';
+import React, { useRef, useState } from 'react';
+import { Button, Select, Spin } from 'antd';
 import { IoMdDownload } from "react-icons/io";
+import TicketColis from './TicketColis';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { useLocation } from 'react-router-dom';
 
 const TicketBatch = () => {
   const location = useLocation();
   const { selectedColis } = location.state || { selectedColis: [] };
 
   const componentRef = useRef();
-
-  // Handle printing all selected colis tickets
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: 'Batch-Tickets',
-  });
-
-  // Handle downloading all selected colis tickets as PDF
   
+  // State for loading indicator and format selection
+  const [loading, setLoading] = useState(false);
+  const [format] = useState("10x10cm"); // Only 10x10cm format now
+
+  // Handle PDF download with loading indicator
   const handleDownloadPdf = () => {
+    setLoading(true); // Start loading
+
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [80, 120],  // Custom page size, 80mm width for thermal printers, height can be adjusted
+      format: [100, 100], // Fixed size for 10x10cm
     });
-  
+
     const input = componentRef.current;
     const tickets = input.getElementsByClassName('ticket-item'); // Grab each ticket
-  
-    // Iterate over each ticket
+
     Array.from(tickets).forEach((ticket, index) => {
       html2canvas(ticket, { scale: 3, useCORS: true }).then((canvas) => {
         const imgData = canvas.toDataURL('image/png');
-  
         const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = 80;  // Fixed width for thermal printers (58mm, 80mm, etc.)
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;  // Adjust height based on image aspect ratio
-  
+        const pdfWidth = pdf.internal.pageSize.width;
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
         // Add the ticket image to the PDF
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  
-        // Add a new page for the next ticket if it is not the last one
+
+        // Add a new page if necessary
         if (index < tickets.length - 1) {
-          pdf.addPage([80, 120], 'portrait');  // Create a new page for each ticket
+          pdf.addPage();
         }
-  
-        // Save the PDF at the end of iteration
+
+        // Save the PDF after all tickets are added
         if (index === tickets.length - 1) {
           pdf.save('Batch-Tickets.pdf');
+          setLoading(false); // Stop loading when done
         }
       });
     });
   };
-  
+
   return (
     <div className="ticket-batch-container">
-        <div className="ticket-actions-all">
-            <Button icon={<IoMdDownload/>} type='primary' onClick={handleDownloadPdf}>Télécharger Tous en PDF</Button>
-        </div>
-        <div ref={componentRef} className="ticket-list">
-            {selectedColis.map((colis) => (
-            <div key={colis.code_suivi} className="ticket-item">
-                <TicketColis colis={colis} />
-            </div>
-            ))}
-        </div>
+      {/* Removed Format Selection Dropdown since we only use 10x10cm */}
+      
+      {/* Button to download PDF with loading indicator */}
+      <div className="ticket-actions-all">
+        <Button
+          icon={<IoMdDownload />}
+          type='primary'
+          onClick={handleDownloadPdf}
+          disabled={loading} // Disable button while loading
+        >
+          {loading ? 'Téléchargement en cours...' : 'Télécharger Tous en PDF'}
+        </Button>
+        {loading && <Spin style={{ marginLeft: 10 }} />} {/* Show loading spinner */}
+      </div>
+
+      {/* Display the tickets before downloading */}
+      <div ref={componentRef} className="ticket-list">
+        {selectedColis.map((colis) => (
+          <div key={colis.code_suivi} className={`ticket-item`}>
+            <TicketColis colis={colis} showDownloadButton={false} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

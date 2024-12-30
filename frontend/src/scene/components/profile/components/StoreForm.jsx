@@ -51,7 +51,6 @@ function StoreForm({ onClose, initialValues = {}, isEdit = false }) {
       if (isEdit) {
         // Dispatch updateStore
         await dispatch(updateStore(initialValues._id, storeData, imageFile));
-        toast.success("Store updated successfully");
       } else {
         // Dispatch createStore
         const userCookie = localStorage.getItem('user');

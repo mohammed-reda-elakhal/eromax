@@ -152,11 +152,12 @@ function FactureClientTable({ theme }) {
       key: 'options',
       render: (text, record) => (
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Button
+         <Button
             icon={<FaRegFolderOpen />}
-            onClick={() =>
-              navigate(`/dashboard/facture/detail/client/${record.code_facture}`)
-            }
+            onClick={() => {
+              const url = `/dashboard/facture/detail/client/${record.code_facture}`;
+              window.open(url, '_blank');  // Open the URL in a new tab
+            }}
             type="primary"
           />
           {user?.role === 'admin' && !record.etat ? (
@@ -176,23 +177,9 @@ function FactureClientTable({ theme }) {
       <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
         <Col span={8}>
           <Input
-            placeholder="Rechercher le nom du magasin"
+            placeholder="Rechercher ..."
             value={searchText}
             onChange={handleSearchChange}
-          />
-        </Col>
-        <Col span={8}>
-          <DatePicker
-            onChange={handleStartDateChange}
-            style={{ width: '100%' }}
-            placeholder="Date de début"
-          />
-        </Col>
-        <Col span={8}>
-          <DatePicker
-            onChange={handleEndDateChange}
-            style={{ width: '100%' }}
-            placeholder="Date de fin"
           />
         </Col>
       </Row>
