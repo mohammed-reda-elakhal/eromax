@@ -145,6 +145,11 @@ const ColisSchema = new mongoose.Schema({
         type: String,
         required: false 
     },
+    code_suivi_gdil:{
+        type: String,
+        required: false 
+
+    },
     expedation_type: {
         type: String,
         required: false,

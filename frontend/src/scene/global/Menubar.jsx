@@ -163,11 +163,6 @@ function Menubar() {
                   Colis Ramasse {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
                 </Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
-                <Link to="/dashboard/ameex">
-                  Colis Ameex 
-                </Link>
-              </Menu.Item>
               <Menu.Item icon={<MdFactCheck />}>
                 <Link to="/dashboard/facture/globale">Fichier</Link>
               </Menu.Item>
