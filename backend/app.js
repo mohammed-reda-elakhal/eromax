@@ -80,9 +80,12 @@ scheduleCronJobs();
 
 
 
+/*
 findOrCreateGDelLivreur()
      .then(()=>console.log("'Good Delivery' Livreur veified and created successfully"))
      .catch((error)=>console.error("Error during 'ameex' livreur creation:",error));
+*/
+
 //Running server 
 const port =process.env.PORT || 8084;
 app.listen(port,()=>{
