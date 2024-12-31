@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
-import { getFacture, getFactureDetailsByLivreur, setFactureEtat } from '../../../../redux/apiCalls/factureApiCalls';
-import { Button, Tag, Input } from 'antd';
+import {
+  getFacture,
+  getFactureDetailsByLivreur,
+  setFactureEtat,
+} from '../../../../redux/apiCalls/factureApiCalls';
+import { Button, Tag, Input, Switch } from 'antd';
 import { FaRegFolderOpen } from "react-icons/fa6";
 import { MdOutlinePayment } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
@@ -10,46 +14,54 @@ import { useNavigate } from 'react-router-dom';
 function FactureLivreurTable({ theme }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const { facture, user } = useSelector((state) => ({
     facture: state.facture.facture,
     user: state.auth.user,
   }));
 
-  const [searchText, setSearchText] = useState(''); // State for search input
-  const [filteredData, setFilteredData] = useState(facture); // State to store filtered data
+  const [searchText, setSearchText] = useState(''); 
+  const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
-    if (user?.role === "admin") {
+    if (user?.role === 'admin') {
       dispatch(getFacture('livreur'));
-    } else if (user?.role === "livreur") {
+    } else if (user?.role === 'livreur') {
       dispatch(getFactureDetailsByLivreur(user?._id));
     }
     window.scrollTo(0, 0);
   }, [dispatch, user]);
 
-  // This effect filters the data based on the searchText state
+  useEffect(() => {
+    setFilteredData(facture);
+  }, [facture]);
+
   useEffect(() => {
     if (searchText) {
       setFilteredData(
-        facture.filter(item =>
+        facture.filter((item) =>
           item.code_facture.toLowerCase().includes(searchText.toLowerCase()) ||
           item.type.toLowerCase().includes(searchText.toLowerCase()) ||
-          (item.livreur && item.livreur.nom.toLowerCase().includes(searchText.toLowerCase())) ||
-          (item.store && item.store.storeName.toLowerCase().includes(searchText.toLowerCase()))
+          (item.livreur &&
+            item.livreur.nom.toLowerCase().includes(searchText.toLowerCase())) ||
+          (item.store &&
+            item.store.storeName.toLowerCase().includes(searchText.toLowerCase()))
         )
       );
     } else {
-      setFilteredData(facture); // Reset the filtered data when search is cleared
+      setFilteredData(facture);
     }
   }, [searchText, facture]);
+
+  const toggleFacturePay = (id) => {
+    dispatch(setFactureEtat(id));
+  };
 
   const columns = [
     {
       title: 'Date Created',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (text) => new Date(text).toLocaleDateString(), // Format the date
+      render: (text) => new Date(text).toLocaleDateString(),
     },
     {
       title: 'Code Facture',
@@ -60,7 +72,7 @@ function FactureLivreurTable({ theme }) {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
-      render: (type) => type.charAt(0).toUpperCase() + type.slice(1), // Capitalize
+      render: (type) => type.charAt(0).toUpperCase() + type.slice(1),
     },
     {
       title: 'Livreur Name',
@@ -78,15 +90,28 @@ function FactureLivreurTable({ theme }) {
       title: 'Total Prix',
       dataIndex: 'totalPrix',
       key: 'totalPrix',
-      render: (prix) => `${prix} DH`, // Format the price
+      render: (prix) => `${prix} DH`,
     },
     {
       title: 'État',
       dataIndex: 'etat',
       key: 'etat',
-      render: (text, record) => (
-        <>{record.etat ? <Tag color="green">Payé</Tag> : <Tag color="red">Non Payé</Tag>}</>
-      ),
+      render: (etat, record) => {
+        // If user is admin, show a toggle switch for any livreur invoice
+        if (record.type === 'livreur' && user?.role === 'admin') {
+          return (
+            <Switch
+              checked={etat}
+              checkedChildren="Payé"
+              unCheckedChildren="Non Payé"
+              onChange={() => toggleFacturePay(record._id)}
+            />
+          );
+        } else {
+          // For non-admin or other conditions, display a Tag
+          return etat ? <Tag color="green">Payé</Tag> : <Tag color="red">Non Payé</Tag>;
+        }
+      },
     },
     {
       title: 'Number of Colis',
@@ -102,41 +127,27 @@ function FactureLivreurTable({ theme }) {
             icon={<FaRegFolderOpen />}
             onClick={() => {
               const url = `/dashboard/facture/detail/livreur/${record.code_facture}`;
-              window.open(url, '_blank'); // Open the URL in a new tab
+              window.open(url, '_blank');
             }}
             type="primary"
           />
-          {user?.role === 'admin' && !record.etat ? (
-            <Button
-              icon={<MdOutlinePayment />}
-              onClick={() => setFacturePay(record?._id)}
-              type="primary"
-            />
-          ) : null}
         </div>
       ),
     },
   ];
 
-  const setFacturePay = (id) => {
-    dispatch(setFactureEtat(id));
-  };
-
   return (
     <div>
-      {/* Search input */}
       <Input
         placeholder="Rechercher ..."
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
         style={{ marginBottom: '20px', width: '300px' }}
       />
-
-      {/* Table with filtered data */}
       <TableDashboard
         id="_id"
         column={columns}
-        data={filteredData} // Pass filtered data to the table
+        data={filteredData}
         theme={theme}
       />
     </div>

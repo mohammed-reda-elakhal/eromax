@@ -199,7 +199,7 @@ const createOrUpdateFacture = async (colisId) => {
             {
               $push: { colis: colis._id },
               $inc: {
-                totalPrix: colis.prix,
+                totalPrix: rest, // Updated to increment by 'rest'
                 totalTarifLivraison: tarif_livraisonClient,
                 totalTarifFragile: tarif_fragile,
                 totalTarifAjouter: tarif_ajouter,
@@ -220,7 +220,7 @@ const createOrUpdateFacture = async (colisId) => {
           store: colis.store._id,
           date: moment(dateLivraison).startOf('day').toDate(),
           colis: [colis._id],
-          totalPrix: colis.prix,
+          totalPrix: rest, // Updated to set 'rest' as totalPrix
           totalTarifLivraison: tarif_livraisonClient,
           totalTarifFragile: tarif_fragile,
           totalTarifAjouter: tarif_ajouter,
@@ -326,16 +326,9 @@ const createOrUpdateFacture = async (colisId) => {
   
         await newFactureLivreur.save();
       }
-  
-      // Optionally create notification for the livreur
-      const notificationLivreur = new NotificationUser({
-        id_livreur: colis.livreur._id,
-        title: `Nouvelle Facture: ${generateCodeFacture(dateLivraison)}`,
-        description: `Vous avez une nouvelle facture pour le colis ${colis.code_suivi}.`,
-      });
-      await notificationLivreur.save();
     }
   };
+
 
 
 
@@ -822,30 +815,69 @@ const setFacturePay = async (req, res) => {
             return res.status(404).json({ message: 'Facture not found' });
         }
 
-        // Check the current state of 'etat' and update if it is false
-        if (facture.etat === false) {
-            facture.etat = true; // Set etat of Facture to true
-            await facture.save(); // Save the updated facture
+        // Check if this is a client facture or livreur facture
+        if (facture.type === 'client') {
+            // If it's a client facture, toggle facture.etat AND update related colis if needed
+            if (facture.etat === false) {
+                // If etat is currently false, set it to true
+                facture.etat = true;
+                await facture.save();
 
-            // Update etat of all related colis to true
-            await Colis.updateMany(
-                { _id: { $in: facture.colis } }, // Match all colis IDs in the facture
-                { etat: true } // Set etat to true for each matching colis
-            );
+                // Mark all related colis as paid (etat: true)
+                await Colis.updateMany(
+                    { _id: { $in: facture.colis } },
+                    { etat: true }
+                );
 
-            return res.status(200).json({
-                message: 'Facture etat updated to true and all related colis marked as paid',
-                facture,
-            });
+                return res.status(200).json({
+                    message: 'Facture est facturée',
+                    facture,
+                });
+            } else {
+                // If etat is currently true, set it to false
+                facture.etat = false;
+                await facture.save();
+
+                // Mark all related colis as not paid (etat: false)
+                await Colis.updateMany(
+                    { _id: { $in: facture.colis } },
+                    { etat: false }
+                );
+
+                return res.status(200).json({
+                    message: 'Facture est non facturée',
+                    facture,
+                });
+            }
+        } else if (facture.type === 'livreur') {
+            // If it's a livreur facture, toggle only the facture.etat
+            if (facture.etat === false) {
+                // If etat is currently false, set it to true
+                facture.etat = true;
+                await facture.save();
+
+                return res.status(200).json({
+                    message: 'Facture est facturée',
+                    facture,
+                });
+            } else {
+                // If etat is currently true, set it to false
+                facture.etat = false;
+                await facture.save();
+
+                return res.status(200).json({
+                    message: 'Facture est non facturée',
+                    facture,
+                });
+            }
         } else {
-            // If etat is already true, return a message indicating no update was needed
-            return res.status(200).json({
-                message: 'Facture etat is already true, no update to colis needed',
-                facture,
+            // If facture type is neither client nor livreur, just return a message
+            return res.status(400).json({
+                message: 'Unknown facture type. Allowed types: client, livreur.',
             });
         }
     } catch (error) {
-        console.error('Error updating facture etat:', error);
+        console.error('Error toggling facture etat:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

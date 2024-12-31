@@ -20,6 +20,7 @@ import { MdPayment } from "react-icons/md";
 import { RiDiscountPercentLine } from "react-icons/ri";
 import { GrObjectGroup } from "react-icons/gr";
 import { CiMenuFries } from 'react-icons/ci';
+import { GiSettingsKnobs } from "react-icons/gi";
 import { IoIosAdd } from 'react-icons/io';
 import { getColisATRToday, getColisExpidée, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
 
@@ -245,13 +246,6 @@ function Menubar() {
             </Menu.SubMenu>
           )
         }
-        {
-          userData.role ==="admin" && (
-            <Menu.Item icon={<RiDiscountPercentLine />}>
-              <Link to="/dashboard/promotion">Promotions</Link>
-            </Menu.Item>
-          )
-        }
 
         {
           userData.role ==="admin" && (
@@ -275,22 +269,20 @@ function Menubar() {
           )
         }
 
-       
-
-        
-        
-        {
-          userData.role ==="admin" && (
-              <Menu.Item icon={<BiNote />}>
-                <Link to="/dashboard/gnotification">Notifications</Link>
-              </Menu.Item>
-          )
-        }
-        {
-          userData.role ==="admin" && (
-            <Menu.Item icon={<FaCity />}>
-              <Link to="/dashboard/ville">Villes</Link>
-            </Menu.Item>
+{
+          userData.role === "admin" &&(
+            <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
+                  <Menu.Item icon={<FaCity />}>
+                    <Link to="/dashboard/ville">Villes</Link>
+                  </Menu.Item>
+                  <Menu.Item icon={<BiNote />}>
+                    <Link to="/dashboard/gnotification">Notifications</Link>
+                  </Menu.Item>
+                  <Menu.Item icon={<RiDiscountPercentLine />}>
+                    <Link to="/dashboard/promotion">Promotions</Link>
+                  </Menu.Item>
+                  
+            </Menu.SubMenu>
           )
         }
         {

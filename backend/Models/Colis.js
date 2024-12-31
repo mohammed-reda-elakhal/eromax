@@ -38,6 +38,9 @@ const ColisSchema = new mongoose.Schema({
     commentaire: {
         type: String,
     },
+    note: {
+        type: String,
+    },
     comment_annule: {
         type: String,
     },
@@ -131,6 +134,9 @@ const ColisSchema = new mongoose.Schema({
         ref: 'Livreur'
     },
     date_programme: {
+        type: Date,
+    },
+    date_reporte: {
         type: Date,
     },
     date_livraisant: {
