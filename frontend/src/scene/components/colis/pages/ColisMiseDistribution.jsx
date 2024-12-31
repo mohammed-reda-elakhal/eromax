@@ -108,16 +108,13 @@ function ColisMiseDistribution({ search }) {
     if (user?.role === "livreur") {
       dispatch(getColisForLivreur(user._id, allowedStatusesGet))
         .then(() => setLoading(false))
-        .catch(() => setLoading(false));
     }
     // Handle other roles if needed
   };
 
   useEffect(() => {
     getDataColis();
-    setData(colisData);
-  }, [colisData]);
-
+  }, [dispatch]);
   const handleChangeStatus = (record) => {
     setSelectedColis(record);
     setStatusType("");
@@ -307,7 +304,7 @@ function ColisMiseDistribution({ search }) {
 
             {/* Table for Colis */}
             <TableDashboard
-              data={data}
+              data={colisData}
               column={columns}
               rowKey="_id"
               theme={theme}

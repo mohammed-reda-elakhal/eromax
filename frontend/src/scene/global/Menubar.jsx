@@ -18,6 +18,7 @@ import { FaUserFriends } from "react-icons/fa"
 import { FaBoxesPacking, FaFileInvoiceDollar, FaRegSquarePlus } from "react-icons/fa6";
 import { MdPayment } from "react-icons/md";
 import { RiDiscountPercentLine } from "react-icons/ri";
+import { GrObjectGroup } from "react-icons/gr";
 import { CiMenuFries } from 'react-icons/ci';
 import { IoIosAdd } from 'react-icons/io';
 import { getColisATRToday, getColisExpidée, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
@@ -150,15 +151,15 @@ function Menubar() {
               <Menu.Item icon={<IoIosAdd />}>
                 <Link to="/dashboard/ajouter/colis/admin/simple">Ajouter Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<FaBoxesPacking />}>
                 <Link to="/dashboard/colis-ar">
                   Colis Pour Ramassage {colis.length > 0 ? <Badge count={colis.length} color={colorBadge} /> : ""}
                 </Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<GrObjectGroup />}>
                 <Link to="/dashboard/colis-r">
                   Colis Ramasse {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
                 </Link>
