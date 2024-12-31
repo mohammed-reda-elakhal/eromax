@@ -1558,7 +1558,7 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
         filter.statut = { $in: statut };
       } else if (typeof statut === 'string' && statut.includes(',')) {
         // If 'statut' is a comma-separated string
-        const statutArray = statut.split(',').map(s => s.trim());
+        const statutArray = statut.split(',').map((s) => s.trim());
         filter.statut = { $in: statutArray };
       } else {
         // If a single 'statut' is provided
@@ -1572,17 +1572,21 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
 
   // Fetch colis based on the constructed filter
   colis = await Colis.find(filter)
-    .populate('team')        // Populate the team details
-    .populate('livreur')     // Populate the livreur details
-    .populate('store')       // Populate the store details
-    .populate('ville')       // Populate the ville (city) details
-    .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order
+    .populate('team')        
+    .populate('livreur')     
+    .populate('store')       
+    .populate('ville')       
+    .sort({ updatedAt: -1 }); 
 
   if (!colis || colis.length === 0) {
     return res.status(404).json({ message: "Colis not found" });
   }
 
-  res.status(200).json(colis);
+  // Respond with the shape { colis: [...], total: number }
+  res.status(200).json({
+    colis,
+    total: colis.length,
+  });
 });
 
 exports.colisProgramme = asyncHandler(async (req, res) => {

@@ -323,20 +323,18 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
           <span>{record.tele}</span>
           <br />
           <span>{record.ville.nom}</span>
-          <br />
-          <span>{record.prix}</span>
         </>
       )
     },
     {
-      title: 'Tarif',
-      dataIndex: 'ville',
-      key: 'tarif',
+      title: 'Prix',
+      dataIndex: 'prix',
+      key: 'prix',
       wtidth: 40,
       render: (text, record) => (
-        <span>
-          {record.ville?.tarif || 'N/A'}
-        </span>
+        <strong style={{fontSize:"18px"}}>
+          {record.prix || 'N/A'} DH
+        </strong>
       ),
     },
     {
