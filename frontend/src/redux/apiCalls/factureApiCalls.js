@@ -80,20 +80,26 @@ export function getFactureDetailsByClient(id_client){
     }
 }
 
+// Action to toggle or set the 'etat' of a facture
 export function setFactureEtat(id) {
     return async (dispatch) => {
-        try {
-            // Send a PUT request to update the 'etat' field for the facture with the given ID
-            const { data } = await request.put(`/api/facture/pay/${id}`);
-
-            // Dispatch the action to update the Redux state with the new etat
-            dispatch(factureActions.setFactureEtat({ id, etat: data.facture.etat }));
-            toast.success(data.message);
-        } catch (error) {
-            toast.error(error.message || "Failed to update facture status");
-        }
+      try {
+        // Make the PUT request to toggle/update the facture etat
+        const { data } = await request.put(`/api/facture/pay/${id}`);
+        // data.facture should contain _id and etat
+        // Dispatch an action that updates the correct facture in the store
+        dispatch(
+          factureActions.setFactureEtat({
+            id: data.facture._id, // Match the '_id' field in the MongoDB response
+            etat: data.facture.etat, // The toggled state (true/false)
+          })
+        );
+        toast.success(data.message);
+      } catch (error) {
+        toast.error(error.message || "Failed to update facture status");
+      }
     };
-}
+  }
 
 
 export function getFactureDetailsByLivreur(id){

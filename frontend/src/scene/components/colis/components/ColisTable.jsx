@@ -1,6 +1,6 @@
-// ColisTable.jsx
+// src/scene/components/colis/components/ColisTable.jsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { 
   Tag,
   Modal, 
@@ -51,28 +51,24 @@ import {
   TbTruckDelivery 
 } from 'react-icons/tb';
 import { 
-  IoSearch 
-} from "react-icons/io5";
-import { 
-  IoMdRefresh 
-} from 'react-icons/io';
-import { 
   CheckCircleOutlined, 
   ClockCircleOutlined, 
   CloseCircleOutlined, 
-  LoadingOutlined,
   InfoCircleOutlined,
+  LoadingOutlined,
 } from '@ant-design/icons';
-import { useReactToPrint } from 'react-to-print';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
 import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md';
-import { BsFillInfoCircleFill } from "react-icons/bs";
+import { useDispatch, useSelector } from 'react-redux';
+import { toast, ToastContainer } from 'react-toastify'; // Import ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
+import { useNavigate } from 'react-router-dom';
+import { debounce } from 'lodash';
+
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import TicketColis from '../../tickets/TicketColis';
-import TableDashboard from '../../../global/TableDashboard';
+import moment from 'moment';
+
+// Import actions
 import { 
   copieColis,
   deleteColis, 
@@ -81,14 +77,28 @@ import {
   updateStatut 
 } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
-import TrackingColis from '../../../global/TrackingColis '; // Fixed Import
-import moment from 'moment';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
-import request from '../../../../utils/request';
 import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
 import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls';
-import { debounce } from 'lodash'; // Import debounce
-import shortid from 'shortid';
+
+import request from '../../../../utils/request';
+
+// Import custom hook
+import useColisFilters from '../hooks/useColisFilters';
+
+// Import global components
+import TicketColis from '../../tickets/TicketColis';
+import TrackingColis from '../../../global/TrackingColis '; // Removed trailing space
+
+// Lazy load components
+const FilterBar = React.lazy(() => import('./FilterBar'));
+const ActionBar = React.lazy(() => import('./ActionBar'));
+const TableList = React.lazy(() => import('./TableList'));
+const InfoModal = React.lazy(() => import('../modals/InfoModal'));
+const ReclamationModal = React.lazy(() => import('../modals/ReclamationModal'));
+const TicketModal = React.lazy(() => import('../modals/TicketModal'));
+const AssignLivreurModal = React.lazy(() => import('../modals/AssignLivreurModal'));
+const StatusModal = React.lazy(() => import('../modals/StatusModal'));
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -155,18 +165,10 @@ const statusBadgeConfig = {
   "Endomagé": { color: 'red', icon: <FaHeart /> },
 };
 
-// Function to generate code_facture
-const generateCodeFacture = (date) => {
-  const formattedDate = moment(date).format('YYYYMMDD');
-  const randomNumber = shortid.generate().slice(0, 6).toUpperCase(); // Shorten and uppercase for readability
-  return `FCTL${formattedDate}-${randomNumber}`;
-};
-
 const ColisTable = ({ theme, darkStyle, search }) => {
   const [state, setState] = useState({
     data: [],
     filteredData: [],
-    searchTerm: '',
     selectedRowKeys: [],
     selectedRows: [],
     selectedColis: null,
@@ -177,43 +179,34 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     reclamationType: 'Type de reclamation',
     subject: '',
     message: '',
-    filters: {
-      store: '',
-      ville: '',
-      statut: '',
-      dateRange: [],
-    },
-    appliedFilters: {
-      store: '',
-      ville: '',
-      statut: '',
-      dateFrom: '',
-      dateTo: '',
-    },
   });
 
-  // Custom loading state for the table
   const [tableLoading, setTableLoading] = useState(false);
 
   // States for Status Modal
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [statusType, setStatusType] = useState("");
   const [form] = Form.useForm();
-  const [messageApi, contextHolder] = message.useMessage();
 
   // States for Assign Livreur Modal
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [assignSelectedLivreur, setAssignSelectedLivreur] = useState(null);
-  const [loadingAssign, setLoadingAssign] = useState(false); // Loading state for assignment
+  const [loadingAssign, setLoadingAssign] = useState(false);
 
   const phoneNumber = '+212630087302';
 
-  const componentRef = useRef();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Extracting Redux states including loading
-  const { livreurList, colisData, user, stores, villes, loading } = useSelector((state) => ({
+  // Extract Redux states
+  const { 
+    livreurList, 
+    colisData, 
+    user, 
+    stores, 
+    villes, 
+    loading 
+  } = useSelector((state) => ({
     colisData: state.colis, // Extract the entire 'colis' slice
     livreurList: state.livreur.livreurList,
     user: state.auth.user,
@@ -221,6 +214,17 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     villes: state.ville.villes || [],
     loading: state.colis.loading, // Extract loading from Redux
   }));
+
+  // Use custom hook for filters
+  const {
+    filters,
+    appliedFilters,
+    queryParams,
+    handleFilterChange,
+    handleDateRangeChange,
+    handleApplyFilters,
+    handleResetFilters,
+  } = useColisFilters();
 
   // Debounced Search
   const debouncedSearch = useRef(
@@ -235,26 +239,27 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     };
   }, [debouncedSearch]);
 
+  // Function to open the Reclamation Modal
+  const openReclamationModal = useCallback((colis) => {
+    setState(prevState => ({
+      ...prevState,
+      selectedColis: colis,
+      reclamationModalVisible: true,
+    }));
+  }, []);
+
   // Fetch data based on user role and appliedFilters
-  const getDataColis = () => {
+  const getDataColis = useCallback(() => {
     setTableLoading(true); // Start loading
-    const { appliedFilters } = state;
-    const queryParams = {
-      statut: appliedFilters.statut,
-      store: appliedFilters.store,
-      ville: appliedFilters.ville,
-      dateFrom: appliedFilters.dateFrom,
-      dateTo: appliedFilters.dateTo,
-    };
-    dispatch(getColis(queryParams));
-  };
+    dispatch(getColis(queryParams)).finally(() => setTableLoading(false));
+  }, [dispatch, queryParams]);
 
   useEffect(() => {
     getDataColis();
     dispatch(getLivreurList());
-    dispatch(getStoreList()); // Ensure stores are fetched
-    dispatch(getAllVilles()); // Ensure villes are fetched
-  }, [dispatch, user?.role, user?.store, user?.id, state.appliedFilters]);
+    dispatch(getStoreList());
+    dispatch(getAllVilles());
+  }, [dispatch, getDataColis]);
 
   // Update state when colisData changes
   useEffect(() => {
@@ -264,10 +269,9 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       filteredData: Array.isArray(colisData.colis) ? colisData.colis : [],
       total: colisData.total || 0,
     }));
-    setTableLoading(false); // End loading
   }, [colisData]);
 
-  // Handle Search Term
+  // Search effect
   useEffect(() => {
     const { searchTerm, data } = state;
 
@@ -290,63 +294,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   const handleSearch = (e) => {
     debouncedSearch(e.target.value);
-  };
-
-  // Handle Filters Change
-  const handleFilterChange = (value, key) => {
-    setState(prevState => ({
-      ...prevState,
-      filters: {
-        ...prevState.filters,
-        [key]: value,
-      },
-    }));
-  };
-
-  const handleDateRangeChange = (dates) => {
-    setState(prevState => ({
-      ...prevState,
-      filters: {
-        ...prevState.filters,
-        dateRange: dates,
-      },
-    }));
-  };
-
-  // Handle Apply Filters
-  const handleApplyFilters = () => {
-    const { store, ville, statut, dateRange } = state.filters;
-    setState(prevState => ({
-      ...prevState,
-      appliedFilters: {
-        store: store || '',
-        ville: ville || '',
-        statut: statut || '',
-        dateFrom: dateRange[0] ? moment(dateRange[0]).startOf('day').toISOString() : '',
-        dateTo: dateRange[1] ? moment(dateRange[1]).endOf('day').toISOString() : '',
-      },
-    }));
-  };
-
-  // Handle Reset Filters
-  const handleResetFilters = () => {
-    setState(prevState => ({
-      ...prevState,
-      filters: {
-        store: '',
-        ville: '',
-        statut: '',
-        dateRange: [],
-      },
-      appliedFilters: {
-        store: '',
-        ville: '',
-        statut: '',
-        dateFrom: '',
-        dateTo: '',
-      },
-      searchTerm: '',
-    }));
   };
 
   // Handle row selection
@@ -401,36 +348,58 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   const handleStatusOk = () => {
     form.validateFields().then(values => {
-      const { status, comment, deliveryTime } = values;
+      const { status, comment, date, note } = values;
 
-      if (status === "Programmée" && !deliveryTime) {
-        message.error("Veuillez sélectionner un temps de livraison pour une livraison programmée.");
-        return;
-      }
-
-      // Dispatch updateStatut
+      // Determine if the status is "Programmée" or "Reporté" to assign the correct date field
+      let dateField = null;
       if (status === "Programmée") {
-        dispatch(updateStatut(state.selectedColis._id, status, comment, deliveryTime));
-      } else {
-        dispatch(updateStatut(state.selectedColis._id, status, comment));
+        dateField = "date_programme";
+      } else if (status === "Reporté") {
+        dateField = "date_reporte";
       }
 
-      const newData = state.data.map(item => {
-        if (item._id === state.selectedColis._id) {
-          return { ...item, statut: status, commentaire: comment, deliveryTime };
-        }
-        return item;
-      });
+      // Prepare the payload for updateStatut
+      const payload = {
+        new_status: status,
+        comment,
+        note,
+      };
 
-      setState(prevState => ({
-        ...prevState,
-        data: newData,
-        filteredData: newData,
-        isStatusModalVisible: false,
-        selectedColis: null,
-      }));
-      form.resetFields();
-      handleStatusCancel();
+      if (dateField && date) {
+        payload[dateField] = date.format('YYYY-MM-DD'); // Format the date as needed
+      }
+
+      // Dispatch updateStatut with the additional fields
+      dispatch(updateStatut(state.selectedColis._id, status, comment, dateField && date ? date.format('YYYY-MM-DD') : null, note))
+        .then(() => {
+          // Optionally, update the local state if not handled by Redux
+          const newData = state.data.map(item => {
+            if (item._id === state.selectedColis._id) {
+              return { 
+                ...item, 
+                statut: status, 
+                commentaire: comment, 
+                [dateField]: date ? date.format('YYYY-MM-DD') : item[dateField],
+                note: note || item.note,
+              };
+            }
+            return item;
+          });
+
+          setState(prevState => ({
+            ...prevState,
+            data: newData,
+            filteredData: newData,
+            isStatusModalVisible: false,
+            selectedColis: null,
+          }));
+          form.resetFields();
+          handleStatusCancel();
+        })
+        .catch(error => {
+          // Handle errors if necessary
+          console.error("Error updating status:", error);
+        });
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
@@ -478,6 +447,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       console.error(err);
     }
   };
+
   // Function to cancel the assignment modal
   const handleCancelAssignLivreur = () => {
     setAssignModalVisible(false);
@@ -485,14 +455,14 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   };
 
   // Compute filteredLivreurs based on the selected colis's villes
-  const selectedColisVilles = state.data
+  const selectedColisVilles = useMemo(() => state.data
     .filter(colis => state.selectedRowKeys.includes(colis.code_suivi))
-    .map(colis => colis.ville.nom);
+    .map(colis => colis.ville.nom), [state.data, state.selectedRowKeys]);
 
-  const uniqueSelectedColisVilles = [...new Set(selectedColisVilles)];
+  const uniqueSelectedColisVilles = useMemo(() => [...new Set(selectedColisVilles)], [selectedColisVilles]);
 
   // **Added Filter to Exclude Livreur with username 'ameex'**
-  const filteredLivreurs = livreurList
+  const filteredLivreurs = useMemo(() => livreurList
     .filter(livreur => livreur.username !== 'ameex') // Exclude 'ameex'
     .reduce(
       (acc, livreur) => {
@@ -506,33 +476,34 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         return acc;
       },
       { preferred: [], other: [] }
-    );
+    )
+  , [livreurList, uniqueSelectedColisVilles]);
 
+  // Define adminColumns
+  const adminColumns = useMemo(() => [
+    {
+      title: 'Business',
+      dataIndex: 'store',
+      key: 'store',
+      render: (text, record) => (
+        <strong>{record.store?.storeName}</strong>
+      ),
+    },
+    {
+      title: 'Livreur',
+      dataIndex: ['livreur', 'nom'],
+      key: 'livreur_nom',
+      render: (text, record) => (
+        <>
+          {record.livreur ? <p>{record.livreur.nom}</p> : ''}
+          {record.expedation_type === 'ameex' ? 'ameex' : ''}
+        </>
+      ),
+    },
+  ], []);
 
-    // Instead of conditional && plus filter(Boolean), do:
-const adminColumns = [
-  {
-    title: 'Business',
-    dataIndex: 'store',
-    key: 'store',
-    render: (text, record) => (
-      <strong>{record.store?.storeName}</strong>
-    ),
-  },
-  {
-    title: 'Livreur',
-    dataIndex: ['livreur', 'nom'],
-    key: 'livreur_nom',
-    render: (text, record) => (
-      <>
-        {record.livreur ? <p>{record.livreur.nom}</p> : ''}
-        {record.expedation_type === 'ameex' ? 'ameex' : ''}
-      </>
-    ),
-  },
-];
   // Define columns for the table
-  const columnsColis = [
+  const columnsColis = useMemo(() => [
     {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
@@ -652,9 +623,8 @@ const adminColumns = [
             <span>{text}</span>
           </>
         )
-        
       }
-       },
+    },
    
     {
       title: 'Nature de Produit',
@@ -671,30 +641,66 @@ const adminColumns = [
       key: 'statut',
       render: (status, record) => {
         const { color, icon } = statusBadgeConfig[status] || { color: 'default', icon: <InfoCircleOutlined /> };
+    
         const content = (
           <span style={{ display: 'flex', alignItems: 'center' }}>
             {icon}
             <span style={{ marginLeft: 8 }}>{status}</span>
           </span>
         );
-
-        return user?.role === 'admin' ? (
-          <Badge 
-            dot 
-            color={color} 
-            style={{ cursor: 'pointer' }}
-          >
-            <span onClick={() => handleStatusClick(record)} style={{cursor:"pointer"}}>{content}</span>
-          </Badge>
-        ) : (
-          <Badge             
-            color={color}
-          >
-            {content}
-          </Badge>
+    
+        // Determine if the status is "Programmée" or "Reporté" to display the corresponding date
+        const isProgrammée = status === "Programmée";
+        const isReporté = status === "Reporté";
+    
+        // Retrieve the corresponding date from the record
+        const dateToDisplay = isProgrammée
+          ? record.date_programme
+          : isReporté
+          ? record.date_reporte
+          : null;
+    
+        // Format the date if it exists
+        const formattedDate = dateToDisplay
+          ? moment(dateToDisplay).format('DD-MM-YYYY')
+          : null;
+    
+        return (
+          <div>
+            {user?.role === 'admin' ? (
+              <Badge dot color={color} style={{ cursor: 'pointer' }}>
+                <span onClick={() => handleStatusClick(record)} style={{ cursor: "pointer" }}>
+                  {content}
+                </span>
+              </Badge>
+            ) : (
+              <Badge color={color}>
+                {content}
+              </Badge>
+            )}
+    
+            {/* Conditionally render the date below the status */}
+            {formattedDate && (
+              <div style={{ marginTop: '4px', marginLeft: '28px' }}>
+                <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+                  {formattedDate}
+                </Typography.Text>
+              </div>
+            )}
+    
+            {/* If status is 'Livrée' and record.etat is true, show 'Facturée' */}
+            {status === "Livrée" && record.etat && (
+              <div style={{ marginTop: '4px', marginLeft: '28px' }}>
+                <Typography.Text type="secondary" style={{ fontSize: '12px', color: 'blue' }}>
+                  Facturée
+                </Typography.Text>
+              </div>
+            )}
+          </div>
         );
       },
     },
+    
    
     {
       title: 'Date',
@@ -706,13 +712,12 @@ const adminColumns = [
           <>
             <strong>Créer en : </strong><span>{formatDate(record?.createdAt)}</span>
             <br />
-            <strong>Modifier en : </strong><span>{formatDate(record?.updatedAt)}</span>          </>
+            <strong>Modifier en : </strong><span>{formatDate(record?.updatedAt)}</span>          
+          </>
         )
-        
-      }
-       },
+      },
+    },
    
-    
     {
       title: 'Options',
       render: (text, record) => (
@@ -785,31 +790,31 @@ const adminColumns = [
           {user?.role === 'admin' && (
             <>
               <Tooltip title="Copie de colis">
-              <Popconfirm
-                title="Êtes-vous sûr de vouloir copier ce colis?"
-                description={`Code Suivi: ${record.code_suivi}`}
-                okText="Oui"
-                okType="warning"
-                cancelText="Non"
-                onConfirm={() => {
-                  dispatch(copieColis(record._id));
-                  message.success(`Colis avec le code ${record.code_suivi} a été cloné avec succès.`);
-                }}
-                onCancel={() => {
-                  // Optional: Handle cancellation if needed
-                  message.info('Copie annulée.');
-                }}
-              >
-                <Button 
-                  type="primary" 
-                  style={{
-                    backgroundColor: ' #5CB338',
-                    borderColor: ' #5CB338',
-                    color: '#fff'
+                <Popconfirm
+                  title="Êtes-vous sûr de vouloir copier ce colis?"
+                  description={`Code Suivi: ${record.code_suivi}`}
+                  okText="Oui"
+                  okType="warning"
+                  cancelText="Non"
+                  onConfirm={() => {
+                    dispatch(copieColis(record._id));
+                    message.success(`Colis avec le code ${record.code_suivi} a été cloné avec succès.`);
                   }}
-                  icon={<FaClone />}
-                />
-              </Popconfirm>
+                  onCancel={() => {
+                    // Optional: Handle cancellation if needed
+                    message.info('Copie annulée.');
+                  }}
+                >
+                  <Button 
+                    type="primary" 
+                    style={{
+                      backgroundColor: ' #5CB338',
+                      borderColor: ' #5CB338',
+                      color: '#fff'
+                    }}
+                    icon={<FaClone />}
+                  />
+                </Popconfirm>
               </Tooltip>
               <Tooltip title="Colis est déjà payant">
                 <Button 
@@ -876,19 +881,11 @@ const adminColumns = [
         </div>
       ),
     }
-  ];
+  ], [user, dispatch, navigate, handleInfo, handleTicket, openReclamationModal, handleStatusClick, handleAssignLivreur, state.selectedRowKeys]);
 
-  const columns = columnsColis;
+  const columns = useMemo(() => columnsColis, [columnsColis]);
 
-  const openReclamationModal = (colis) => {
-    setState(prevState => ({
-      ...prevState,
-      selectedColis: colis,
-      reclamationModalVisible: true,
-    }));
-  };
-
-  const handleCreateReclamation = () => {
+  const handleCreateReclamation = useCallback(() => {
     const { subject, message, selectedColis } = state;
 
     if (!subject || !message || !selectedColis) {
@@ -910,31 +907,26 @@ const adminColumns = [
       subject: '',
       message: '',
     }));
-  };
+  }, [state, dispatch, user.store]);
 
-  const handleCloseTicketModal = () => {
+  const handleCloseTicketModal = useCallback(() => {
     setState(prevState => ({
       ...prevState,
       ticketModalVisible: false,
       selectedColis: null,
     }));
-  };
+  }, []);
 
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `Ticket-${state.selectedColis?.code_suivi}`,
-  });
-
-  const handleBatchTickets = () => {
+  const handleBatchTickets = useCallback(() => {
     if (state.selectedRows.length === 0) {
       toast.error("Veuillez sélectionner au moins un colis.");
       return;
     }
     navigate('/dashboard/tickets', { state: { selectedColis: state.selectedRows } });
-  };
+  }, [state.selectedRows, navigate]);
 
   // Export to Excel Function
-  const exportToExcel = () => {
+  const exportToExcel = useCallback(() => {
     const { selectedRows } = state;
 
     if (selectedRows.length === 0) {
@@ -967,6 +959,9 @@ const adminColumns = [
       "Livreur Nom": colis.livreur?.nom || 'N/A',
       "Livreur Téléphone": colis.livreur?.tele || 'N/A',
       "Statut": colis.statut,
+      "Date Programmée": colis.date_programme ? formatDate(colis.date_programme) : 'N/A',
+      "Date Reportée": colis.date_reporte ? formatDate(colis.date_reporte) : 'N/A',
+      "Note": colis.note || 'N/A',
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -975,11 +970,13 @@ const adminColumns = [
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const data = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(data, `Selected_Colis_${moment().format('YYYYMMDD_HHmmss')}.xlsx`);
-  };
+  }, [state.selectedRows]);
 
   return (
     <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`} style={{width:"100%", overflowX: 'auto'}}>
-      {contextHolder}
+      {/* React Toastify context holder */}
+      <ToastContainer /> {/* Added ToastContainer */}
+
       {/* Spinner for Table Loading */}
       {tableLoading && (
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
@@ -987,535 +984,118 @@ const adminColumns = [
         </div>
       )}
       
-      {/* Filter Bar */}
-      <div className="filter_bar" style={{ margin: '16px 0px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        {/* Store Selection */}
-        {user.role === 'admin' && (
-          <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
-            <label htmlFor="store">
-              Magasin
-            </label>
-            <Select
-              showSearch
-              placeholder="Sélectionner un magasin"
-              value={state.filters.store || undefined}
-              onChange={(value) => handleFilterChange(value, 'store')}
-              className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-              style={{ width: '100%' }}
-              optionFilterProp="label" // Use 'label' for filtering
-              filterOption={(input, option) =>
-                option.label.toLowerCase().includes(input.toLowerCase())
-              }
-              allowClear
-            >
-              {stores.map((store) => (
-                <Option key={store._id} value={store._id} label={store.storeName}>
-                  <Avatar src={store.image?.url} style={{ marginRight: '8px' }} />
-                  {store.storeName}
-                </Option>
-              ))}
-            </Select>
-          </div>
-        )}
+      {/* Suspense for lazy-loaded components */}
+      <Suspense fallback={<div style={{ textAlign: 'center', padding: '20px 0' }}><Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} /></div>}>
+        {/* Filter Bar */}
+        <FilterBar
+          filters={filters}
+          handleFilterChange={handleFilterChange}
+          handleDateRangeChange={handleDateRangeChange}
+          handleApplyFilters={handleApplyFilters}
+          handleResetFilters={handleResetFilters}
+          stores={stores}
+          villes={villes}
+          allowedStatuses={allowedStatuses}
+          user={user}
+          theme={theme}
+        />
 
-        {/* Ville Selection */}
-        <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
-          <label htmlFor="ville">
-            Ville
-          </label>
-          <Select
-            showSearch
-            placeholder="Rechercher une ville"
-            value={state.filters.ville || undefined}
-            onChange={(value) => handleFilterChange(value, 'ville')}
-            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-            style={{ width: '100%' }}
-            optionFilterProp="label"
-            filterOption={(input, option) =>
-              option.label.toLowerCase().includes(input.toLowerCase())
-            }
-            allowClear
-          >
-            {villes.map((ville) => (
-              <Option key={ville._id} value={ville._id} label={ville.nom}>
-                {ville.nom}
-              </Option>
-            ))}
-          </Select>
-        </div>
+        {/* Action Bar */}
+        <ActionBar
+          onRefresh={getDataColis}
+          onBatchTickets={handleBatchTickets}
+          onExport={exportToExcel}
+          selectedRowKeys={state.selectedRowKeys}
+          onSearch={handleSearch}
+          searchValue={state.searchTerm}
+        />
 
-        {/* Statut Selection */}
-        <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
-          <label htmlFor="statut">
-            Statut
-          </label>
-          <Select
-            showSearch
-            placeholder="Sélectionner un statut"
-            value={state.filters.statut || undefined}
-            onChange={(value) => handleFilterChange(value, 'statut')}
-            className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
-            style={{ width: '100%' }}
-            optionFilterProp="label"
-            filterOption={(input, option) =>
-              option.label.toLowerCase().includes(input.toLowerCase())
-            }
-            allowClear
-          >
-            {allowedStatuses.map((status, index) => (
-              <Option key={index} value={status} label={status}>
-                {status}
-              </Option>
-            ))}
-          </Select>
-        </div>
+        {/* Table List */}
+        <TableList
+          columns={columns}
+          data={state.filteredData}
+          loading={tableLoading}
+          rowSelection={{
+            selectedRowKeys: state.selectedRowKeys,
+            onChange: handleRowSelection,
+          }}
+          theme={theme}
+        />
 
-        {/* Date Range Picker */}
-        <div className="colis-form-input" style={{ flex: '1 1 300px' }}>
-          <label htmlFor="dateRange">
-            Date de Création
-          </label>
-          <RangePicker
-            value={state.filters.dateRange}
-            onChange={handleDateRangeChange}
-            style={{ width: '100%' }}
-            format="DD/MM/YYYY"
-            allowClear
+        {/* Info Modal */}
+        <InfoModal
+          visible={state.infoModalVisible}
+          onClose={closeInfoModal}
+          selectedColis={state.selectedColis}
+          statusBadgeConfig={statusBadgeConfig}
+          theme={theme}
+          formatDate={formatDate}
+        />
+
+        {/* Reclamation Modal */}
+        <ReclamationModal
+          visible={state.reclamationModalVisible}
+          onCreate={handleCreateReclamation}
+          onCancel={() => setState(prevState => ({ ...prevState, reclamationModalVisible: false }))}
+          subject={state.subject}
+          setSubject={(value) => setState(prevState => ({ ...prevState, subject: value }))}
+          message={state.message}
+          setMessage={(value) => setState(prevState => ({ ...prevState, message: value }))}
+          theme={theme}
+        />
+
+        {/* Ticket Modal */}
+        <TicketModal
+          visible={state.ticketModalVisible}
+          onClose={handleCloseTicketModal}
+          selectedColis={state.selectedColis}
+          theme={theme}
+        />
+
+        {/* Tracking Drawer */}
+        <Drawer
+          title="Suivi du Colis"
+          placement="right"
+          onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))}
+          visible={state.drawerOpen}
+          width={600}
+        >
+          <TrackingColis 
+            theme={theme} 
+            codeSuivi={state.selectedColis?.code_suivi} 
           />
-        </div>
+        </Drawer>
 
-        {/* Apply Filters Button */}
-        <div className="colis-form-input" style={{ flex: '1 1 150px', alignSelf: 'end' }}>
-          <Button 
-            type="primary" 
-            onClick={handleApplyFilters} 
-            style={{ width: '100%' }}
-            icon={<FaSearch />}
-          >
-            Filter
-          </Button>
-        </div>
-        
-        {/* Reset Filters Button */}
-        <div className="colis-form-input" style={{ flex: '1 1 100px', alignSelf: 'end' }}>
-          <Button 
-            type="default" 
-            onClick={handleResetFilters} 
-            style={{ width: '100%' }}
-          >
-            Réinitialiser
-          </Button>
-        </div>
-      </div>
-
-      {/* Action Bar */}
-      <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <Button 
-          icon={<IoMdRefresh />} 
-          type="primary" 
-          onClick={getDataColis} 
-          style={{ marginRight: '8px' }}
-        >
-          Rafraîchir
-        </Button>
-        <Button 
-          icon={<FaTicketAlt />} 
-          type="primary" 
-          onClick={handleBatchTickets}
-        >
-          Tickets
-        </Button>
-        <Button 
-          icon={<FaDownload />} 
-          type="default" 
-          onClick={exportToExcel}
-          disabled={state.selectedRowKeys.length === 0}
-        >
-          Exporter en Excel
-        </Button>
-      </div>
-
-      {/* Search Input */}
-      <Input
-        placeholder="Recherche ..."
-        onChange={handleSearch}
-        style={{ marginBottom: '16px', width: "300px" }}
-        size='large'
-        suffix={<IoSearch />}
-      />
-
-      {/* Main Table with Loading */}
-      <TableDashboard
-        column={columns}
-        data={state.filteredData} // Pass the filtered data
-        id="_id"
-        theme={theme}
-        rowSelection={{
-          selectedRowKeys: state.selectedRowKeys,
-          onChange: handleRowSelection,
-        }}
-        loading={tableLoading} // Use the custom loading state
-        scroll={{ x: 'max-content' }} // Enable horizontal scroll if needed
-      />
-
-      {/* Info Modal */}
-      <Modal
-        title="Détails du Colis"
-        visible={state.infoModalVisible}
-        onCancel={closeInfoModal}
-        footer={null}
-        className={theme === 'dark' ? 'dark-mode' : ''}
-        width={'90%'}
-      >
-        {state.selectedColis && (
-          <Descriptions
-            bordered
-            layout="vertical"
-            className="responsive-descriptions"
-          >
-            <Descriptions.Item label="Code Suivi">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.code_suivi}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Destinataire">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.nom}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Téléphone">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.tele}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Adresse">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.adresse}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Ville">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.ville?.nom || 'N/A'}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Business">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.store?.storeName || 'N/A'}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Nature de Produit">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.nature_produit || 'N/A'}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Prix (DH)">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.prix}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Statut">
-              <Col xs={24} sm={12} md={8}>
-                <Badge dot color={statusBadgeConfig[state.selectedColis.statut]?.color || 'default'}>
-                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                    {statusBadgeConfig[state.selectedColis.statut]?.icon || <InfoCircleOutlined />}
-                    <span style={{ marginLeft: 8 }}>{state.selectedColis.statut}</span>
-                  </span>
-                </Badge>
-              </Col>
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Commentaire">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.commentaire || 'N/A'}
-              </Col>
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Date de Création">
-              <Col xs={24} sm={12} md={8}>
-                {formatDate(state.selectedColis.createdAt)}
-              </Col>
-            </Descriptions.Item>
-            <Descriptions.Item label="Dernière mise à jour">
-              <Col xs={24} sm={12} md={8}>
-                {formatDate(state.selectedColis.updatedAt)}
-              </Col>
-            </Descriptions.Item>
-            {/* New Data Added */}
-            <Descriptions.Item label="État">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.etat ? 
-                  <Badge 
-                    dot 
-                    color="green" 
-                    style={{ marginRight: '8px' }}
-                  />
-                  : 
-                  <Badge 
-                    dot 
-                    color="red" 
-                    style={{ marginRight: '8px' }}
-                  />
-                }
-                <Text>{state.selectedColis.etat ? "Payée" : "Non Payée"}</Text>
-              </Col>
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Prés payant">
-              <Col xs={24} sm={12} md={8}>
-                {state.selectedColis.pret_payant ? 
-                  <Badge 
-                    dot 
-                    color="green" 
-                    style={{ marginRight: '8px' }}
-                  />
-                  : 
-                  <Badge 
-                    dot 
-                    color="red" 
-                    style={{ marginRight: '8px' }}
-                  />
-                }
-                <Text>{state.selectedColis.pret_payant ? "Payée" : "Non Payée"}</Text>
-              </Col>
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Autres Options">
-              <Col xs={24} sm={12} md={8}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  <Badge dot color={state.selectedColis.ouvrir ? 'green' : 'red'} />
-                  <Text>Ouvrir: {state.selectedColis.ouvrir ? 'Oui' : 'Non'}</Text>
-                  <Badge dot color={state.selectedColis.is_simple ? 'green' : 'red'} />
-                  <Text>Is Simple: {state.selectedColis.is_simple ? 'Oui' : 'Non'}</Text>
-                  <Badge dot color={state.selectedColis.is_remplace ? 'green' : 'red'} />
-                  <Text>Is Remplace: {state.selectedColis.is_remplace ? 'Oui' : 'Non'}</Text>
-                  <Badge dot color={state.selectedColis.is_fragile ? 'green' : 'red'} />
-                  <Text>Is Fragile: {state.selectedColis.is_fragile ? 'Oui' : 'Non'}</Text>
-                </div>
-              </Col>
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Modal>
-
-      {/* Reclamation Modal */}
-      <Modal 
-        title="Reclamation" 
-        visible={state.reclamationModalVisible} 
-        onOk={handleCreateReclamation} 
-        className={theme === 'dark' ? 'dark-mode' : ''}
-        onCancel={() => setState(prevState => ({ ...prevState, reclamationModalVisible: false }))}
-      >
-        <Input 
-          placeholder="Sujet" 
-          value={state.subject} 
-          onChange={(e) => setState(prevState => ({ ...prevState, subject: e.target.value }))} 
-          style={{ marginBottom: '10px' }} 
+        {/* Status Modal */}
+        <StatusModal
+          visible={isStatusModalVisible}
+          onOk={handleStatusOk}
+          onCancel={handleStatusCancel}
+          form={form}
+          selectedColis={state.selectedColis}
+          allowedStatuses={allowedStatuses}
+          statusBadgeConfig={statusBadgeConfig}
+          statusComments={statusComments}
+          statusType={statusType}
+          setStatusType={setStatusType}
+          theme={theme}
         />
-        <Input.TextArea 
-          placeholder="Message/Description" 
-          value={state.message} 
-          onChange={(e) => setState(prevState => ({ ...prevState, message: e.target.value }))} 
-          rows={4} 
+
+        {/* Assign Livreur Modal */}
+        <AssignLivreurModal
+          visible={assignModalVisible}
+          onAssign={handleConfirmAssignLivreur}
+          onCancel={handleCancelAssignLivreur}
+          filteredLivreurs={filteredLivreurs}
+          assignSelectedLivreur={assignSelectedLivreur}
+          selectAssignLivreur={selectAssignLivreur}
+          loadingAssign={loadingAssign}
+          theme={theme}
+          toast={toast}
         />
-      </Modal>
-
-      {/* Ticket Modal */}
-      <Modal 
-        title="Ticket Colis" 
-        visible={state.ticketModalVisible} 
-        onCancel={handleCloseTicketModal} 
-        footer={null} 
-        width={600}
-        className={theme === 'dark' ? 'dark-mode' : ''}
-      >
-        {state.selectedColis && (
-          <div ref={componentRef}>
-            <TicketColis colis={state.selectedColis} showDownloadButton={true} />
-          </div>
-        )}
-      </Modal>
-
-      {/* Tracking Drawer */}
-      <Drawer 
-        title="Les données de suivi du colis" 
-        onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))} 
-        visible={state.drawerOpen}
-        className={theme === 'dark' ? 'dark-mode' : ''}
-      >
-        {state.selectedColis && (
-          <TrackingColis theme={theme} codeSuivi={state.selectedColis.code_suivi} />
-        )}
-      </Drawer>
-
-      {/* Change Status Modal */}
-      <Modal
-        title={`Changer le Statut de ${state.selectedColis ? state.selectedColis.code_suivi : ''}`}
-        visible={isStatusModalVisible}
-        onOk={handleStatusOk}
-        onCancel={handleStatusCancel}
-        okText="Confirmer"
-        cancelText="Annuler"
-        className={theme === 'dark' ? 'dark-mode' : ''}
-      >
-        <Form form={form} layout="vertical" name="form_status">
-          <Form.Item
-            name="status"
-            label="Nouveau Statut"
-            rules={[{ required: true, message: 'Veuillez sélectionner un statut!' }]}
-          >
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {allowedStatuses.map((status, index) => (
-                <Badge 
-                  key={index} 
-                  dot 
-                  color={statusBadgeConfig[status]?.color || 'default'}
-                >
-                  <Tag.CheckableTag
-                    checked={statusType === status}
-                    onChange={() => {
-                      form.setFieldsValue({ status, comment: undefined, deliveryTime: undefined });
-                      setStatusType(status);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {statusBadgeConfig[status]?.icon} {status}
-                  </Tag.CheckableTag>
-                </Badge>
-              ))}
-            </div>
-          </Form.Item>
-
-          {statusType && (statusComments[statusType] ? (
-            <Form.Item
-              name="comment"
-              label="Commentaire"
-              rules={[{ required: true, message: 'Veuillez sélectionner un commentaire!' }]}
-            >
-              <Select placeholder="Sélectionner un commentaire">
-                {statusComments[statusType].map((comment, idx) => (
-                  <Option key={idx} value={comment}>
-                    {comment}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          ) : (
-            <Form.Item
-              name="comment"
-              label="Commentaire"
-            >
-              <Input.TextArea placeholder="Ajouter un commentaire (facultatif)" rows={3} />
-            </Form.Item>
-          ))}
-
-          {statusType === "Programmée" && (
-            <Form.Item
-              name="deliveryTime"
-              label="Temps de Livraison"
-              rules={[{ required: true, message: 'Veuillez sélectionner un temps de livraison!' }]}
-            >
-              <Select placeholder="Sélectionner un temps de livraison">
-                <Option value="1 jour">Demain</Option>
-                <Option value="2 jours">Dans 2 jours</Option>
-                <Option value="3 jours">Dans 3 jours</Option>
-                <Option value="4 jours">Dans 4 jours</Option>
-              </Select>
-            </Form.Item>
-          )}
-        </Form>
-      </Modal>
-
-      {/* Assign Livreur Modal */}
-      <Modal
-        title={`Affecter un Livreur aux Colis Sélectionnés`}
-        visible={assignModalVisible}
-        onOk={handleConfirmAssignLivreur}
-        onCancel={handleCancelAssignLivreur}
-        okText="Affecter"
-        cancelText="Annuler"
-        width={"80vw"}
-        confirmLoading={loadingAssign}
-      >
-        <div className='livreur_list_modal'>
-          <h3>Livreurs Préférés</h3>
-          <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
-            {filteredLivreurs.preferred.length ? filteredLivreurs.preferred.map(person => (
-              <Card
-                key={person._id}
-                hoverable
-                style={{
-                  width: 240,
-                  margin: '10px',
-                  border:
-                    assignSelectedLivreur && assignSelectedLivreur._id === person._id
-                      ? '2px solid #1890ff'
-                      : '1px solid #f0f0f0',
-                }}
-                onClick={() => selectAssignLivreur(person)}
-              >
-                <Card.Meta
-                  title={<div>{person.username}</div>}
-                  description={
-                    <>
-                      {person.tele}
-                      <Button
-                        icon={<BsFillInfoCircleFill />}
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering the card's onClick
-                          toast.info(`Villes: ${person.villes.join(', ')}`);
-                        }}
-                        type='primary'
-                        style={{ float: 'right' }}
-                      />
-                    </>
-                  }
-                />
-              </Card>
-            )) : <p>Aucun livreur préféré disponible</p>}
-          </div>
-        </div>
-        <Divider />
-        <div className='livreur_list_modal'>
-          <h3>Autres Livreurs</h3>
-          <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
-            {filteredLivreurs.other.length ? filteredLivreurs.other.map(person => (
-              <Card
-                key={person._id}
-                hoverable
-                style={{
-                  width: 240,
-                  margin: '10px',
-                  border:
-                    assignSelectedLivreur && assignSelectedLivreur._id === person._id
-                      ? '2px solid #1890ff'
-                      : '1px solid #f0f0f0',
-                }}
-                onClick={() => selectAssignLivreur(person)}
-              >
-                <Card.Meta
-                  title={<div>{person.username}</div>}
-                  description={
-                    <>
-                      {person.tele}
-                      <Button
-                        icon={<BsFillInfoCircleFill />}
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering the card's onClick
-                          toast.info(`Villes: ${person.villes.join(', ')}`);
-                        }}
-                        type='primary'
-                        style={{ float: 'right' }}
-                      />
-                    </>
-                  }
-                />
-              </Card>
-            )) : <p>Aucun autre livreur disponible</p>}
-          </div>
-        </div>
-      </Modal>
+      </Suspense>
     </div>
   );
 };
 
-export default ColisTable;
+export default React.memo(ColisTable);

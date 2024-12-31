@@ -30,7 +30,8 @@ Endomagé
 
 const updateSuiviColis = asyncHandler(async (req, res) => {
   const id_colis = req.params.id;
-  const { new_status, comment } = req.body;
+  const { new_status, comment, date_programme, date_reporte, note } = req.body;
+
   const validStatuses = [
     "Nouveau Colis",
     "attente de ramassage",
@@ -64,8 +65,17 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   if (!id_colis || !new_status) {
     return res.status(400).json({ message: "id_colis and new_status are required" });
   }
+
   if (!validStatuses.includes(new_status)) {
     return res.status(400).json({ message: "Invalid status value" });
+  }
+
+  // For "Programmée" or "Reporté", ensure date and note are provided
+  if (["Programmée", "Reporté"].includes(new_status)) {
+    if ((!date_programme && new_status === "Programmée") || (!date_reporte && new_status === "Reporté")) {
+      return res.status(400).json({ message: "Date is required for the selected status" });
+    }
+    // Note is optional, but you can enforce it if needed
   }
 
   // Find the Colis
@@ -81,8 +91,20 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     colis.comment_refuse = comment;
   }
 
-  if(new_status ==="Livrée"){
+  if (new_status === "Livrée") {
     colis.date_livraisant = new Date();
+  }
+
+  // Handle "Programmée" and "Reporté" statuses
+  if (new_status === "Programmée") {
+    colis.date_programme = new Date(date_programme);
+  } else if (new_status === "Reporté") {
+    colis.date_reporte = new Date(date_reporte);
+  }
+
+  // Update the note if provided
+  if (note) {
+    colis.note = note;
   }
 
   // Update the Colis status
@@ -120,7 +142,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
   if (["Ramassée", "Livrée"].includes(new_status)) {
     const notificationTitle = new_status === "Ramassée" ? 'Colis Ramassée' : 'Colis Livrée';
     const notificationDescription = `Votre colis avec le code de suivi ${colis.code_suivi} a été ${new_status.toLowerCase()} avec succès.`;
-    
+
     const notification = new NotificationUser({
       id_store: colis.store,
       title: notificationTitle,
@@ -138,29 +160,35 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
       status_updates: [{ status: new_status, date: new Date() }]
     });
   } else {
-    suivi_colis.status_updates.push({ status: new_status, date: new Date() });
+    const statusUpdate = { status: new_status, date: new Date() };
+    if (["Programmée", "Reporté"].includes(new_status)) {
+      statusUpdate.date_programme = colis.date_programme;
+      statusUpdate.date_reporte = colis.date_reporte;
+      statusUpdate.note = colis.note;
+    }
+    suivi_colis.status_updates.push(statusUpdate);
   }
-
 
   // **Invoke the Facture Creation/Update Function**
   if (["Livrée", "Annulée"].includes(new_status)) {
     try {
-        await createOrUpdateFacture(colis._id);
+      await createOrUpdateFacture(colis._id);
     } catch (factureError) {
-        console.error(`Error creating/updating facture for colis ${id_colis}:`, factureError);
-        // Optionally, handle the error (e.g., send a notification to admin)
-        // Depending on requirements, you might want to rollback the colis status update
+      console.error(`Error creating/updating facture for colis ${id_colis}:`, factureError);
+      // Optionally, handle the error (e.g., send a notification to admin)
+      // Depending on requirements, you might want to rollback the colis status update
     }
-}
+  }
 
   await suivi_colis.save();
 
   res.status(200).json({
-    message: "Status, comment, and date updated successfully",
+    message: "Status, comment, date, and note updated successfully",
     colis,
     suivi_colis,
   });
 });
+
 
 
 
@@ -545,17 +573,6 @@ const syncColisStatusWithAmeex = asyncHandler(async (req, res) => {
   }
 });
 
-cron.schedule('23 16,14,20 * * *', async () => {
-  console.log('Starting scheduled colis status synchronization with Ameex');
-  try {
-    await syncColisStatusWithAmeexCore();
-    console.log('Scheduled colis status synchronization completed successfully');
-  } catch (error) {
-    console.error('Scheduled colis status synchronization failed:', error.message);
-  }
-}, {
-  timezone: 'Africa/Casablanca' // Set your timezone accordingly
-});
 
 module.exports = {
   updateMultipleSuiviColis,
