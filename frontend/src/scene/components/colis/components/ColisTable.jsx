@@ -1,72 +1,58 @@
-// src/scene/components/colis/components/ColisTable.jsx
+// components/ColisTable/components/ColisTable.jsx
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { 
-  Tag,
-  Modal, 
   Button, 
-  Input, 
-  Drawer, 
-  Typography, 
-  Badge, 
-  Descriptions, 
-  Divider, 
-  Tooltip, 
-  Form, 
   Select, 
+  DatePicker, 
+  Avatar, 
+  Badge, 
+  Tooltip, 
+  Popconfirm, 
+  Typography, 
+  Spin, 
+  Form, 
   message, 
-  Spin,
-  Col,
-  Popconfirm,
-  Card,
-  Avatar,
-  DatePicker,
+  Drawer, 
+  Divider,
+  Modal,
+  Input, // Import Input for search and facture lookup
 } from 'antd';
+import { FcDocument } from "react-icons/fc";
 import { 
   FaWhatsapp, 
   FaPrint, 
   FaPenFancy, 
-  FaTicketAlt, 
-  FaDownload, 
+  FaClone, 
   FaInfoCircle, 
-  FaClone,
-  FaSearch,
+  FaCheck, 
+  FaTruck,
   FaQuestionCircle,
   FaSms,
   FaPlane,
   FaPhoneSlash,
   FaMapMarkerAlt,
   FaHeart,
-  FaExclamationCircle,
-  FaBrokenImage,
-  FaTruck,
-  FaClock,
-  FaCheck,
+  FaClock
 } from 'react-icons/fa';
-import { 
-  FiRefreshCcw 
-} from "react-icons/fi";
-import { 
-  TbPhoneCall, 
-  TbTruckDelivery 
-} from 'react-icons/tb';
+import { TbPhoneCall, TbTruckDelivery } from 'react-icons/tb';
 import { 
   CheckCircleOutlined, 
   ClockCircleOutlined, 
   CloseCircleOutlined, 
-  InfoCircleOutlined,
-  LoadingOutlined,
+  InfoCircleOutlined, 
+  LoadingOutlined 
 } from '@ant-design/icons';
 import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast, ToastContainer } from 'react-toastify'; // Import ToastContainer
-import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { debounce } from 'lodash';
-
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import moment from 'moment';
+import request from '../../../../utils/request';
 
 // Import actions
 import { 
@@ -80,8 +66,8 @@ import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCall
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
 import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls';
-
-import request from '../../../../utils/request';
+import { getFactureByColis } from '../../../../redux/apiCalls/factureApiCalls'; // Import the new action
+import { factureActions } from '../../../../redux/slices/factureSlice'; // Ensure factureActions includes setFactureDetail
 
 // Import custom hook
 import useColisFilters from '../hooks/useColisFilters';
@@ -89,8 +75,9 @@ import useColisFilters from '../hooks/useColisFilters';
 // Import global components
 import TicketColis from '../../tickets/TicketColis';
 import TrackingColis from '../../../global/TrackingColis '; // Removed trailing space
+import { IoDocumentAttachSharp } from 'react-icons/io5';
 
-// Lazy load components
+// Lazy load components for better performance
 const FilterBar = React.lazy(() => import('./FilterBar'));
 const ActionBar = React.lazy(() => import('./ActionBar'));
 const TableList = React.lazy(() => import('./TableList'));
@@ -103,8 +90,9 @@ const StatusModal = React.lazy(() => import('../modals/StatusModal'));
 const { Text } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+const { Search } = Input; // Destructure Search if needed
 
-// Define allowed statuses and their comments
+// Define allowed statuses
 const allowedStatuses = [
   "Ramassée",
   "Mise en Distribution",
@@ -128,6 +116,7 @@ const allowedStatuses = [
   "Endomagé",
 ];
 
+// Define status comments
 const statusComments = {
   "Annulée": [
     "Client a annulé la commande",
@@ -165,7 +154,7 @@ const statusBadgeConfig = {
   "Endomagé": { color: 'red', icon: <FaHeart /> },
 };
 
-const ColisTable = ({ theme, darkStyle, search }) => {
+const ColisTable = ({ theme }) => {
   const [state, setState] = useState({
     data: [],
     filteredData: [],
@@ -179,7 +168,11 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     reclamationType: 'Type de reclamation',
     subject: '',
     message: '',
+    factureModalVisible: false, // New state for facture modal visibility
+    searchColisId: '', // State to store the searched colis ID
   });
+
+  const { detailFacture } = useSelector((state) => state.facture);
 
   const [tableLoading, setTableLoading] = useState(false);
 
@@ -208,7 +201,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     loading 
   } = useSelector((state) => ({
     colisData: state.colis, // Extract the entire 'colis' slice
-    livreurList: state.livreur.livreurList,
+    livreurList: state.livreur.livreurList || [], // Ensure it's an array
     user: state.auth.user,
     stores: state.store.stores || [],
     villes: state.ville.villes || [],
@@ -256,7 +249,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   useEffect(() => {
     getDataColis();
-    dispatch(getLivreurList());
+    dispatch(getLivreurList()); // Ensure livreurList is fetched
     dispatch(getStoreList());
     dispatch(getAllVilles());
   }, [dispatch, getDataColis]);
@@ -332,6 +325,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
@@ -399,6 +393,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         .catch(error => {
           // Handle errors if necessary
           console.error("Error updating status:", error);
+          toast.error("Erreur lors de la mise à jour du statut.");
         });
     }).catch(info => {
       console.log('Validation Failed:', info);
@@ -413,6 +408,10 @@ const ColisTable = ({ theme, darkStyle, search }) => {
 
   // Function to open the Assign Livreur modal
   const handleAssignLivreur = () => {
+    if (state.selectedRowKeys.length === 0) {
+      message.error("Veuillez sélectionner au moins un colis pour assigner un livreur.");
+      return;
+    }
     setAssignSelectedLivreur(null);
     setAssignModalVisible(true);
   };
@@ -437,7 +436,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         livreurId: assignSelectedLivreur._id
       });
       setLoadingAssign(false);
-      toast.success(response.data.message);
+      toast.success(response.data.message || "Livreur assigné avec succès.");
       handleCancelAssignLivreur();
       // Refresh data after assignment
       getDataColis();
@@ -454,30 +453,39 @@ const ColisTable = ({ theme, darkStyle, search }) => {
     setAssignSelectedLivreur(null);
   };
 
-  // Compute filteredLivreurs based on the selected colis's villes
-  const selectedColisVilles = useMemo(() => state.data
-    .filter(colis => state.selectedRowKeys.includes(colis.code_suivi))
-    .map(colis => colis.ville.nom), [state.data, state.selectedRowKeys]);
+  // Compute selected colis' villes based on selectedRowKeys
+  const selectedColisVilles = useMemo(() => {
+    return state.data
+      .filter(colis => state.selectedRowKeys.includes(colis.code_suivi))
+      .map(colis => colis.ville?.nom)
+      .filter(ville => ville); // Remove undefined or null
+  }, [state.data, state.selectedRowKeys]);
 
-  const uniqueSelectedColisVilles = useMemo(() => [...new Set(selectedColisVilles)], [selectedColisVilles]);
+  const uniqueSelectedColisVilles = useMemo(() => {
+    return [...new Set(selectedColisVilles)];
+  }, [selectedColisVilles]);
 
-  // **Added Filter to Exclude Livreur with username 'ameex'**
-  const filteredLivreurs = useMemo(() => livreurList
-    .filter(livreur => livreur.username !== 'ameex') // Exclude 'ameex'
-    .reduce(
-      (acc, livreur) => {
-        const personVilles = livreur.villes || [];
-        const coversAllVilles = uniqueSelectedColisVilles.every(ville => personVilles.includes(ville));
-        if (coversAllVilles) {
-          acc.preferred.push(livreur);
-        } else {
-          acc.other.push(livreur);
-        }
-        return acc;
-      },
-      { preferred: [], other: [] }
-    )
-  , [livreurList, uniqueSelectedColisVilles]);
+  // Ensure livreurList is an array
+  const safeLivreurList = useMemo(() => Array.isArray(livreurList) ? livreurList : [], [livreurList]);
+
+  // Filter livreurs: exclude 'ameex' and categorize into preferred and other based on villes coverage
+  const filteredLivreurs = useMemo(() => {
+    return safeLivreurList
+      .filter(livreur => livreur.username !== 'ameex') // Exclude 'ameex'
+      .reduce(
+        (acc, livreur) => {
+          const personVilles = livreur.villes || [];
+          const coversAllVilles = uniqueSelectedColisVilles.every(ville => personVilles.includes(ville));
+          if (coversAllVilles) {
+            acc.preferred.push(livreur);
+          } else {
+            acc.other.push(livreur);
+          }
+          return acc;
+        },
+        { preferred: [], other: [] }
+      );
+  }, [safeLivreurList, uniqueSelectedColisVilles]);
 
   // Define adminColumns
   const adminColumns = useMemo(() => [
@@ -486,7 +494,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       dataIndex: 'store',
       key: 'store',
       render: (text, record) => (
-        <strong>{record.store?.storeName}</strong>
+        <strong>{record.store?.storeName || 'N/A'}</strong>
       ),
     },
     {
@@ -495,8 +503,8 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       key: 'livreur_nom',
       render: (text, record) => (
         <>
-          {record.livreur ? <p>{record.livreur.nom}</p> : ''}
-          {record.expedation_type === 'ameex' ? 'ameex' : ''}
+          {record.livreur ? `${record.livreur.nom} ${record.livreur.prenom}` : 'Non Assigné'}
+          {record.expedation_type === 'ameex' ? ' ameex' : ''}
         </>
       ),
     },
@@ -513,7 +521,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         <>
           {record.replacedColis ? 
             <Badge color="default" dot style={{ marginRight: '5px' }}>
-              <FiRefreshCcw />
+              <FaClone /> {/* Changed icon to FaClone for better representation */}
             </Badge>
             : ""
           }
@@ -618,7 +626,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       render : (text , record) =>{
         return(
           <>
-            <strong>{record?.ville.nom}</strong>
+            <strong>{record?.ville?.nom || 'N/A'}</strong>
             <br />
             <span>{text}</span>
           </>
@@ -700,8 +708,6 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         );
       },
     },
-    
-   
     {
       title: 'Date',
       dataIndex: 'date',
@@ -832,19 +838,30 @@ const ColisTable = ({ theme, darkStyle, search }) => {
                 <Button 
                   type="primary" 
                   icon={<MdDeliveryDining />} 
-                  onClick={() => {
-                    setState(prevState => ({
-                      ...prevState,
-                      selectedRowKeys: [record.code_suivi]
-                    }));
-                    handleAssignLivreur();
-                  }}
+                  onClick={() => handleAssignLivreur()}
                   style={{
                     backgroundColor: '#ff9800',
                     borderColor: '#ff9800',
                     color: '#fff'
                   }}
                 />
+              </Tooltip>
+              {/* New "Facture" Button */}
+              <Tooltip title="Voir Facture">
+                <Button 
+                  type="default" 
+                  onClick={() => {
+                    dispatch(getFactureByColis(record._id)); // Dispatch the action with colis _id
+                    setState(prevState => ({ ...prevState, factureModalVisible: true })); // Open the modal
+                  }}
+                  style={{
+                    backgroundColor: '#ffc107',
+                    borderColor: '#ffc107',
+                    color: '#fff'
+                  }}
+                  icon={<IoDocumentAttachSharp />} // Choose an appropriate icon
+                >
+                </Button>
               </Tooltip>
             </>
           )}
@@ -881,7 +898,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
         </div>
       ),
     }
-  ], [user, dispatch, navigate, handleInfo, handleTicket, openReclamationModal, handleStatusClick, handleAssignLivreur, state.selectedRowKeys]);
+  ], [user, dispatch, navigate, handleInfo, handleTicket, openReclamationModal, handleStatusClick, handleAssignLivreur, state.selectedRowKeys, detailFacture]);
 
   const columns = useMemo(() => columnsColis, [columnsColis]);
 
@@ -986,6 +1003,36 @@ const ColisTable = ({ theme, darkStyle, search }) => {
       
       {/* Suspense for lazy-loaded components */}
       <Suspense fallback={<div style={{ textAlign: 'center', padding: '20px 0' }}><Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} /></div>}>
+        {/* Facture Modal */}
+        <Modal
+          title="Détails de la Facture"
+          visible={state.factureModalVisible}
+          onCancel={() => setState(prevState => ({ ...prevState, factureModalVisible: false }))}
+          footer={[
+            <Button key="close" onClick={() => setState(prevState => ({ ...prevState, factureModalVisible: false }))}>
+              Fermer
+            </Button>
+          ]}
+        >
+          {detailFacture ? (
+            <div>
+              <p>{detailFacture.code_facture}</p>
+              <p><strong>Date de Création:</strong> {detailFacture.createdAt ? moment(detailFacture.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A'}</p>
+              <Button 
+                onClick={() => {
+                  const url = `/dashboard/facture/detail/client/${detailFacture.code_facture}`;
+                  window.open(url, '_blank'); // Open the URL in a new tab
+                }}
+                icon={<IoDocumentAttachSharp/> }
+              >
+                Ouvrir facture
+              </Button>
+            </div>
+          ) : (
+            <p>Cette colis n'a pas de facture associée.</p>
+          )}
+        </Modal>
+
         {/* Filter Bar */}
         <FilterBar
           filters={filters}
@@ -996,6 +1043,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           stores={stores}
           villes={villes}
           allowedStatuses={allowedStatuses}
+          livreurs={livreurList} // Pass livreurList to FilterBar
           user={user}
           theme={theme}
         />
@@ -1086,7 +1134,7 @@ const ColisTable = ({ theme, darkStyle, search }) => {
           visible={assignModalVisible}
           onAssign={handleConfirmAssignLivreur}
           onCancel={handleCancelAssignLivreur}
-          filteredLivreurs={filteredLivreurs}
+          filteredLivreurs={filteredLivreurs} // Pass the entire filteredLivreurs object
           assignSelectedLivreur={assignSelectedLivreur}
           selectAssignLivreur={selectAssignLivreur}
           loadingAssign={loadingAssign}

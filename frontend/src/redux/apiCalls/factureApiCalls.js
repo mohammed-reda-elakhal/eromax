@@ -153,3 +153,35 @@ export function getFactureRetourDetailsByCode(codeFacture ) {
         }
     };
 }
+
+
+// New Action: Get Facture by Colis ID
+export function getFactureByColis(colisId) {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            const { data } = await request.get(`/api/facture/colis/${colisId}`, config);
+            dispatch(factureActions.setFactureDetail(data.facture));
+        } catch (error) {
+            // Handle specific error messages from backend
+            if (error.response && error.response.status === 404) {
+                dispatch(factureActions.setFactureDetail(null, null));
+                toast.info(error.response.data.message || "Cette colis n'a pas de facture associée.");
+            } else {
+                toast.error(error.message || "Failed to fetch facture details");
+            }
+        }
+    };
+}

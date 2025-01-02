@@ -11,6 +11,7 @@ export default function useColisFilters() {
     store: '',
     ville: '',
     statut: '',
+    livreur: '', // Added 'livreur'
     dateRange: [],
   });
 
@@ -18,6 +19,7 @@ export default function useColisFilters() {
     store: '',
     ville: '',
     statut: '',
+    livreur: '', // Added 'livreur'
     dateFrom: '',
     dateTo: '',
   });
@@ -26,6 +28,7 @@ export default function useColisFilters() {
     statut: appliedFilters.statut,
     store: appliedFilters.store,
     ville: appliedFilters.ville,
+    livreur: appliedFilters.livreur, // Included 'livreur' in queryParams
     dateFrom: appliedFilters.dateFrom,
     dateTo: appliedFilters.dateTo,
   }), [appliedFilters]);
@@ -45,11 +48,12 @@ export default function useColisFilters() {
   };
 
   const handleApplyFilters = () => {
-    const { store, ville, statut, dateRange } = filters;
+    const { store, ville, statut, livreur, dateRange } = filters;
     setAppliedFilters({
       store: store || '',
       ville: ville || '',
       statut: statut || '',
+      livreur: livreur || '', // Applied 'livreur' filter
       dateFrom: dateRange[0] ? moment(dateRange[0]).startOf('day').toISOString() : '',
       dateTo: dateRange[1] ? moment(dateRange[1]).endOf('day').toISOString() : '',
     });
@@ -60,12 +64,14 @@ export default function useColisFilters() {
       store: '',
       ville: '',
       statut: '',
+      livreur: '', // Reset 'livreur'
       dateRange: [],
     });
     setAppliedFilters({
       store: '',
       ville: '',
       statut: '',
+      livreur: '', // Reset 'livreur'
       dateFrom: '',
       dateTo: '',
     });

@@ -26,39 +26,40 @@ const ActionBar = React.memo(({
 }) => {
   return (
     <div className="action_bar" style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-      <Button 
-        icon={<IoMdRefresh />} 
-        type="primary" 
-        onClick={onRefresh} 
-        style={{ marginRight: '8px' }}
-      >
-        Rafraîchir
-      </Button>
-      <Button 
-        icon={<FaTicketAlt />} 
-        type="primary" 
-        onClick={onBatchTickets}
-      >
-        Tickets
-      </Button>
-      <Button 
-        icon={<FaDownload />} 
-        type="default" 
-        onClick={onExport}
-        disabled={selectedRowKeys.length === 0}
-      >
-        Exporter en Excel
-      </Button>
+        <Button 
+            icon={<IoMdRefresh />} 
+            type="primary" 
+            onClick={onRefresh} 
+            style={{ marginRight: '8px' }}
+        >
+            Rafraîchir
+        </Button>
+        <Button 
+            icon={<FaTicketAlt />} 
+            type="primary" 
+            onClick={onBatchTickets}
+        >
+            Tickets
+        </Button>
+        <Button 
+            icon={<FaDownload />} 
+            type="default" 
+            onClick={onExport}
+            disabled={selectedRowKeys.length === 0}
+        >
+            Exporter en Excel
+        </Button>
 
-      {/* Search Input */}
-      <Input
-        placeholder="Recherche ..."
-        onChange={onSearch}
-        style={{ width: 300 }}
-        size='large'
-        suffix={<FaSearch />}
-        value={searchValue}
-      />
+        {/* Search Input */}
+        <Input
+            placeholder="Recherche ..."
+            onChange={onSearch}
+            style={{ width: 300 }}
+            size="large"
+            suffix={<FaSearch />}
+            value={searchValue}
+            allowClear
+        />
     </div>
   );
 });
