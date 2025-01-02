@@ -550,7 +550,7 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
 
 /**
  * -------------------------------------------------------------------
- * @desc     Get all colis, filter based on user role and optional store, ville, statut, and date
+ * @desc     Get all colis, filter based on user role and optional store, ville, statut, livreur, and date
  * @route    /api/colis/
  * @method   GET
  * @access   Private (only logged-in users)
@@ -558,7 +558,7 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
  **/
 module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
   try {
-    const { statut, store, ville, dateFrom, dateTo } = req.query; // Extract query params
+    const { statut, store, ville, livreur, dateFrom, dateTo } = req.query; // Extract query params
     const user = req.user; // Extract user information from request (set by verifyToken middleware)
 
     let filter = {};
@@ -607,6 +607,11 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       filter.ville = ville;
     }
 
+    // **Optional livreur filtering**
+    if (livreur) {
+      filter.livreur = livreur;
+    }
+
     // Optional date range filtering based on createdAt
     if (dateFrom || dateTo) {
       filter.createdAt = {}; // Assuming you want to filter based on creation date
@@ -636,7 +641,7 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       .populate('team')        // Populate the team details
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
-      .populate('ville')     
+      .populate('ville')
       .populate({
         path: 'replacedColis',
         select: 'code_suivi prix statut', // Include specific fields from replacedColis
@@ -659,6 +664,7 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Failed to fetch colis.", error: error.message });
   }
 });
+
 
 
 

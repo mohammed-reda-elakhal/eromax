@@ -661,7 +661,6 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
 cron.schedule('45 18 * * *', async () => {
     console.log('Running daily facture generation at 17:54');
     await generateFacturesRetour(); // Ensure this function is also adjusted if needed
-    await createAutomaticDemandeRetrait();
 });
 
 
@@ -1134,6 +1133,46 @@ const getFacturesByLivreur = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Get the code_facture for a given colis
+ * @route   GET /api/facture/colis/:colisId
+ * @method  GET
+ * @access  Private/Admin
+ */
+const getCodeFactureByColis = asyncHandler(async (req, res) => {
+    const { colisId } = req.params;
+
+    // Validate colisId
+    if (!colisId) {
+        res.status(400);
+        throw new Error('Identifiant du colis est requis.');
+    }
+
+    // Attempt to find the colis by code_suivi or _id
+    let colis;
+    // Check if colisId matches code_suivi
+    colis = await Colis.findOne({ code_suivi: colisId });
+    // If not found, attempt to find by _id
+    if (!colis) {
+        colis = await Colis.findById(colisId);
+    }
+
+    if (!colis) {
+        res.status(404);
+        throw new Error('Colis non trouvé.');
+    }
+
+    // Search for a facture that includes this colis
+    const facture = await Facture.findOne({ colis: colis._id });
+
+    if (facture) {
+        res.status(200).json({facture});
+    } else {
+        res.status(404).json({
+            message: "Cette colis n'a pas de facture associée.",
+        });
+    }
+});
 
 
 module.exports = {
@@ -1143,5 +1182,6 @@ module.exports = {
     getFacturesByLivreur,
     getFacturesByStore,
     setFacturePay,
-    createOrUpdateFacture
+    createOrUpdateFacture,
+    getCodeFactureByColis
 };

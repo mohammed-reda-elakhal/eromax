@@ -86,6 +86,8 @@ export function createMultipleColis(colisList) {
 
 
 
+// redux/apiCalls/colisApiCalls.js
+
 export function getColis(filters = {}) {
   return async (dispatch) => {
     try {
@@ -104,15 +106,15 @@ export function getColis(filters = {}) {
           statut: filters.statut || '',
           store: filters.store || '',
           ville: filters.ville || '',
+          livreur: filters.livreur || '', // **Added livreur parameter**
           dateFrom: filters.dateFrom || '',
           dateTo: filters.dateTo || '',
         },
       };
 
-      dispatch(colisActions.setLoading()); // Set loading state
+      dispatch(colisActions.setLoading(true)); // Set loading state to true
 
       const { data } = await request.get(`/api/colis`, config);
-      console.log(data.colis);
       
       dispatch(colisActions.setColis(data)); // Use action creator
     } catch (error) {
@@ -122,6 +124,7 @@ export function getColis(filters = {}) {
     }
   };
 }
+
 
 // Fetch post
 export function getColisAmeex() {

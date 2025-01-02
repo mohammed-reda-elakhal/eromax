@@ -19,6 +19,7 @@ const { Option } = Select;
  * - stores: array of store objects
  * - villes: array of ville objects
  * - allowedStatuses: array of allowed status strings
+ * - livreurs: array of livreur objects **(New Prop)**
  * - user: current user object
  * - theme: 'dark' or 'light'
  */
@@ -31,6 +32,7 @@ const FilterBar = React.memo(({
   stores,
   villes,
   allowedStatuses,
+  livreurs, // **New Prop**
   user,
   theme,
 }) => {
@@ -111,6 +113,33 @@ const FilterBar = React.memo(({
         </Select>
       </div>
 
+      {/* **Livreur Selection (New Filter) */}
+      {user?.role === 'admin' && (
+        <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+            <label>Livreur</label>
+            <Select
+            showSearch
+            placeholder="Sélectionner un livreur"
+            value={filters.livreur || undefined}
+            onChange={(value) => handleFilterChange(value, 'livreur')}
+            className={`colis-select-livreur ${theme === 'dark' ? 'dark-mode' : ''}`}
+            style={{ width: '100%' }}
+            optionFilterProp="label"
+            filterOption={(input, option) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+            }
+            allowClear
+            >
+            {livreurs.map((livreur) => (
+                <Option key={livreur._id} value={livreur._id} label={`${livreur.nom} ${livreur.prenom}`}>
+                <Avatar src={livreur.profile?.url} style={{ marginRight: '8px' }} />
+                {livreur.nom} {livreur.prenom}
+                </Option>
+            ))}
+            </Select>
+        </div>
+       )}
+
       {/* Date Range Picker */}
       <div className="colis-form-input" style={{ flex: '1 1 300px' }}>
         <label>Date de Création</label>
@@ -131,7 +160,7 @@ const FilterBar = React.memo(({
           style={{ width: '100%' }}
           icon={<FaSearch />}
         >
-          Filter
+          Filtrer
         </Button>
       </div>
       
