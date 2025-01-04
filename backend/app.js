@@ -1,54 +1,37 @@
-const  express = require("express");
-const connectToDB= require("./config/connectToDb");
-const {getColisByIdLivreur}= require("./Controllers/colisController")
-require('dotenv').config;
-
+const express = require("express");
+const connectToDB = require("./config/connectToDb");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
+
 // Import your public routes
 const apiIntegrationRoute = require("./routes/apiIntegrationRoute");
-const scheduleCronJobs = require('./Middlewares/CronScheduler'); // Import the cronJobs.js file
+const scheduleCronJobs = require('./Middlewares/CronScheduler');
 const { findOrCreateGDelLivreur } = require("./Controllers/goodDeliveryController");
-
 
 // Connection To DB
 connectToDB();
 
-// init App
+// Initialize App
 const app = express();
-
-
-
 
 app.use(express.json());
 
-//Cors Policy 
 // CORS Configuration
-const allowedOrigin = process.env.BASE_URL;  // Use the BASE_URL from .env file
+const allowedOrigin = process.env.BASE_URL || 'http://localhost:3000';  // Fallback to localhost:3000 if BASE_URL is undefined
 
 app.use(cors({
-  origin: allowedOrigin,  // Allow only requests from this origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
-  credentials: true, // Allow cookies and authentication tokens
+  origin: allowedOrigin,  // Allow all origins
+  methods: ['*'],
 }));
+
 
 app.use(cookieParser());
 
-
-// Routes 
-
-
-/**
- 
-
-    www.eromax.ma/dashboard/colis/list
-    
-    www.eromax.ma/api/colis 
-
-
- * 
- * 
- */
+// Routes
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/colis", require("./routes/colisRoute"));
 app.use("/api/client", require("./routes/clientRoute"));
@@ -63,7 +46,8 @@ app.use("/api/notification", require("./routes/notificationRoute"));
 app.use("/api/meth", require("./routes/methRoute"));
 app.use("/api/payement", require("./routes/payementRoute"));
 app.use("/api/ville", require("./routes/villeRoute"));
-app.use('/api/demande-retrait',require("./routes/demandeRoutes"));
+app.use("/api/tarif-livreur", require("./routes/tarifLivreurRoute"));
+app.use('/api/demande-retrait', require("./routes/demandeRoutes"));
 app.use('/api/transaction', require("./routes/transactionRoute"));
 app.use('/api/notification-user', require('./routes/notificationUserRoute'));
 app.use('/api/facture', require('./routes/factureRoute'));
@@ -78,21 +62,17 @@ app.use('/api/goodDelivery', require('./routes/goodDeliveryRoute'));
 // Initialize cron jobs
 scheduleCronJobs();
 
-
-
+// Optional: Initialize Good Delivery Livreur
 /*
 findOrCreateGDelLivreur()
-     .then(()=>console.log("'Good Delivery' Livreur veified and created successfully"))
-     .catch((error)=>console.error("Error during 'ameex' livreur creation:",error));
+     .then(() => console.log("'Good Delivery' Livreur verified and created successfully"))
+     .catch((error) => console.error("Error during 'Good Delivery' livreur creation:", error));
 */
 
-//Running server 
-const port =process.env.PORT || 8084;
-app.listen(port,()=>{
-console.log(
-    `Server is running in ${process.env.MODE_ENV} modde on port ${port} , with server ${process.env.BASE_URL}`    
-    
-);
-
-})
-
+// Running server 
+const port = process.env.PORT || 8084;
+app.listen(port, () => {
+  console.log(
+    `Server is running in ${process.env.MODE_ENV} mode on port ${port}, with server ${process.env.BASE_URL}`
+  );
+});

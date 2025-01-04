@@ -1398,7 +1398,7 @@ module.exports.affecterLivreurMultipleByCodeSuivi = asyncHandler(async (req, res
           isReassigned = true;
 
           // **New Code: Clear `code_suivi_ameex` and set `expedition_type` to 'eromax'**
-          colis.code_suivi_ameex = undefined; // Alternatively, you can set it to null: colis.code_suivi_ameex = null;
+          colis.code_suivi_ameex = null; // Alternatively, you can set it to null: colis.code_suivi_ameex = null;
           colis.expedition_type = 'eromax';
 
           // Optionally, notify the old livreur about the reassignment
