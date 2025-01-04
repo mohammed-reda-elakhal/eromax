@@ -48,7 +48,6 @@ const colisSlice = createSlice({
       if (action.payload && typeof action.payload === 'object' && !Array.isArray(action.payload)) {
         state.colis.push(action.payload);
       } else {
-        console.error("Invalid payload format for addColis:", action.payload);
         state.error = "Invalid data format for adding colis.";
       }
     },
@@ -57,7 +56,6 @@ const colisSlice = createSlice({
         state.colis.push(...action.payload);
         state.error = null;
       } else {
-        console.error("Invalid payload format for addMultipleColis:", action.payload);
         state.error = "Invalid data format for adding multiple colis.";
       }
     },
@@ -79,7 +77,6 @@ const colisSlice = createSlice({
           state.selectedColis = updatedColis; // Update selectedColis if applicable
         }
       } else {
-        console.error("Invalid payload format for updateColis:", action.payload);
         state.error = "Invalid data format for updating Colis.";
       }
     },

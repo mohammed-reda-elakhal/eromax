@@ -4,7 +4,7 @@ import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
+import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input, Tooltip } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
 import { MdDeliveryDining } from "react-icons/md";
@@ -31,6 +31,8 @@ import { FiRefreshCcw } from 'react-icons/fi';
 import { Typography } from 'antd';
 import { ExclamationCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { IoMdRefresh } from 'react-icons/io';
+import { FaPrint } from 'react-icons/fa';
+import TicketColis from '../../tickets/TicketColis';
 
 function ColisPourRamassage() { // Removed 'search' prop as it's handled internally
   const { theme } = useContext(ThemeContext);
@@ -40,10 +42,12 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentColis, setCurrentColis] = useState(null);
-  const [deliveryPerson, setDeliveryPerson] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate(); // Get history for redirection
   const [loading, setLoading] = useState(false);
+  const [openTicket , setOpenTicket] = useState(false);
+  const [colis , setColis] = useState(null);
+
   
   
   // **Add search state**
@@ -55,6 +59,11 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
       content: text,
     });
   };
+
+  const handleTicket = (colis) => {
+    setOpenTicket(true);
+    setColis(colis);
+  }
 
   const error = (text) => {
     messageApi.open({
@@ -390,7 +399,26 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
         }
         return <Tag icon={icon} color={color}>{record.statut}</Tag>;
       },
-    },
+    },{
+      title: 'Action',
+      key: 'action',
+      render: (text, record) => (
+        <div className="table-action">
+           <Tooltip title="Ticket colis">
+            <Button 
+              type="primary" 
+              icon={<FaPrint />} 
+              onClick={() => handleTicket(record)}
+              style={{
+                backgroundColor: '#0d6efd',
+                borderColor: '#0d6efd',
+                color: '#fff'
+              }}
+            />
+          </Tooltip>
+        </div>
+      ),
+    }
     
   ];
 
@@ -487,6 +515,20 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
                 onChange: setSelectedRowKeys,
               }}
             />
+            <Modal
+              width={600}
+              open={openTicket}
+              onCancel={() => {
+                setOpenTicket(false) 
+                setColis(null)
+              }}
+              onOk={() => {
+                setOpenTicket(false) 
+                setColis(null)
+              }}
+            >
+              <TicketColis colis={colis} showDownloadButton={true} />
+            </Modal>
             {contextHolder}
           </div>
         </div>

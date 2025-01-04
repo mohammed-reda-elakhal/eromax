@@ -1,8 +1,10 @@
 // components/ColisTable/modals/AssignLivreurModal.jsx
 
 import React from 'react';
-import { Modal, Card, Button, Divider } from 'antd';
+import { Modal, Card, Button, Divider, Typography } from 'antd';
 import { BsFillInfoCircleFill } from "react-icons/bs";
+
+const { Text } = Typography;
 
 /**
  * AssignLivreurModal component handles assigning a livreur to selected colis.
@@ -17,6 +19,7 @@ import { BsFillInfoCircleFill } from "react-icons/bs";
  * - loadingAssign: boolean indicating assignment loading state
  * - theme: 'dark' or 'light'
  * - toast: function to show toast notifications
+ * - selectedColis: object representing the selected colis
  */
 const AssignLivreurModal = React.memo(({
   visible,
@@ -28,10 +31,11 @@ const AssignLivreurModal = React.memo(({
   loadingAssign,
   theme,
   toast,
+  selectedColis,
 }) => {
   return (
     <Modal
-      title={`Affecter un Livreur aux Colis Sélectionnés`}
+      title={`Affecter un Livreur au Colis Sélectionné`}
       visible={visible}
       onOk={onAssign}
       onCancel={onCancel}
@@ -40,7 +44,40 @@ const AssignLivreurModal = React.memo(({
       width={"80vw"}
       confirmLoading={loadingAssign}
       className={theme === 'dark' ? 'dark-mode' : ''}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          Annuler
+        </Button>,
+        <Button 
+          key="assign" 
+          type="primary" 
+          onClick={onAssign} 
+          disabled={!assignSelectedLivreur} // Disable if no livreur is selected
+          loading={loadingAssign}
+        >
+          Affecter
+        </Button>,
+      ]}
     >
+      {/* Display Selected Colis Details */}
+      {selectedColis && (
+        <div style={{ marginBottom: '20px' }}>
+          <Text strong>Code Suivi:</Text> {selectedColis.code_suivi}
+          <br />
+          <Text strong>Destinataire:</Text> {selectedColis.nom}
+          <br />
+          <Text strong>Téléphone:</Text> {selectedColis.tele}
+          <br />
+          <Text strong>Ville:</Text> {selectedColis.ville?.nom || 'N/A'}
+          <br />
+          <Text strong>Adresse:</Text> {selectedColis.adresse || 'N/A'}
+          {/* Add more colis details as needed */}
+        </div>
+      )}
+
+      <Divider />
+
+      {/* Livreurs Préférés */}
       <div className='livreur_list_modal'>
         <h3>Livreurs Préférés</h3>
         <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -79,7 +116,10 @@ const AssignLivreurModal = React.memo(({
           )) : <p>Aucun livreur préféré disponible</p>}
         </div>
       </div>
+
       <Divider />
+
+      {/* Autres Livreurs */}
       <div className='livreur_list_modal'>
         <h3>Autres Livreurs</h3>
         <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>

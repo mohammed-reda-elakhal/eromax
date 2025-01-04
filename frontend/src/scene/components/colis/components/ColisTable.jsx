@@ -173,6 +173,8 @@ const ColisTable = ({ theme }) => {
   });
 
   const { detailFacture } = useSelector((state) => state.facture);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]); // Array of selected code_suivi
+
 
   const [tableLoading, setTableLoading] = useState(false);
 
@@ -207,6 +209,9 @@ const ColisTable = ({ theme }) => {
     villes: state.ville.villes || [],
     loading: state.colis.loading, // Extract loading from Redux
   }));
+
+  // **Add the following two lines to define singleAssignColis state**
+  const [singleAssignColis, setSingleAssignColis] = useState(null);
 
   // Use custom hook for filters
   const {
@@ -422,30 +427,41 @@ const ColisTable = ({ theme }) => {
   };
 
   // Function to handle the assignment confirmation
-  const handleConfirmAssignLivreur = async () => {
-    if (!assignSelectedLivreur) {
-      message.error("Veuillez sélectionner un livreur.");
-      return;
-    }
+  // Inside ColisTable.jsx
 
-    try {
-      setLoadingAssign(true);
-      // Send a PUT request to assign the livreur
-      const response = await request.put('/api/colis/statu/affecter', {
-        codesSuivi: state.selectedRowKeys,
-        livreurId: assignSelectedLivreur._id
-      });
-      setLoadingAssign(false);
-      toast.success(response.data.message || "Livreur assigné avec succès.");
-      handleCancelAssignLivreur();
-      // Refresh data after assignment
-      getDataColis();
-    } catch (err) {
-      setLoadingAssign(false);
+// Inside ColisTable.jsx
+
+const handleConfirmAssignLivreur = async () => {
+  if (!assignSelectedLivreur) {
+    message.error("Veuillez sélectionner un livreur.");
+    return;
+  }
+
+  if (selectedRowKeys.length === 0) {
+    message.error("Veuillez sélectionner au moins un colis pour l'assignation.");
+    return;
+  }
+
+  try {
+    setLoadingAssign(true);
+    const response = await request.put('/api/colis/statu/affecter', {
+      codesSuivi: selectedRowKeys, // Array of code_suivi
+      livreurId: assignSelectedLivreur._id, // Single livreurId
+    });
+    setLoadingAssign(false);
+    handleCancelAssignLivreur();
+    getDataColis();
+    toast.success("Livreur assigné avec succès.");
+  } catch (err) {
+    setLoadingAssign(false);
+    if (err.response && err.response.data && err.response.data.message) {
+      toast.error(`Erreur: ${err.response.data.message}`);
+    } else {
       toast.error("Erreur lors de l'assignation du livreur.");
-      console.error(err);
     }
-  };
+    console.error(err);
+  }
+};
 
   // Function to cancel the assignment modal
   const handleCancelAssignLivreur = () => {
@@ -834,18 +850,22 @@ const ColisTable = ({ theme }) => {
                   icon={<MdOutlinePayment />}
                 />
               </Tooltip>
-              <Tooltip title="Affecter Livreur">
-                <Button 
-                  type="primary" 
-                  icon={<MdDeliveryDining />} 
-                  onClick={() => handleAssignLivreur()}
-                  style={{
-                    backgroundColor: '#ff9800',
-                    borderColor: '#ff9800',
-                    color: '#fff'
-                  }}
-                />
-              </Tooltip>
+               {/* New "Assign Livreur" Button */}
+            <Tooltip title="Assign Livreur">
+              <Button 
+                type="primary" 
+                icon={<FaTruck />} 
+                onClick={() => {
+                  setSelectedRowKeys([record.code_suivi]); // Select single Colis
+                  setAssignModalVisible(true); // Open the AssignLivreurModal
+                }}
+                style={{
+                  backgroundColor: '#ff9800',
+                  borderColor: '#ff9800',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
               {/* New "Facture" Button */}
               <Tooltip title="Voir Facture">
                 <Button 
@@ -1134,12 +1154,13 @@ const ColisTable = ({ theme }) => {
           visible={assignModalVisible}
           onAssign={handleConfirmAssignLivreur}
           onCancel={handleCancelAssignLivreur}
-          filteredLivreurs={filteredLivreurs} // Pass the entire filteredLivreurs object
+          filteredLivreurs={filteredLivreurs} // Pass the entire object
           assignSelectedLivreur={assignSelectedLivreur}
           selectAssignLivreur={selectAssignLivreur}
           loadingAssign={loadingAssign}
           theme={theme}
           toast={toast}
+          selectedColis={state.filteredData.find(colis => colis.code_suivi === selectedRowKeys[0])} // Pass the selected colis
         />
       </Suspense>
     </div>
