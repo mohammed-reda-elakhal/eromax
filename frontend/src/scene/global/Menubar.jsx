@@ -10,7 +10,7 @@ import { BiNote, BiTagAlt } from "react-icons/bi";
 import { BsFillFileEarmarkSpreadsheetFill, BsFillInboxesFill } from "react-icons/bs";
 import { CgDanger } from "react-icons/cg";
 import StoreDown from './StoreDown'; // Ensure this component is correctly implemented
-import { MdEditNotifications, MdFactCheck } from "react-icons/md";
+import { MdEditNotifications, MdFactCheck, MdPriceCheck } from "react-icons/md";
 import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { useDispatch , useSelector } from 'react-redux';
@@ -21,7 +21,7 @@ import { RiDiscountPercentLine } from "react-icons/ri";
 import { GrObjectGroup } from "react-icons/gr";
 import { CiMenuFries } from 'react-icons/ci';
 import { GiSettingsKnobs } from "react-icons/gi";
-import { IoIosAdd } from 'react-icons/io';
+import { IoIosAdd, IoMdPricetags } from 'react-icons/io';
 import { getColisATRToday, getColisExpidée, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
 
 
@@ -138,6 +138,13 @@ function Menubar() {
         <Menu.Item icon={<FaTachometerAlt />}>
           <Link to="/dashboard/home">Accueil</Link>
         </Menu.Item>
+        {
+          userData.role ==="admin" && (
+            <Menu.Item icon={<LuScanLine />}>
+              <Link to="/dashboard/scan">Scan</Link>
+            </Menu.Item>
+          )
+        } 
 
         {
           (userData.role === "admin" || userData.role === "team") && (
@@ -173,13 +180,7 @@ function Menubar() {
         }
 
 
-        {
-          userData.role ==="admin" && (
-            <Menu.Item icon={<LuScanLine />}>
-              <Link to="/dashboard/scan">Scan</Link>
-            </Menu.Item>
-          )
-        } 
+       
          {
           userData.role ==="admin" && (
             <Menu.SubMenu 
@@ -269,12 +270,22 @@ function Menubar() {
           )
         }
 
-{
+        {
           userData.role === "admin" &&(
-            <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
+            <Menu.SubMenu icon={<IoMdPricetags />} title="Tarif">
                   <Menu.Item icon={<FaCity />}>
                     <Link to="/dashboard/ville">Villes</Link>
                   </Menu.Item>
+                  <Menu.Item icon={<MdPriceCheck />}>
+                    <Link to="/dashboard/tarif-livreur">Livreur</Link>
+                  </Menu.Item>
+                  
+            </Menu.SubMenu>
+          )
+        }
+        {
+          userData.role === "admin" &&(
+            <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
                   <Menu.Item icon={<BiNote />}>
                     <Link to="/dashboard/gnotification">Notifications</Link>
                   </Menu.Item>

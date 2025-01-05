@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
 import { FaPenFancy, FaInfoCircle, FaPlus } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
+import { MdAttachMoney, MdDelete } from "react-icons/md";
 import { Avatar, Button, Modal, Drawer, Input } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProfile, getProfileList } from '../../../../redux/apiCalls/profileApiCalls';
@@ -154,6 +154,11 @@ function Livreur() {
             dataIndex: 'action',
             render: (text, record) => (
                 <div className='action_user'>
+                    <Button 
+                        style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
+                        icon={<MdAttachMoney size={20} />}
+                        onClick={() => navigate(`/dashboard/tarif-livreur/${record._id}`)}
+                    />
                     <Button 
                         style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
                         icon={<FaPenFancy size={20} />}

@@ -4,10 +4,10 @@ import { createSlice } from "@reduxjs/toolkit";
 const tarifLivreurSlice = createSlice({
   name: "tarifLivreur",
   initialState: {
-    tarifLivreurs: [],        // Array to store all TarifLivreur
-    selectedTarifLivreur: null, // Object for storing a single TarifLivreur
-    tarifLivreursByLivreur: [],  // Array for TarifLivreur by Livreur
-    tarifLivreursByVille: [],  // Array for TarifLivreur by Ville
+    tarifLivreurs: [],
+    selectedTarifLivreur: null,
+    tarifLivreursByLivreur: [],
+    tarifLivreursByVille: [],
     loading: false,
     error: null,
   },
@@ -29,7 +29,7 @@ const tarifLivreurSlice = createSlice({
       state.loading = false;
     },
     createTarifLivreurSuccess(state, action) {
-      state.tarifLivreurs.push(action.payload); // Add the new TarifLivreur to the array
+      state.tarifLivreurs.push(action.payload);
       state.loading = false;
     },
     updateTarifLivreurSuccess(state, action) {
@@ -37,22 +37,22 @@ const tarifLivreurSlice = createSlice({
         (tarif) => tarif._id === action.payload._id
       );
       if (index !== -1) {
-        state.tarifLivreurs[index] = action.payload; // Update the TarifLivreur in the array
+        state.tarifLivreurs[index] = action.payload;
       }
       state.loading = false;
     },
     deleteTarifLivreurSuccess(state, action) {
       state.tarifLivreurs = state.tarifLivreurs.filter(
         (tarif) => tarif._id !== action.payload
-      ); // Remove the deleted TarifLivreur from the array
+      );
       state.loading = false;
     },
     fetchTarifLivreurByLivreurSuccess(state, action) {
-      state.tarifLivreursByLivreur = action.payload;
+      state.tarifLivreurs = action.payload;
       state.loading = false;
     },
     fetchTarifLivreurByVilleSuccess(state, action) {
-      state.tarifLivreursByVille = action.payload;
+      state.tarifLivreurs = action.payload;
       state.loading = false;
     },
   },

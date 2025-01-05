@@ -94,6 +94,7 @@ const { Search } = Input; // Destructure Search if needed
 
 // Define allowed statuses
 const allowedStatuses = [
+  "attente de ramassage",
   "Ramassée",
   "Mise en Distribution",
   "Reçu",
@@ -114,6 +115,8 @@ const allowedStatuses = [
   "Reporté",
   "Confirmé Par Livreur",
   "Endomagé",
+  "Préparer pour Roteur",
+  "En Retour"
 ];
 
 // Define status comments
@@ -132,6 +135,7 @@ const statusComments = {
 
 // Define statusBadgeConfig mapping each statut to color and icon
 const statusBadgeConfig = {
+  "attente de ramassage": { color: 'red', icon: <TbTruckDelivery /> },
   "Ramassée": { color: 'blue', icon: <TbTruckDelivery /> },
   "Mise en Distribution": { color: 'geekblue', icon: <FaTruck /> },
   "Reçu": { color: 'cyan', icon: <CheckCircleOutlined /> },
@@ -151,6 +155,8 @@ const statusBadgeConfig = {
   "Numéro Incorrect": { color: 'orange', icon: <FaHeart /> },
   "Reporté": { color: 'geekblue', icon: <FaClock /> },
   "Confirmé Par Livreur": { color: 'blue', icon: <FaCheck /> },
+  "Préparer pour Roteur": { color: 'green', icon: <FaCheck /> },
+  "En Retou": { color: 'yellow', icon: <FaCheck /> },
   "Endomagé": { color: 'red', icon: <FaHeart /> },
 };
 
@@ -885,36 +891,34 @@ const handleConfirmAssignLivreur = async () => {
               </Tooltip>
             </>
           )}
-          {
-            (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis") &&
-            <Tooltip title="Supprimer colis">
-              <Popconfirm
-                title="Êtes-vous sûr de vouloir supprimer ce colis?"
-                description={`Code Suivi: ${record.code_suivi}`}
-                okText="Oui"
-                okType="danger"
-                cancelText="Non"
-                onConfirm={() => {
-                  dispatch(deleteColis(record._id));
-                  message.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
-                }}
-                onCancel={() => {
-                  // Optional: Handle cancellation if needed
-                  message.info('Suppression annulée.');
-                }}
-              >
-                <Button 
-                  type="primary" 
-                  style={{
-                    backgroundColor: '#dc3545',
-                    borderColor: '#dc3545',
-                    color: '#fff'
-                  }}
-                  icon={<MdDelete />}
-                />
-              </Popconfirm>
-            </Tooltip>
-          }
+         {(user?.role==="admin" || record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis") && (
+        <Tooltip title="Supprimer colis">
+          <Popconfirm
+            title="Êtes-vous sûr de vouloir supprimer ce colis?"
+            description={`Code Suivi: ${record.code_suivi}`}
+            okText="Oui"
+            okType="danger"
+            cancelText="Non"
+            onConfirm={() => {
+              dispatch(deleteColis(record._id));
+              message.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
+            }}
+            onCancel={() => {
+              message.info('Suppression annulée.');
+            }}
+          >
+            <Button
+              type="primary"
+              style={{
+                backgroundColor: '#dc3545',
+                borderColor: '#dc3545',
+                color: '#fff'
+              }}
+              icon={<MdDelete />}
+            />
+          </Popconfirm>
+        </Tooltip>
+      )}
         </div>
       ),
     }
