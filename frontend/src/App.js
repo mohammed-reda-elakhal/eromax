@@ -73,6 +73,7 @@ import TransactionPage from "./scene/components/payement/page/TransactionPage";
 import ColisAmeex from "./scene/components/colis/pages/ColisAmeex";
 import AjouterColisAdmin from "./scene/components/colis/pages/AjouterColisAdmin";
 import InfoWalet from "./scene/components/portfeuille/page/InfoWalet";
+import TarifLivreur  from "../src/scene/components/tarif livreur/page/TarifLivreur";
 
 
 function App() {
@@ -211,6 +212,8 @@ function App() {
             <Route path="portfeuille" element={<InfoWalet />} />
             <Route path="scan" element={<Scan />} /> 
             <Route path="ville" element={<Ville />} /> 
+            <Route path="tarif-livreur" element={<TarifLivreur />} /> 
+            <Route path="tarif-livreur/:idLivreur" element={<TarifLivreur />} /> 
             <Route path="reclamation" element={<Reclamation />} />
             <Route path="reclamation-complete" element={<ReclamationOk />} />
             <Route path="gnotification" element={<Notification />} /> 

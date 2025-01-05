@@ -33,17 +33,18 @@ export function getTarifLivreurById(id) {
 
 // Fetch TarifLivreurs by Livreur ID
 export function getTarifLivreurByLivreur(livreurId) {
-  return async (dispatch) => {
-    dispatch(tarifLivreurActions.fetchTarifLivreurStart());
-    try {
-      const { data } = await request.get(`/api/tarif-livreur/livreur/${livreurId}`);
-      dispatch(tarifLivreurActions.fetchTarifLivreurByLivreurSuccess(data));
-    } catch (error) {
-      dispatch(tarifLivreurActions.fetchTarifLivreursFailure(error.message || "Failed to fetch TarifLivreur by Livreur"));
-      toast.error(error.message || "Failed to fetch TarifLivreur by Livreur");
-    }
-  };
-}
+    return async (dispatch) => {
+      dispatch(tarifLivreurActions.fetchTarifLivreursStart()); // Start the fetch process
+      try {
+        const { data } = await request.get(`/api/tarif-livreur/livreur/${livreurId}`);
+        dispatch(tarifLivreurActions.fetchTarifLivreurByLivreurSuccess(data)); // Successfully fetched data
+      } catch (error) {
+        dispatch(tarifLivreurActions.fetchTarifLivreursFailure(error.message || "Failed to fetch TarifLivreur by Livreur"));
+        toast.error(error.message || "Failed to fetch TarifLivreur by Livreur");
+      }
+    };
+  }
+  
 
 // Fetch TarifLivreurs by Ville ID
 export function getTarifLivreurByVille(villeId) {

@@ -170,18 +170,10 @@ const updateTarifLivreur = asyncHandler(async (req, res) => {
 const deleteTarifLivreur = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    // **Validate ID Format**
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-        return res.status(400).json({ message: "Invalid TarifLivreur ID format" });
-    }
-
-    const tarifLivreur = await TarifLivreur.findById(id);
+    const tarifLivreur = await TarifLivreur.findByIdAndDelete(id);
     if (!tarifLivreur) {
         return res.status(404).json({ message: "TarifLivreur not found" });
     }
-
-    await tarifLivreur.remove();
-
     res.status(200).json({ message: "TarifLivreur deleted successfully" });
 });
 

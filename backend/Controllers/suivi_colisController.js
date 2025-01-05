@@ -59,6 +59,7 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     "Reporté",
     "Confirmé Par Livreur",
     "Endomagé",
+    "Préparer pour Roteur",
   ];
 
   // Validate inputs
@@ -200,6 +201,7 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
   const validStatuses = [
     "Nouveau Colis",
     "attente de ramassage",
+    "Préparer pour Roteur",
     "Ramassée",
     "Expediée",
     "Reçu",
