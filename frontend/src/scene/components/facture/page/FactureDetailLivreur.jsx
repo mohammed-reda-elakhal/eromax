@@ -1,23 +1,27 @@
-import React, { useEffect, useRef } from 'react';
+// FactureDetailLivreur.jsx
+
+import React, { useEffect, useRef, useMemo } from 'react';
 import html2pdf from 'html2pdf.js';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getFactureDetailsByCode, getFactureDetailsByLivreur } from '../../../../redux/apiCalls/factureApiCalls';
+import { getFactureDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
 import { Table, Tag } from 'antd';
+import moment from 'moment'; // Ensure moment is installed and imported
 
 const FactureDetailLivreur = () => {
   const printRef = useRef();
   const dispatch = useDispatch();
   const facture = useSelector((state) => state.facture.detailFacture);
-  const livreur = useSelector((state) => state.auth.user._id);
+  const user = useSelector((state) => state.auth.user);
   const { code_facture } = useParams();
 
   useEffect(() => {
-    dispatch(getFactureDetailsByCode(code_facture));
-    dispatch(getFactureDetailsByLivreur(livreur, 'Livreur'));
+    if (code_facture) {
+      dispatch(getFactureDetailsByCode(code_facture));
+    }
     window.scrollTo(0, 0);
-  }, [dispatch, code_facture, livreur]);
+  }, [dispatch, code_facture]);
 
   // Function to generate PDF and download
   const handleDownloadPdf = () => {
@@ -88,17 +92,7 @@ const FactureDetailLivreur = () => {
       });
   };
 
-  // Calculate the sums for prix and tarif
-  const totalPrix =
-    facture?.colis?.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
-
-  // Calculate totalTarif based on the count of 'Livrée' colis
-  const livreeColisCount = facture?.colis?.filter((col) => col.statut === 'Livrée').length || 0;
-  const totalTarif = (facture?.livreur_tarif || 0) * livreeColisCount;
-
-  const difference = totalPrix - totalTarif;
-
-  // Define columns for Table
+  // Define columns for Colis Details Table
   const columns = [
     {
       title: 'Code Suivi',
@@ -141,23 +135,32 @@ const FactureDetailLivreur = () => {
       ),
     },
     {
-      title: 'Tarif',
-      dataIndex: 'livreur',
-      key: 'tarif',
-      render: (text, record) => (
-        <span>{record?.statut === 'Livrée' ? facture?.livreur_tarif : 0}</span>
+      title: 'Tarif Livraison',
+      dataIndex: 'new_tarif_livraison',
+      key: 'tarif_livraison',
+      render: (tarif_livraison, record) => (
+        <span>
+          {record?.statut === 'Livrée' ? `${tarif_livraison} DH` : '0 DH'}
+        </span>
       ),
+    },
+    {
+      title: 'Remarque',
+      dataIndex: 'remarque',
+      key: 'remarque',
+      render: (remarque) => (remarque ? remarque : 'N/A'),
     },
     {
       title: 'Prix',
       dataIndex: 'prix',
       key: 'prix',
-      render: (text) => (text ? text.toFixed(2) : 'N/A'),
+      render: (text) => (text ? `${text.toFixed(2)} DH` : 'N/A'),
     },
     {
       title: 'Montant à Payer',
       dataIndex: 'montant_a_payer',
       key: 'montant_a_payer',
+      render: (montant) => `${montant} DH`,
     },
   ];
 
@@ -172,28 +175,52 @@ const FactureDetailLivreur = () => {
       title: 'Total',
       dataIndex: 'total',
       key: 'total',
-      render: (text) => (text ? text.toFixed(2) : '0.00'),
+      render: (text) => (text ? `${text.toFixed(2)} DH` : '0.00 DH'),
     },
   ];
 
-  // Data for the calculation table
-  const calcData = [
-    {
-      key: '1',
-      description: 'Total Prix',
-      total: totalPrix,
-    },
-    {
-      key: '2',
-      description: 'Total Tarif',
-      total: totalTarif,
-    },
-    {
-      key: '3',
-      description: 'Montant à payer',
-      total: difference,
-    },
-  ];
+  // Memoize the calculation of totals to optimize performance
+  const { totalPrix, totalTarif, netAPayer, calcData } = useMemo(() => {
+    let tp = 0; // Total Prix
+    let tt = 0; // Total Tarif
+
+    if (facture) {
+      if (facture.type === 'livreur') {
+        // Sum 'montant_a_payer' for all 'Livrée' colis
+        tp = facture.colis.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
+
+        // Sum 'tarif_total' for all 'Livrée' colis (tarif_livraison + 0 + 0)
+        tt = facture.colis.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
+      }
+    }
+
+    // Calculate netAPayer based on facture type
+    const np = facture?.type === 'livreur' ? tp : 0;
+
+    // Prepare calcData based on facture type
+    const data =
+      facture?.type === 'livreur'
+        ? [
+            {
+              key: '1',
+              description: 'Total Prix (Prix - Tarif Livraison)',
+              total: tp,
+            },
+            {
+              key: '2',
+              description: 'Total Tarif Livraison',
+              total: tt,
+            },
+            {
+              key: '3',
+              description: 'Net à Payer',
+              total: np,
+            },
+          ]
+        : [];
+
+    return { totalPrix: tp, totalTarif: tt, netAPayer: np, calcData: data };
+  }, [facture]);
 
   return (
     <div>
@@ -207,7 +234,7 @@ const FactureDetailLivreur = () => {
       <div className="facture-detail" ref={printRef}>
         <div className="facture-header">
           <div className="facture-title">
-            <h2>{facture?.code_facture}</h2>
+            <h2>{facture?.code_facture || 'N/A'}</h2>
           </div>
           <div className="facture-info">
             <div className="expediteur">
@@ -215,15 +242,15 @@ const FactureDetailLivreur = () => {
                 <strong>Expéditeur:</strong>
               </p>
               <p>{facture?.livreur || 'N/A'}</p>
-              <p>{facture?.livreur_tele}</p>
+              <p>{facture?.livreur_tele || 'N/A'}</p>
             </div>
             <div className="bon-livraison">
               <p>
                 <strong>Bon Livraison:</strong>
               </p>
-              <p>#{facture?.code_facture}</p>
-              <p>{new Date(facture?.date).toLocaleString()}</p>
-              <p>{facture?.colis?.length} Colis</p>
+              <p>#{facture?.code_facture || 'N/A'}</p>
+              <p>{facture?.date_facture ? moment(facture.date_facture).format('LLL') : 'N/A'}</p>
+              <p>{facture?.colis?.length || 0} Colis</p>
             </div>
           </div>
         </div>
@@ -235,6 +262,7 @@ const FactureDetailLivreur = () => {
             columns={columns}
             dataSource={facture?.colis}
             pagination={false}
+            rowKey="code_suivi"
           />
         </div>
 
@@ -245,9 +273,11 @@ const FactureDetailLivreur = () => {
             columns={calcColumns}
             dataSource={calcData}
             pagination={false}
+            showHeader={false}
           />
         </div>
 
+        {/* Signatures Section */}
         <div className="facture-signatures">
           <div className="signature-client">
             <p>

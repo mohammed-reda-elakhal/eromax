@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const {createFacturesForClientsAndLivreurs, getAllFacture, getFactureByCode, getFacturesByStore, getFacturesByLivreur, setFacturePay, getCodeFactureByColis} = require('../Controllers/factureController');
-const { getAllRamasserFacture, getRamasserFacturesByStore, getRamasserFactureByCode } = require('../Controllers/factureRamasserController');
+const { getAllFacture, getFactureByCode, setFacturePay, getCodeFactureByColis} = require('../Controllers/factureController');
+const { getAllRamasserFacture, getRamasserFactureByCode } = require('../Controllers/factureRamasserController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
 const { createFacturesRetourController, getFacturesRetourController, getFactureRetourByCodeFacture } = require('../Controllers/factureRetourController');
 
 
 // /api/facture
 router.route('/')
-    .post(createFacturesForClientsAndLivreurs)
     .get(getAllFacture)
 
 
@@ -33,8 +32,6 @@ router.route('/colis/:colisId')
 
 
 router.get('/detail/:code_facture', getFactureByCode);
-router.get('/detail/client/:storeId',getFacturesByStore);
-router.get('/detail/livreur/:livreurId',getFacturesByLivreur);
 
     router.put('/pay/:id',setFacturePay);
 
