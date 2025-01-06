@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const shortid = require('shortid');
 
-// Facture Schema
+// Updated Facture Schema
 const FactureSchema = new mongoose.Schema(
     {
         code_facture: {
@@ -42,6 +42,37 @@ const FactureSchema = new mongoose.Schema(
         totalPrix: {
             type: Number,
             required: true,
+            default: 0,
+        },
+        totalTarifLivraison: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        totalTarifFragile: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        totalTarifAjouter: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        totalTarif: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        totalFraisRefus: { // Added Field
+            type: Number,
+            required: false,
+            default: 0,
+        },
+        originalTarifLivraison: {
+            type: Number,
+            required: true,
+            default: 0,
         },
         etat: {
             type: Boolean,

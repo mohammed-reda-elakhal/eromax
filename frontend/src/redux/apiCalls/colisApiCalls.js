@@ -32,7 +32,8 @@ export function createColisAdmin(colis) {
       const { data } = await request.post(`/api/colis/admin/${colis?.store}`, colis, config);
 
       // Display success notification
-      toast.success(data.message);
+      toast.success(data.message || 'Colis créés avec succès');
+      
     } catch (error) {
       // Error handling
       toast.error(error.response?.data?.message || error.message || "Failed to create colis");

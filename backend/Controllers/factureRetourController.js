@@ -27,7 +27,6 @@ const getDeliveryDate = async (code_suivi) => {
 
 // Core function to generate FactureRetour
 const generateFacturesRetour = async () => {
-    console.log('Starting FactureRetour generation process.');
 
     // Define today's date range
     const todayStart = moment().startOf('day').toDate();

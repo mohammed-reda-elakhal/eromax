@@ -12,7 +12,6 @@ const scheduleCronJobs = () => {
     async () => {
       console.log('Running Facture Operations at 23:50 Africa/Casablanca timezone');
       try {
-        await createFacturesForClientsAndLivreurs();
         await generateFacturesRetour();
         console.log('Facture Operations executed successfully');
       } catch (error) {
