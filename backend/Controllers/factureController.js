@@ -723,7 +723,7 @@ cron.schedule('50 23 * * *', async () => {
 const getAllFacture = async (req, res) => {
     try {
         // Destructure query parameters with default values
-        const { page = 1, limit = 50, type, date, storeId, livreurId, sortBy = 'date', order = 'desc' } = req.query;
+        const { type, date, storeId, livreurId, sortBy = 'date', order = 'desc' } = req.query;
 
         // Build the filter object
         const filter = {};
@@ -745,14 +745,10 @@ const getAllFacture = async (req, res) => {
         // Filter by livreurId if provided
         if (livreurId) filter.livreur = livreurId;
 
-        // Sort options
-        const sortOptions = {};
-        sortOptions[sortBy] = order === 'asc' ? 1 : -1;
+        
 
         // Query the database
         const factures = await Facture.find(filter)
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit))
             .populate({
                 path: 'store',
                 select: 'storeName id_client'
@@ -768,8 +764,6 @@ const getAllFacture = async (req, res) => {
                     { path: 'store', select: 'storeName' },
                 ]
             })
-            .sort(sortOptions)
-            .sort({ createdAt: -1 })
             .lean();
 
         // Count total documents matching the filter
@@ -779,8 +773,6 @@ const getAllFacture = async (req, res) => {
         res.status(200).json({
             message: 'Factures selected',
             factures,
-            totalPages: Math.ceil(total / limit),
-            currentPage: parseInt(page)
         });
     } catch (error) {
         console.error("Error fetching factures:", error);
