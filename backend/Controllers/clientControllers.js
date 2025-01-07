@@ -9,6 +9,7 @@ const File = require("../Models/File");
 const { Colis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
 
+
 /** -------------------------------------------
  * @desc get list of clients along with their stores
  * @router /api/client
@@ -16,23 +17,36 @@ const { Suivi_Colis } = require("../Models/Suivi_Colis");
  * @access private Only admin
  -------------------------------------------
 */
+// Get all clients along with their stores and colis count
 const getAllClients = asyncHandler(async (req, res) => {
     try {
         // Fetch all clients
         const clients = await Client.find().sort({ createdAt: -1 });
 
-        // Fetch stores for each client
-        const clientsWithStores = await Promise.all(
+        // Fetch stores for each client and count colis for each store
+        const clientsWithStoresAndColis = await Promise.all(
             clients.map(async (client) => {
                 const stores = await Store.find({ id_client: client._id });
+
+                // For each store, count the number of colis
+                const storesWithColisCount = await Promise.all(
+                    stores.map(async (store) => {
+                        const colisCount = await Colis.countDocuments({ store: store._id });
+                        return {
+                            ...store._doc,
+                            colisCount,
+                        };
+                    })
+                );
+
                 return {
                     ...client._doc, // Use _doc to get the actual client data
-                    stores
+                    stores: storesWithColisCount, // Add stores with colis count
                 };
             })
         );
 
-        res.json(clientsWithStores);
+        res.json(clientsWithStoresAndColis);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

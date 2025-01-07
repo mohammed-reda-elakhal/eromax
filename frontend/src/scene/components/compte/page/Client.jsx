@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
-import { FaPenFancy, FaPlus } from "react-icons/fa";
+import { FaBox, FaPenFancy, FaPlus } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { GoVerified } from "react-icons/go";
 import { 
@@ -20,7 +20,10 @@ import {
     Descriptions,
     Switch ,
     Image,
+    Form,
+    message ,
     Input // Import Input from antd if you prefer
+
 } from 'antd';
 import { 
     EnvironmentOutlined, 
@@ -50,6 +53,9 @@ import Topbar from '../../../global/Topbar';
 import Menubar from '../../../global/Menubar';
 import StoreForm from '../../profile/components/StoreForm';
 import { IoDocumentAttach } from 'react-icons/io5';
+import { FaB } from 'react-icons/fa6';
+import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls';
+import { TbLockPassword } from 'react-icons/tb';
 
 function Client({ search }) {
     const { theme } = useContext(ThemeContext);
@@ -66,6 +72,38 @@ function Client({ search }) {
     const [selectedClient, setSelectedClient] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState(""); // New state for search input
+
+    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null); // Store selected user for password reset
+    const [form] = Form.useForm(); // Ant Design Form instance
+
+    const showPasswordModal = (user) => {
+        setSelectedUser(user); // Set the selected user
+        setIsPasswordModalVisible(true); // Show the password modal
+    };
+
+    const handlePasswordSubmit = async (values) => {
+        const { newPassword } = values;
+
+        if (!selectedUser) return;
+
+        try {
+            // Dispatch the action to reset the password
+            await dispatch(resetUserPassword(selectedUser._id, newPassword, selectedUser.role));
+
+            message.success('Password updated successfully');
+            setIsPasswordModalVisible(false); // Close the modal after successful password reset
+            form.resetFields(); // Reset the form fields
+        } catch (error) {
+            message.error('Failed to update password');
+        }
+    };
+
+    const handleCancel = () => {
+        setIsPasswordModalVisible(false);
+        form.resetFields(); // Reset the form when the modal is closed
+    };
+
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -110,8 +148,8 @@ function Client({ search }) {
         }
     }, [stores, isModalStoreOpen]);
 
-    const toggleActiveCompte = (id) => {
-        dispatch(toggleActiveClient(id));
+    const toggleActiveCompte = (id , role) => {
+        dispatch(toggleActiveClient(id , role));
     };
 
     const handleOk = () => {
@@ -245,8 +283,26 @@ function Client({ search }) {
                 )}
               </div>
             )
-          }
-,          
+          },       
+          {
+            title: 'N° Colis', // This is the new column
+            width: 150, // Set the width of the column
+            render: (text, record) => (
+                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                    {record.stores && record.stores.length > 0 ? (
+                        record.stores.map((store, index) => (
+                            <div key={index} style={{ marginBottom: '8px' }}>
+                                <div style={{ fontWeight: 'bold', color: '#ff5722' }}>
+                                    <FaBox /> {store.colisCount}
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <span>No stores found</span>
+                    )}
+                </div>
+            )
+        }, 
         {
             title: 'Email',
             dataIndex: 'email',
@@ -291,7 +347,7 @@ function Client({ search }) {
             render: (active, record) => (
                 <Switch
                     checked={active} // If the account is active, switch is checked
-                    onChange={() => toggleActiveCompte(record._id)} // Trigger toggle action on change
+                    onChange={() => toggleActiveCompte(record._id , record?.role)} // Trigger toggle action on change
                     checkedChildren="Activer" // Displayed when checked
                     unCheckedChildren="Désactiver" // Displayed when unchecked
                     style={{
@@ -313,6 +369,14 @@ function Client({ search }) {
                             style={{ color: '#0080ff', borderColor: "#0080ff", background: "transparent", marginRight: '8px' }} 
                             icon={<IoDocumentAttach size={20} />}
                             onClick={() => openDocumentsModal(record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Chnage mots de passe" key="docs">
+                        <Button 
+                            type="link" 
+                            style={{ color: 'blue', borderColor: "blue" , background: "transparent", marginRight: '8px' }} 
+                            icon={<TbLockPassword size={20} />}
+                            onClick={() => showPasswordModal(record)}
                         />
                     </Tooltip>
                     {!record.verify && (
@@ -605,6 +669,58 @@ function Client({ search }) {
                                 <Typography.Text type="secondary">Aucun document trouvé pour ce client.</Typography.Text>
                             )}
                         </Modal>
+
+                         {/* Password Reset Modal */}
+            <Modal
+                title="Reset User Password"
+                visible={isPasswordModalVisible}
+                onCancel={handleCancel}
+                footer={null}
+                centered
+                destroyOnClose
+            >
+                <Form
+                    form={form}
+                    onFinish={handlePasswordSubmit}
+                    layout="vertical"
+                >
+                    <Form.Item
+                        label="New Password"
+                        name="newPassword"
+                        rules={[
+                            { required: true, message: 'Please input the new password!' },
+                            { min: 6, message: 'Password must be at least 6 characters' },
+                        ]}
+                    >
+                        <Input.Password placeholder="Enter new password" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Confirm New Password"
+                        name="confirmPassword"
+                        dependencies={['newPassword']}
+                        rules={[
+                            { required: true, message: 'Please confirm the new password!' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('newPassword') === value) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(new Error('Passwords do not match!'));
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input.Password placeholder="Confirm new password" />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block>
+                            Reset Password
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
                     </div>
                 </div>
             </main>

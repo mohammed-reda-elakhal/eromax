@@ -32,6 +32,7 @@ const TableDashboard = ({ column, data, id, theme, onSelectChange, loading, rowS
       rowSelection={rowSelection} // Pass rowSelection directly
       {...rest} // Spread any additional props (e.g., expandable)
       size='small'
+      bordered
     />
   );
 };

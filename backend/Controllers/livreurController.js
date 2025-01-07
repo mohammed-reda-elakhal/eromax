@@ -217,6 +217,31 @@ const findOrCreateLivreur = asyncHandler(async () => {
   return livreur; // Return the found or newly created livreur
 });
 
+/**
+ * @desc Activate/Deactivate client account
+ * @route /api/client/:id/toggle-active
+ * @method PATCH
+ * @access Private (client only)
+ */
+
+const toggleActiveLivreur = asyncHandler(async (req, res) => {
+  const livreurID = req.params.id;
+  const livreur = await Livreur.findById(livreurID);
+
+  if (!livreur) {
+    return res.status(404).json({ message: 'livreur not found' });
+  }
+
+  livreur.active = !livreur.active;
+  await livreur.save();
+
+  res.status(200).json({
+    message: `Cette compte est ${livreur.active ? 'active' : 'desactive'}`,
+    livreur
+  });
+});
+
+
 
 
 /** -------------------------------------------
@@ -229,10 +254,27 @@ const findOrCreateLivreur = asyncHandler(async () => {
 
 const getAllLivreur = asyncHandler(async (req, res) => {
   try {
+    // Fetch all livreurs
     const livreurs = await Livreur.find();
-    res.json(livreurs); // Send the response with the list of livreurs
+
+    // Fetch colis count for each livreur
+    const livreursWithColisCount = await Promise.all(
+      livreurs.map(async (livreur) => {
+        // Count the number of colis assigned to this livreur
+        const colisCount = await Colis.countDocuments({ livreur: livreur._id });
+
+        // Add the colis count to the livreur object
+        return {
+          ...livreur._doc,  // Spread the livreur's data
+          colisCount,        // Add the colis count
+        };
+      })
+    );
+
+    // Return the livreurs with colis count
+    res.json(livreursWithColisCount);
   } catch (error) {
-    // If an error occurs, send a 500 status with the error message
+    // Handle any error that occurs
     res.status(500).json({ message: error.message });
   }
 });
@@ -560,5 +602,6 @@ module.exports = {
   generateFactureLivreur,
   generateFactureLivreurMultiple ,
   findOrCreateLivreur,
-  assignColisToAmeex
+  assignColisToAmeex,
+  toggleActiveLivreur
 };

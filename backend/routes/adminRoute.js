@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createAdmin, updateAdmin, getAdminById, deleteAdmin, getAdmin, updateSuperAdminMessage, getSuperAdminMessage } = require("../Controllers/adminController")
+const { createAdmin, updateAdmin, getAdminById, deleteAdmin, getAdmin, updateSuperAdminMessage, getSuperAdminMessage, toggleActiveAdmin } = require("../Controllers/adminController")
 // Route to create a new team
 router.route("/")
         .get(getAdmin)
@@ -16,6 +16,9 @@ router.route("/:id")
 
 router.route('/message/:id')
         .patch(updateSuperAdminMessage)
+
+router.route("/active/:id")
+        .patch(toggleActiveAdmin)
 
 router.route('/message/:id')       
         .get(getSuperAdminMessage)

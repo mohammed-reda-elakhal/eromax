@@ -275,14 +275,19 @@ function FactureClientTable({ theme }) {
           >
             Refresh
           </Button>
-          <Button
-            type="primary"
-            icon={<FaRegFolderOpen />}
-            disabled={selectedRowKeys.length < 2}
-            onClick={handleMerge}
-          >
-            Fusionner
-          </Button>
+          {
+            user?.role === 'admin' && (
+              <Button
+                type="primary"
+                icon={<FaRegFolderOpen />}
+                disabled={selectedRowKeys.length < 2}
+                onClick={handleMerge}
+              >
+                Fusionner
+              </Button>
+            )
+          }
+          
         </Col>
       </Row>
       <TableDashboard

@@ -8,6 +8,7 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { handleFactureRamasser } = require('./factureHelper');
 const { createOrUpdateFacture, createOrUpdateFactureLivreur } = require("./factureController");
+const { generateFacturesRetour } = require("./factureRetourController");
 
 
 /*
@@ -201,7 +202,16 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
       try {
         await createOrUpdateFacture(colis._id);
         await createOrUpdateFactureLivreur(colis._id);
-        console.log(`Facture created/updated successfully for colis ${colis.code_suivi}.`);
+      } catch (factureError) {
+        console.error(`Error creating/updating facture for colis ${id_colis}:`, factureError);
+        // Optionally, handle the error (e.g., send a notification to admin)
+        // Depending on requirements, you might want to rollback the colis status update
+      }
+    }
+    // **Invoke the Facture Creation/Update Function**
+    if (['Refusée', 'Annulée', 'Remplacée'].includes(new_status)) { // Added "Refusée"
+      try {
+        await generateFacturesRetour()
       } catch (factureError) {
         console.error(`Error creating/updating facture for colis ${id_colis}:`, factureError);
         // Optionally, handle the error (e.g., send a notification to admin)

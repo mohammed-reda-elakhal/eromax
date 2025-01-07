@@ -58,10 +58,26 @@ export const logoutUser = (navigate) => {
         localStorage.removeItem('token');
     };
 };
+
+
 export function resetUserPassword(userId, newPassword, role) {
     return async (dispatch) => {
         try {
-            const { data } = await request.put(`/api/auth/${role}/reset-password`, { userId, newPassword });
+              // Get token from cookies
+          const token = localStorage.getItem('token');
+          if (!token) {
+              toast.error('Authentification token est manquant');
+              return;
+          }
+
+          // Set up headers with the token
+          const config = {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          };
+            const { data } = await request.put(`/api/auth/${role}/reset-password`, { userId, newPassword  } , config);
             
             // Optionally, you can update some state or inform the user about the success
             toast.success(data.message);  // Show success message
@@ -81,7 +97,22 @@ export function resetUserPassword(userId, newPassword, role) {
 export function resetOwnPassword(newPassword) {
     return async (dispatch) => {
         try {
-            const { data } = await request.put(`/api/auth/reset-password`, { newPassword });
+
+        // Get token from cookies
+        const token = localStorage.getItem('token');
+        if (!token) {
+            toast.error('Authentification token est manquant');
+            return;
+        }
+
+        // Set up headers with the token
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        };
+            const { data } = await request.put(`/api/auth/reset-password`, { newPassword } , config);
             
             // Optionally update state if necessary
             toast.success(data.message); // Show success message

@@ -222,6 +222,8 @@ function FactureLivreurTable({ theme }) {
           >
             Refresh
           </Button>
+          {
+            user?.role === 'admin' && (
           <Button
             type="primary"
             icon={<FaRegFolderOpen />}
@@ -230,6 +232,8 @@ function FactureLivreurTable({ theme }) {
           >
             Fusionner
           </Button>
+          )
+        }
         </Col>
       </Row>
       <TableDashboard

@@ -152,7 +152,7 @@ function ClientChart() {
                 transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
             }}
         >
-            <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Top 10 Stores</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Top 10 Clients</h2>
             {topClients.length > 0 ? (
                 <Bar data={chartData} options={options} plugins={[avatarPlugin]} />
             ) : (
