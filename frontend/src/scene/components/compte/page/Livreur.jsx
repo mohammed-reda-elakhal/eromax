@@ -1,11 +1,9 @@
-// Livreur.jsx
-
 import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
-import { FaPenFancy, FaInfoCircle, FaPlus } from "react-icons/fa";
+import { FaPenFancy, FaInfoCircle, FaPlus, FaBox } from "react-icons/fa";
 import { MdAttachMoney, MdDelete } from "react-icons/md";
-import { Avatar, Button, Modal, Drawer, Input } from 'antd';
+import { Avatar, Button, Modal, Drawer, Input, Switch, Form, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProfile, getProfileList } from '../../../../redux/apiCalls/profileApiCalls';
 import { useNavigate } from 'react-router-dom';
@@ -13,20 +11,25 @@ import LivreurFormAdd from '../components/LivreurFormAdd';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import Menubar from '../../../global/Menubar';
+import { toggleActiveClient } from '../../../../redux/apiCalls/profileApiCalls'; // Import the function
+import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls'; // Import password reset action
+
 import { ReloadOutlined } from '@ant-design/icons'; // Import the refresh icon
+import { TbLockPassword, TbZoomMoneyFilled } from 'react-icons/tb';
 
 function Livreur() {
     const { theme } = useContext(ThemeContext);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const [isModalStoreOpen, setIsModalStoreOpen] = useState(false);
     const [selectedStores, setSelectedStores] = useState([]);
     const [drawerVisible, setDrawerVisible] = useState(false); // For Drawer visibility
     const [currentClient, setCurrentClient] = useState(null); // Current client being edited or added
     const [searchQuery, setSearchQuery] = useState(''); // State for search query
+    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false); // Password reset modal visibility
+    const [selectedUser, setSelectedUser] = useState(null); // Store selected user for password reset
 
-    const navigate = useNavigate();
-
-    const dispatch = useDispatch();
     const { profileList, user, loading } = useSelector((state) => ({
         profileList: state.profile.profileList,
         user: state.auth.user,
@@ -40,8 +43,29 @@ function Livreur() {
         window.scrollTo(0, 0);
     }, [dispatch, user]);
 
-    const showModal = () => {
-        setIsModalStoreOpen(true);
+    const showPasswordModal = (user) => {
+        setSelectedUser(user); // Set the selected user
+        setIsPasswordModalVisible(true); // Show the password modal
+    };
+
+    const handlePasswordSubmit = async (values) => {
+        const { newPassword } = values;
+
+        if (!selectedUser) return;
+
+        try {
+            // Dispatch the action to reset the password
+            await dispatch(resetUserPassword(selectedUser._id, newPassword, selectedUser.role));
+
+            message.success('Password updated successfully');
+            setIsPasswordModalVisible(false); // Close the modal after successful password reset
+        } catch (error) {
+            message.error('Failed to update password');
+        }
+    };
+
+    const handlePasswordModalCancel = () => {
+        setIsPasswordModalVisible(false);
     };
 
     const openDrawer = (client) => {
@@ -56,6 +80,10 @@ function Livreur() {
 
     const handleDeleteProfile = (id) => {
         dispatch(deleteProfile("livreur", id));
+    };
+
+    const toggleActiveCompte = (id, role) => {
+        dispatch(toggleActiveClient(id, role));
     };
 
     // Define table columns
@@ -95,10 +123,10 @@ function Livreur() {
             key: 'villes',
             render: (villes) => {
                 if (!villes || villes.length === 0) return <span>Aucune ville</span>;
-                
+
                 const displayedVilles = villes.slice(0, 6); // Show only the first 6 cities
                 const remainingCount = villes.length - displayedVilles.length;
-        
+
                 return (
                     <>
                         <p>
@@ -110,11 +138,17 @@ function Livreur() {
                     </>
                 );
             },
-        },        
+        },
         {
-            title: 'Tarif',
-            dataIndex: 'tarif',
-            key: 'tarif',
+            title: 'N° Colis', // This is the new column
+            width: 150, // Set the width of the column
+            render: (text, record) => (
+                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                    <div style={{ fontWeight: 'bold', color: '#ff5722' }}>
+                        <FaBox /> {record.colisCount}
+                    </div>
+                </div>
+            )
         },
         {
             title: 'Adresse',
@@ -135,18 +169,17 @@ function Livreur() {
             title: 'Activation de compte',
             dataIndex: 'active',
             key: 'active',
-            render: (active) => (
-                <span style={{
-                    backgroundColor: active ? 'green' : 'red',
-                    color: 'white',
-                    padding: '5px',
-                    borderRadius: '3px',
-                    display: 'inline-block',
-                    whiteSpace: 'pre-wrap',
-                    textAlign: 'center'
-                }}>
-                    {active ? 'Activée' : 'Non Activée'}
-                </span>
+            render: (active, record) => (
+                <Switch
+                    checked={active} // If the account is active, the switch will be checked
+                    onChange={() => toggleActiveCompte(record._id, record?.role)} // This will trigger the toggle function
+                    checkedChildren="Activée" // Text displayed when checked
+                    unCheckedChildren="Non Activée" // Text displayed when unchecked
+                    style={{
+                        backgroundColor: active ? '#28a745' : '#dc3545', // Green for active, red for inactive
+                        borderColor: active ? '#28a745' : '#dc3545', // Same color for border
+                    }}
+                />
             ),
         },
         {
@@ -156,8 +189,13 @@ function Livreur() {
                 <div className='action_user'>
                     <Button 
                         style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
-                        icon={<MdAttachMoney size={20} />}
+                        icon={<TbZoomMoneyFilled size={20} />}
                         onClick={() => navigate(`/dashboard/tarif-livreur/${record._id}`)}
+                    />
+                    <Button 
+                        style={{ color: 'blue', borderColor: "blue" , background:"transparent"  }} 
+                        onClick={() => showPasswordModal(record)} // Trigger the password modal
+                        icon={<TbLockPassword size={20} />}
                     />
                     <Button 
                         style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
@@ -169,6 +207,7 @@ function Livreur() {
                         icon={<MdDelete size={20} />}
                         onClick={() => handleDeleteProfile(record._id)}
                     />
+                   
                 </div>
             )
         }
@@ -262,6 +301,58 @@ function Livreur() {
                         >
                             <LivreurFormAdd close={closeDrawer}/>
                         </Drawer>
+
+                        {/* Password Reset Modal */}
+                        <Modal
+                            title="Reset User Password"
+                            visible={isPasswordModalVisible}
+                            onCancel={handlePasswordModalCancel}
+                            footer={null}
+                            centered
+                            destroyOnClose
+                        >
+                            <Form
+                                onFinish={handlePasswordSubmit}
+                                layout="vertical"
+                            >
+                                <Form.Item
+                                    label="New Password"
+                                    name="newPassword"
+                                    rules={[
+                                        { required: true, message: 'Please input the new password!' },
+                                        { min: 6, message: 'Password must be at least 6 characters' },
+                                    ]}
+                                >
+                                    <Input.Password placeholder="Enter new password" />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Confirm New Password"
+                                    name="confirmPassword"
+                                    dependencies={['newPassword']}
+                                    rules={[
+                                        { required: true, message: 'Please confirm the new password!' },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                if (!value || getFieldValue('newPassword') === value) {
+                                                    return Promise.resolve();
+                                                }
+                                                return Promise.reject(new Error('Passwords do not match!'));
+                                            },
+                                        }),
+                                    ]}
+                                >
+                                    <Input.Password placeholder="Confirm new password" />
+                                </Form.Item>
+
+                                <Form.Item>
+                                    <Button type="primary" htmlType="submit" block>
+                                        Reset Password
+                                    </Button>
+                                </Form.Item>
+                            </Form>
+                        </Modal>
+
                     </div>
                 </div>
             </main>

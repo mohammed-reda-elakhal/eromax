@@ -35,6 +35,30 @@ const getAdminById = asyncHandler(async (req, res) => {
 });
 
 
+/**
+ * @desc Activate/Deactivate admin account
+ * @route /api/admin/active/:id
+ * @method PATCH
+ * @access Private (admin only)
+ */
+const toggleActiveAdmin = asyncHandler(async (req, res) => {
+    const adminID = req.params.id;
+    const admin = await Admin.findById(adminID);
+  
+    if (!admin) {
+      return res.status(404).json({ message: 'admin not found' });
+    }
+  
+    admin.active = !admin.active;
+    await admin.save();
+  
+    res.status(200).json({
+      message: `Cette compte est ${admin.active ? 'active' : 'desactive'}`,
+      admin
+    });
+  });
+  
+
 /** -------------------------------------------
  *@desc create new Admin member  
  * @router /api/admin
@@ -180,5 +204,7 @@ module.exports={
     getAdminById,
     getAdmin,
     getSuperAdminMessage ,
-    updateSuperAdminMessage
+    updateSuperAdminMessage,
+    toggleActiveAdmin
+    
 }

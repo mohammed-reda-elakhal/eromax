@@ -6,7 +6,6 @@ const router = express.Router();
 router.route("/")
         .get(getAllClients)
         .post(createClient)
-        .patch(verifyClientAll)
 
 // api/client/:id
 router.route("/:id")
@@ -19,7 +18,6 @@ router.route("/active/:id")
         .patch(toggleActiveClient)
 // api/client/verify/:id
 router.route("/verify/:id")
-        
         .patch(verifyClient)
 
 

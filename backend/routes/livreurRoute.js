@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur, getLivreurbyVille, generateFactureLivreur, assignColisToAmeex  } = require("../Controllers/livreurController");
+const { getAllLivreur, createLivreur, getLivreurById, updateLivreur, deleteLivreur, getLivreurbyVille, generateFactureLivreur, assignColisToAmeex, toggleActiveLivreur  } = require("../Controllers/livreurController");
 const { affecterLivreur } = require("../Controllers/colisController");
 const { verifyToken } = require("../Middlewares/VerifyToken");
 const router = express.Router();
@@ -16,6 +16,8 @@ router.route("/:id")
         .put( updateLivreur)
         .delete(deleteLivreur)
 
+router.route("/active/:id")
+        .patch(toggleActiveLivreur)
 // api/livreur/ameex
 router.route("/ameex")
         .post(assignColisToAmeex)

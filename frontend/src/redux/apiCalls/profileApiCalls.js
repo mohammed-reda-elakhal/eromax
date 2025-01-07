@@ -163,22 +163,30 @@ export function updateProfileImage(userId, role, formData) {
         }
     };
 }
-
-// Toggle Active/Inactive Client Account
-export function toggleActiveClient(clientId) {
+export function toggleActiveClient(clientId, role) {
     return async (dispatch) => {
-      try {
-        const { data } = await request.patch(`/api/client/active/${clientId}`);
-   
-        dispatch(profileActions.toggleActiveClient(data.client));
-        toast.success(data.message);
-      } catch (error) {
-        console.error('Toggle active client error:', error);
-        const errorMessage = error.response?.data?.message || error.message || "Failed to toggle client account status";
-        toast.error(errorMessage);
-      }
+        try {
+            const { data } = await request.patch(`/api/${role}/active/${clientId}`);
+            let updatedData = null;
+            
+            // Handle different role-based responses
+            if (role === 'client') {
+                updatedData = data.client;  // For client, update the 'client' key
+            } else if (role === 'admin') {
+                updatedData = data.admin;  // For admin, update the 'admin' key
+            } else if (role === 'livreur') {
+                updatedData = data.livreur;  // For livreur, update the 'livreur' key
+            }
+            
+            dispatch(profileActions.toggleActiveClient(updatedData));
+            toast.success(data.message);
+        } catch (error) {
+            console.error('Toggle active client error:', error);
+            const errorMessage = error.response?.data?.message || error.message || "Failed to toggle client account status";
+            toast.error(errorMessage);
+        }
     };
-   }
+}
 
 
    // Verify Client
