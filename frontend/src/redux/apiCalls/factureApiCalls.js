@@ -185,3 +185,41 @@ export function getFactureByColis(colisId) {
         }
     };
 }
+
+// New API call for merging factures
+export function mergeFactures(factureCodes) {
+    return async (dispatch, getState) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            const { data } = await request.post(`/api/facture/merge`, { factureCodes }, config);
+            
+            // Dispatch an action to add the merged facture
+            dispatch(factureActions.addFacture(data.mergedFacture));
+
+            // Remove original factures from the store
+            const state = getState();
+            factureCodes.forEach(code => {
+                const currentFacture = state.facture.facture.find(f => f.code_facture === code);
+                if (currentFacture) {
+                    dispatch(factureActions.removeFacture(currentFacture._id));
+                }
+            });
+
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to merge factures");
+        }
+    };
+}

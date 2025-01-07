@@ -215,15 +215,38 @@ function Client({ search }) {
             title: 'N° Store',
             dataIndex: 'stores',
             render: (text, record) => (
-                <Tag 
-                    color='green' 
-                    style={{ cursor: 'pointer' }} 
-                    onClick={() => openStoresModal(record._id)}
-                >
-                    {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
-                </Tag>
+              <Tag 
+                color='green' 
+                style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }} 
+                onClick={() => openStoresModal(record._id)}
+              >
+                {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
+              </Tag>
             )
-        },
+          },
+          {
+            title: 'Store Info',
+            render: (text, record) => (
+              <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                {/* Display the store name and balance (solde) */}
+                {record.stores && record.stores.length > 0 ? (
+                  record.stores.map((store, index) => (
+                    <div key={index} style={{ marginBottom: '8px' }}>
+                      <div style={{ fontWeight: 'bold', color: '#28a745' }}>
+                        {store.storeName}
+                      </div>
+                      <div style={{ color: '#007bff'  , fontSize: '16px', fontWeight: 'bold' }}>
+                        {store.solde} DH
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <span>No stores found</span>
+                )}
+              </div>
+            )
+          }
+,          
         {
             title: 'Email',
             dataIndex: 'email',
@@ -266,33 +289,19 @@ function Client({ search }) {
             dataIndex: 'active',
             key: 'active',
             render: (active, record) => (
-                <Button
-                    type={active ? 'primary' : 'danger'}
-                    onClick={() => toggleActiveCompte(record._id)}
+                <Switch
+                    checked={active} // If the account is active, switch is checked
+                    onChange={() => toggleActiveCompte(record._id)} // Trigger toggle action on change
+                    checkedChildren="Activer" // Displayed when checked
+                    unCheckedChildren="Désactiver" // Displayed when unchecked
                     style={{
-                        backgroundColor: active ? '#28a745' : '#dc3545',
-                        borderColor: active ? '#28a745' : '#dc3545',
-                        color: '#fff',
-                        borderRadius: '20px',
-                        padding: '6px 12px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
+                        backgroundColor: active ? '#28a745' : '#dc3545', // Green for active, red for inactive
+                        borderColor: active ? '#28a745' : '#dc3545', // Same color for border
                     }}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        {active ? (
-                            <i className="fas fa-lock-open mr-2"></i>
-                        ) : (
-                            <i className="fas fa-lock mr-2"></i>
-                        )}
-                        {active ? 'Désactiver' : 'Activer'}
-                    </div>
-                </Button>
-            )
-        },
+                />
+            ),
+        }
+,        
         {
             title: 'Action',
             dataIndex: 'action',

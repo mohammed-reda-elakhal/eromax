@@ -1,6 +1,8 @@
+// NotificationGlobale.jsx
+
 import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
-import { Button, Switch, Drawer, Form, Input, Space } from 'antd';
+import { Button, Switch, Drawer, Form, Input, Space, Modal } from 'antd';
 import { FaPenToSquare, FaPlus } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
@@ -113,6 +115,7 @@ function NotificationGlobale({ theme }) {
                 type='primary'
                 icon={<FaPlus />}
                 onClick={handleAddNotification}
+                style={{ marginBottom: '20px' }} // Ajout d'un espacement
             >   
                 Ajouter Notification
             </Button>
@@ -120,7 +123,7 @@ function NotificationGlobale({ theme }) {
 
             <Drawer
                 title={editingNotification ? 'Edit Notification' : 'Add Notification'}
-                width={320}
+                width={480} // Ajustement de la largeur pour le TextArea
                 onClose={handleCloseDrawer}
                 visible={drawerVisible}
                 bodyStyle={{ paddingBottom: 80 }}
@@ -129,14 +132,18 @@ function NotificationGlobale({ theme }) {
                     layout="vertical"
                     onFinish={handleFormSubmit}
                     form={form}
-                    initialValues={{ message: '', visibility: true }} // Adjust initial values
+                    initialValues={{ message: '', visibility: true }} // Ajustement des valeurs initiales
                 >
                     <Form.Item
                         name="message"
                         label="Description"
                         rules={[{ required: true, message: 'Please enter a description' }]}
                     >
-                        <Input placeholder="Enter notification description" />
+                        <Input.TextArea 
+                            placeholder="Enter notification description" 
+                            rows={4} // Nombre de lignes visibles
+                            allowClear
+                        />
                     </Form.Item>
                     <Form.Item
                         name="visibility"

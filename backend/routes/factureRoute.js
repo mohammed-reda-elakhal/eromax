@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllFacture, getFactureByCode, setFacturePay, getCodeFactureByColis} = require('../Controllers/factureController');
+const { getAllFacture, getFactureByCode, setFacturePay, getCodeFactureByColis, mergeFactures} = require('../Controllers/factureController');
 const { getAllRamasserFacture, getRamasserFactureByCode } = require('../Controllers/factureRamasserController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
 const { createFacturesRetourController, getFacturesRetourController, getFactureRetourByCodeFacture } = require('../Controllers/factureRetourController');
@@ -15,7 +15,10 @@ router.route('/retour')
     .post(createFacturesRetourController)
     .get(verifyToken , getFacturesRetourController)
 
+router.route('/merge')
+    .post(mergeFactures)
 
+    
 router.route('/retour/:code_facture')
     .get(getFactureRetourByCodeFacture)
 
