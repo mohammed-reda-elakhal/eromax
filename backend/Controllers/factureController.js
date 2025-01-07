@@ -1,6 +1,8 @@
 const { Colis } = require('../Models/Colis'); 
 const Facture = require('../Models/Facture');
 const moment = require('moment');
+const mongoose = require('mongoose');
+
 const asyncHandler = require('express-async-handler');
 const shortid = require('shortid');
 const { Suivi_Colis } = require('../Models/Suivi_Colis');
@@ -764,6 +766,7 @@ const getAllFacture = async (req, res) => {
                     { path: 'store', select: 'storeName' },
                 ]
             })
+            .sort({ updatedAt: -1 }) // Sort by updatedAt in descending order
             .lean();
 
         // Count total documents matching the filter
@@ -1174,6 +1177,189 @@ const getCodeFactureByColis = asyncHandler(async (req, res) => {
 });
 
 
+/**
+ * @desc    Merge multiple factures into a single facture based on code_facture
+ * @route   POST /api/facture/merge
+ * @method  POST
+ * @access  Private/Admin
+ */
+const mergeFactures = asyncHandler(async (req, res) => {
+    const { factureCodes } = req.body; // Expecting an array of code_facture
+
+    // Step 1: Input Validation
+    if (!factureCodes || !Array.isArray(factureCodes) || factureCodes.length < 2) {
+        return res.status(400).json({
+            message: 'Please provide an array of at least two code_facture values to merge.',
+        });
+    }
+
+    // Step 2: Fetch Factures based on code_facture
+    const factures = await Facture.find({ code_facture: { $in: factureCodes } })
+        .populate('store')
+        .populate('livreur')
+        .populate('colis')
+        .lean();
+
+    if (factures.length !== factureCodes.length) {
+        return res.status(404).json({
+            message: 'One or more factures not found based on the provided code_facture.',
+        });
+    }
+
+    // Step 3: Ensure all factures are of the same type
+    const factureType = factures[0].type;
+    if (!factures.every(facture => facture.type === factureType)) {
+        return res.status(400).json({
+            message: 'All factures must be of the same type (client or livreur).',
+        });
+    }
+
+    // Step 4: Ensure same store or livreur
+    let commonStore = null;
+    let commonLivreur = null;
+
+    if (factureType === 'client') {
+        commonStore = factures[0].store;
+        if (!commonStore) {
+            return res.status(400).json({
+                message: 'Facture of type client must be associated with a store.',
+            });
+        }
+        const allSameStore = factures.every(facture => facture.store && facture.store._id.toString() === commonStore._id.toString());
+        if (!allSameStore) {
+            return res.status(400).json({
+                message: 'All client factures must belong to the same store.',
+            });
+        }
+    } else if (factureType === 'livreur') {
+        commonLivreur = factures[0].livreur;
+        if (!commonLivreur) {
+            return res.status(400).json({
+                message: 'Facture of type livreur must be associated with a livreur.',
+            });
+        }
+        const allSameLivreur = factures.every(facture => facture.livreur && facture.livreur._id.toString() === commonLivreur._id.toString());
+        if (!allSameLivreur) {
+            return res.status(400).json({
+                message: 'All livreur factures must belong to the same livreur.',
+            });
+        }
+    } else {
+        return res.status(400).json({
+            message: 'Unknown facture type. Allowed types: client, livreur.',
+        });
+    }
+
+    // Step 5: Aggregate Data with Safe Number Parsing
+    let mergedColis = [];
+    let mergedTotalPrix = 0;
+    let mergedTotalTarifLivraison = 0;
+    let mergedTotalTarifFragile = 0;
+    let mergedTotalTarifAjouter = 0;
+    let mergedTotalTarif = 0;
+    let mergedTotalFraisRefus = 0;
+    let mergedOriginalTarifLivraison = 0;
+    let mergedPromotion = null; // Assuming promotions are consistent across factures; handle otherwise
+
+    for (const facture of factures) {
+        // Aggregate colis
+        if (facture.colis && Array.isArray(facture.colis)) {
+            mergedColis = mergedColis.concat(facture.colis.map(col => col._id));
+        }
+
+        // Sum up the tariffs with safe parsing
+        mergedTotalPrix += Number(facture.totalPrix) || 0;
+        mergedTotalTarifLivraison += Number(facture.totalTarifLivraison) || 0;
+        mergedTotalTarifFragile += Number(facture.totalTarifFragile) || 0;
+        mergedTotalTarifAjouter += Number(facture.totalTarifAjouter) || 0;
+        mergedTotalTarif += Number(facture.totalTarif) || 0;
+        mergedTotalFraisRefus += Number(facture.totalFraisRefus) || 0;
+        mergedOriginalTarifLivraison += Number(facture.originalTarifLivraison) || 0;
+
+        // Handle promotions
+        if (facture.promotion) {
+            if (!mergedPromotion) {
+                mergedPromotion = facture.promotion;
+            } else {
+                // Ensure all promotions are the same; otherwise, decide on a strategy
+                // For simplicity, we'll assume all promotions are identical
+                const isSamePromotion = JSON.stringify(mergedPromotion) === JSON.stringify(facture.promotion);
+                if (!isSamePromotion) {
+                    // If promotions differ, decide whether to keep one, combine, or skip
+                    // Here, we'll skip merging if promotions differ
+                    return res.status(400).json({
+                        message: 'Cannot merge factures with different promotions.',
+                    });
+                }
+            }
+        }
+    }
+
+    // Optional: Remove duplicate colis IDs
+    mergedColis = [...new Set(mergedColis.map(col => col.toString()))].map(id => new mongoose.Types.ObjectId(id));
+
+    // Step 6: Create Merged Facture
+    try {
+        // Generate a new code_facture based on the latest date among factures
+        const latestDate = factures.reduce((max, facture) => {
+            return facture.date > max ? facture.date : max;
+        }, new Date(0));
+        const newCodeFacture = generateCodeFacture(latestDate);
+
+        // Create the new merged facture
+        const mergedFactureData = {
+            code_facture: newCodeFacture,
+            type: factureType,
+            date: latestDate,
+            colis: mergedColis, // Already ensured to contain only ObjectIds
+            totalPrix: mergedTotalPrix,
+            totalTarifLivraison: mergedTotalTarifLivraison,
+            totalTarifFragile: mergedTotalTarifFragile,
+            totalTarifAjouter: mergedTotalTarifAjouter,
+            totalTarif: mergedTotalTarif,
+            totalFraisRefus: mergedTotalFraisRefus,
+            originalTarifLivraison: mergedOriginalTarifLivraison,
+            etat: false, // Default to not paid; adjust if needed
+            promotion: mergedPromotion, // Assign merged promotion if applicable
+        };
+
+        if (factureType === 'client') {
+            mergedFactureData.store = commonStore._id;
+        } else if (factureType === 'livreur') {
+            mergedFactureData.livreur = commonLivreur._id;
+        }
+
+        const mergedFacture = new Facture(mergedFactureData);
+        await mergedFacture.save();
+
+        // Step 7: Delete Original Factures
+        const deleteResult = await Facture.deleteMany({ code_facture: { $in: factureCodes } });
+
+        if (deleteResult.deletedCount !== factureCodes.length) {
+            // If not all factures were deleted, you might want to handle this scenario
+            console.warn('Not all original factures were deleted.');
+        }
+
+        // Step 8: Respond with the merged facture
+        const populatedMergedFacture = await Facture.findById(mergedFacture._id)
+            .populate('store')
+            .populate('livreur')
+            .populate('colis')
+            .lean();
+
+        res.status(200).json({
+            message: 'Factures merged successfully.',
+            mergedFacture: populatedMergedFacture,
+        });
+    } catch (error) {
+        console.error('Error merging factures:', error);
+        res.status(500).json({
+            message: 'An error occurred while merging factures.',
+            error: error.message,
+        });
+    }
+});
+
 module.exports = {
     createFacturesForClientsAndLivreurs,
     getAllFacture ,
@@ -1181,5 +1367,6 @@ module.exports = {
     setFacturePay,
     createOrUpdateFacture,
     getCodeFactureByColis,
-    createOrUpdateFactureLivreur
+    createOrUpdateFactureLivreur,
+    mergeFactures
 };

@@ -31,6 +31,12 @@ const authSlice = createSlice({
             state.store = null;
             state.token = null;
         },
+        setPasswordUpdated(state, action) { // New action
+            state.passwordUpdated = action.payload;
+        },
+        setOwnPasswordUpdated(state, action) { // New action
+            state.passwordUpdated = action.payload;
+        },
     }
 });
 

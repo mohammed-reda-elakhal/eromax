@@ -1,3 +1,5 @@
+/* ticket.css */
+@import url('https://fonts.googleapis.com/css2?family=Agu+Display&display=swap');
 /* General Ticket Layout */
 .ticket-colis {
   border: 1px solid black;
@@ -8,6 +10,19 @@
   margin: 12px;
   padding: 10px;
 }
+/* ticket.css */
+
+.ticket-colis-header-logo h2 {
+  font-family: "Agu Display", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings:"MORF" 0;
+  font-weight: 700;
+  font-size: 2em; /* Adjust as needed */
+  margin: 0;
+  padding-right: 10px; /* Space between text and logo */
+}
+
 
 .ticket-colis-header {
   display: flex;
@@ -23,9 +38,6 @@
   border-bottom: 1px solid black;
 }
 
-.ticket-colis-header-logo h2 {
-  font-size: 18px;
-}
 
 .ticket-colis-header-code {
   display: flex;
@@ -48,6 +60,7 @@
   display: flex;
   justify-content: space-around;
   border-bottom: 1px solid black;
+  padding-top: 8px;
 }
 
 .ticket-colis-main-content {

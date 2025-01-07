@@ -58,3 +58,44 @@ export const logoutUser = (navigate) => {
         localStorage.removeItem('token');
     };
 };
+export function resetUserPassword(userId, newPassword, role) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.put(`/api/auth/${role}/reset-password`, { userId, newPassword });
+            
+            // Optionally, you can update some state or inform the user about the success
+            toast.success(data.message);  // Show success message
+            //dispatch(authActions.setPasswordUpdated(true));--------test
+
+        } catch (error) {
+            if (error.response && error.response.data) {
+                console.error("Server responded with:", error.response.data);
+                toast.error(error.response.data.message || "Password reset failed");
+            } else {
+                console.error("Password reset error:", error);
+                toast.error("An error occurred while resetting the password");
+            }
+        }
+    };
+}
+export function resetOwnPassword(newPassword) {
+    return async (dispatch) => {
+        try {
+            const { data } = await request.put(`/api/auth/reset-password`, { newPassword });
+            
+            // Optionally update state if necessary
+            toast.success(data.message); // Show success message
+        } catch (error) {
+            if (error.response && error.response.data) {
+                console.error("Server responded with:", error.response.data);
+                toast.error(error.response.data.message || "Failed to reset password");
+                //dispatch(authActions.setOwnPasswordUpdated(true));---test
+
+            } else {
+                console.error("Password reset error:", error);
+                toast.error("An error occurred while resetting your password");
+            }
+        }
+    };
+}
+

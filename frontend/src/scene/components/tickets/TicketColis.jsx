@@ -39,31 +39,32 @@ function TicketColis({ colis , showDownloadButton }) {
       <div ref={componentRef} className="ticket-colis">
         <div className="ticket-colis-header">
           <div className="ticket-colis-header-logo">
-            <h2>Eromax</h2>
+            <h2>EROMAX</h2>
             <img src="/image/logo-light.png" alt="" width="70px" />
           </div>
           <div className="ticket-colis-header-code">
             <div className="code-bar">
               <Barcode value={colis.code_suivi} width={1.2} height={50} fontSize={12} />
+              
+              <p>{formatDate(colis?.createdAt)}</p>
             </div>
             <div className="qr-code">
               <QRCode value={colis.code_suivi} size={100} />
+
             </div>
           </div>
         </div>
         <div className="ticket-colis-main">
           <div className="ticket-colis-main-header">
-            <p>{colis?.ouvrir ? "Ouvrir Colis" : ""}</p>
-            <p>{colis.is_remplace ? "Remplace" : ""}</p>
-            <p>{colis.is_fragile ? "Fragile" : ""}</p>
+            <p style={{color : 'white' , background:'black' , padding:"4px 8px" } }>{colis?.ouvrir ? "Ouvrir Colis" : "Ne pas Ouvrir"}</p>
+            <p style={{color : 'white' , background:'black' } }>{colis.is_remplace ? "Remplace" : ""}</p>
+            <p style={{color : 'white' , background:'black'  } }>{colis.is_fragile ? "Fragile" : ""}</p>
           </div>
           <div className="ticket-colis-main-content">
             <div className="ticket-colis-main-expedateur">
               <h5>Expedateur :</h5>
               <img src={colis?.store?.image?.url} alt="" width="80px" />
-              <h3>{colis?.store?.storeName}</h3>
-              <p>{colis?.store?.id_client?.tele}</p>
-              <p>{formatDate(colis?.createdAt)}</p>
+              <h3>{colis?.store?.storeName} - {colis?.store?.tele}</h3>
             </div>
             <div className="ticket-colis-main-destinataire">
               <p><strong>Nom :</strong> {colis?.nom}</p> {/* Access 'nom' field */}
@@ -71,7 +72,7 @@ function TicketColis({ colis , showDownloadButton }) {
               <p><strong>Ville :</strong> {colis?.ville?.nom}</p> {/* Access 'nom' field in 'ville' */}
               <p><strong>Adresse :</strong> {colis?.adresse}</p>
               <p><strong>Produit :</strong> {colis?.nature_produit}</p>
-              <h3 style={{color:"green"}}>{colis?.prix} DH</h3> {/* Ensure 'prix' is a valid number or string */}
+              <h3 style={{color:"green" , fontWeight:'900'}}>{colis?.prix} DH</h3> {/* Ensure 'prix' is a valid number or string */}
             </div>
           </div>
           <div className="ticket-colis-footer">

@@ -1,3 +1,5 @@
+// FactureClientTable.jsx
+
 import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
@@ -5,15 +7,19 @@ import {
   getFacture,
   getFactureDetailsByClient,
   setFactureEtat,
+  mergeFactures, // Importer la nouvelle action
 } from '../../../../redux/apiCalls/factureApiCalls';
-import { Input, DatePicker, Row, Col, Switch, Tag, Button } from 'antd';
-import { FaRegFolderOpen } from 'react-icons/fa6';
-import moment from 'moment';
+import { Input, DatePicker, Row, Col, Switch, Tag, Button, Modal } from 'antd';
+import { FaRegFolderOpen, FaSyncAlt } from 'react-icons/fa'; // Importer une icône de rafraîchissement
+import moment from 'moment'; // Importer moment
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
+const { RangePicker } = DatePicker;
 
 function FactureClientTable({ theme }) {
   const navigate = useNavigate();
-  const [loading , setLoading] = useState(false)
+  const [loading, setLoading] = useState(false); // État de chargement ajouté
   const dispatch = useDispatch();
   const { facture, user, store } = useSelector((state) => ({
     facture: state.facture.facture,
@@ -25,45 +31,33 @@ function FactureClientTable({ theme }) {
   const [filteredData, setFilteredData] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const fetchData = () =>{
-    setLoading(true)
-    if (user?.role === 'admin') {
-      dispatch(getFacture('client')).then(setLoading(false))
-    } else if (user?.role === 'client') {
-      dispatch(getFactureDetailsByClient(store?._id)).then(setLoading(false));
-    }
-  }
+  
+  // Nouvel état pour les factures sélectionnées
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Récupérer les factures au chargement du composant
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      if (user?.role === 'admin') {
+        await dispatch(getFacture('client'));
+      } else if (user?.role === 'client') {
+        await dispatch(getFactureDetailsByClient(store?._id));
+      }
+    } catch (error) {
+      // La gestion des erreurs est déjà gérée dans les appels API
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Récupérer les factures au montage du composant ou lorsque l'utilisateur ou le store change
   useEffect(() => {
-    fetchData()
+    fetchData();
     window.scrollTo(0, 0);
   }, [dispatch, user, store]);
 
-  // Mettre à jour les données filtrées lorsque les filtres changent
-  useEffect(() => {
-    filterData(searchText, startDate, endDate);
-  }, [facture, searchText, startDate, endDate]);
-
-  // Toggle etat for the selected facture
-  const toggleFacturePay = (id) => {
-    dispatch(setFactureEtat(id));
-    // The Redux slice and action will immediately update the store,
-    // so the UI will reflect the new etat without a page reload.
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchText(e.target.value.toLowerCase());
-  };
-
-  const handleStartDateChange = (date) => {
-    setStartDate(date ? date.startOf('day') : null);
-  };
-
-  const handleEndDateChange = (date) => {
-    setEndDate(date ? date.endOf('day') : null);
-  };
-
+  // Définir la fonction filterData
   const filterData = (text, start, end) => {
     let filtered = [...facture];
 
@@ -88,6 +82,33 @@ function FactureClientTable({ theme }) {
     }
 
     setFilteredData(filtered);
+  };
+
+  // Mettre à jour les données filtrées lorsque facture ou les filtres changent
+  useEffect(() => {
+    filterData(searchText.toLowerCase(), startDate, endDate);
+  }, [facture, searchText, startDate, endDate]);
+
+  // Fonction pour basculer l'état de paiement d'une facture
+  const toggleFacturePay = (id) => {
+    dispatch(setFactureEtat(id));
+    // Le slice Redux et l'action mettront immédiatement à jour le store,
+    // donc l'interface reflétera le nouvel état sans rechargement de la page.
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value.toLowerCase());
+  };
+
+  // Définir correctement handleDateRangeChange
+  const handleDateRangeChange = (dates) => {
+    if (dates) {
+      setStartDate(moment(dates[0]).startOf('day'));
+      setEndDate(moment(dates[1]).endOf('day'));
+    } else {
+      setStartDate(null);
+      setEndDate(null);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -146,7 +167,7 @@ function FactureClientTable({ theme }) {
       key: 'etat',
       render: (etat, record) => {
         if (record.type === 'client') {
-          // Switch for admin only
+          // Switch pour les admins uniquement
           if (user?.role === 'admin') {
             return (
               <Switch
@@ -157,7 +178,7 @@ function FactureClientTable({ theme }) {
               />
             );
           } else {
-            // If not admin, just show a tag
+            // Si pas admin, afficher simplement un tag
             return etat ? (
               <Tag color="green">Payé</Tag>
             ) : (
@@ -165,7 +186,7 @@ function FactureClientTable({ theme }) {
             );
           }
         } else {
-          // If it's a 'livreur' type, display a tag (no toggle)
+          // Si c'est un type 'livreur', afficher un tag (pas de toggle)
           return etat ? (
             <Tag color="green">Payé</Tag>
           ) : (
@@ -183,7 +204,7 @@ function FactureClientTable({ theme }) {
             icon={<FaRegFolderOpen />}
             onClick={() => {
               const url = `/dashboard/facture/detail/client/${record.code_facture}`;
-              window.open(url, '_blank'); // Open the URL in a new tab
+              window.open(url, '_blank'); // Ouvrir l'URL dans un nouvel onglet
             }}
             type="primary"
           />
@@ -192,15 +213,76 @@ function FactureClientTable({ theme }) {
     },
   ];
 
+  // Gestion de la sélection des lignes
+  const onSelectChange = (selectedKeys) => {
+    setSelectedRowKeys(selectedKeys);
+  };
+
+  // Fonction pour fusionner les factures sélectionnées
+  const handleMerge = () => {
+    if (selectedRowKeys.length < 2) {
+      toast.error("Veuillez sélectionner au moins deux factures à fusionner.");
+      return;
+    }
+
+    // Confirmer l'action de fusion
+    Modal.confirm({
+      title: 'Confirmer la fusion',
+      content: `Voulez-vous vraiment fusionner ${selectedRowKeys.length} factures ?`,
+      okText: 'Oui',
+      cancelText: 'Non',
+      onOk: async () => {
+        try {
+          // Récupérer les codes des factures sélectionnées
+          const selectedFactures = facture.filter(f => selectedRowKeys.includes(f._id));
+          const factureCodes = selectedFactures.map(f => f.code_facture);
+
+          await dispatch(mergeFactures(factureCodes));
+
+          // Rafraîchir les données après la fusion
+          await fetchData();
+
+          // Réinitialiser la sélection après la fusion
+          setSelectedRowKeys([]);
+        } catch (error) {
+          // La gestion des erreurs est déjà gérée dans les appels API
+        }
+      }
+    });
+  };
+
   return (
     <div>
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: '20px', alignItems: 'center' }}>
         <Col span={8}>
           <Input
             placeholder="Rechercher ..."
             value={searchText}
             onChange={handleSearchChange}
+            allowClear
           />
+        </Col>
+        <Col span={8}>
+          <RangePicker onChange={handleDateRangeChange} />
+        </Col>
+        <Col span={8} style={{ textAlign: 'right' }}>
+          <Button
+            type="default"
+            icon={<FaSyncAlt />}
+            onClick={fetchData}
+            style={{ marginRight: '10px' }}
+            loading={loading}
+          >
+            Refresh
+          </Button>
+          <Button
+            type="primary"
+            icon={<FaRegFolderOpen />}
+            disabled={selectedRowKeys.length < 2}
+            onClick={handleMerge}
+          >
+            Fusionner
+          </Button>
         </Col>
       </Row>
       <TableDashboard
@@ -208,7 +290,12 @@ function FactureClientTable({ theme }) {
         column={columns}
         data={filteredData}
         theme={theme}
-        loading={loading}
+        loading={loading} // Passer l'état de chargement
+        onSelectChange={onSelectChange}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: onSelectChange,
+        }}
       />
     </div>
   );
