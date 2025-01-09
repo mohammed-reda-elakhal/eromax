@@ -143,7 +143,7 @@ function ColisCirclChart() {
       <div
         className="chart-circl-colis"
         style={{
-          width: '48%',
+          width: '40%',
           height: '400px',
           padding: '20px',
           backgroundColor: theme === 'dark' ? '#001529' : '#fff',
@@ -155,7 +155,7 @@ function ColisCirclChart() {
       <div
         className="chart-bar-colis"
         style={{
-          width: '48%',
+          width: '40%',
           height: '400px',
           padding: '20px',
           backgroundColor: theme === 'dark' ? '#001529' : '#fff',

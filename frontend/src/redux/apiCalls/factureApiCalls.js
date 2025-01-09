@@ -8,9 +8,21 @@ import Cookies from "js-cookie";
 export function getFacture(type) {
     return async (dispatch) => {
         try {
-            const { data } = await request.get(`/api/facture`, {
-                params: { type } // Use 'params' for query parameters
-            });
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentification token is missing');
+                return;
+            }
+    
+            const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            }
+            };
+
+            const { data } = await request.get(`/api/facture`, {params: { type }} , config);
             dispatch(factureActions.setFacture(data.factures));
         } catch (error) {
             toast.error(error.message || "Failed to fetch notifications");

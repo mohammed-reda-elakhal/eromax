@@ -121,34 +121,14 @@ const FactureDetailLivreur = () => {
       key: 'ville',
     },
     {
-      title: 'Statut',
-      key: 'statut',
-      dataIndex: 'statut',
-      render: (text, record) => (
-        <>
-          {record?.statut === 'Livrée' ? (
-            <Tag color="green">{record?.statut}</Tag>
-          ) : (
-            <Tag color="red">{record?.statut}</Tag>
-          )}
-        </>
-      ),
-    },
-    {
       title: 'Tarif Livraison',
       dataIndex: 'new_tarif_livraison',
       key: 'tarif_livraison',
       render: (tarif_livraison, record) => (
         <span>
-          {record?.statut === 'Livrée' ? `${tarif_livraison} DH` : '0 DH'}
+          { `${tarif_livraison} DH`}
         </span>
       ),
-    },
-    {
-      title: 'Remarque',
-      dataIndex: 'remarque',
-      key: 'remarque',
-      render: (remarque) => (remarque ? remarque : 'N/A'),
     },
     {
       title: 'Prix',
