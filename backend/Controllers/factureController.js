@@ -95,190 +95,232 @@ const applyPromotion = (storeId, originalTarifLivraison, activePromotions) => {
 // Function to create or update facture for clients based on a single colis
 
 // Function to create or update facture for clients based on a single colis
-const createOrUpdateFacture = async (colisId) => {
+// Function to create or update facture for clients based on a single colis
+const createOrUpdateFacture = asyncHandler(async (colisId) => {
     try {
-      // Fetch the colis data with necessary populates
-      const colis = await Colis.findById(colisId)
-        .populate('store')
-        .populate('ville')
-        .exec();
-  
-      if (!colis) {
-        throw new Error('Colis not found');
-      }
-  
-      // Ensure the facture is for a client
-      if (!colis.store) {
-        throw new Error('Colis must be associated with a store for client facture');
-      }
-  
-      // Use date_livraisant as the key date for the facture
-      const dateLivraison = colis.date_livraisant;
-      if (!dateLivraison) {
-        throw new Error('Delivery date (date_livraisant) not set for the colis');
-      }
-  
-      // Fetch active promotions
-      const now = new Date();
-      const activePromotions = await Promotion.find({
-        isActive: true,
-        startDate: { $lte: now },
-        endDate: { $gte: now },
-      }).lean();
-  
-      // Calculate original tarif_livraison based on colis status
-      let originalTarifLivraisonClient = 0;
-      if (colis.statut === 'Livrée') {
-        originalTarifLivraisonClient = colis.ville?.tarif || 0;
-      } else if (colis.statut === 'Refusée') {
-        originalTarifLivraisonClient = colis.ville?.tarif_refus || 0;
-      }
-  
-      // Apply promotion for client
-      let tarif_livraisonClient = originalTarifLivraisonClient;
-      let appliedPromotion = null;
-  
-      const promotionResult = applyPromotion(
-        colis.store._id,
-        originalTarifLivraisonClient,
-        activePromotions
-      );
-      tarif_livraisonClient = promotionResult.tarif_livraison;
-      appliedPromotion = promotionResult.appliedPromotion;
-  
-      // Calculate tarif_fragile and tarif_ajouter if statut === 'Livrée'
-      let tarif_fragile = 0;
-      let tarif_ajouter = 0;
-  
-      if (colis.statut === 'Livrée') {
-        tarif_fragile = colis.is_fragile ? 5 : 0;
-        tarif_ajouter = colis.tarif_ajouter?.value || 0;
-      }
-  
-      // Calculate total_tarif for client
-      let tarif_totalClient = 0;
-      if (colis.statut === 'Refusée') {
-        // Exclude tarif_livraison for Refusée colis
-        tarif_totalClient = tarif_fragile + tarif_ajouter;
-      } else {
-        tarif_totalClient = tarif_livraisonClient + tarif_fragile + tarif_ajouter;
-      }
-  
-      // Calculate the 'rest' for the store (client side)
-      // Only calculate 'rest' if statut is 'Livrée'
-      let rest = 0;
-      if (colis.statut === 'Livrée') {
-        rest = colis.prix - tarif_totalClient;
-      }
-  
-      // Validate 'rest' and 'originalTarifLivraisonClient' to prevent NaN
-      rest = typeof rest === 'number' && !isNaN(rest) ? rest : 0;
-      originalTarifLivraisonClient = typeof originalTarifLivraisonClient === 'number' && !isNaN(originalTarifLivraisonClient)
-        ? originalTarifLivraisonClient
-        : 0;
-  
-      // -------------------------
-      // Handle Client Facture
-      // -------------------------
-      // Find existing facture for this date + store
-      const existingFactureClient = await Facture.findOne({
-        type: 'client',
-        store: colis.store._id,
-        date: moment(dateLivraison).startOf('day').toDate(),
-      });
-  
-      if (existingFactureClient) {
-        // Check if this colis is already in the facture
-        const alreadyExists = existingFactureClient.colis.some(
-          (existingColisId) => existingColisId.toString() === colis._id.toString()
-        );
-  
-        if (alreadyExists) {
-          // If it already exists, throw an error or skip
-          throw new Error(
-            `Facture already exists for this client/date and includes colis ${colis.code_suivi}.`
-          );
-        } else {
-          // Update existing facture
-          const updateFields = {
-            $push: { colis: colis._id },
-            $inc: {
-              totalTarifLivraison: tarif_livraisonClient,
-              totalTarifFragile: tarif_fragile,
-              totalTarifAjouter: tarif_ajouter,
-              totalTarif: tarif_totalClient,
-            },
-          };
-  
-          // Adjust totalPrix based on colis status
-          if (colis.statut === 'Livrée') {
-            updateFields.$inc.totalPrix = rest;
-          } else if (colis.statut === 'Refusée') {
-            updateFields.$inc.totalPrix = -originalTarifLivraisonClient;
-          }
-  
-          // Include applied promotion if any
-          if (appliedPromotion) {
-            updateFields.$set = { promotion: appliedPromotion };
-          }
-  
-          await Facture.updateOne(
-            { _id: existingFactureClient._id },
-            updateFields
-          );
+        // Fetch the colis data with necessary populates
+        const colis = await Colis.findById(colisId)
+            .populate('store')
+            .populate('ville')
+            .exec();
+
+        if (!colis) {
+            throw new Error('Colis not found');
         }
-      } else {
-        // Create a new facture for the client
-        const newFactureClient = new Facture({
-          code_facture: generateCodeFacture(dateLivraison),
-          type: 'client',
-          store: colis.store._id,
-          date: moment(dateLivraison).startOf('day').toDate(),
-          colis: [colis._id],
-          totalPrix: colis.statut === 'Livrée' ? rest : -originalTarifLivraisonClient, // Correctly set based on status
-          totalTarifLivraison: tarif_livraisonClient,
-          totalTarifFragile: tarif_fragile,
-          totalTarifAjouter: tarif_ajouter,
-          totalTarif: tarif_totalClient,
-          promotion: appliedPromotion || null,
-          originalTarifLivraison: originalTarifLivraisonClient,
+
+        // Ensure the facture is for a client
+        if (!colis.store) {
+            throw new Error('Colis must be associated with a store for client facture');
+        }
+
+        // Use date_livraisant as the key date for the facture
+        const dateLivraison = colis.date_livraisant;
+        if (!dateLivraison) {
+            throw new Error('Delivery date (date_livraisant) not set for the colis');
+        }
+
+        // Fetch active promotions
+        const now = new Date();
+        const activePromotions = await Promotion.find({
+            isActive: true,
+            startDate: { $lte: now },
+            endDate: { $gte: now },
+        }).lean();
+
+        // Calculate original tarif_livraison based on colis status
+        let originalTarifLivraisonClient = 0;
+        if (colis.statut === 'Livrée') {
+            originalTarifLivraisonClient = colis.ville?.tarif || 0;
+        } else if (colis.statut === 'Refusée') {
+            originalTarifLivraisonClient = colis.ville?.tarif_refus || 0;
+        }
+
+        // Apply promotion for client
+        let tarif_livraisonClient = originalTarifLivraisonClient;
+        let appliedPromotion = null;
+
+        const promotionResult = applyPromotion(
+            colis.store._id,
+            originalTarifLivraisonClient,
+            activePromotions
+        );
+        tarif_livraisonClient = promotionResult.tarif_livraison;
+        appliedPromotion = promotionResult.appliedPromotion;
+
+        // Calculate tarif_fragile and tarif_ajouter if statut === 'Livrée'
+        let tarif_fragile = 0;
+        let tarif_ajouter = 0;
+
+        if (colis.statut === 'Livrée') {
+            tarif_fragile = colis.is_fragile ? 5 : 0;
+            tarif_ajouter = colis.tarif_ajouter?.value || 0;
+        }
+
+        // Calculate total_tarif for client
+        let total_tarifClient = 0;
+        if (colis.statut === 'Refusée') {
+            // Exclude tarif_livraison for Refusée colis
+            total_tarifClient = tarif_fragile + tarif_ajouter;
+        } else {
+            total_tarifClient = tarif_livraisonClient + tarif_fragile + tarif_ajouter;
+        }
+
+        // Calculate the 'rest' for the store (client side)
+        // Only calculate 'rest' if statut is 'Livrée'
+        let rest = 0;
+        if (colis.statut === 'Livrée') {
+            rest = colis.prix - total_tarifClient;
+        }
+
+        // Validate 'rest' and 'originalTarifLivraisonClient' to prevent NaN
+        rest = typeof rest === 'number' && !isNaN(rest) ? rest : 0;
+        originalTarifLivraisonClient = typeof originalTarifLivraisonClient === 'number' && !isNaN(originalTarifLivraisonClient)
+            ? originalTarifLivraisonClient
+            : 0;
+
+        // -------------------------
+        // Calculate `crbt` Data
+        // -------------------------
+        const crbtData = {
+            prix_colis: colis.prix,
+            tarif_livraison: colis.statut === 'Refusée' ? 0 : tarif_livraisonClient,
+            tarif_refuse: colis.statut === 'Refusée' ? originalTarifLivraisonClient : 0,
+            tarif_fragile: tarif_fragile,
+            tarif_supplementaire: tarif_ajouter,
+            prix_a_payant: colis.statut === 'Livrée' ? rest : 0,
+            total_tarif: total_tarifClient,
+        };
+
+        // -------------------------
+        // Handle Client Facture
+        // -------------------------
+        // Find existing facture for this date + store
+        const existingFactureClient = await Facture.findOne({
+            type: 'client',
+            store: colis.store._id,
+            date: moment(dateLivraison).startOf('day').toDate(),
         });
-  
-        await newFactureClient.save();
-      }
-  
-      // -------------------------
-      // Update Store Solde and Related Transactions (Commented Out)
-      // -------------------------
-      /*
-      const store = await Store.findById(colis.store._id);
-      if (store) {
-        store.solde = (store.solde || 0) + (isNaN(rest) ? 0 : rest);
-        await store.save();
-      }
-  
-      // Create transaction
-      const transactionClient = new Transaction({
-        id_store: colis.store._id,
-        montant: rest,
-        type: 'credit',
-        etat: true,
-      });
-      await transactionClient.save();
-  
-      // Create notification for the client
-      const notificationClient = new NotificationUser({
-        id_store: colis.store._id,
-        title: `+ ${rest} DH`,
-        description: `Votre portefeuille a été crédité de ${rest} DH suite à la livraison du colis ${colis.code_suivi}.`,
-      });
-      await notificationClient.save();
-      */
+
+        if (existingFactureClient) {
+            // Check if this colis is already in the facture
+            const alreadyExists = existingFactureClient.colis.some(
+                (existingColisId) => existingColisId.toString() === colis._id.toString()
+            );
+
+            if (alreadyExists) {
+                // If it already exists, throw an error or skip
+                throw new Error(
+                    `Facture already exists for this client/date and includes colis ${colis.code_suivi}.`
+                );
+            } else {
+                // Update existing facture
+                const updateFields = {
+                    $push: { colis: colis._id },
+                    $inc: {
+                        totalTarifLivraison: tarif_livraisonClient,
+                        totalTarifFragile: tarif_fragile,
+                        totalTarifAjouter: tarif_ajouter,
+                        totalTarif: total_tarifClient,
+                    },
+                    // Set `crbt` fields
+                    $set: {
+                        'crbt.prix_colis': crbtData.prix_colis,
+                        'crbt.tarif_livraison': crbtData.tarif_livraison,
+                        'crbt.tarif_refuse': crbtData.tarif_refuse,
+                        'crbt.tarif_fragile': crbtData.tarif_fragile,
+                        'crbt.tarif_supplementaire': crbtData.tarif_supplementaire,
+                        'crbt.prix_a_payant': crbtData.prix_a_payant,
+                        'crbt.total_tarif': crbtData.total_tarif,
+                        // Set `statu_final` based on colis.statut
+                        'statu_final': colis.statut === 'Livrée' ? 'Livrée' : 'Refusée',
+                    },
+                };
+
+                // Adjust totalPrix based on colis status
+                if (colis.statut === 'Livrée') {
+                    updateFields.$inc.totalPrix = rest;
+                } else if (colis.statut === 'Refusée') {
+                    updateFields.$inc.totalPrix = -originalTarifLivraisonClient;
+                }
+
+                // Include applied promotion if any
+                if (appliedPromotion) {
+                    updateFields.$set.promotion = appliedPromotion;
+                }
+
+                await Facture.updateOne(
+                    { _id: existingFactureClient._id },
+                    updateFields
+                );
+
+                // -------------------------
+                // Update `crbt` and `statu_final` in Colis Document
+                // -------------------------
+                colis.crbt = crbtData;
+                colis.statu_final = colis.statut === 'Livrée' ? 'Livrée' : 'Refusée';
+                await colis.save();
+            }
+        } else {
+            // Create a new facture for the client
+            const newFactureClient = new Facture({
+                code_facture: generateCodeFacture(dateLivraison),
+                type: 'client',
+                store: colis.store._id,
+                date: moment(dateLivraison).startOf('day').toDate(),
+                colis: [colis._id],
+                totalPrix: colis.statut === 'Livrée' ? rest : -originalTarifLivraisonClient, // Correctly set based on status
+                totalTarifLivraison: tarif_livraisonClient,
+                totalTarifFragile: tarif_fragile,
+                totalTarifAjouter: tarif_ajouter,
+                totalTarif: total_tarifClient,
+                promotion: appliedPromotion || null,
+                originalTarifLivraison: originalTarifLivraisonClient,
+                crbt: crbtData,
+                statu_final: colis.statut === 'Livrée' ? 'Livrée' : 'Refusée',
+            });
+
+            await newFactureClient.save();
+
+            // -------------------------
+            // Update `crbt` and `statu_final` in Colis Document
+            // -------------------------
+            colis.crbt = crbtData;
+            colis.statu_final = colis.statut === 'Livrée' ? 'Livrée' : 'Refusée';
+            await colis.save();
+        }
+
+        // -------------------------
+        // Update Store Solde and Related Transactions (Uncomment if needed)
+        // -------------------------
+        /*
+        const store = await Store.findById(colis.store._id);
+        if (store) {
+            store.solde = (store.solde || 0) + (isNaN(rest) ? 0 : rest);
+            await store.save();
+        }
+
+        // Create transaction
+        const transactionClient = new Transaction({
+            id_store: colis.store._id,
+            montant: rest,
+            type: 'credit',
+            etat: true,
+        });
+        await transactionClient.save();
+
+        // Create notification for the client
+        const notificationClient = new NotificationUser({
+            id_store: colis.store._id,
+            title: `+ ${rest} DH`,
+            description: `Votre portefeuille a été crédité de ${rest} DH suite à la livraison du colis ${colis.code_suivi}.`,
+        });
+        await notificationClient.save();
+        */
     } catch (error) {
-      console.error(`Error creating/updating facture for colis ${colisId}:`, error);
-      throw error; // Propagate the error to be handled upstream
+        console.error(`Error creating/updating facture for colis ${colisId}:`, error);
+        throw error; // Propagate the error to be handled upstream
     }
-  };
+});
   
 
 
@@ -724,32 +766,39 @@ cron.schedule('50 23 * * *', async () => {
 
 const getAllFacture = async (req, res) => {
     try {
-        // Destructure query parameters with default values
-        const { type, date, storeId, livreurId, sortBy = 'date', order = 'desc' } = req.query;
+        // Extract 'type' from route parameters
+        const { type } = req.query;
 
-        // Build the filter object
+        // Destructure user data from token
+        const { role, store: storeId, id: userId } = req.user;
+
+        // Initialize filter with 'type' if provided
         const filter = {};
-
-        // Add type to filter if present in query
-        if (type) filter.type = type;
-
-        // Handle date filtering
-        if (date) {
-            const start = new Date(date);
-            const end = new Date(date);
-            end.setDate(end.getDate() + 1);
-            filter.date = { $gte: start, $lt: end };
+        if (type) {
+            filter.type = type;
         }
 
-        // Filter by storeId if provided
-        if (storeId) filter.store = storeId;
+        // Apply role-based filtering
+        switch (role) {
+            case 'client':
+                if (storeId) {
+                    filter.store = storeId;
+                }
+                break;
 
-        // Filter by livreurId if provided
-        if (livreurId) filter.livreur = livreurId;
+            case 'livreur':
+                filter.livreur = userId;
+                break;
 
-        
+            case 'admin':
+                // No additional filters
+                break;
 
-        // Query the database
+            default:
+                return res.status(403).json({ message: 'Access denied: Unknown role' });
+        }
+
+        // Query the database with the constructed filter
         const factures = await Facture.find(filter)
             .populate({
                 path: 'store',
@@ -757,7 +806,7 @@ const getAllFacture = async (req, res) => {
             })
             .populate({
                 path: 'livreur',
-                select: 'nom  tele'
+                select: 'nom tele'
             })
             .populate({
                 path: 'colis',
@@ -769,20 +818,19 @@ const getAllFacture = async (req, res) => {
             .sort({ updatedAt: -1 }) // Sort by updatedAt in descending order
             .lean();
 
-        // Count total documents matching the filter
-        const total = await Facture.countDocuments(filter);
+        // Optionally, you can include pagination here
 
-        // Send response with the selected factures and pagination data
+        // Send response with the selected factures
         res.status(200).json({
-            message: 'Factures selected',
+            message: 'Factures retrieved successfully',
             factures,
         });
+
     } catch (error) {
         console.error("Error fetching factures:", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-
 const setFacturePay = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1077,22 +1125,12 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                     totalTarif += col.tarif_total; // Only tarif_fragile + tarif_ajouter
                 }
             } else if (facture.type === 'livreur') {
-                if (col.statut === 'Livrée') {
                     totalPrix += col.montant_a_payer;
                     totalOldTarifLivraison += col.old_tarif_livraison;
                     totalNewTarifLivraison += col.new_tarif_livraison;
                     totalTarifFragile += col.tarif_fragile; // Should be 0
                     totalTarifAjouter += col.tarif_ajouter; // Should be 0
                     totalTarif += col.tarif_total;
-                } else {
-                    // For 'Refusée', 'Annulée', etc.
-                    totalPrix += col.montant_a_payer; // Should be 0
-                    totalOldTarifLivraison += col.old_tarif_livraison; // Should be 0
-                    totalNewTarifLivraison += col.new_tarif_livraison; // Should be 0
-                    totalTarifFragile += col.tarif_fragile; // Should be 0
-                    totalTarifAjouter += col.tarif_ajouter; // Should be 0
-                    totalTarif += col.tarif_total;
-                }
             }
         });
 
@@ -1360,6 +1398,243 @@ const mergeFactures = asyncHandler(async (req, res) => {
     }
 });
 
+/**
+ * @desc    Remove a colis from a facture using code_facture and code_suivi, and update all related calculations
+ * @route   DELETE /api/facture/:code_facture/colis/:code_suivi
+ * @method  DELETE
+ * @access  Private/Admin
+ */
+const removeColisFromFacture = asyncHandler(async (req, res) => {
+    const { code_facture, code_suivi } = req.params;
+
+    // Step 1: Input Validation
+    if (!code_facture || !code_suivi) {
+        return res.status(400).json({ message: 'Both code_facture and code_suivi are required.' });
+    }
+
+    // Step 2: Fetch the Facture by code_facture
+    const facture = await Facture.findOne({ code_facture })
+        .populate('store')
+        .populate('livreur')
+        .populate('colis')
+        .exec();
+
+    if (!facture) {
+        return res.status(404).json({ message: 'Facture not found.' });
+    }
+
+    // Step 3: Fetch the Colis by code_suivi
+    const colis = await Colis.findOne({ code_suivi }).populate('ville').exec();
+
+    if (!colis) {
+        return res.status(404).json({ message: 'Colis not found.' });
+    }
+
+    // Step 4: Verify Colis Association with Facture
+    const colisIndex = facture.colis.findIndex(col => col.code_suivi === code_suivi);
+    if (colisIndex === -1) {
+        return res.status(404).json({ message: 'Colis not found in the specified facture.' });
+    }
+
+    // Step 5: Calculate the Impact of Removing the Colis
+    let {
+        prix,
+        statut,
+        is_fragile,
+        tarif_ajouter,
+        ville,
+        pret_payant,
+    } = colis;
+
+    // Initialize variables for calculations
+    let originalTarifLivraison = 0;
+    let tarif_livraison = 0;
+    let tarif_fragile_val = is_fragile ? 5 : 0; // Avoid naming conflict
+    let total_tarif = 0;
+    let montant = 0;
+    let fraisRefus = 0;
+
+    if (facture.type === 'client') {
+        if (statut === 'Livrée') {
+            originalTarifLivraison = Number(ville.tarif) || 0;
+            tarif_livraison = Number(facture.originalTarifLivraison) >= originalTarifLivraison
+                ? originalTarifLivraison
+                : Number(facture.originalTarifLivraison) || 0; // Ensure consistency
+            montant = pret_payant ? 0 : (Number(prix) || 0) - (tarif_livraison + tarif_fragile_val + (Number(tarif_ajouter) || 0));
+        } else if (statut === 'Refusée') {
+            originalTarifLivraison = Number(ville.tarif_refus) || 0;
+            tarif_livraison = Number(facture.originalTarifLivraison) >= originalTarifLivraison
+                ? originalTarifLivraison
+                : Number(facture.originalTarifLivraison) || 0; // Ensure consistency
+            montant = pret_payant ? 0 : -originalTarifLivraison;
+            fraisRefus = tarif_livraison;
+        } else {
+            // Handle other statuses if necessary
+            originalTarifLivraison = Number(ville.tarif) || 0;
+            tarif_livraison = Number(facture.originalTarifLivraison) >= originalTarifLivraison
+                ? originalTarifLivraison
+                : Number(facture.originalTarifLivraison) || 0;
+            montant = pret_payant ? 0 : (Number(prix) || 0) - (tarif_livraison + tarif_fragile_val + (Number(tarif_ajouter) || 0));
+        }
+
+        total_tarif = tarif_livraison + tarif_fragile_val + (Number(tarif_ajouter) || 0);
+    } else if (facture.type === 'livreur') {
+        if (statut === 'Livrée') {
+            originalTarifLivraison = Number(facture.originalTarifLivraison) || 0;
+            tarif_livraison = originalTarifLivraison;
+            montant = pret_payant ? 0 : (Number(prix) || 0) - tarif_livraison;
+        } else {
+            originalTarifLivraison = 0;
+            tarif_livraison = 0;
+            montant = 0;
+            // Optionally handle other statuses like 'Refusée' or 'Annulée'
+        }
+
+        total_tarif = tarif_livraison; // For livreur, fragile and ajouter are typically not applicable
+    }
+
+    // Debugging: Log the calculated values
+    console.log('Calculated Values for Removal:');
+    console.log(`montant: ${montant}`);
+    console.log(`tarif_livraison: ${tarif_livraison}`);
+    console.log(`tarif_fragile_val: ${tarif_fragile_val}`);
+    console.log(`tarif_ajouter: ${tarif_ajouter}`);
+    console.log(`total_tarif: ${total_tarif}`);
+    console.log(`fraisRefus: ${fraisRefus}`);
+    console.log(`originalTarifLivraison: ${originalTarifLivraison}`);
+
+    // Ensure all variables are valid numbers
+    montant = Number(montant) || 0;
+    tarif_livraison = Number(tarif_livraison) || 0;
+    tarif_fragile_val = Number(tarif_fragile_val) || 0;
+    tarif_ajouter = Number(tarif_ajouter) || 0;
+    total_tarif = Number(total_tarif) || 0;
+    fraisRefus = Number(fraisRefus) || 0;
+    originalTarifLivraison = Number(originalTarifLivraison) || 0;
+
+    // Step 6: Update Facture Totals by Removing Colis Contributions
+    facture.colis.splice(colisIndex, 1); // Remove the colis from the array
+
+    // Adjust totals with safeguards
+    facture.totalPrix = (Number(facture.totalPrix) || 0) - montant;
+    facture.totalTarifLivraison = (Number(facture.totalTarifLivraison) || 0) - tarif_livraison;
+
+    if (facture.type === 'client') {
+        facture.totalTarifFragile = (Number(facture.totalTarifFragile) || 0) - tarif_fragile_val;
+        facture.totalTarifAjouter = (Number(facture.totalTarifAjouter) || 0) - tarif_ajouter;
+    }
+
+    facture.totalTarif = (Number(facture.totalTarif) || 0) - total_tarif;
+
+    if (statut === 'Refusée') {
+        facture.totalFraisRefus = (Number(facture.totalFraisRefus) || 0) - fraisRefus;
+    }
+
+    facture.originalTarifLivraison = (Number(facture.originalTarifLivraison) || 0) - originalTarifLivraison;
+
+    // Optional: Handle negative totals
+    // Ensure totals do not go below zero
+    facture.totalPrix = Math.max(facture.totalPrix, 0);
+    facture.totalTarifLivraison = Math.max(facture.totalTarifLivraison, 0);
+    if (facture.type === 'client') {
+        facture.totalTarifFragile = Math.max(facture.totalTarifFragile, 0);
+        facture.totalTarifAjouter = Math.max(facture.totalTarifAjouter, 0);
+    }
+    facture.totalTarif = Math.max(facture.totalTarif, 0);
+    if (statut === 'Refusée') {
+        facture.totalFraisRefus = Math.max(facture.totalFraisRefus, 0);
+    }
+    facture.originalTarifLivraison = Math.max(facture.originalTarifLivraison, 0);
+
+    // Debugging: Log the updated totals
+    console.log('Updated Facture Totals:');
+    console.log(`totalPrix: ${facture.totalPrix}`);
+    console.log(`totalTarifLivraison: ${facture.totalTarifLivraison}`);
+    if (facture.type === 'client') {
+        console.log(`totalTarifFragile: ${facture.totalTarifFragile}`);
+        console.log(`totalTarifAjouter: ${facture.totalTarifAjouter}`);
+    }
+    console.log(`totalTarif: ${facture.totalTarif}`);
+    if (statut === 'Refusée') {
+        console.log(`totalFraisRefus: ${facture.totalFraisRefus}`);
+    }
+    console.log(`originalTarifLivraison: ${facture.originalTarifLivraison}`);
+
+    // Step 7: Save the Updated Facture
+    await facture.save();
+
+    // Step 8: Update Related Entities (Store or Livreur)
+    if (facture.type === 'client') {
+        const store = facture.store;
+
+        if (store) {
+            // Calculate the montant to adjust the store's solde
+            const montantToAdjust = montant; // This could be positive or negative
+
+            store.solde = (Number(store.solde) || 0) - montantToAdjust; // Subtract since we're removing the colis
+            await store.save();
+
+            // Create a corresponding transaction
+            const transaction = new Transaction({
+                id_store: store._id,
+                montant: montantToAdjust,
+                type: montantToAdjust >= 0 ? 'credit' : 'debit',
+                etat: true,
+            });
+            await transaction.save();
+
+            // Send a notification to the store
+            const notification = new NotificationUser({
+                id_store: store._id,
+                title: montantToAdjust >= 0 ? `+ ${montantToAdjust} DH` : `- ${Math.abs(montantToAdjust)} DH`,
+                description: `Votre portefeuille a été ${montantToAdjust >= 0 ? 'crédité' : 'débité'} de ${Math.abs(montantToAdjust)} DH suite à la suppression du colis ${colis.code_suivi} de la facture ${facture.code_facture}.`,
+            });
+            await notification.save();
+        }
+    } else if (facture.type === 'livreur') {
+        const livreur = facture.livreur;
+
+        if (livreur) {
+            // Calculate the montant to adjust the livreur's solde
+            const montantToAdjust = montant; // This could be positive or negative
+
+            livreur.solde = (Number(livreur.solde) || 0) - montantToAdjust; // Subtract since we're removing the colis
+            await livreur.save();
+
+            // Create a corresponding transaction
+            const transaction = new Transaction({
+                id_livreur: livreur._id, // Assuming 'id_livreur' is the correct field
+                montant: montantToAdjust,
+                type: montantToAdjust >= 0 ? 'credit' : 'debit',
+                etat: true,
+            });
+            await transaction.save();
+
+            // Send a notification to the livreur
+            const notification = new NotificationUser({
+                id_livreur: livreur._id,
+                title: montantToAdjust >= 0 ? `+ ${montantToAdjust} DH` : `- ${Math.abs(montantToAdjust)} DH`,
+                description: `Votre portefeuille a été ${montantToAdjust >= 0 ? 'crédité' : 'débité'} de ${Math.abs(montantToAdjust)} DH suite à la suppression du colis ${colis.code_suivi} de la facture ${facture.code_facture}.`,
+            });
+            await notification.save();
+        }
+    }
+
+    // Step 9: Handle Empty Facture (Optional)
+    if (facture.colis.length === 0) {
+        // Decide whether to delete the facture or retain it with zero colis
+        // Here, we'll delete the facture
+        await Facture.findOneAndDelete({ code_facture });
+        return res.status(200).json({ message: 'Colis removed and facture deleted as it has no more colis.', facture: null });
+    }
+
+    // Step 10: Respond to the Client with the Updated Facture
+    res.status(200).json({
+        message: 'Colis removed successfully from the facture.',
+        facture,
+    });
+});
+
 module.exports = {
     createFacturesForClientsAndLivreurs,
     getAllFacture ,
@@ -1368,5 +1643,6 @@ module.exports = {
     createOrUpdateFacture,
     getCodeFactureByColis,
     createOrUpdateFactureLivreur,
-    mergeFactures
+    mergeFactures,
+    removeColisFromFacture
 };

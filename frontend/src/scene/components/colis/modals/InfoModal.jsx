@@ -149,15 +149,33 @@ const InfoModal = React.memo(({
 
         <Descriptions.Item label="Autres Options">
           <Col xs={24} sm={12} md={8}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
               <Badge dot color={selectedColis.ouvrir ? 'green' : 'red'} />
               <Text>Ouvrir: {selectedColis.ouvrir ? 'Oui' : 'Non'}</Text>
+              <br />
               <Badge dot color={selectedColis.is_simple ? 'green' : 'red'} />
               <Text>Is Simple: {selectedColis.is_simple ? 'Oui' : 'Non'}</Text>
+              <br />
               <Badge dot color={selectedColis.is_remplace ? 'green' : 'red'} />
               <Text>Is Remplace: {selectedColis.is_remplace ? 'Oui' : 'Non'}</Text>
+              <br />
               <Badge dot color={selectedColis.is_fragile ? 'green' : 'red'} />
               <Text>Is Fragile: {selectedColis.is_fragile ? 'Oui' : 'Non'}</Text>
+              <br />
+            </div>
+          </Col>
+        </Descriptions.Item>
+
+        <Descriptions.Item label="CRBT">
+          <Col xs={24} sm={12} md={8}>
+            <div style={{ display: 'flex', flexDirection : 'column', gap: '4px' }}>
+              <p>Prix : {selectedColis?.crbt?.prix_colis}</p>
+              <p>Tarif L : {selectedColis?.crbt?.tarif_livraison}</p>
+              <p>Tarif R : {selectedColis?.crbt?.tarif_refuse}</p>
+              <p>Tarif F : {selectedColis?.crbt?.tarif_fragile}</p>
+              <p>Tarif S : {selectedColis?.crbt?.tarif_supplementaire}</p>
+              <p>Montant a Pay : {selectedColis?.crbt?.prix_a_payant}</p>
+              <p>TTL : {selectedColis?.crbt?.total_tarif}</p>
             </div>
           </Col>
         </Descriptions.Item>

@@ -31,11 +31,9 @@ function FactureLivreurTable({ theme }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      if (user?.role === 'admin') {
+      if (user) {
         await dispatch(getFacture('livreur'));
-      } else if (user?.role === 'livreur') {
-        await dispatch(getFactureDetailsByLivreur(user?._id));
-      }
+      } 
     } catch (error) {
       // La gestion des erreurs est déjà gérée dans les appels API
     } finally {

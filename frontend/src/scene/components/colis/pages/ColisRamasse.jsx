@@ -257,7 +257,15 @@ function ColisRamasse({ search }) {
               <Button icon={<FaBoxesStacked />} type="primary" onClick={() => showModal()} loading={loading}>Expédier</Button>
               <Button icon={<IoQrCodeSharp />} type="primary" onClick={() => navigate("/dashboard/scan/statu/Expediée")} loading={loading}>Scanner</Button>
             </div>
-            <TableDashboard column={columns} data={data} id="code_suivi" theme={theme} onSelectChange={setSelectedRowKeys} />
+            <TableDashboard 
+              column={columns} 
+              data={data} 
+              id="code_suivi" 
+              theme={theme}  
+              rowSelection={{
+                selectedRowKeys: selectedRowKeys,
+                onChange: setSelectedRowKeys,
+              }} />
             {contextHolder}
           </div>
         </div>

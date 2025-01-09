@@ -39,10 +39,8 @@ function FactureClientTable({ theme }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      if (user?.role === 'admin') {
+      if (user) {
         await dispatch(getFacture('client'));
-      } else if (user?.role === 'client') {
-        await dispatch(getFactureDetailsByClient(store?._id));
       }
     } catch (error) {
       // La gestion des erreurs est déjà gérée dans les appels API

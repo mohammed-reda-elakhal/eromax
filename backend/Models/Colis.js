@@ -146,7 +146,7 @@ const ColisSchema = new mongoose.Schema({
     replacedColis: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Colis',
-        default: null, // Change from array to single reference
+        default: null, // Changed from array to single reference
     },
     code_suivi_ameex: {
         type: String,
@@ -175,6 +175,46 @@ const ColisSchema = new mongoose.Schema({
             type: String,
             default: '',
         }
+    },
+    // New Attribute: crbt
+    crbt: {
+        prix_colis: {
+            type: Number,
+            default: 0,
+        },
+        tarif_livraison: {
+            type: Number,
+            default: 0,
+        },
+        tarif_refuse: {
+            type: Number,
+            default: 0,
+        },
+        tarif_fragile: {
+            type: Number,
+            default: 0,
+        },
+        tarif_supplementaire: {
+            type: Number,
+            default: 0,
+        },
+        prix_a_payant: {
+            type: Number,
+            default: 0,
+        },
+        total_tarif: {
+            type: Number,
+            default: 0,
+        }
+    },
+    // New Attribute: statu_final
+    statu_final: {
+        type: String,
+        enum: [
+            "Livrée",
+            "Refusée"
+        ],
+        default: null,
     }
 }, {
     timestamps: true
@@ -250,9 +290,31 @@ function validateRegisterColis(obj) {
             description: Joi.string(),
         }),
         pret_payant : Joi.boolean(),
+        // New Attributes in Validation
+        crbt: Joi.object({
+            prix_colis: Joi.number(),
+            tarif_livraison: Joi.number(),
+            tarif_refuse: Joi.number(),
+            tarif_fragile: Joi.number(),
+            tarif_supplementaire: Joi.number(),
+            prix_a_payant: Joi.number(),
+            total_tarif: Joi.number(),
+        }),
+        statu_final: Joi.string().valid("Livrée", "Refusée").allow(null),
     });
     return schema.validate(obj);
 }
+
+// ColisSchema pre-save hook
+ColisSchema.pre('save', function(next) {
+    if (this.isModified('statut')) {
+        if (['Livrée', 'Refusée'].includes(this.statut)) {
+            this.statu_final = this.statut;
+        }
+    }
+    next();
+});
+
 
 module.exports = {
     Colis,
