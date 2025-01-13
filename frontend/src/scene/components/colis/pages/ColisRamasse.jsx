@@ -37,6 +37,7 @@ function ColisRamasse({ search }) {
     user: state.auth.user,
     store: state.auth.store,
   }));
+  
 
   const getDataColis = () => {
     if (user?.role) {
