@@ -786,7 +786,7 @@ const handleConfirmAssignLivreur = async () => {
               }}
             />
           </Tooltip>
-          {user.role !== 'livreur' && (
+          {user.role === 'admin' && (
             <Tooltip title="Edit Record">
               <Button 
                 type="primary" 
