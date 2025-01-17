@@ -17,14 +17,9 @@ const Login = () => {
 
   // Clear data and possibly logout user on component mount
   useEffect(() => {
-    // If you're using Redux for user data, you can dispatch a logout or clear action
-    // to remove old user data. Or clear localStorage/sessionStorage here if needed.
     dispatch(logoutUser()); 
     setEmail('');
     setPassword('');
-    // You could also explicitly clear localStorage if you store user info there:
-    // localStorage.removeItem('user');
-    // sessionStorage.removeItem('user');
   }, [dispatch]);
 
   const handleSubmit = (e) => {
