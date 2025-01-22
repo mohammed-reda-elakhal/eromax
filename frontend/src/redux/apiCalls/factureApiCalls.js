@@ -31,6 +31,64 @@ export function getFacture(type) {
 }
 
 // get data user
+export function getFactureGroupeByUser(type) {
+    return async (dispatch) => {
+        try {
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentification token is missing');
+                return;
+            }
+    
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                params: {
+                    type
+                },
+            };
+
+            const { data } = await request.get(`/api/facture/groupe/user` , config);
+            dispatch(factureActions.setFactureGroupe(data.factures));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch notifications");
+        }
+    };
+}
+
+// get data user
+export function getFactureByUser(storeId, type) {
+    return async (dispatch) => {
+        try {
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentification token is missing');
+                return;
+            }
+    
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                params: {
+                    storeId,
+                    type,
+                },
+            };
+
+            const { data } = await request.get(`/api/facture/user` , config);
+            dispatch(factureActions.setFacture(data.factures));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch notifications");
+        }
+    };
+}
+
+// get data user
 export function getFactureRamasser() {
     return async (dispatch) => {
         try {

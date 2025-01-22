@@ -14,6 +14,7 @@ import {
   Button,
   Modal,
   Drawer,
+  message,
 } from 'antd';
 import { MdOutlineWidgets } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
@@ -208,6 +209,7 @@ function ColisForm({ type }) {
 
     try {
       await dispatch(createColis(colis));
+      message.success('Colis créé avec succès !'); // Added success message
       setFormData(initialFormData);
       setPhoneError('');
       dispatch(resetVille());

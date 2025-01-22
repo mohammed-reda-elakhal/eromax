@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import { decodeToken } from "../../utils/tokenUtils";
 import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
+import{ message }from"antd";
 
 
 // Create Multiple Colis Function
@@ -476,9 +477,6 @@ export function createColis(colis) {
   
         // Send a POST request to create a single colis with `replacedColis` if available
         const { data } = await request.post(`/api/colis/user/${idToUse}`, colis, config);
-  
-        // Display success notification
-        toast.success(data.message);
       } catch (error) {
         // Error handling
         toast.error(error.response?.data?.message || error.message || "Failed to create colis");

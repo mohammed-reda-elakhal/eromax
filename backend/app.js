@@ -21,12 +21,14 @@ const app = express();
 app.use(express.json());
 
 // CORS Configuration
-const allowedOrigin = process.env.BASE_URL || 'http://localhost:3000';  // Fallback to localhost:3000 if BASE_URL is undefined
+const allowedOrigin = process.env.BASE_URL ;  // Fallback to localhost:3000 if BASE_URL is undefined
 
 app.use(cors({
-  origin: allowedOrigin,  // Allow all origins
-  methods: ['*'],
+  origin: allowedOrigin,  // Allow requests from your specified origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],  // Specify allowed HTTP methods
+  credentials: true,  // Allow credentials (cookies, HTTP authentication)
 }));
+
 
 
 app.use(cookieParser());

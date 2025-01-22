@@ -4,6 +4,7 @@ const factureSlice = createSlice({
     name: "facture",
     initialState: {
         facture: [],
+        factureGroupe: [],
         factureRamasser: [],
         factureRetour: [],
         detailFacture: [],
@@ -14,6 +15,9 @@ const factureSlice = createSlice({
     reducers: {
         setFacture(state, action) {
             state.facture = action.payload;
+        },
+        setFactureGroupe(state, action) {
+            state.factureGroupe = action.payload;
         },
         setFactureRamasser(state, action) {
             state.factureRamasser = action.payload;

@@ -3,9 +3,10 @@ import { ThemeContext } from '../../../ThemeContext';
 import '../facture.css';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import RecData from '../../../../data/reclamation.json';
 import Title from '../../../global/Title';
 import FactureClientTable from '../components/FactureClientTable';
+import FactureCLientGroupe from '../components/FactureCLientGroupe';
+import { useParams } from 'react-router-dom';
 
 
 const onChange = (key) => {
@@ -15,7 +16,7 @@ const onChange = (key) => {
 
 function FactureClient() {
     const { theme } = useContext(ThemeContext);
-    const [data, setData] = useState(RecData);
+    const {id} = useParams();
 
     return (
         <div className='page-dashboard'>
@@ -38,7 +39,11 @@ function FactureClient() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <FactureClientTable  theme={theme}/>
+                        {
+                            id ? <FactureClientTable  theme={theme} id={id}/> :  <FactureCLientGroupe theme={theme} />
+                        }
+                        {/*<FactureClientTable  theme={theme}/> */}
+                        
                     </div>
                 </div>
             </main>

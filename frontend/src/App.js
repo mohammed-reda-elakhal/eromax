@@ -238,8 +238,10 @@ function App() {
             </Route>
 
             <Route path='facture'>
+              <Route path="client/:id" element={<FactureClient />}  />
               <Route path="client" element={<FactureClient />}  />
               <Route path="livreur" element={<FactureLivreur />}  />
+              <Route path="livreur/:id" element={<FactureLivreur />}  />
               <Route path="detail/client/:code_facture" element={<FactureDetail />}  />
               <Route path="detail/livreur/:code_facture" element={<FactureDetailLivreur />}  />
               <Route path="globale" element={<FactureGlobale />}  />

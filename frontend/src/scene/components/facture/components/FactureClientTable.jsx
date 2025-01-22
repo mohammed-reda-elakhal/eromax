@@ -7,7 +7,8 @@ import {
   getFacture,
   getFactureDetailsByClient,
   setFactureEtat,
-  mergeFactures, // Importer la nouvelle action
+  mergeFactures,
+  getFactureByUser, // Importer la nouvelle action
 } from '../../../../redux/apiCalls/factureApiCalls';
 import { Input, DatePicker, Row, Col, Switch, Tag, Button, Modal } from 'antd';
 import { FaRegFolderOpen, FaSyncAlt } from 'react-icons/fa'; // Importer une icône de rafraîchissement
@@ -17,7 +18,7 @@ import { toast } from 'react-toastify';
 
 const { RangePicker } = DatePicker;
 
-function FactureClientTable({ theme }) {
+function FactureClientTable({ theme , id }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false); // État de chargement ajouté
   const dispatch = useDispatch();
@@ -40,7 +41,7 @@ function FactureClientTable({ theme }) {
     setLoading(true);
     try {
       if (user) {
-        await dispatch(getFacture('client'));
+        await dispatch(getFactureByUser(id ,'client'));
       }
     } catch (error) {
       // La gestion des erreurs est déjà gérée dans les appels API

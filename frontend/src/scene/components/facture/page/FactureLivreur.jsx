@@ -5,6 +5,8 @@ import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import FactureLivreurTable from '../components/FactureLivreurTable';
+import FactureLivreurGroupe from '../components/FactureLivreurGroupe';
+import { useParams } from 'react-router-dom';
 
 
 const onChange = (key) => {
@@ -14,6 +16,7 @@ const onChange = (key) => {
 
 function FactureLivreur() {
     const { theme } = useContext(ThemeContext);
+    const {id} = useParams();
 
     return (
         <div className='page-dashboard'>
@@ -36,7 +39,7 @@ function FactureLivreur() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <FactureLivreurTable  theme={theme}/>
+                        { id ? <FactureLivreurTable  theme={theme} id={id}/> : <FactureLivreurGroupe/> }
                     </div>
                 </div>
             </main>

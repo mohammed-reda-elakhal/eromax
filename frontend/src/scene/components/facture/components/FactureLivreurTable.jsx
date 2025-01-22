@@ -7,14 +7,15 @@ import {
   getFacture,
   getFactureDetailsByLivreur,
   setFactureEtat,
-  mergeFactures, // Importer la nouvelle action
+  mergeFactures,
+  getFactureByUser, // Importer la nouvelle action
 } from '../../../../redux/apiCalls/factureApiCalls';
 import { Button, Tag, Input, Switch, Modal, Row, Col } from 'antd';
 import { FaRegFolderOpen, FaSyncAlt } from "react-icons/fa"; // Importer une icône de rafraîchissement
 import moment from 'moment'; // Importer moment
 import { toast } from 'react-toastify';
 
-function FactureLivreurTable({ theme }) {
+function FactureLivreurTable({ theme , id }) {
   const dispatch = useDispatch();
   const { facture, user } = useSelector((state) => ({
     facture: state.facture.facture,
@@ -32,7 +33,7 @@ function FactureLivreurTable({ theme }) {
     setLoading(true);
     try {
       if (user) {
-        await dispatch(getFacture('livreur'));
+        await dispatch(getFactureByUser(id ,'livreur'));
       } 
     } catch (error) {
       // La gestion des erreurs est déjà gérée dans les appels API

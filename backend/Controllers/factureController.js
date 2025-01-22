@@ -831,6 +831,192 @@ const getAllFacture = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+/**
+ * Controller to get factures by user based on type ('client' or 'livreur').
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @query {string} storeId - The ID of the store or livreur.
+ * @query {string} type - The type of user ('client' or 'livreur').
+ */
+const getFacturesByUser = async (req, res) => {
+    try {
+        // Extract 'storeId' and 'type' from query parameters
+        const { storeId, type } = req.query;
+
+        // Validate 'type' parameter
+        if (!type || (type !== 'client' && type !== 'livreur')) {
+            return res.status(400).json({ message: 'Invalid or missing type. Allowed types: client, livreur' });
+        }
+
+        // Validate 'storeId' based on 'type'
+        if (!storeId || !mongoose.Types.ObjectId.isValid(storeId)) {
+            return res.status(400).json({ message: 'Invalid or missing storeId/livreurId' });
+        }
+
+        let filter = {};
+        let factures;
+
+        if (type === 'client') {
+            // For 'client' type, filter factures by 'storeId' and 'type'
+            filter = { store: storeId, type: 'client' };
+
+            factures = await Facture.find(filter)
+                .populate({
+                    path: 'store',
+                    select: 'storeName id_client image tele solde'
+                })
+                .populate({
+                    path: 'livreur',
+                    select: 'nom tele profile'
+                })
+                .populate({
+                    path: 'colis',
+                    populate: [
+                        { path: 'ville', select: 'nom key ref tarif' },
+                        { path: 'store', select: 'storeName' },
+                    ]
+                })
+                .sort({ updatedAt: -1 }) // Sort by updatedAt in descending order
+                .lean();
+
+            return res.status(200).json({
+                message: 'Factures retrieved successfully for client',
+                factures,
+            });
+
+        } else if (type === 'livreur') {
+            // For 'livreur' type, filter factures by 'livreurId' and 'type'
+            filter = { livreur: storeId, type: 'livreur' };
+
+            factures = await Facture.find(filter)
+                .populate({
+                    path: 'store',
+                    select: 'storeName id_client image tele solde'
+                })
+                .populate({
+                    path: 'livreur',
+                    select: 'nom tele profile'
+                })
+                .populate({
+                    path: 'colis',
+                    populate: [
+                        { path: 'ville', select: 'nom key ref tarif' },
+                        { path: 'store', select: 'storeName' },
+                    ]
+                })
+                .sort({ updatedAt: -1 }) // Sort by updatedAt in descending order
+                .lean();
+
+            return res.status(200).json({
+                message: 'Factures retrieved successfully for livreur',
+                factures,
+            });
+        }
+
+    } catch (error) {
+        console.error("Error fetching factures by user:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+/**
+ * Controller to get factures grouped by store or livreur based on type.
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @query {string} type - The type of grouping ('client' or 'livreur').
+ */
+const getFacturesGroupedByUser = async (req, res) => {
+    try {
+        const { type } = req.query;
+
+        // Validate 'type' parameter
+        if (!type || (type !== 'client' && type !== 'livreur')) {
+            return res.status(400).json({ message: 'Invalid or missing type. Allowed types: client, livreur' });
+        }
+
+        let factures;
+
+        if (type === 'client') {
+            // Group factures by store for 'client' type
+            factures = await Facture.aggregate([
+                { $match: { type: 'client' } },
+                {
+                    $group: {
+                        _id: '$store',
+                        factureCount: { $sum: 1 },
+                        totalColis: { $sum: { $size: '$colis' } },
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'stores', // Ensure this matches your collection name
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'storeDetails',
+                    },
+                },
+                { $unwind: '$storeDetails' },
+                {
+                    $project: {
+                        _id: 0,
+                        storeName: '$storeDetails.storeName',
+                        tele: '$storeDetails.tele',
+                        image: '$storeDetails.image',
+                        solde: '$storeDetails.solde',
+                        _id: '$storeDetails._id',
+                        factureCount: 1,
+                        totalColis: 1,
+                    },
+                },
+                { $sort: { factureCount: -1 } },
+            ]);
+        } else if (type === 'livreur') {
+            // Group factures by livreur for 'livreur' type
+            factures = await Facture.aggregate([
+                { $match: { type: 'livreur' } },
+                {
+                    $group: {
+                        _id: '$livreur',
+                        factureCount: { $sum: 1 },
+                        totalColis: { $sum: { $size: '$colis' } },
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'livreurs', // Ensure this matches your collection name
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'livreurDetails',
+                    },
+                },
+                { $unwind: '$livreurDetails' },
+                {
+                    $project: {
+                        _id: '$livreurDetails._id',
+                        nom: '$livreurDetails.nom',
+                        tele: '$livreurDetails.tele',
+                        profile: '$livreurDetails.profile',
+                        factureCount: 1,
+                        totalColis: 1,
+                    },
+                },
+                { $sort: { factureCount: -1 } },
+            ]);
+        }
+
+        res.status(200).json({
+            message: `Factures grouped by ${type} retrieved successfully`,
+            factures,
+        });
+    } catch (error) {
+        console.error(`Error grouping factures by ${type}:`, error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
 const setFacturePay = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1215,6 +1401,7 @@ const getCodeFactureByColis = asyncHandler(async (req, res) => {
 });
 
 
+
 /**
  * @desc    Merge multiple factures into a single facture based on code_facture
  * @route   POST /api/facture/merge
@@ -1397,6 +1584,7 @@ const mergeFactures = asyncHandler(async (req, res) => {
         });
     }
 });
+
 
 /**
  * @desc    Remove a colis from a facture using code_facture and code_suivi, and update all related calculations
@@ -1635,6 +1823,7 @@ const removeColisFromFacture = asyncHandler(async (req, res) => {
     });
 });
 
+
 module.exports = {
     createFacturesForClientsAndLivreurs,
     getAllFacture ,
@@ -1644,5 +1833,7 @@ module.exports = {
     getCodeFactureByColis,
     createOrUpdateFactureLivreur,
     mergeFactures,
-    removeColisFromFacture
+    removeColisFromFacture,
+    getFacturesGroupedByUser,
+    getFacturesByUser
 };
