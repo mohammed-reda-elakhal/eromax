@@ -23,7 +23,8 @@ import {
   Drawer,
   Row,
   Col,
-  Typography
+  Typography,
+  DatePicker
 } from 'antd';
 import { CiBarcode } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
@@ -33,6 +34,7 @@ import jsQR from 'jsqr'; // Import de jsQR
 import { getColisByCodeSuivi, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import TrackingColis from '../../../global/TrackingColis '; // Correction de l'import
 import { Si1001Tracklists } from 'react-icons/si';
+import moment from 'moment';
 
 const { Meta } = Card;
 const { Option } = Select;
@@ -147,32 +149,31 @@ function ScanRecherche() {
   // Fonction pour changer le statut du colis
   const handleStatusOk = () => {
     form.validateFields().then(values => {
-      const { status, comment, deliveryTime } = values;
-
-      // Si le statut est 'Programmée', s'assurer que le temps de livraison est fourni
-      if (status === "Programmée" && !deliveryTime) {
-        message.error("Veuillez sélectionner un temps de livraison pour une livraison programmée.");
+      const { status, comment, selectedDate } = values;
+  
+      // Check if status is "Programmée" or "Reporté" and ensure a date is provided
+      if ((status === "Programmée" || status === "Reporté") && !selectedDate) {
+        message.error("Veuillez sélectionner une date pour ce statut.");
         return;
       }
-
-      // Dispatch de la mise à jour du statut avec ou sans deliveryTime
-      if (status === "Programmée") {
-        dispatch(updateStatut(selectedColis._id, status, comment, deliveryTime));
-      } else {
-        dispatch(updateStatut(selectedColis._id, status, comment));
-      }
-
-      // Réinitialiser le formulaire et fermer le modal
+  
+      // Dispatch updateStatut with the selected date if applicable
+      const formattedDate = selectedDate ? selectedDate.format('YYYY-MM-DD') : undefined;
+  
+      dispatch(updateStatut(selectedColis._id, status, comment, formattedDate));
+  
+      // Reset form and close modal
       form.resetFields();
       setStatusType(null);
       setIsStatusModalVisible(false);
-
-      // Rafraîchir les données du colis
+  
+      // Refresh the colis data
       dispatch(getColisByCodeSuivi(selectedColis.code_suivi));
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
   };
+  
 
   // Fonction pour annuler le changement de statut
   const handleStatusCancel = () => {
@@ -541,20 +542,20 @@ function ScanRecherche() {
           </Form.Item>
 
           {/* Champ conditionnel pour le temps de livraison si le statut est 'Programmée' */}
-          {statusType === "Programmée" && (
+          {statusType === "Programmée" || statusType === "Reporté" ? (
             <Form.Item
-              name="deliveryTime"
-              label="Temps de Livraison"
-              rules={[{ required: true, message: 'Veuillez sélectionner un temps de livraison!' }]}
+              name="selectedDate"
+              label="Date"
+              rules={[{ required: true, message: 'Veuillez sélectionner une date!' }]}
             >
-              <Select placeholder="Sélectionner un temps de livraison">
-                <Option value="1 jours">Demain</Option>
-                <Option value="2 jours">Dans 2 jours</Option>
-                <Option value="3 jours">Dans 3 jours</Option>
-                <Option value="4 jours">Dans 4 jours</Option>
-              </Select>
+              <DatePicker 
+                style={{ width: '100%' }} 
+                disabledDate={(current) => current && current < moment().startOf('day')} // Disable past dates
+                format="YYYY-MM-DD"
+              />
             </Form.Item>
-          )}
+          ) : null}
+
         </Form>
       </Modal>
 
