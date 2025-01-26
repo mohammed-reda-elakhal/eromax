@@ -92,32 +92,6 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { Search } = Input; // Destructure Search if needed
 
-// Define allowed statuses
-const allowedStatuses = [
-  "attente de ramassage",
-  "Ramassée",
-  "Mise en Distribution",
-  "Reçu",
-  "Livrée",
-  "Annulée",
-  "Programmée",
-  "Refusée",
-  "Boite vocale",
-  "Pas de reponse jour 1",
-  "Pas de reponse jour 2",
-  "Pas de reponse jour 3",
-  "Pas reponse + sms / + whatsap",
-  "En voyage",
-  "Injoignable",
-  "Hors-zone",
-  "Intéressé",
-  "Numéro Incorrect",
-  "Reporté",
-  "Confirmé Par Livreur",
-  "Endomagé",
-  "Préparer pour Roteur",
-  "En Retour"
-];
 
 // Define status comments
 const statusComments = {
@@ -215,6 +189,64 @@ const ColisTable = ({ theme }) => {
     villes: state.ville.villes || [],
     loading: state.colis.loading, // Extract loading from Redux
   }));
+
+
+// Define allowed statuses based on user role
+const allowedStatuses = useMemo(() => {
+  if (user?.role === 'admin') {
+    return [
+      "attente de ramassage",
+      "Ramassée",
+      "Mise en Distribution",
+      "Reçu",
+      "Livrée",
+      "Annulée",
+      "Programmée",
+      "Refusée",
+      "Boite vocale",
+      "Pas de reponse jour 1",
+      "Pas de reponse jour 2",
+      "Pas de reponse jour 3",
+      "Pas reponse + sms / + whatsap",
+      "En voyage",
+      "Injoignable",
+      "Hors-zone",
+      "Intéressé",
+      "Numéro Incorrect",
+      "Reporté",
+      "Confirmé Par Livreur",
+      "Endomagé",
+      "Préparer pour Roteur",
+      "En Retour"
+    ];
+  } else if (user?.role === 'livreur') {
+    return [
+      "Mise en Distribution",
+      "Reçu",
+      "Livrée",
+      "Annulée",
+      "Programmée",
+      "Refusée",
+      "Boite vocale",
+      "Pas de reponse jour 1",
+      "Pas de reponse jour 2",
+      "Pas de reponse jour 3",
+      "Pas reponse + sms / + whatsap",
+      "En voyage",
+      "Injoignable",
+      "Hors-zone",
+      "Intéressé",
+      "Numéro Incorrect",
+      "Reporté",
+      "Confirmé Par Livreur",
+      "Endomagé",
+      "Préparer pour Roteur",
+    ];
+  } else {
+    return []; // Or some default set of statuses for other roles
+  }
+}, [user?.role]);
+
 
   // **Add the following two lines to define singleAssignColis state**
   const [singleAssignColis, setSingleAssignColis] = useState(null);
@@ -697,7 +729,7 @@ const handleConfirmAssignLivreur = async () => {
     
         return (
           <div>
-            {user?.role === 'admin' ? (
+            {(user?.role === 'admin' || user?.role === 'livreur')  ? (
               <Badge dot color={color} style={{ cursor: 'pointer' }}>
                 <span onClick={() => handleStatusClick(record)} style={{ cursor: "pointer" }}>
                   {content}
