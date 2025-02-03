@@ -167,7 +167,7 @@ const FactureDetailLivreur = () => {
     if (facture) {
       if (facture.type === 'livreur') {
         // Sum 'montant_a_payer' for all 'Livrée' colis
-        tp = facture.colis.reduce((acc, col) => acc + (col.montant_a_payer || 0), 0) || 0;
+        tp = facture.colis.reduce((acc, col) => acc + (col.prix || 0), 0) || 0;
 
         // Sum 'tarif_total' for all 'Livrée' colis (tarif_livraison + 0 + 0)
         tt = facture.colis.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
@@ -175,7 +175,7 @@ const FactureDetailLivreur = () => {
     }
 
     // Calculate netAPayer based on facture type
-    const np = facture?.type === 'livreur' ? tp : 0;
+    const np = facture?.type === 'livreur' ? tp - tt: 0;
 
     // Prepare calcData based on facture type
     const data =

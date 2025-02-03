@@ -7,7 +7,7 @@ const transactionSchema = new mongoose.Schema({
   type: { type: String, enum: ['debit', 'credit'], required: true },
   montant: { type: Number, required: true },
   etat : {type : Boolean, default:false }
-
 }, { timestamps: true });
 
 module.exports = mongoose.model('Transaction', transactionSchema);
+

@@ -127,6 +127,12 @@ const createOrUpdateFacture = asyncHandler(async (colisId) => {
             endDate: { $gte: now },
         }).lean();
 
+          // *** New Verification: Check if the colis is already in any facture ***
+          const factureExists = await Facture.findOne({ colis: colis._id });
+          if (factureExists) {
+              throw new Error(`This colis with code ${colis.code_suivi} is already associated with a facture.`);
+          }
+
         // Calculate original tarif_livraison based on colis status
         let originalTarifLivraisonClient = 0;
         if (colis.statut === 'Livrée') {
@@ -354,6 +360,12 @@ const createOrUpdateFactureLivreur = async (colisId) => {
         id_livreur: colis.livreur._id,
         id_ville: colis.ville._id
     }).exec();
+
+      // *** New Verification: Check if the colis is already in any facture ***
+      const factureExists = await Facture.findOne({ colis: colis._id });
+      if (factureExists) {
+          throw new Error(`This colis with code ${colis.code_suivi} is already associated with a facture.`);
+      }
 
     if (!tarifLivreur) {
         throw new Error(`TarifLivreur not found for livreur ${colis.livreur._id} and ville ${colis.ville._id}`);
@@ -1276,7 +1288,7 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                 tarif_ajouter: tarif_ajouter,
                 tarif_total: tarif_total,
                 montant_a_payer: montant_a_payer,
-                date_livraison: livraisonDate,
+                date_livraison: col.date_livraisant,
                 remarque: remarque, // Include remarque if any
                 fragile: col.is_fragile,
                 pret_payant: col.pret_payant, // Include pret_payant in the response
@@ -1824,6 +1836,110 @@ const removeColisFromFacture = asyncHandler(async (req, res) => {
 });
 
 
+/**
+ * Controller to remove a colis from a client facture.
+ * This function updates the facture totals by subtracting the pricing of the removed colis.
+ * It assumes that the same business logic used in createOrUpdateFacture applies for computing the amounts.
+ *
+ * Expects:
+ *   req.params.id       - Facture ID or code identifying the facture.
+ *   req.params.colisId  - The ID of the colis to remove.
+ */
+const removeColisFromClientFacture = asyncHandler(async (req, res) => {
+    // Get facture code and colis code_suivi from request parameters
+    const { code_facture, code_suivi } = req.params;
+  
+    // 1. Find the facture by its code_facture
+    const facture = await Facture.findOne({ code_facture });
+    if (!facture) {
+      return res.status(404).json({ message: 'Facture not found' });
+    }
+    if (facture.type !== 'client') {
+      return res.status(400).json({ message: 'This endpoint only handles client factures' });
+    }
+  
+    // 2. Find the colis by its code_suivi
+    const colis = await Colis.findOne({ code_suivi }).populate('ville').exec();
+    if (!colis) {
+      return res.status(404).json({ message: 'Colis not found' });
+    }
+  
+    // 3. Verify that this colis is part of the facture
+    const colisExists = facture.colis.some(
+      (colId) => colId.toString() === colis._id.toString()
+    );
+    if (!colisExists) {
+      return res.status(404).json({ message: 'Colis is not associated with this facture' });
+    }
+  
+    // 4. Recompute pricing details for the colis using the same logic as when adding it
+    let originalTarifLivraisonClient = 0;
+    if (colis.statut === 'Livrée') {
+      originalTarifLivraisonClient = colis.ville?.tarif || 0;
+    } else if (colis.statut === 'Refusée') {
+      originalTarifLivraisonClient = colis.ville?.tarif_refus || 0;
+    }
+  
+    // For this example, assume that any promotion adjustments have been saved previously in the colis.crbt field.
+    // If not, you can re-run your promotion logic here.
+    const tarif_livraisonClient = colis.crbt ? colis.crbt.tarif_livraison : originalTarifLivraisonClient;
+    const tarif_fragile = colis.crbt ? colis.crbt.tarif_fragile : (colis.is_fragile ? 5 : 0);
+    const tarif_ajouter = colis.crbt ? colis.crbt.tarif_supplementaire : (colis.tarif_ajouter?.value || 0);
+  
+    let total_tarifClient = 0;
+    if (colis.statut === 'Refusée') {
+      total_tarifClient = tarif_fragile + tarif_ajouter;
+    } else {
+      total_tarifClient = tarif_livraisonClient + tarif_fragile + tarif_ajouter;
+    }
+  
+    // Calculate the "rest" (prix à payer) for delivered colis
+    let rest = 0;
+    if (colis.statut === 'Livrée') {
+      rest = colis.prix - total_tarifClient;
+    }
+  
+    // 5. Build the update object to remove this colis and adjust totals accordingly.
+    const update = {
+        $pull: { colis: new mongoose.Types.ObjectId(colis._id) }, // Use 'new' here
+      };
+      
+      // Adjust totals based on the colis status
+      if (colis.statut === 'Livrée') {
+        update.$inc = {
+          totalPrix: -rest,
+          totalTarifLivraison: -tarif_livraisonClient,
+          totalTarifFragile: -tarif_fragile,
+          totalTarifAjouter: -tarif_ajouter,
+          totalTarif: -total_tarifClient,
+        };
+      } else if (colis.statut === 'Refusée') {
+        // Adjust if necessary for refusals (this logic may vary based on your business rules)
+        update.$inc = {
+          totalPrix: originalTarifLivraisonClient, // Adjust as needed
+          totalTarifLivraison: 0,
+          totalTarifFragile: -tarif_fragile,
+          totalTarifAjouter: -tarif_ajouter,
+          totalTarif: -total_tarifClient,
+        };
+      } else {
+        update.$inc = {};
+      }
+    // 6. Update the facture document in the database
+    await Facture.updateOne({ _id: facture._id }, update);
+  
+    // 7. Optionally, update the colis document (e.g. remove its facture reference)
+    // For example, if you keep a 'facture' field on the colis, set it to null.
+    colis.facture = null;
+    await colis.save();
+  
+    // 8. Return the updated facture document or a success message
+    const updatedFacture = await Facture.findById(facture._id).lean();
+    res.status(200).json({
+      message: 'Colis removed from facture successfully',
+      facture: updatedFacture,
+    });
+  });
 module.exports = {
     createFacturesForClientsAndLivreurs,
     getAllFacture ,
@@ -1835,5 +1951,6 @@ module.exports = {
     mergeFactures,
     removeColisFromFacture,
     getFacturesGroupedByUser,
-    getFacturesByUser
+    getFacturesByUser,
+    removeColisFromClientFacture
 };
