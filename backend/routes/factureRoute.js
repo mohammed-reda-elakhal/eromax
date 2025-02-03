@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllFacture, getFactureByCode, setFacturePay, getCodeFactureByColis, mergeFactures, removeColisFromFacture, getFacturesGroupedByUser, getFacturesByUser} = require('../Controllers/factureController');
+const { getAllFacture, getFactureByCode, setFacturePay, getCodeFactureByColis, mergeFactures, removeColisFromFacture, getFacturesGroupedByUser, getFacturesByUser , removeColisFromClientFacture} = require('../Controllers/factureController');
 const { getAllRamasserFacture, getRamasserFactureByCode } = require('../Controllers/factureRamasserController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
 const { createFacturesRetourController, getFacturesRetourController, getFactureRetourByCodeFacture } = require('../Controllers/factureRetourController');
@@ -45,7 +45,7 @@ router.get('/detail/:code_facture', getFactureByCode);
 
 router.put('/pay/:id',setFacturePay);
 
-router.delete('/facture/:code_facture/colis/:code_suivi', removeColisFromFacture);
+router.delete('/:code_facture/colis/:code_suivi', removeColisFromClientFacture);
 
 
 

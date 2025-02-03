@@ -109,6 +109,7 @@ const statusComments = {
 
 // Define statusBadgeConfig mapping each statut to color and icon
 const statusBadgeConfig = {
+  "Nouveau Colis": { color: 'red', icon: <FaHeart /> },
   "attente de ramassage": { color: 'red', icon: <TbTruckDelivery /> },
   "Ramassée": { color: 'blue', icon: <TbTruckDelivery /> },
   "Mise en Distribution": { color: 'geekblue', icon: <FaTruck /> },
@@ -132,6 +133,7 @@ const statusBadgeConfig = {
   "Préparer pour Roteur": { color: 'green', icon: <FaCheck /> },
   "En Retou": { color: 'yellow', icon: <FaCheck /> },
   "Endomagé": { color: 'red', icon: <FaHeart /> },
+  "Fermée": { color: 'red', icon: <FaHeart /> },
 };
 
 const ColisTable = ({ theme }) => {
@@ -195,6 +197,7 @@ const ColisTable = ({ theme }) => {
 const allowedStatuses = useMemo(() => {
   if (user?.role === 'admin') {
     return [
+      "Nouveau Colis",
       "attente de ramassage",
       "Ramassée",
       "Mise en Distribution",
@@ -217,7 +220,8 @@ const allowedStatuses = useMemo(() => {
       "Confirmé Par Livreur",
       "Endomagé",
       "Préparer pour Roteur",
-      "En Retour"
+      "En Retour",
+      "Fermée"
     ];
   } else if (user?.role === 'livreur') {
     return [
