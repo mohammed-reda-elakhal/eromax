@@ -776,7 +776,6 @@ cron.schedule('50 23 * * *', async () => {
 
 
 
-// Controller to get all factures and recalculate dynamic totals based on CRBT data
 const getAllFacture = asyncHandler(async (req, res) => {
     try {
         // Extract 'type' from query parameters (if provided)
@@ -1233,7 +1232,6 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                 if (col.statut === 'Livrée') {
                     // For delivered colis, use the city's delivery tariff
                     old_tarif_livraison = col.ville?.tarif || 0;
-                    // Apply promotion only if storedPromotion.value is valid
                     if (storedPromotion && typeof storedPromotion.value === 'number') {
                         if (storedPromotion.type === 'fixed_tarif') {
                             tarif_livraison = storedPromotion.value;
@@ -1244,11 +1242,9 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                         tarif_livraison = old_tarif_livraison;
                     }
                 } else if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
-                    // For refused (or similar) colis, use the city's refusal tariff
                     old_tarif_livraison = col.ville?.tarif_refus || 0;
                     tarif_livraison = old_tarif_livraison;
                 } else {
-                    // Default case: use the city's normal tariff with promotion if available
                     old_tarif_livraison = col.ville?.tarif || 0;
                     tarif_livraison = (storedPromotion && typeof storedPromotion.value === 'number')
                         ? (storedPromotion.type === 'fixed_tarif'
@@ -1257,28 +1253,23 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                         : old_tarif_livraison;
                 }
 
-                // Ensure new tariff does not exceed the original tariff
                 if (tarif_livraison > old_tarif_livraison) {
                     tarif_livraison = old_tarif_livraison;
                 }
 
-                // If the colis is pret_payant, reset tariffs to 0
                 if (col.pret_payant) {
                     old_tarif_livraison = 0;
                     tarif_livraison = 0;
                 }
 
-                // Extract any additional tariff (tarif_ajouter)
                 if (col.tarif_ajouter && typeof col.tarif_ajouter.value === 'number') {
                     tarif_ajouter = col.tarif_ajouter.value;
                 }
 
-                // Set fragile fee if the colis is marked as fragile
                 if (col.is_fragile) {
                     tarif_fragile = 5;
                 }
 
-                // Compute totals based on colis status
                 if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
                     tarif_total = tarif_fragile + tarif_ajouter;
                     montant_a_payeur = 0;
@@ -1287,16 +1278,15 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                     montant_a_payeur = col.prix - tarif_total;
                 }
             } else if (facture.type === 'livreur') {
-                // For livreur facture, use separate logic (unchanged)
+                // For livreur facture, use separate logic:
                 if (col.statut === 'Livrée') {
+                    // Fetch TarifLivreur based on livreur and ville
                     const tarifLivreur = await TarifLivreur.findOne({
                         id_livreur: col.livreur._id,
                         id_ville: col.ville._id
                     }).lean();
-                    if (!tarifLivreur) {
-                        throw new Error(`TarifLivreur not found for livreur ${col.livreur._id} and ville ${col.ville._id}`);
-                    }
-                    old_tarif_livraison = tarifLivreur.tarif || 0;
+                    // If not found, default to 20
+                    old_tarif_livraison = tarifLivreur && tarifLivreur.tarif ? tarifLivreur.tarif : 20;
                     tarif_livraison = old_tarif_livraison;
                     montant_a_payeur = col.prix - tarif_livraison;
                     if (montant_a_payeur < 0) montant_a_payeur = 0;
@@ -1359,7 +1349,6 @@ const getFactureByCode = asyncHandler(async (req, res) => {
                     totalTarifAjouter += col.tarif_ajouter;
                     totalTarif += col.tarif_total;
                 } else {
-                    // For refused, en retour, or fermée, assume the client is not charged
                     totalFraisRefus += col.old_tarif_livraison;
                     totalOldTarifLivraison += col.old_tarif_livraison;
                     totalNewTarifLivraison += col.new_tarif_livraison;
@@ -1377,7 +1366,6 @@ const getFactureByCode = asyncHandler(async (req, res) => {
             }
         });
 
-        // Compute netAPayer for client facture
         const netAPayer = facture.type === 'client'
             ? (totalPrix + totalTarifAjouter - totalTarif) - totalFraisRefus
             : totalPrix;
