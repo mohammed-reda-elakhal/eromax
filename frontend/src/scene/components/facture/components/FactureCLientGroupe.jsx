@@ -4,10 +4,11 @@ import { Avatar, Card, Row, Col, Spin, Alert, Input } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFactureGroupeByUser } from '../../../../redux/apiCalls/factureApiCalls';
 import { useNavigate } from 'react-router-dom';
-import { FaPhoneAlt, FaBoxes } from "react-icons/fa";
+import { FaPhoneAlt, FaBoxes, FaCheck } from "react-icons/fa";
 import { GrDocumentText } from "react-icons/gr";
 import { ImFolderOpen } from "react-icons/im";
 import debounce from 'lodash.debounce';
+import { MdOutlineCancel } from 'react-icons/md';
 
 const { Meta } = Card;
 const { Search } = Input;
@@ -123,9 +124,10 @@ function FactureClientGroupe() {
                                     title={storeFacture.storeName}
                                     description={
                                         <>
-                                            <p><FaPhoneAlt color='green' /> {storeFacture.tele}</p>
-                                            <p><GrDocumentText color='red' /> {storeFacture.factureCount} Factures</p>
+                                            <p><FaPhoneAlt color='black' /> {storeFacture.tele}</p>
+                                            <p><GrDocumentText color='yellow' /> {storeFacture.factureCount} Factures</p>
                                             <p><FaBoxes color='blue' /> {storeFacture.totalColis} Colis</p>
+                                            <p><MdOutlineCancel color='red' /> {storeFacture.nonPayerCount}  --  <FaCheck color='green' /> {storeFacture.factureCount-storeFacture.nonPayerCount}</p>
                                         </>
                                     }
                                 />

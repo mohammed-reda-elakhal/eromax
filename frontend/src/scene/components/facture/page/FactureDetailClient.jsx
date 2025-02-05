@@ -1,11 +1,9 @@
-// FactureDetail.jsx
-
 import React, { useEffect, useRef } from 'react';
 import html2pdf from 'html2pdf.js';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getFactureDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
+import { getFactureClientByCode } from '../../../../redux/apiCalls/factureApiCalls';
 import { Table, Tag } from 'antd';
 
 const FactureDetail = () => {
@@ -16,7 +14,7 @@ const FactureDetail = () => {
   const { code_facture } = useParams();
 
   useEffect(() => {
-    dispatch(getFactureDetailsByCode(code_facture));
+    dispatch(getFactureClientByCode(code_facture));
     window.scrollTo(0, 0);
   }, [dispatch, code_facture]);
 
@@ -51,12 +49,12 @@ const FactureDetail = () => {
       .set(opt)
       .from(element)
       .outputPdf('bloburl')
-      .then(function (pdfUrl) {
+      .then((pdfUrl) => {
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         iframe.src = pdfUrl;
         document.body.appendChild(iframe);
-        iframe.onload = function () {
+        iframe.onload = () => {
           setTimeout(() => {
             iframe.contentWindow.print();
           }, 1);
@@ -75,7 +73,7 @@ const FactureDetail = () => {
 
   // Updated columns for Colis Details Table
   const colisColumns = [
-    rowNumberColumn, // Add the row number column at the beginning
+    rowNumberColumn,
     {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
@@ -85,8 +83,8 @@ const FactureDetail = () => {
     },
     {
       title: 'Date Livraison',
-      dataIndex: 'date_livraison',
-      key: 'date_livraison',
+      dataIndex: 'date_livraisant',
+      key: 'date_livraisant',
       width: 160,
       render: (text) =>
         text
@@ -108,7 +106,10 @@ const FactureDetail = () => {
         <div>
           <div style={{ fontWeight: 'bold' }}>{record.destinataire}</div>
           <div>{record.telephone}</div>
-          <div style={{ fontStyle: 'italic' }}>{record.ville}</div>
+          {/* Render only the city name from the ville object */}
+          <div style={{ fontStyle: 'italic' }}>
+            {record.ville ? record.ville.nom : 'N/A'}
+          </div>
           <div>
             <strong>Prix :</strong> {record.prix} DH
           </div>
@@ -116,44 +117,75 @@ const FactureDetail = () => {
       ),
     },
     {
+      title: 'Statu Final',
+      dataIndex: 'statu_final',
+      key: 'statu_final',
+      width: 120,
+      render: (statu_final) =>
+        statu_final === 'Livrée' ? (
+          <Tag color="green">{statu_final}</Tag>
+        ) : (
+          <Tag color="red">{statu_final}</Tag>
+        ),
+    },
+    {
       title: 'Tarification',
       key: 'tarification',
       width: 220,
       render: (text, record) => (
         <div>
-          <div>
-            <strong>Livraison:</strong> {record.new_tarif_livraison} DH{' '}
-            {promotion && (
-              <span
-                className="old-price"
-                style={{ textDecoration: 'line-through', color: '#888' }}
-              >
-                ({record.old_tarif_livraison} DH)
-              </span>
-            )}
-          </div>
-          <div>
-            <strong>Supplémentaire:</strong> {record.tarif_ajouter} DH
-          </div>
-          <div>
-            <strong>Fragile:</strong> {record.tarif_fragile} DH
-          </div>
+          {
+            record.statu_final === "Livrée" 
+            ?
+            <>
+              <div>
+                <strong>Livraison:</strong> {record.crbt?.tarif_livraison} DH{' '}
+                {promotion && record.ville && record.crbt && (
+                  <span
+                    className="old-price"
+                    style={{ textDecoration: 'line-through', color: '#888' }}
+                  >
+                    ({record.ville.tarif} DH)
+                  </span>
+                )}
+              </div>
+              <div>
+                <strong>Supplémentaire:</strong> {record.crbt?.tarif_supplementaire} DH
+              </div>
+              <div>
+                <strong>Fragile:</strong> {record.crbt?.tarif_fragile} DH
+              </div>
+            </>
+            :
+            <>
+              <div>
+                <strong>Tarif refuse:</strong> {record.crbt?.tarif_refuse} DH
+              </div>
+              <div>
+                <strong>Supplémentaire:</strong> {record.crbt?.tarif_supplementaire} DH
+              </div>
+              <div>
+                <strong>Fragile:</strong> {record.crbt?.tarif_fragile} DH
+              </div>
+            </>
+          }
+          
         </div>
       ),
     },
     {
       title: 'Total Tarif',
-      dataIndex: 'tarif_total',
+      dataIndex: 'total_tarif',
       key: 'tarif_total',
       width: 120,
-      render: (text) => `${text} DH`,
+      render: (text,record) => `${record?.crbt?.total_tarif} DH`,
     },
     {
       title: 'Montant à Payer',
-      dataIndex: 'montant_a_payer',
-      key: 'montant_a_payer',
+      dataIndex: 'crbt.prix_a_payant',
+      key: 'montant_a_payant',
       width: 150,
-      render: (text) => `${text} DH`,
+      render: (text, record) => `${record?.crbt?.prix_a_payant} DH`,
     },
   ];
 
@@ -180,61 +212,20 @@ const FactureDetail = () => {
     },
   ];
 
-  // Calculate totals based on facture type
-  let totalPrix = 0;
-  let totalTarif = 0;
-  let totalFraisRefus = 0;
-  let totalTarifAjouter = 0; // Initialize totalTarifAjouter
-
-  if (facture) {
-    if (facture.type === 'client') {
-      // For 'client' facture, sum 'prix' only for 'Livrée' colis
-      totalPrix = facture.colis.reduce((acc, col) => {
-        if (col.statut === 'Livrée') {
-          return acc + (col.prix || 0);
-        }
-        return acc;
-      }, 0);
-
-      // Sum 'tarif_total' for all colis
-      totalTarif = facture.colis.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
-
-      // Sum 'tarif_ajouter' for all colis
-      totalTarifAjouter =
-        facture.colis.reduce((acc, col) => acc + (col.tarif_ajouter || 0), 0) || 0;
-
-      // Sum 'tarif_refus' (old_tarif_livraison) for 'Refusée' colis
-      totalFraisRefus = facture.colis.reduce((acc, col) => {
-        if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
-          return acc + (col.old_tarif_livraison || 0);
-        }
-        return acc;
-      }, 0);
-    } else if (facture.type === 'livreur') {
-      // For 'livreur' facture, sum 'montant_a_payer' for all colis
-      totalPrix = facture.colis.reduce(
-        (acc, col) => acc + (col.montant_a_payer || 0),
-        0
-      ) || 0;
-
-      // Sum 'tarif_total' for all colis
-      totalTarif = facture.colis.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
-
-      // Sum 'tarif_ajouter' for all colis (should be 0 for livreur)
-      totalTarifAjouter =
-        facture.colis.reduce((acc, col) => acc + (col.tarif_ajouter || 0), 0) || 0;
-    }
-  }
-
-  // Calculate netAPayer based on facture type
+  // Totals (assumed to be calculated in the API response and stored in the facture object)
+  const totalPrix = facture ? facture.totalPrix : 0;
+  const totalTarif = facture ? facture.totalTarifLivraison : 0;
+  const totalFraisRefus = facture ? facture.totalTarifRefuse : 0;
+  const totalTarifAjouter = facture ? facture.totalTarifAjouter : 0;
+  const totalTarifFragil = facture ? facture.totalTarifFragile : 0;
   const netAPayer =
-    facture.type === 'client'
-      ? totalPrix - totalTarif - totalFraisRefus
-      : totalPrix; // For 'livreur', netAPayer is totalPrix
+    facture && facture.type === 'client'
+      ? totalPrix - totalTarif - totalFraisRefus - totalTarifAjouter -totalTarifFragil
+      : totalPrix;
 
-  // Data for the Calculation Table
+  // Data for the Calculation Table (for client facture)
   const calcData =
-    facture.type === 'livreur'
+    facture && facture.type === 'client'
       ? [
           {
             key: '1',
@@ -247,26 +238,9 @@ const FactureDetail = () => {
             total: totalTarif,
           },
           {
-            key: '3',
-            description: 'Total Supplémentaire',
-            total: totalTarifAjouter,
-          },
-          {
-            key: '4',
-            description: 'Net à Payer',
-            total: netAPayer,
-          },
-        ]
-      : [
-          {
-            key: '1',
-            description: 'Total Prix',
-            total: totalPrix,
-          },
-          {
             key: '2',
-            description: 'Total Tarif',
-            total: totalTarif,
+            description: 'Total Fragil',
+            total: totalTarifFragil,
           },
           {
             key: '3',
@@ -283,7 +257,8 @@ const FactureDetail = () => {
             description: 'Net à Payer',
             total: netAPayer,
           },
-        ];
+        ]
+      : [];
 
   return (
     <div>
@@ -304,8 +279,12 @@ const FactureDetail = () => {
               <p>
                 <strong>Expéditeur:</strong>
               </p>
-              <p>{facture?.store || 'N/A'}</p>
-              <p>{facture?.client_tele || 'N/A'}</p>
+              <p>{facture?.store ? facture.store.storeName : 'N/A'}</p>
+              <p>
+                {facture?.store && facture.store.id_client
+                  ? facture.store.id_client.tele
+                  : 'N/A'}
+              </p>
             </div>
             <div className="bon-livraison">
               <p>
@@ -313,8 +292,8 @@ const FactureDetail = () => {
               </p>
               <p>#{facture?.code_facture || 'N/A'}</p>
               <p>
-                {facture?.date_facture
-                  ? new Date(facture.date_facture).toLocaleDateString('fr-FR', {
+                {facture?.date
+                  ? new Date(facture.date).toLocaleDateString('fr-FR', {
                       day: '2-digit',
                       month: '2-digit',
                       year: 'numeric',
@@ -329,7 +308,7 @@ const FactureDetail = () => {
         </div>
 
         {/* Promotion Section */}
-        {promotion && (
+        {promotion && Object.keys(promotion).length > 0 && (
           <div className="promotion-section">
             <div className="promotion_content">
               <h1>

@@ -39,36 +39,44 @@ const FactureSchema = new mongoose.Schema(
                 required: true,
             },
         ],
+
+        // dont use this attribut calcule is from crbt  
         totalPrix: {
             type: Number,
             required: true,
             default: 0,
         },
+        // dont use this attribut calcule is from crbt  
         totalTarifLivraison: {
             type: Number,
             required: true,
             default: 0,
         },
+        // dont use this attribut calcule is from crbt  
         totalTarifFragile: {
             type: Number,
             required: true,
             default: 0,
         },
+        // dont use this attribut calcule is from crbt  
         totalTarifAjouter: {
             type: Number,
             required: true,
             default: 0,
         },
+        // dont use this attribut calcule is from crbt  
         totalTarif: {
             type: Number,
             required: true,
             default: 0,
         },
+        // dont use this attribut calcule is from crbt  
         totalFraisRefus: { // Added Field
             type: Number,
             required: false,
             default: 0,
         },
+        // dont use this attribut calcule is from crbt  
         originalTarifLivraison: {
             type: Number,
             required: true,

@@ -74,6 +74,7 @@ import ColisAmeex from "./scene/components/colis/pages/ColisAmeex";
 import AjouterColisAdmin from "./scene/components/colis/pages/AjouterColisAdmin";
 import InfoWalet from "./scene/components/portfeuille/page/InfoWalet";
 import TarifLivreur  from "../src/scene/components/tarif livreur/page/TarifLivreur";
+import Crbt from "./scene/components/colis/pages/Crbt";
 
 
 function App() {
@@ -257,6 +258,7 @@ function App() {
             </Route>
 
             <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
+            <Route path="crbt" element={<Crbt search = {getColumnSearchProps} />} />
             <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
             <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
             <Route path="colis-ex" element={<ColisExpide search = {getColumnSearchProps} />} />

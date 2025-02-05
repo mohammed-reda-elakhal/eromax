@@ -1,5 +1,3 @@
-// FactureClientTable.jsx
-
 import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,64 +6,93 @@ import {
   getFactureDetailsByClient,
   setFactureEtat,
   mergeFactures,
-  getFactureByUser, // Importer la nouvelle action
+  getFactureByUser,
+  getFactureDetailsByCode, // Action for fetching facture detail by code
+  removeColisFromClientFacture,
+  getFactureClient, // Action for removing a colis from a facture (client)
 } from '../../../../redux/apiCalls/factureApiCalls';
-import { Input, DatePicker, Row, Col, Switch, Tag, Button, Modal } from 'antd';
-import { FaRegFolderOpen, FaSyncAlt } from 'react-icons/fa'; // Importer une icône de rafraîchissement
-import moment from 'moment'; // Importer moment
+import { IoMdRemoveCircle } from "react-icons/io";
+import { MdDelete } from "react-icons/md";
+import { IoSettingsSharp } from "react-icons/io5";
+import {
+  Input,
+  DatePicker,
+  Row,
+  Col,
+  Switch,
+  Tag,
+  Button,
+  Modal,
+  Table,
+  Descriptions,
+} from 'antd';
+import { FaRegFolderOpen, FaSyncAlt } from 'react-icons/fa';
+import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { CiSettings } from 'react-icons/ci';
 
 const { RangePicker } = DatePicker;
 
-function FactureClientTable({ theme , id }) {
+function FactureClientTable({ theme, id }) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false); // État de chargement ajouté
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { facture, user, store } = useSelector((state) => ({
     facture: state.facture.facture,
     user: state.auth.user,
     store: state.auth.store,
   }));
+  // Use facture detail from Redux for modal content
+  const factureDetail = useSelector((state) => state.facture.detailFacture);
 
   const [searchText, setSearchText] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  
-  // Nouvel état pour les factures sélectionnées
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  
+  // Modal states for displaying facture detail
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedFactureCode, setSelectedFactureCode] = useState(null);
+
+  // When the modal opens (i.e. when selectedFactureCode changes), fetch facture details by code.
+  useEffect(() => {
+    if (selectedFactureCode) {
+      dispatch(getFactureDetailsByCode(selectedFactureCode));
+    }
+  }, [dispatch, selectedFactureCode]);
+
+  // Log the factureDetail structure (for debugging)
+  useEffect(() => {
+    console.log('Facture Detail Structure:', factureDetail);
+  }, [factureDetail]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       if (user) {
-        await dispatch(getFactureByUser(id ,'client'));
+        await dispatch(getFactureClient(id, 'client'));
       }
     } catch (error) {
-      // La gestion des erreurs est déjà gérée dans les appels API
+      // Error handling is already done in the API call
     } finally {
       setLoading(false);
     }
   };
 
-  // Récupérer les factures au montage du composant ou lorsque l'utilisateur ou le store change
   useEffect(() => {
     fetchData();
     window.scrollTo(0, 0);
   }, [dispatch, user, store]);
 
-  // Définir la fonction filterData
   const filterData = (text, start, end) => {
     let filtered = [...facture];
-
     if (text) {
       filtered = filtered.filter((item) =>
         item.store?.storeName?.toLowerCase().includes(text)
       );
     }
-
     if (start || end) {
       filtered = filtered.filter((item) => {
         const itemDate = moment(item.createdAt);
@@ -79,27 +106,21 @@ function FactureClientTable({ theme , id }) {
         return true;
       });
     }
-
     setFilteredData(filtered);
   };
 
-  // Mettre à jour les données filtrées lorsque facture ou les filtres changent
   useEffect(() => {
     filterData(searchText.toLowerCase(), startDate, endDate);
   }, [facture, searchText, startDate, endDate]);
 
-  // Fonction pour basculer l'état de paiement d'une facture
   const toggleFacturePay = (id) => {
     dispatch(setFactureEtat(id));
-    // Le slice Redux et l'action mettront immédiatement à jour le store,
-    // donc l'interface reflétera le nouvel état sans rechargement de la page.
   };
 
   const handleSearchChange = (e) => {
     setSearchText(e.target.value.toLowerCase());
   };
 
-  // Définir correctement handleDateRangeChange
   const handleDateRangeChange = (dates) => {
     if (dates) {
       setStartDate(moment(dates[0]).startOf('day'));
@@ -132,28 +153,19 @@ function FactureClientTable({ theme , id }) {
       key: 'code_facture',
     },
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type) => type.charAt(0).toUpperCase() + type.slice(1),
-    },
-    {
-      title: 'Store / Livreur',
+      title: 'Store',
       key: 'name',
       render: (text, record) => {
-        if (record.type === 'client' && record.store) {
-          return record.store.storeName;
-        } else if (record.type === 'livreur' && record.livreur) {
-          return record.livreur.nom || 'N/A';
-        }
-        return 'N/A';
+          return record?.store?.storeName;
       },
     },
     {
       title: 'Total Prix',
-      dataIndex: 'totalPrix',
-      key: 'totalPrix',
-      render: (prix) => `${prix} DH`,
+      dataIndex: 'totalPrixAPayant',
+      key: 'totalPrixAPayant',
+      render: (text) => (
+        <Tag color="blue">{text} DH</Tag>
+      ),
     },
     {
       title: 'Nombre de Colis',
@@ -166,7 +178,6 @@ function FactureClientTable({ theme , id }) {
       key: 'etat',
       render: (etat, record) => {
         if (record.type === 'client') {
-          // Switch pour les admins uniquement
           if (user?.role === 'admin') {
             return (
               <Switch
@@ -177,7 +188,6 @@ function FactureClientTable({ theme , id }) {
               />
             );
           } else {
-            // Si pas admin, afficher simplement un tag
             return etat ? (
               <Tag color="green">Payé</Tag>
             ) : (
@@ -185,7 +195,6 @@ function FactureClientTable({ theme , id }) {
             );
           }
         } else {
-          // Si c'est un type 'livreur', afficher un tag (pas de toggle)
           return etat ? (
             <Tag color="green">Payé</Tag>
           ) : (
@@ -203,28 +212,34 @@ function FactureClientTable({ theme , id }) {
             icon={<FaRegFolderOpen />}
             onClick={() => {
               const url = `/dashboard/facture/detail/client/${record.code_facture}`;
-              window.open(url, '_blank'); // Ouvrir l'URL dans un nouvel onglet
+              window.open(url, '_blank');
             }}
             type="primary"
           />
+          <Button
+            type="default"
+            onClick={() => {
+              setSelectedFactureCode(record.code_facture);
+              setIsModalVisible(true);
+            }}
+            icon={<CiSettings/>}
+          >
+          </Button>
         </div>
       ),
     },
   ];
 
-  // Gestion de la sélection des lignes
+  // For row selection in the main table.
   const onSelectChange = (selectedKeys) => {
     setSelectedRowKeys(selectedKeys);
   };
 
-  // Fonction pour fusionner les factures sélectionnées
   const handleMerge = () => {
     if (selectedRowKeys.length < 2) {
       toast.error("Veuillez sélectionner au moins deux factures à fusionner.");
       return;
     }
-
-    // Confirmer l'action de fusion
     Modal.confirm({
       title: 'Confirmer la fusion',
       content: `Voulez-vous vraiment fusionner ${selectedRowKeys.length} factures ?`,
@@ -232,22 +247,138 @@ function FactureClientTable({ theme , id }) {
       cancelText: 'Non',
       onOk: async () => {
         try {
-          // Récupérer les codes des factures sélectionnées
           const selectedFactures = facture.filter(f => selectedRowKeys.includes(f._id));
           const factureCodes = selectedFactures.map(f => f.code_facture);
-
           await dispatch(mergeFactures(factureCodes));
-
-          // Rafraîchir les données après la fusion
           await fetchData();
-
-          // Réinitialiser la sélection après la fusion
           setSelectedRowKeys([]);
         } catch (error) {
-          // La gestion des erreurs est déjà gérée dans les appels API
+          // Error handling is done in the API call.
         }
       }
     });
+  };
+
+  // New columns for the modal table to display colis details.
+  const modalColisColumns = [
+    {
+      title: '#',
+      key: 'index',
+      width: 40,
+      fixed: 'left',
+      render: (text, record, index) => <span>{index + 1}</span>,
+    },
+    {
+      title: 'Code Suivi',
+      dataIndex: 'code_suivi',
+      key: 'code_suivi',
+      width: 120,
+      render: (code_suivi, record) => {
+        let badgeColor = 'default';
+        if (record.statut === 'Livrée') {
+          badgeColor = 'green';
+        } else if (record.statut === 'Refusée') {
+          badgeColor = 'red';
+        }
+        return <Tag color={badgeColor}>{code_suivi}</Tag>;
+      },
+    },
+    {
+      title: 'Date Livraison',
+      dataIndex: 'date_livraison',
+      key: 'date_livraison',
+      width: 160,
+      render: (text) =>
+        text ? moment(text).format('DD/MM/YYYY HH:mm') : 'N/A',
+    },
+    {
+      title: 'Ville',
+      dataIndex: 'ville',
+      key: 'ville',
+      width: 100,
+      render: (text, record) => (record.ville ? record.ville.nom : 'N/A'),
+    },
+    {
+      title: 'Prix',
+      dataIndex: 'prix',
+      key: 'prix',
+      width: 100,
+      render: (prix) => `${prix} DH`,
+    },
+    {
+      title: 'Options',
+      key: 'option',
+      width: 200,
+      render: (text, record) => (
+        <Button
+          icon={<MdDelete />}
+          type="primary"
+          disabled
+          danger
+          onClick={() => {
+            Modal.confirm({
+              title: 'Confirmer la suppression',
+              content: `Voulez-vous vraiment supprimer le colis ${record.code_suivi} de la facture ?`,
+              okText: 'Oui',
+              cancelText: 'Non',
+              onOk: async () => {
+                await dispatch(removeColisFromClientFacture(selectedFactureCode, record.code_suivi));
+                // Refresh the facture detail in the modal
+                dispatch(getFactureDetailsByCode(selectedFactureCode));
+              },
+            });
+          }}
+        />
+      ),
+    },
+  ];
+
+  // Modal content using factureDetail from Redux with horizontal Descriptions for the summary.
+  const ModalContent = () => {
+    return (
+      <div>
+        <Descriptions
+          title="Récapitulatif de la Facture"
+          layout="horizontal"
+          bordered
+          size="small"
+          column={2}
+          style={{ marginBottom: '20px' }}
+        >
+          <Descriptions.Item label="Total Prix">
+            {factureDetail?.totalPrix} DH
+          </Descriptions.Item>
+          <Descriptions.Item label="Total Tarif">
+            {factureDetail?.totalTarif} DH
+          </Descriptions.Item>
+          <Descriptions.Item label="Frais Refus">
+            {factureDetail?.totalFraisRefus} DH
+          </Descriptions.Item>
+          <Descriptions.Item label="Total Tarif Suppl.">
+            {factureDetail?.totalTarifAjouter} DH
+          </Descriptions.Item>
+          <Descriptions.Item label="Net à Payer">
+            {factureDetail?.netAPayer} DH
+          </Descriptions.Item>
+          <Descriptions.Item label="État">
+            {factureDetail?.etat ? (
+              <Tag color="green">Payé</Tag>
+            ) : (
+              <Tag color="red">Non Payé</Tag>
+            )}
+          </Descriptions.Item>
+        </Descriptions>
+        <Table
+          size="small"
+          columns={modalColisColumns}
+          dataSource={factureDetail?.colis || []}
+          rowKey="code_suivi"
+          pagination={false}
+          scroll={{ y: 300 }}
+          sticky
+        />
+      </div>
+    );
   };
 
   return (
@@ -274,19 +405,16 @@ function FactureClientTable({ theme , id }) {
           >
             Refresh
           </Button>
-          {
-            user?.role === 'admin' && (
-              <Button
-                type="primary"
-                icon={<FaRegFolderOpen />}
-                disabled={selectedRowKeys.length < 2}
-                onClick={handleMerge}
-              >
-                Fusionner
-              </Button>
-            )
-          }
-          
+          {user?.role === 'admin' && (
+            <Button
+              type="primary"
+              icon={<FaRegFolderOpen />}
+              disabled={selectedRowKeys.length < 2}
+              onClick={handleMerge}
+            >
+              Fusionner
+            </Button>
+          )}
         </Col>
       </Row>
       <TableDashboard
@@ -294,13 +422,24 @@ function FactureClientTable({ theme , id }) {
         column={columns}
         data={filteredData}
         theme={theme}
-        loading={loading} // Passer l'état de chargement
+        loading={loading}
         onSelectChange={onSelectChange}
         rowSelection={{
           selectedRowKeys,
           onChange: onSelectChange,
         }}
       />
+      {/* Modal to display facture detail using factureDetail from Redux */}
+      <Modal
+        title={`Facture: ${selectedFactureCode}`}
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+        width="80%"
+        bodyStyle={{ height: '80vh', overflowY: 'auto' }}
+      >
+        <ModalContent />
+      </Modal>
     </div>
   );
 }

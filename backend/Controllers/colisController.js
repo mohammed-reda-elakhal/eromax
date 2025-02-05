@@ -2063,3 +2063,307 @@ exports.deleteAllAmeexColis = asyncHandler(async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+
+
+/* -------------        crbt section      ------------ */
+
+
+
+/**
+ * Controller to retrieve all CRBT information details for all Colis.
+ *
+ * This function:
+ * - Queries the database for all Colis documents.
+ * - Selects only the necessary fields: id_Colis, code_suivi, crbt, ville, and store.
+ * - Populates the 'ville' and 'store' fields to include detailed information.
+ * - Returns the list of Colis with their CRBT details.
+ *
+ * Example endpoint: GET /api/colis/crbt
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ */
+exports.getAllCrbtInfo = async (req, res) => {
+  try {
+    // Extract the user's role and store from the token (assumed to be added to req.user)
+    const role = req.user.role;
+    let filter = {};
+
+    // Build filter based on the user's role.
+    if (role === 'admin') {
+      // For admin, no additional filtering is applied.
+      filter = {};
+    } else if (role === 'client') {
+      // For client, filter by the client's store.
+      filter.store = req.user.store;
+    }
+
+     // Add a constant filter for statu_final: only "Livrée" or "Refusée" should be returned.
+     filter.statu_final = { $in: ["Livrée", "Refusée"] };
+
+    // Query the database for Colis documents using the filter.
+    // Selecting only the necessary fields and populating 'ville' and 'store' for detailed info.
+    const colisList = await Colis.find(filter)
+      .select('id_Colis statu_final prix code_suivi crbt ville store')
+      .populate('ville')  // Populate the 'ville' field with its associated document.
+      .populate('store'); // Populate the 'store' field with its associated document.
+
+    // Get the count of the returned documents.
+    const count = colisList.length;
+
+    // If no Colis is found, return a message with an empty data array and count of zero.
+    if (!colisList || count === 0) {
+      return res.status(200).json({
+        message: 'No colis with CRBT info found',
+        count: 0,
+        data: []
+      });
+    }
+
+    // Return the list of Colis with their CRBT details along with the count.
+    return res.status(200).json({
+      message: 'All CRBT info retrieved successfully',
+      count: count,
+      data: colisList
+    });
+  } catch (error) {
+    // Log and return a 500 error response in case of a server error.
+    console.error('Error retrieving all CRBT info:', error);
+    return res.status(500).json({
+      message: 'Server error while retrieving CRBT info',
+      error: error.message,
+    });
+  }
+};
+
+
+
+/**
+ * Controller to retrieve CRBT info details for a specific Colis.
+ * The Colis can be found either by its ObjectId or by its code_suivi.
+ *
+ * This function:
+ * - Extracts the identifier (either ObjectId or code_suivi) from the URL parameters.
+ * - Checks if the identifier is a valid ObjectId using mongoose.Types.ObjectId.isValid().
+ * - Builds a query accordingly.
+ * - Finds the colis document, selecting only the fields: id_Colis, code_suivi, crbt, ville, and store.
+ * - Populates the 'ville' and 'store' fields.
+ *
+ * Example endpoint: GET /api/colis/crbt/:identifier
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ */
+exports.getCrbtInfoDetail = async (req, res) => {
+  try {
+    // Extract the identifier from request parameters.
+    // This identifier can be either a MongoDB ObjectId or a code_suivi string.
+    const { colisId } = req.params;
+
+    let query;
+    // Check if the identifier is a valid ObjectId.
+    if (mongoose.Types.ObjectId.isValid(colisId)) {
+      // If valid, query by _id.
+      query = { _id: colisId };
+    } else {
+      // Otherwise, assume it's a code_suivi.
+      query = { code_suivi: colisId };
+    }
+
+    // Find the colis document with the specified query,
+    // selecting only the desired fields and populating 'ville' and 'store'.
+    const colis = await Colis.findOne(query)
+      .select('id_Colis statu_final prix code_suivi crbt ville store')
+      .populate('ville')  // Populates the 'ville' field with the associated document.
+      .populate('store'); // Populates the 'store' field with the associated document.
+
+    // If no colis is found, return a 404 error response.
+    if (!colis) {
+      return res.status(404).json({ message: 'Colis not found' });
+    }
+
+    // Return the retrieved colis data with a success response.
+    return res.status(200).json({
+      message: 'CRBT info retrieved successfully',
+      data: colis,
+    });
+  } catch (error) {
+    // Log the error and return a 500 error response.
+    console.error('Error retrieving CRBT info detail:', error);
+    return res.status(500).json({
+      message: 'Server error while retrieving CRBT info detail',
+      error: error.message,
+    });
+  }
+};
+/**
+ * Controller to update the CRBT attribute of a specific Colis.
+ *
+ * This function:
+ * - Extracts the colis ID from the URL parameters.
+ * - Expects a CRBT object in the request body containing fields like:
+ *   prix_colis, tarif_livraison, tarif_refuse, tarif_fragile, tarif_supplementaire,
+ *   prix_a_payant, and total_tarif.
+ * - Updates the colis document with the new CRBT information.
+ *
+ * Example endpoint: PUT /api/colis/:colisId/crbt
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ */
+exports.updateCrbtInfo = async (req, res) => {
+  try {
+    // Extract colisId from request parameters
+    const { colisId } = req.params;
+
+    // Extract the CRBT data from the request body.
+    const { crbt } = req.body;
+
+    // Validate that the CRBT object is provided in the request body.
+    if (!crbt || typeof crbt !== 'object') {
+      return res.status(400).json({
+        message: 'Invalid CRBT data provided. It should be an object.',
+      });
+    }
+
+    // Update the colis document with the new CRBT information.
+    // The { new: true } option returns the updated document after the update.
+    const updatedColis = await Colis.findByIdAndUpdate(
+      colisId,
+      { crbt: crbt },
+      { new: true }
+    );
+
+    // If no colis is found with the provided ID, return a 404 error response.
+    if (!updatedColis) {
+      return res.status(404).json({ message: 'Colis not found' });
+    }
+
+    // Return the updated colis document with a success message.
+    return res.status(200).json({
+      message: 'CRBT information updated successfully',
+      data: updatedColis,
+    });
+  } catch (error) {
+    // Log the error and return a 500 error response.
+    console.error('Error updating CRBT info:', error);
+    return res.status(500).json({
+      message: 'Server error while updating CRBT info',
+      error: error.message,
+    });
+  }
+};
+
+
+/**
+ * Controller to fix/recalculate the CRBT values for a specific Colis.
+ *
+ * This function:
+ * - Expects a `code_suivi` parameter in the URL.
+ * - Finds the Colis document with the matching `code_suivi`.
+ * - Verifies that the colis has a statu_final of either "Livrée" or "Refusée".
+ * - For "Livrée":
+ *      - If crbt.prix_colis is zero, use colis.prix as the base price.
+ *      - If crbt.tarif_livraison is zero, use colis.ville.tarif (if available) as the delivery tariff.
+ *      - Then, total_tarif = tarif_livraison + tarif_refuse + tarif_fragile + tarif_supplementaire
+ *        and prix_a_payant = base price - total_tarif.
+ * - For "Refusée":
+ *      - Compute total_tarif as above.
+ *      - Set prix_a_payant = -total_tarif.
+ * - Saves the updated Colis document and returns the updated data.
+ *
+ * Example endpoint: PUT /api/colis/fix-crbt/:code_suivi
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ */
+exports.fixCrbtForColis = async (req, res) => {
+  try {
+    // Retrieve the code_suivi from the request parameters.
+    const { code_suivi } = req.params;
+    if (!code_suivi) {
+      return res.status(400).json({ message: "code_suivi parameter is required" });
+    }
+
+    // Find the colis using the provided code_suivi.
+    // Populate 'ville' so we can access its tariff values.
+    const colis = await Colis.findOne({ code_suivi }).populate('ville');
+    if (!colis) {
+      return res.status(404).json({ message: "Colis not found" });
+    }
+
+    // Verify that the colis has a statu_final of either "Livrée" or "Refusée"
+    if (colis.statu_final !== "Livrée" && colis.statu_final !== "Refusée") {
+      return res.status(400).json({
+        message: "CRBT fix is allowed only for colis with statu_final 'Livrée' or 'Refusée'"
+      });
+    }
+
+    // Ensure the CRBT object exists.
+    if (!colis.crbt) {
+      return res.status(400).json({ message: "CRBT data not found for this colis" });
+    }
+
+    // Retrieve individual tariff values from CRBT (defaulting to 0 if not present).
+    let prixColis = colis.crbt.prix_colis || 0;
+    let tarifLivraison = colis.crbt.tarif_livraison || 0;
+    let tarifRefuse = colis.crbt.tarif_refuse || 0;
+    let tarifFragile = colis.crbt.tarif_fragile || 0;
+    let tarifSupplementaire = colis.crbt.tarif_supplementaire || 0;
+
+    let totalTarif, prixAPayant;
+
+    if (colis.statu_final === "Refusée") {
+      // For a refused colis:
+      // Ensure the base price is set from colis.prix if not provided.
+      if (prixColis === 0) {
+        prixColis = colis.prix || 0;
+        colis.crbt.prix_colis = prixColis;
+      }
+      // Force the delivery tariff to 0.
+      tarifLivraison = 0;
+      colis.crbt.tarif_livraison = 0;
+      // For refusal, if the refusal tariff is 0, try to set it from the ville's refusal tariff.
+      if (tarifRefuse === 0 && colis.ville && colis.ville.tarif_refus) {
+        tarifRefuse = colis.ville.tarif_refus;
+        colis.crbt.tarif_refuse = tarifRefuse;
+      }
+      totalTarif = tarifLivraison + tarifRefuse + tarifFragile + tarifSupplementaire;
+      prixAPayant = - totalTarif;
+    } else {
+      // For a delivered colis ("Livrée")
+      // If the CRBT base price is zero, use colis.prix as the base price.
+      if (prixColis === 0) {
+        prixColis = colis.prix || 0;
+        colis.crbt.prix_colis = prixColis;
+      }
+      // If the CRBT delivery tariff is zero, use the tariff from the populated ville if available.
+      if (tarifLivraison === 0 && colis.ville && colis.ville.tarif) {
+        tarifLivraison = colis.ville.tarif;
+        colis.crbt.tarif_livraison = tarifLivraison;
+      }
+      totalTarif = tarifLivraison + tarifRefuse + tarifFragile + tarifSupplementaire;
+      prixAPayant = prixColis - totalTarif;
+    }
+
+    // Update the CRBT fields.
+    colis.crbt.total_tarif = totalTarif;
+    colis.crbt.prix_a_payant = prixAPayant;
+
+    // Save the updated Colis document.
+    await colis.save();
+
+    // Return the updated Colis document.
+    return res.status(200).json({
+      message: "CRBT data updated successfully",
+      data: colis,
+    });
+  } catch (error) {
+    console.error("Error fixing CRBT for colis:", error);
+    return res.status(500).json({
+      message: "Server error while updating CRBT data",
+      error: error.message,
+    });
+  }
+};

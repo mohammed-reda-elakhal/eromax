@@ -667,3 +667,122 @@ export const affectationColisAmeex = (colisDataArray) => async (dispatch) => {
     toast.error('Erreur lors de l\'affectation à Ameex');
   }
 };
+
+
+/*------------- crbt section -------------------- */
+
+
+/**
+ * Fetch all CRBT info for all Colis.
+ * Expects the backend to respond with an object like:
+ * { message: string, count: number, data: [ ... ] }
+ */
+export function getAllCrbtInfo() {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Authentication token is missing");
+        return;
+      }
+      dispatch(colisActions.setLoading(true));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+
+      const { data } = await request.get('/api/colis/crbt', config);
+
+      // Dispatch the data to Redux; expected payload:
+      // { crbtData: [...], count: number }
+      dispatch(colisActions.setCrbtData({ crbtData: data.data, count: data.count }));
+    } catch (error) {
+      console.error("Failed to fetch all CRBT info:", error);
+      dispatch(colisActions.setError(error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || "Failed to fetch CRBT info");
+    } finally {
+      dispatch(colisActions.setLoading(false));
+    }
+  };
+}
+
+/**
+ * Fetch a single Colis CRBT detail by identifier.
+ * The identifier can be a MongoDB ObjectId or a code_suivi.
+ * Expects the backend to respond with an object like:
+ * { message: string, data: { ... } }
+ */
+export function getCrbtDetailByIdentifier(identifier) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Authentication token is missing");
+        return;
+      }
+      dispatch(colisActions.setLoading(true));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+
+      const { data } = await request.get(`/api/colis/crbt/${identifier}`, config);
+
+      // Store the single selected CRBT detail in Redux
+      dispatch(colisActions.setSelectedCrbt(data.data));
+
+      toast.success("CRBT detail retrieved successfully");
+    } catch (error) {
+      console.error("Failed to fetch CRBT detail:", error);
+      dispatch(colisActions.setError(error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || "Failed to fetch CRBT detail");
+    } finally {
+      dispatch(colisActions.setLoading(false));
+    }
+  };
+}
+
+/**
+ * Update the CRBT info of a Colis.
+ * Expects a PUT request with a payload like { crbt: { ... } }.
+ * Backend should respond with an object containing the updated colis data:
+ * { message: string, data: { ... } }
+ */
+export function updateCrbtInfo(colisId, crbtData) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Authentication token is missing");
+        return;
+      }
+      dispatch(colisActions.setLoading(true));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+
+      const { data } = await request.put(`/api/colis/crbt/${colisId}`, { crbt: crbtData }, config);
+
+      // Update the colis in the Redux store with the new CRBT info.
+      dispatch(colisActions.updateColis(data.data));
+
+      toast.success("CRBT info updated successfully");
+    } catch (error) {
+      console.error("Failed to update CRBT info:", error);
+      dispatch(colisActions.setError(error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || "Failed to update CRBT info");
+    } finally {
+      dispatch(colisActions.setLoading(false));
+    }
+  };
+}
