@@ -6,6 +6,12 @@ const colisSlice = createSlice({
   name: "colis",
   initialState: {
     colis: [],
+    // Holds the CRBT data fetched from /api/colis/crbt
+    crbtData: [],
+    // Count of the CRBT items returned from the API
+    count: 0,
+    // A single selected Colis CRBT detail (by id or code_suivi)
+    selectedCrbt: null,
     selectedColis: null,  // Selected Colis for update
     loading: false,
     error: null,
@@ -76,11 +82,27 @@ const colisSlice = createSlice({
         if (state.selectedColis && state.selectedColis._id === updatedColis._id) {
           state.selectedColis = updatedColis; // Update selectedColis if applicable
         }
+        // Also update the selected CRBT if it matches
+        if (state.selectedCrbt && state.selectedCrbt._id === updatedColis._id) {
+          state.selectedCrbt = updatedColis;
+        }
       } else {
         state.error = "Invalid data format for updating Colis.";
       }
     },
-    
+    // Sets the list of CRBT info and the total count
+    setCrbtData: (state, action) => {
+      state.crbtData = action.payload.crbtData;
+      state.count = action.payload.count;
+      state.loading = false;
+      state.error = null;
+    },
+    // Sets a single selected CRBT detail
+    setSelectedCrbt: (state, action) => {
+      state.selectedCrbt = action.payload;
+      state.loading = false;
+      state.error = null;
+    },
     // New reducers for search functionality
     setSearchResults(state, action) {
       if (Array.isArray(action.payload)) {

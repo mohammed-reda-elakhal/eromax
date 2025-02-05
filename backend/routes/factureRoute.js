@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllFacture, getFactureByCode, setFacturePay, getCodeFactureByColis, mergeFactures, removeColisFromFacture, getFacturesGroupedByUser, getFacturesByUser , removeColisFromClientFacture} = require('../Controllers/factureController');
+const { getAllFacture, getColisWithoutFactureForClient , addColisToExistingClientFacture, getFactureByCode, setFacturePay, getCodeFactureByColis, mergeFactures, removeColisFromFacture, getFacturesGroupedByUser, getFacturesByUser , removeColisFromClientFacture, transferColisBetweenFactures, getFactureClientByCode, getFactureClient} = require('../Controllers/factureController');
 const { getAllRamasserFacture, getRamasserFactureByCode } = require('../Controllers/factureRamasserController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
 const { createFacturesRetourController, getFacturesRetourController, getFactureRetourByCodeFacture } = require('../Controllers/factureRetourController');
@@ -40,12 +40,21 @@ router.route('/colis/:colisId')
     .get(getCodeFactureByColis)
 
 
+router.get('/client', getFactureClient);
 
 router.get('/detail/:code_facture', getFactureByCode);
+router.get('/detail/client/:code_facture', getFactureClientByCode);
+
+
 
 router.put('/pay/:id',setFacturePay);
 
 router.delete('/:code_facture/colis/:code_suivi', removeColisFromClientFacture);
+router.patch('/:code_facture/colis/:code_suivi', addColisToExistingClientFacture);
+router.get('/sans_facture', getColisWithoutFactureForClient);
+
+router.post('/transfer/:source_code_facture/:target_code_facture?', transferColisBetweenFactures);
+
 
 
 

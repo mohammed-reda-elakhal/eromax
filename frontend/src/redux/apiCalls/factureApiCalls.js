@@ -30,6 +30,41 @@ export function getFacture(type) {
     };
 }
 
+
+export function getFactureClientByCode(code_facture) {
+    return async (dispatch) => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error('Authentication token is missing');
+          return;
+        }
+        
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+  
+        const { data } = await request.get(`/api/facture/detail/client/${code_facture}`, config);
+  
+        // Dispatch the facture detail to the store
+        dispatch(factureActions.setFactureDetail(data.facture));
+  
+        // Optionally update the promotion if provided in the response
+        if (data.promotion) {
+          dispatch(factureActions.setPromotion(data.promotion));
+        }
+      } catch (error) {
+        console.error("Error fetching facture details:", error);
+        toast.error(
+          error.response?.data?.message || error.message || "Failed to fetch facture details"
+        );
+      }
+    };
+  }
+
 // get data user
 export function getFactureGroupeByUser(type) {
     return async (dispatch) => {
@@ -89,6 +124,31 @@ export function getFactureByUser(storeId, type) {
 }
 
 // get data user
+export function getFactureClient(store) {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+    
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // add token to the headers
+                },
+            };
+
+            const { data } = await request.get(`/api/facture/client?store=${store}`, config);
+            dispatch(factureActions.setFacture(data.factures));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch notifications");
+        }
+    };
+}
+
+// get data user
 export function getFactureRamasser() {
     return async (dispatch) => {
         try {
@@ -121,6 +181,8 @@ export function getFactureDetailsByCode(codeFacture ) {
             const { data } = await request.get(`/api/facture/detail/${codeFacture}`);
             dispatch(factureActions.setFactureDetail(data.facture));
             dispatch(factureActions.setPromotion(data.promotion));
+            console.log(data);
+            
         } catch (error) {
             toast.error(error.message || "Failed to fetch facture details");
         }
@@ -293,3 +355,79 @@ export function mergeFactures(factureCodes) {
         }
     };
 }
+
+
+// Remove a colis from a client facture using facture code and colis code_suivi
+export function removeColisFromClientFacture(code_facture, code_suivi) {
+    return async (dispatch) => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error('Authentication token is missing');
+          return;
+        }
+  
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+  
+        // Call DELETE /api/facture/:code_facture/colis/:code_suivi
+        const { data } = await request.delete(
+          `/api/facture/${code_facture}/colis/${code_suivi}`,
+          config
+        );
+  
+        // Update the facture details in the Redux store with the updated facture
+        dispatch(factureActions.setFactureDetail(data.facture));
+        toast.success(data.message);
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to remove colis from facture"
+        );
+      }
+    };
+  }
+  
+  // Add a colis to an existing client facture using facture code and colis code_suivi
+  export function addColisToExistingClientFacture(code_facture, code_suivi) {
+    return async (dispatch) => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error('Authentication token is missing');
+          return;
+        }
+  
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+  
+        // Call PATCH /api/facture/:code_facture/colis/:code_suivi
+        // (The PATCH endpoint is used here to add the colis to the existing facture)
+        const { data } = await request.patch(
+          `/api/facture/${code_facture}/colis/${code_suivi}`,
+          {}, // If your PATCH endpoint requires a request body, add it here.
+          config
+        );
+  
+        // Update the facture details in the Redux store with the updated facture
+        dispatch(factureActions.setFactureDetail(data.facture));
+        toast.success(data.message);
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to add colis to facture"
+        );
+      }
+    };
+  }
+  

@@ -6,6 +6,17 @@ const { updateSuiviColis, updateMultipleSuiviColis, updateMultipleColisStatus, s
 const { ajoutVille } = require("../Controllers/villeCtrl");
 
 
+// crbt route
+
+// Route to get CRBT info detail of a colis
+router.route('/crbt')
+        .get( verifyToken , colisController.getAllCrbtInfo)
+router.route('/crbt/:colisId')
+        .get(colisController.getCrbtInfoDetail)
+        .put(colisController.updateCrbtInfo)
+
+router.put('/fix-crbt/:code_suivi', colisController.fixCrbtForColis);
+
 //Router api/colis
 router.route('/')
         .get( verifyToken , colisController.getAllColisCtrl)
