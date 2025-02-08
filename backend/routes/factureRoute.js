@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllFacture, getColisWithoutFactureForClient , addColisToExistingClientFacture, getFactureByCode, setFacturePay, getCodeFactureByColis, mergeFactures, removeColisFromFacture, getFacturesGroupedByUser, getFacturesByUser , removeColisFromClientFacture, transferColisBetweenFactures, getFactureClientByCode, getFactureClient} = require('../Controllers/factureController');
+const { getAllFacture , getFactureLivreur , getColisWithoutFactureForClient , addColisToExistingClientFacture, getFactureByCode, setFacturePay, getCodeFactureByColis, mergeFactures, removeColisFromFacture, getFacturesGroupedByUser, getFacturesByUser , removeColisFromClientFacture, transferColisBetweenFactures, getFactureClientByCode, getFactureClient, getFactureLivreurByCode} = require('../Controllers/factureController');
 const { getAllRamasserFacture, getRamasserFactureByCode } = require('../Controllers/factureRamasserController');
 const { verifyToken } = require('../Middlewares/VerifyToken');
 const { createFacturesRetourController, getFacturesRetourController, getFactureRetourByCodeFacture } = require('../Controllers/factureRetourController');
@@ -41,9 +41,11 @@ router.route('/colis/:colisId')
 
 
 router.get('/client', getFactureClient);
-
+router.get('/livreur', getFactureLivreur);
 router.get('/detail/:code_facture', getFactureByCode);
 router.get('/detail/client/:code_facture', getFactureClientByCode);
+router.get('/detail/livreur/:code_facture', getFactureLivreurByCode);
+
 
 
 

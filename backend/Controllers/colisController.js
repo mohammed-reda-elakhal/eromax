@@ -2280,17 +2280,33 @@ exports.updateCrbtInfo = async (req, res) => {
  */
 exports.fixCrbtForColis = async (req, res) => {
   try {
-    // Retrieve the code_suivi from the request parameters.
     const { code_suivi } = req.params;
     if (!code_suivi) {
       return res.status(400).json({ message: "code_suivi parameter is required" });
     }
 
-    // Find the colis using the provided code_suivi.
-    // Populate 'ville' so we can access its tariff values.
+    // Find the colis using the provided code_suivi and populate the 'ville' field.
     const colis = await Colis.findOne({ code_suivi }).populate('ville');
     if (!colis) {
       return res.status(404).json({ message: "Colis not found" });
+    }
+
+    // If statu_final is null, check the Suivi_Colis model for updates
+    if (!colis.statu_final) {
+      const suivi = await Suivi_Colis.findOne({ id_colis: colis._id });
+
+      if (suivi) {
+        // Look for a status update that is "Livrée" or "Refusée"
+        const statusUpdate = suivi.status_updates.find(update => 
+          update.status === "Livrée" || update.status === "Refusée"
+        );
+
+        if (statusUpdate) {
+          // If found, update the statu_final field of colis
+          colis.statu_final = statusUpdate.status;
+          await colis.save(); // Save the updated colis
+        }
+      }
     }
 
     // Verify that the colis has a statu_final of either "Livrée" or "Refusée"
@@ -2300,7 +2316,7 @@ exports.fixCrbtForColis = async (req, res) => {
       });
     }
 
-    // Ensure the CRBT object exists.
+    // Ensure the CRBT object exists
     if (!colis.crbt) {
       return res.status(400).json({ message: "CRBT data not found for this colis" });
     }
@@ -2316,15 +2332,12 @@ exports.fixCrbtForColis = async (req, res) => {
 
     if (colis.statu_final === "Refusée") {
       // For a refused colis:
-      // Ensure the base price is set from colis.prix if not provided.
       if (prixColis === 0) {
         prixColis = colis.prix || 0;
         colis.crbt.prix_colis = prixColis;
       }
-      // Force the delivery tariff to 0.
       tarifLivraison = 0;
       colis.crbt.tarif_livraison = 0;
-      // For refusal, if the refusal tariff is 0, try to set it from the ville's refusal tariff.
       if (tarifRefuse === 0 && colis.ville && colis.ville.tarif_refus) {
         tarifRefuse = colis.ville.tarif_refus;
         colis.crbt.tarif_refuse = tarifRefuse;
@@ -2333,12 +2346,10 @@ exports.fixCrbtForColis = async (req, res) => {
       prixAPayant = - totalTarif;
     } else {
       // For a delivered colis ("Livrée")
-      // If the CRBT base price is zero, use colis.prix as the base price.
       if (prixColis === 0) {
         prixColis = colis.prix || 0;
         colis.crbt.prix_colis = prixColis;
       }
-      // If the CRBT delivery tariff is zero, use the tariff from the populated ville if available.
       if (tarifLivraison === 0 && colis.ville && colis.ville.tarif) {
         tarifLivraison = colis.ville.tarif;
         colis.crbt.tarif_livraison = tarifLivraison;
