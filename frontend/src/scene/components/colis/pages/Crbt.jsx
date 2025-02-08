@@ -1,26 +1,26 @@
-// src/pages/colis/Crbt.jsx
-
 import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import { Button, Table, Modal, Form, Input, Tag } from 'antd';
+import { Button, Table, Modal, Form, Input, Tag, Spin } from 'antd';
 import { EditOutlined, ReloadOutlined } from '@ant-design/icons';
 import '../colis.css';
-import { getAllCrbtInfo, updateCrbtInfo } from '../../../../redux/apiCalls/colisApiCalls';
+import { getAllCrbtInfo, updateCrbtInfo, fixCrbtForColis } from '../../../../redux/apiCalls/colisApiCalls';
+import { toast } from 'react-toastify';
 
 function Crbt() {
   const { theme } = useContext(ThemeContext);
   const dispatch = useDispatch();
   // Get CRBT data, count, loading, and error from Redux state
   const { crbtData, count, loading, error } = useSelector((state) => state.colis);
-  
+
   // Local state for modal, selected row, and search term
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [updateForm] = Form.useForm();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFixingCrbt, setIsFixingCrbt] = useState(false);  // State to handle loading state for Fix CRBT action
 
   // Helper function to render a value as a green Tag with currency
   const renderCurrencyTag = (value) => (
@@ -179,6 +179,24 @@ function Crbt() {
     },
   ];
 
+  // Handle Fix CRBT action
+  const handleFixCrbt = async () => {
+    if (selectedRow) {
+      setIsFixingCrbt(true);
+      try {
+        // Dispatch the fix CRBT action
+        await dispatch(fixCrbtForColis(selectedRow.code_suivi));
+        toast.success("CRBT fixed successfully");
+      } catch (error) {
+        toast.error("Error fixing CRBT");
+      } finally {
+        setIsFixingCrbt(false);
+      }
+    } else {
+      toast.error("Please select a colis");
+    }
+  };
+
   return (
     <div className='page-dashboard'>
       <Menubar />
@@ -199,6 +217,8 @@ function Crbt() {
               borderRadius: '8px',
             }}
           >
+            {/* Header Tools Section */}
+
             <h4>CRBT Info (Total: {count})</h4>
             {/* Single search input field and refresh button */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -225,6 +245,7 @@ function Crbt() {
           </div>
         </div>
       </main>
+      {/* Modal for editing CRBT */}
       <Modal
         title="Update CRBT Info"
         visible={isModalVisible}

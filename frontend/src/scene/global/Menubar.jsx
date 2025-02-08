@@ -3,7 +3,7 @@ import { Badge, Button, Drawer, Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
-import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt, FaClipboardList } from "react-icons/fa";
+import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt, FaClipboardList, FaTools } from "react-icons/fa";
 import { IoWalletSharp } from "react-icons/io5";
 import { LuBox, LuScanLine } from "react-icons/lu";
 import { BiNote, BiTagAlt } from "react-icons/bi";
@@ -145,6 +145,13 @@ function Menubar() {
             </Menu.Item>
           )
         } 
+        {
+          userData.role === "admin" &&(
+            <Menu.Item icon={<FaTools />}>
+              <Link to="/dashboard/Tools">Tools</Link>
+            </Menu.Item>
+          )
+        }
 
         {
           (userData.role === "admin" || userData.role === "team") && (
@@ -272,7 +279,7 @@ function Menubar() {
             </Menu.SubMenu>
           )
         }
-
+       
         {
           userData.role === "admin" &&(
             <Menu.SubMenu icon={<IoMdPricetags />} title="Tarif">

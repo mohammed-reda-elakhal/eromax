@@ -8,7 +8,8 @@ import {
   getFactureDetailsByLivreur,
   setFactureEtat,
   mergeFactures,
-  getFactureByUser, // Importer la nouvelle action
+  getFactureByUser,
+  getFactureLivreur, // Importer la nouvelle action
 } from '../../../../redux/apiCalls/factureApiCalls';
 import { Button, Tag, Input, Switch, Modal, Row, Col } from 'antd';
 import { FaRegFolderOpen, FaSyncAlt } from "react-icons/fa"; // Importer une icône de rafraîchissement
@@ -33,7 +34,7 @@ function FactureLivreurTable({ theme , id }) {
     setLoading(true);
     try {
       if (user) {
-        await dispatch(getFactureByUser(id ,'livreur'));
+        await dispatch(getFactureLivreur(id));
       } 
     } catch (error) {
       // La gestion des erreurs est déjà gérée dans les appels API
@@ -151,10 +152,14 @@ function FactureLivreurTable({ theme , id }) {
       },
     },
     {
-      title: 'Total Prix',
-      dataIndex: 'totalPrix',
-      key: 'totalPrix',
-      render: (prix) => `${prix} DH`,
+      title: 'Total à payer',
+      dataIndex: 'prixPayer',
+      key: 'prixPayer',
+      render: (text) => (
+        <Tag color='blue'>
+          {text} DH
+        </Tag>
+      ),
     },
     {
       title: 'État',
@@ -179,8 +184,7 @@ function FactureLivreurTable({ theme , id }) {
     },
     {
       title: 'Number of Colis',
-      key: 'countColis',
-      render: (text, record) => record.colis.length,
+      key: 'colisCount',
     },
     {
       title: 'Options',

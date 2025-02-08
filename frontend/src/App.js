@@ -75,6 +75,7 @@ import AjouterColisAdmin from "./scene/components/colis/pages/AjouterColisAdmin"
 import InfoWalet from "./scene/components/portfeuille/page/InfoWalet";
 import TarifLivreur  from "../src/scene/components/tarif livreur/page/TarifLivreur";
 import Crbt from "./scene/components/colis/pages/Crbt";
+import Tools from "./scene/components/tools/Tools";
 
 
 function App() {
@@ -275,6 +276,9 @@ function App() {
             <Route path="ajouter-produit" element={<AjouterProduit />} />
             <Route path="ajouter-produit-colis" element={<ProduitColis search = {getColumnSearchProps}/>} />
             <Route path="colis-stock" element={<ColisStock />} />
+
+            <Route path="Tools" element={<Tools />} />
+            
 
 
             <Route path="promotion" element={<Promotions />} />

@@ -65,6 +65,36 @@ export function getFactureClientByCode(code_facture) {
     };
   }
 
+
+  export function getFactureLivreurByCode(code_facture) {
+    return async (dispatch) => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error('Authentication token is missing');
+          return;
+        }
+        
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+  
+        const { data } = await request.get(`/api/facture/detail/livreur/${code_facture}`, config);
+  
+        // Dispatch the facture detail to the store
+        dispatch(factureActions.setFactureDetail(data.factures));
+      } catch (error) {
+        console.error("Error fetching facture details:", error);
+        toast.error(
+          error.response?.data?.message || error.message || "Failed to fetch facture details"
+        );
+      }
+    };
+  }
+
 // get data user
 export function getFactureGroupeByUser(type) {
     return async (dispatch) => {
@@ -141,6 +171,33 @@ export function getFactureClient(store) {
             };
 
             const { data } = await request.get(`/api/facture/client?store=${store}`, config);
+            dispatch(factureActions.setFacture(data.factures));
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch notifications");
+        }
+    };
+}
+
+
+
+// get data user
+export function getFactureLivreur(id) {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+    
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // add token to the headers
+                },
+            };
+
+            const { data } = await request.get(`/api/facture/livreur?livreurId=${id}`, config);
             dispatch(factureActions.setFacture(data.factures));
         } catch (error) {
             toast.error(error.message || "Failed to fetch notifications");

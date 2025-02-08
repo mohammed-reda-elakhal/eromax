@@ -5,7 +5,7 @@ import html2pdf from 'html2pdf.js';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getFactureDetailsByCode } from '../../../../redux/apiCalls/factureApiCalls';
+import { getFactureDetailsByCode, getFactureLivreurByCode } from '../../../../redux/apiCalls/factureApiCalls';
 import { Table, Tag } from 'antd';
 import moment from 'moment'; // Ensure moment is installed and imported
 
@@ -18,9 +18,10 @@ const FactureDetailLivreur = () => {
 
   useEffect(() => {
     if (code_facture) {
-      dispatch(getFactureDetailsByCode(code_facture));
+      dispatch(getFactureLivreurByCode(code_facture));
     }
     window.scrollTo(0, 0);
+    console.log(facture);
   }, [dispatch, code_facture]);
 
   // Function to generate PDF and download
@@ -100,33 +101,33 @@ const FactureDetailLivreur = () => {
       key: 'code_suivi',
     },
     {
-      title: 'Nom Livreur',
-      dataIndex: 'livreur',
-      key: 'livreur',
-      render: () => facture?.livreur || 'N/A',
-    },
-    {
-      title: 'Destinataire',
-      dataIndex: 'destinataire',
-      key: 'destinataire',
-    },
-    {
-      title: 'Téléphone',
-      dataIndex: 'telephone',
-      key: 'telephone',
+          title: 'Statu Final',
+          dataIndex: 'statu_final',
+          key: 'statu_final',
+          width: 120,
+          render: (statu_final) =>
+            statu_final === 'Livrée' ? (
+              <Tag color="green">{statu_final}</Tag>
+            ) : (
+              <Tag color="red">{statu_final}</Tag>
+            ),
     },
     {
       title: 'Ville',
       dataIndex: 'ville',
-      key: 'ville',
+      render: (text, record) => (
+        <span>
+          { `${record?.ville.nom}`}
+        </span>
+      ),
     },
     {
       title: 'Tarif Livraison',
-      dataIndex: 'new_tarif_livraison',
-      key: 'tarif_livraison',
-      render: (tarif_livraison, record) => (
+      dataIndex: 'tarif_livreur',
+      key: 'tarif_livreur',
+      render: (tarif_livreur, record) => (
         <span>
-          { `${tarif_livraison} DH`}
+          { `${tarif_livreur} DH`}
         </span>
       ),
     },
@@ -140,7 +141,7 @@ const FactureDetailLivreur = () => {
       title: 'Montant à Payer',
       dataIndex: 'montant_a_payer',
       key: 'montant_a_payer',
-      render: (montant) => `${montant} DH`,
+      render: (text , record) => `${record?.prix - record?.tarif_livreur} DH`,
     },
   ];
 
@@ -167,10 +168,10 @@ const FactureDetailLivreur = () => {
     if (facture) {
       if (facture.type === 'livreur') {
         // Sum 'montant_a_payer' for all 'Livrée' colis
-        tp = facture.colis.reduce((acc, col) => acc + (col.prix || 0), 0) || 0;
+        tp = facture.totalPrixColis
 
         // Sum 'tarif_total' for all 'Livrée' colis (tarif_livraison + 0 + 0)
-        tt = facture.colis.reduce((acc, col) => acc + (col.tarif_total || 0), 0) || 0;
+        tt = facture.totalTarifLivreur;
       }
     }
 
@@ -221,15 +222,25 @@ const FactureDetailLivreur = () => {
               <p>
                 <strong>Expéditeur:</strong>
               </p>
-              <p>{facture?.livreur || 'N/A'}</p>
-              <p>{facture?.livreur_tele || 'N/A'}</p>
+              <p>{facture?.livreur?.nom || 'N/A'}</p>
+              <p>{facture?.livreur?.tele || 'N/A'}</p>
             </div>
             <div className="bon-livraison">
               <p>
                 <strong>Bon Livraison:</strong>
               </p>
               <p>#{facture?.code_facture || 'N/A'}</p>
-              <p>{facture?.date_facture ? moment(facture.date_facture).format('LLL') : 'N/A'}</p>
+              <p>
+                {facture?.createdAt
+                  ? new Date(facture.createdAt).toLocaleDateString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'N/A'}
+              </p>
               <p>{facture?.colis?.length || 0} Colis</p>
             </div>
           </div>

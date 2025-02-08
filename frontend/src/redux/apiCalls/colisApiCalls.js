@@ -786,3 +786,45 @@ export function updateCrbtInfo(colisId, crbtData) {
     }
   };
 }
+
+
+// redux/apiCalls/colisApiCalls.js
+export function fixCrbtForColis(code_suivi) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Authentication token is missing");
+        return;
+      }
+
+      // Setup request headers
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      // Dispatch loading state before making the API call
+      dispatch(colisActions.setLoading(true));
+
+      // Send a PATCH request to the fix-crbt API
+      const { data } = await request.put(`/api/colis/fix-crbt/${code_suivi}`, {}, config);
+
+      // Update the colis data with the response from the API
+      dispatch(colisActions.updateColis(data.colis));
+
+      // Show a success toast message
+      toast.success("CRBT data updated successfully");
+    } catch (error) {
+      console.error("Error fixing CRBT for colis:", error);
+      // Handle any errors during the API request
+      dispatch(colisActions.setError(error.message || "Failed to update CRBT data"));
+      toast.error(error.response?.data?.message || "Failed to update CRBT data");
+    } finally {
+      dispatch(colisActions.setLoading(false)); // Stop loading after the request completes
+    }
+  };
+}
+
