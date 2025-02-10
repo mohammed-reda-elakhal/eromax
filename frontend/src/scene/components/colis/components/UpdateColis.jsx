@@ -143,26 +143,31 @@ const UpdateColis = ({ theme }) => {
               <Input />
             </Form.Item>
 
-            {/* Ville (Admin Only) */}
-            {isAdmin && (
-              <Form.Item
-                label="Ville"
-                name="ville"
-                rules={[{ required: true, message: 'Please select a city' }]}
-              >
-                <Select
-                  placeholder="Select a city"
-                  loading={villesLoading}
-                  allowClear
-                >
-                  {villesData.map((ville) => (
-                    <Option key={ville._id} value={ville._id}>
-                      {ville.nom}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            )}
+           {/* Ville (Admin Only) */}
+{isAdmin && (
+  <Form.Item
+    label="Ville"
+    name="ville"
+    rules={[{ required: true, message: 'Please select a city' }]}
+  >
+    <Select
+      showSearch
+      placeholder="Select a city"
+      loading={villesLoading}
+      allowClear
+      filterOption={(input, option) =>
+        option.children.toLowerCase().includes(input.toLowerCase())
+      }
+    >
+      {villesData.map((ville) => (
+        <Option key={ville._id} value={ville._id}>
+          {ville.nom}
+        </Option>
+      ))}
+    </Select>
+  </Form.Item>
+)}
+
 
             {/* Adresse */}
             <Form.Item
