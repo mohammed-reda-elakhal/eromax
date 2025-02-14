@@ -11,6 +11,7 @@ const { ajoutVille } = require("../Controllers/villeCtrl");
 // Route to get CRBT info detail of a colis
 router.route('/crbt')
         .get( verifyToken , colisController.getAllCrbtInfo)
+        
 router.route('/crbt/:colisId')
         .get(colisController.getCrbtInfoDetail)
         .put(colisController.updateCrbtInfo)

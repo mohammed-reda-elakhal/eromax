@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from 'antd';
+import { Button, Popconfirm } from 'antd';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
 import { getReclamation, updateReclamationStatus } from '../../../../redux/apiCalls/reclamationApiCalls';
 import { toast } from 'react-toastify';  // Assuming you're using toast for notifications
+import { MdOutlineDoneAll } from 'react-icons/md';
 
 function ReclamationIncomplete({ theme }) {
     const [filteredData, setFilteredData] = useState([]);
@@ -66,6 +67,11 @@ function ReclamationIncomplete({ theme }) {
             )
         },
         {
+            title: 'Subject',
+            dataIndex: 'subject',
+            key: 'subject',
+        },
+        {
             title: 'Reclamation',
             dataIndex: 'description',
             key: 'description',
@@ -86,12 +92,18 @@ function ReclamationIncomplete({ theme }) {
             render: (text, record) => (
                 <div className='action_user'>
                     {!record.resoudre && (
-                        <Button 
-                            type='primary'
-                            onClick={() => handleStatusChange(record._id)}
+                        <Popconfirm
+                            title="Are you sure you want to proceed?"
+                            onConfirm={() => handleStatusChange(record._id)}
+                            okText="Yes"
+                            cancelText="No"
                         >
-                            Complete
-                        </Button>
+                            <Button 
+                                type="primary" 
+                                icon={<MdOutlineDoneAll />}
+                                style={{ backgroundColor: 'cyan', borderColor: 'cyan' }}
+                            />
+                        </Popconfirm>
                     )}
                 </div>
             )

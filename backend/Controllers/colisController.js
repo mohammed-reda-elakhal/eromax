@@ -16,6 +16,7 @@ const shortid = require('shortid');
 const NotificationUser = require("../Models/Notification_User");
 const { log } = require("console");
 const axios = require('axios');
+const { NoteColis } = require("../Models/NoteColis");
 
 // Utility function to generate a unique code_suivi
 const generateCodeSuivi = (refVille) => {
@@ -33,14 +34,11 @@ const generateCodeSuivi = (refVille) => {
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
 **/
-
 module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   // Check if request body is provided
   if (!req.body) {
     return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
   }
-
-  // Input validation
 
   // Validate that req.user is present and has store
   if (!req.user) {
@@ -80,7 +78,6 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   // If is_remplace is true, handle replacement
   if (req.body.is_remplace) {
     const { replacedColis } = req.body;
-
     if (!replacedColis) { // Now expecting a single ID 
       return res.status(400).json({ message: "Aucun colis à remplacer sélectionné." });
     }
@@ -116,9 +113,15 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
   await saveColis.populate('ville');
 
   // Verify that code_suivi is not null before proceeding
-  if (!newColis.code_suivi) {
+  if (!saveColis.code_suivi) {
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
+
+  // --------------------------
+  // Create the associated NoteColis document
+  // --------------------------
+  const newNoteColis = new NoteColis({ colis: saveColis._id });
+  await newNoteColis.save();
 
   // Create a notification for the user when a new colis is added
   if (saveColis.store) {
@@ -145,18 +148,15 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
       { status: "Attente de Ramassage", date: new Date() }  // Initial status
     ]
   });
-
   const save_suivi = await suivi_colis.save();
 
   // Respond with both the saved Colis and Suivi_Colis
   res.status(201).json({
-    message: 'Colis créé avec succès, merci ',
+    message: 'Colis créé avec succès, merci',
     colis: saveColis,
     suiviColis: save_suivi,
   });
 });
-
-
 /**
  * -------------------------------------------------------------------
  * @desc     Create new colis from admin
@@ -172,12 +172,11 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
   }
 
-
   // Extract store and team information
   let store = req.params.storeId || null;  // Assuming req.user.store should be used
 
   // Validate and fetch the ville by its ID from the request body
-  const ville = await Ville.findOne({nom : req.body.ville});
+  const ville = await Ville.findOne({ nom: req.body.ville });
   if (!ville) {
     return res.status(400).json({ message: "Ville not found" });
   }
@@ -204,7 +203,6 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
   // If is_remplace is true, handle replacement
   if (req.body.is_remplace) {
     const { replacedColis } = req.body;
-
     if (!replacedColis) { // Now expecting a single ID 
       return res.status(400).json({ message: "Aucun colis à remplacer sélectionné." });
     }
@@ -240,9 +238,13 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
   await saveColis.populate('ville');
 
   // Verify that code_suivi is not null before proceeding
-  if (!newColis.code_suivi) {
+  if (!saveColis.code_suivi) {
     return res.status(500).json({ message: "Internal server error: code_suivi is null" });
   }
+
+  // Create the associated NoteColis document
+  const newNoteColis = new NoteColis({ colis: saveColis._id });
+  await newNoteColis.save();
 
   // Create a notification for the user when a new colis is added
   if (saveColis.store) {
@@ -281,6 +283,7 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
 });
 
 
+
 /**
  * -------------------------------------------------------------------
  * @desc     Clone an existing colis by duplicating its data into a new colis
@@ -292,10 +295,12 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
 module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
   const { id_colis } = req.params;
 
-
-
   // Fetch the existing colis
-  const existingColis = await Colis.findById(id_colis).populate('ville').populate('livreur').populate('store').populate('team');
+  const existingColis = await Colis.findById(id_colis)
+    .populate('ville')
+    .populate('livreur')
+    .populate('store')
+    .populate('team');
 
   if (!existingColis) {
     return res.status(404).json({ message: "Colis non trouvé." });
@@ -343,6 +348,10 @@ module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
   await savedColis.populate('team');
   await savedColis.populate('ville');
 
+  // Create the associated NoteColis document
+  const newNoteColis = new NoteColis({ colis: savedColis._id });
+  await newNoteColis.save();
+
   // Create a notification for the user when a new colis is added
   if (savedColis.store) {
     try {
@@ -382,7 +391,6 @@ module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
     suiviColis: save_suivi,
   });
 });
-
 
 
 
@@ -516,10 +524,13 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
     // 10. Insert Colis
     const insertedColis = await Colis.insertMany(colisToInsert);
 
+    // 10.5 Create corresponding NoteColis documents for each inserted colis
+    const noteColisToInsert = insertedColis.map(colis => ({ colis: colis._id }));
+    const insertedNoteColis = await NoteColis.insertMany(noteColisToInsert);
+
     // 11. Update Suivi_Colis and Notifications with Colis IDs
     insertedColis.forEach((colis, idx) => {
       suiviColisToInsert[idx].id_colis = colis._id;
-      // Update notification's colisId
       if (notificationsToInsert[idx]) {
         notificationsToInsert[idx].colisId = colis._id;
       }
@@ -531,12 +542,13 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
     // 13. Insert Notifications
     const insertedNotifications = await Notification_User.insertMany(notificationsToInsert);
 
-    // 14. Respond with All Created Colis and Suivi_Colis
+    // 14. Respond with All Created Colis, Suivi_Colis, and NoteColis if needed
     res.status(201).json({
       message: 'Colis créés avec succès.',
       colis: insertedColis,
       suiviColis: insertedSuiviColis,
       notifications: insertedNotifications,
+      noteColis: insertedNoteColis,
     });
 
   } catch (error) {

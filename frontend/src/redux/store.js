@@ -18,6 +18,8 @@ import { missionReducer } from "./slices/missionSlice";
 import { messageReducer } from "./slices/messageSlice";
 import { docReducer } from "./slices/docSlices";
 import { tarifLivreurReducer } from "./slices/tarifLivreurSlice";
+import { noteColisReducer } from "./slices/noteColisSlice";
+
 
 
 
@@ -42,6 +44,7 @@ const store = configureStore({
     message: messageReducer,
     file : docReducer,
     tarifLivreur: tarifLivreurReducer,  // Add tarifLivreur reducer to the store
+    noteColis : noteColisReducer
   },
 });
 
