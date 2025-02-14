@@ -4,6 +4,7 @@ import reclamationData from '../../../../data/reclamation.json';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
 import { getReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
+import { MdDelete } from 'react-icons/md';
 
 
 function ReclamationComplete({ theme }) {
@@ -80,9 +81,10 @@ function ReclamationComplete({ theme }) {
                 <div className='action_user'>
                     {!record.etat && (
                         <Button 
-                            type = 'primary'
+                            color="danger" 
+                            variant="solid"
+                            icon={<MdDelete/>}
                         >
-                            delete
                         </Button>
                     )}
                 </div>

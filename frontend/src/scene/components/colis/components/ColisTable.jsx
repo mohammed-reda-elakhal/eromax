@@ -19,6 +19,7 @@ import {
   Input, // Import Input for search and facture lookup
 } from 'antd';
 import { FcDocument } from "react-icons/fc";
+import { FaNoteSticky } from "react-icons/fa6";
 import { 
   FaWhatsapp, 
   FaPrint, 
@@ -76,6 +77,9 @@ import useColisFilters from '../hooks/useColisFilters';
 import TicketColis from '../../tickets/TicketColis';
 import TrackingColis from '../../../global/TrackingColis '; // Removed trailing space
 import { IoDocumentAttachSharp } from 'react-icons/io5';
+import { createNoteColis, getNoteColisById, updateAdminNote, updateClientNote, updateLivreurNote } from '../../../../redux/apiCalls/noteColisApiCalls';
+import { noteColisActions } from '../../../../redux/slices/noteColisSlice';
+
 
 // Lazy load components for better performance
 const FilterBar = React.lazy(() => import('./FilterBar'));
@@ -152,8 +156,27 @@ const ColisTable = ({ theme }) => {
     message: '',
     factureModalVisible: false, // New state for facture modal visibility
     searchColisId: '', // State to store the searched colis ID
+    noteColisModalVisible: false, // NEW: controls visibility of Note Colis modal
   });
 
+  const [clientNoteValue, setClientNoteValue] = useState("");
+const [livreurNoteValue, setLivreurNoteValue] = useState("");
+const [adminNoteValue, setAdminNoteValue] = useState("");
+const [editingClient, setEditingClient] = useState(false);
+const [editingLivreur, setEditingLivreur] = useState(false);
+const [editingAdmin, setEditingAdmin] = useState(false);
+
+
+  const [selectColisNote , setSelectColisNote ] = useState("")
+
+  const openNoteColisModal = (colisId) => {
+    // Dispatch your Redux function to get NoteColis by colisId.
+    // (Assuming getNoteColisById is imported and available from your redux actions.)
+    dispatch(getNoteColisById(colisId));
+    setState(prevState => ({ ...prevState, noteColisModalVisible: true }));
+    setSelectColisNote(colisId)
+  };
+  
   const { detailFacture } = useSelector((state) => state.facture);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]); // Array of selected code_suivi
 
@@ -180,16 +203,20 @@ const ColisTable = ({ theme }) => {
     livreurList, 
     colisData, 
     user, 
+    store,
     stores, 
     villes, 
-    loading 
+    loading , 
+    selectedNoteColis,
   } = useSelector((state) => ({
     colisData: state.colis, // Extract the entire 'colis' slice
     livreurList: state.livreur.livreurList || [], // Ensure it's an array
     user: state.auth.user,
+    store: state.auth.store,
     stores: state.store.stores || [],
     villes: state.ville.villes || [],
     loading: state.colis.loading, // Extract loading from Redux
+    selectedNoteColis : state.noteColis.selectedNoteColis,
   }));
 
 
@@ -822,6 +849,14 @@ const handleConfirmAssignLivreur = async () => {
               }}
             />
           </Tooltip>
+          <Tooltip title="Note Colis">
+                <Button 
+                  type="primary" 
+                  icon={<FaNoteSticky />} 
+                  onClick={() => openNoteColisModal(record._id)} 
+                  style={{ backgroundColor: '#8e44ad', borderColor: '#8e44ad', color: '#fff' }}
+                />
+              </Tooltip>
           {user.role === 'admin' && (
             <Tooltip title="Edit Record">
               <Button 
@@ -853,6 +888,8 @@ const handleConfirmAssignLivreur = async () => {
           )}
           {user?.role === 'admin' && (
             <>
+            
+
               <Tooltip title="Copie de colis">
                 <Popconfirm
                   title="Êtes-vous sûr de vouloir copier ce colis?"
@@ -954,6 +991,7 @@ const handleConfirmAssignLivreur = async () => {
             />
           </Popconfirm>
         </Tooltip>
+        
       )}
         </div>
       ),
@@ -971,11 +1009,13 @@ const handleConfirmAssignLivreur = async () => {
     }
 
     const reclamationData = {
-      clientId: user.store, // Assuming user.store holds the store ID
+      clientId: store?._id, // Assuming user.store holds the store ID
       colisId: selectedColis._id,
       subject,
       description: message,
     };
+    console.log(reclamationData);
+    
 
     dispatch(createReclamation(reclamationData));
     setState(prevState => ({
@@ -1203,6 +1243,347 @@ const handleConfirmAssignLivreur = async () => {
           selectedColis={state.filteredData.find(colis => colis.code_suivi === selectedRowKeys[0])} // Pass the selected colis
         />
       </Suspense>
+      {/* Note Colis Modal */}
+     {/* Note Colis Modal */}
+{/* Note Colis Modal */}
+<Modal
+  title="Note Colis"
+  visible={state.noteColisModalVisible}
+  onCancel={() => {
+    setState(prevState => ({
+      ...prevState,
+      noteColisModalVisible: false,
+      editingClient: false,
+      editingLivreur: false,
+      editingAdmin: false,
+    }));
+    dispatch(noteColisActions.clearSelectedNoteColis());
+    setSelectColisNote('');
+  }}
+  footer={[
+    <Button
+      key="close"
+      onClick={() => {
+        setState(prevState => ({
+          ...prevState,
+          noteColisModalVisible: false,
+          editingClient: false,
+          editingLivreur: false,
+          editingAdmin: false,
+        }));
+        dispatch(noteColisActions.clearSelectedNoteColis());
+        setSelectColisNote('');
+      }}
+    >
+      Fermer
+    </Button>
+  ]}
+>
+  {selectedNoteColis ? (
+    <div>
+      {/* Client Note Section */}
+      <Divider orientation="left">Client Note</Divider>
+      {selectedNoteColis.clientNote ? (
+        <div style={{ marginBottom: 16 }}>
+          <Typography.Text strong>
+            {selectedNoteColis.clientNote.createdBy?.nom}{" "}
+            {selectedNoteColis.clientNote.createdBy?.prenom} {" "}
+            {selectedNoteColis.clientNote.createdBy?.tele}
+          </Typography.Text>
+          <br />
+          {user?.role === "client" && !editingClient ? (
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Typography.Paragraph style={{ margin: 0 }}>
+                {selectedNoteColis.clientNote.note}
+              </Typography.Paragraph>
+              <Button 
+                type="link" 
+                icon={<FaPenFancy />} 
+                onClick={() => {
+                  setEditingClient(true);
+                  setClientNoteValue(selectedNoteColis.clientNote.note);
+                }}
+              />
+            </div>
+          ) : user?.role === "client" && editingClient ? (
+            <div style={{ marginBottom: 16 }}>
+              <Input.TextArea
+                placeholder="Entrez votre note client"
+                value={clientNoteValue}
+                onChange={(e) => setClientNoteValue(e.target.value)}
+                rows={3}
+                style={{marginBottom:'8px'}}
+              />
+              <Button 
+                type="primary" 
+                onClick={() => {
+                  if (clientNoteValue.trim() === "") {
+                    toast.error("La note ne peut pas être vide");
+                    return;
+                  }
+                  const noteData = { colisId: selectColisNote, note: clientNoteValue };
+                  dispatch(updateClientNote(noteData));
+                  setEditingClient(false);
+                }}
+              >
+                Enregistrer
+              </Button>
+            </div>
+          ) : (
+            <Typography.Paragraph>
+              {selectedNoteColis.clientNote.note}
+            </Typography.Paragraph>
+          )}
+        </div>
+      ) : (
+        user?.role === "client" ? (
+          <div style={{ marginBottom: 16 }}>
+            <Input.TextArea
+              placeholder="Entrez votre note client"
+              value={clientNoteValue || ""}
+              onChange={(e) => setClientNoteValue(e.target.value)}
+              rows={3}
+              style={{marginBottom:'8px'}}
+            />
+            <Button 
+              type="primary" 
+              onClick={() => {
+                if ((clientNoteValue || "").trim() === "") {
+                  toast.error("La note ne peut pas être vide");
+                  return;
+                }
+                const noteData = { colisId: selectColisNote, note: clientNoteValue };
+                dispatch(updateClientNote(noteData));
+                setClientNoteValue("");
+              }}
+            >
+              Enregistrer
+            </Button>
+          </div>
+        ) : (
+          <Typography.Paragraph>Aucune note client</Typography.Paragraph>
+        )
+      )}
+
+      {/* Livreur Note Section */}
+      <Divider orientation="left">Livreur Note</Divider>
+      {selectedNoteColis.livreurNote ? (
+        <div style={{ marginBottom: 16 }}>
+          <Typography.Text strong>
+            {selectedNoteColis.livreurNote.createdBy?.nom}{" "}
+            {selectedNoteColis.livreurNote.createdBy?.prenom} {selectedNoteColis.livreurNote.createdBy?.tele}
+          </Typography.Text>
+          <br />
+          {user?.role === "livreur" && !editingLivreur ? (
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Typography.Paragraph style={{ margin: 0 }}>
+                {selectedNoteColis.livreurNote.note}
+              </Typography.Paragraph>
+              <Button 
+                type="link" 
+                icon={<FaPenFancy />} 
+                onClick={() => {
+                  setEditingLivreur(true);
+                  setLivreurNoteValue(selectedNoteColis.livreurNote.note);
+                }}
+              />
+            </div>
+          ) : user?.role === "livreur" && editingLivreur ? (
+            <div style={{ marginBottom: 16 }}>
+              <Input.TextArea
+                placeholder="Entrez votre note livreur"
+                value={livreurNoteValue || ""}
+                onChange={(e) => setLivreurNoteValue(e.target.value)}
+                rows={3}
+                style={{marginBottom:'8px'}}
+              />
+              <Button 
+                type="primary" 
+                onClick={() => {
+                  if ((livreurNoteValue || "").trim() === "") {
+                    toast.error("La note ne peut pas être vide");
+                    return;
+                  }
+                  const noteData = { colisId: selectColisNote, note: livreurNoteValue };
+                  dispatch(updateLivreurNote(noteData));
+                  setEditingLivreur(false);
+                }}
+              >
+                Enregistrer
+              </Button>
+            </div>
+          ) : (
+            <Typography.Paragraph>
+              {selectedNoteColis.livreurNote.note}
+            </Typography.Paragraph>
+          )}
+        </div>
+      ) : (
+        user?.role === "livreur" ? (
+          <div style={{ marginBottom: 16 }}>
+            <Input.TextArea
+              placeholder="Entrez votre note livreur"
+              value={livreurNoteValue || ""}
+              onChange={(e) => setLivreurNoteValue(e.target.value)}
+              rows={3}
+              style={{marginBottom:'8px'}}
+            />
+            <Button 
+              type="primary" 
+              onClick={() => {
+                if ((livreurNoteValue || "").trim() === "") {
+                  toast.error("La note ne peut pas être vide");
+                  return;
+                }
+                const noteData = { colisId: selectColisNote, note: livreurNoteValue };
+                dispatch(updateLivreurNote(noteData));
+                setLivreurNoteValue("");
+              }}
+            >
+              Enregistrer
+            </Button>
+          </div>
+        ) : (
+          <Typography.Paragraph>Aucune note livreur</Typography.Paragraph>
+        )
+      )}
+
+      {/* Admin Notes Section */}
+      <Divider orientation="left">Admin Notes</Divider>
+      <div>
+        {selectedNoteColis.adminNotes && selectedNoteColis.adminNotes.length > 0 ? (
+          <>
+            {selectedNoteColis.adminNotes.map((adminNote, index) => {
+              const isMine =
+                adminNote.createdBy &&
+                adminNote.createdBy._id === user?.id;
+              return (
+                <div key={index} style={{ marginBottom: 8 }}>
+                  <Typography.Text strong>
+                    {adminNote.createdBy?.nom} {adminNote.createdBy?.prenom} {adminNote.createdBy?.tele}
+                  </Typography.Text>
+                  <br />
+                  {user?.role === "admin" && isMine && !editingAdmin ? (
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <Typography.Paragraph style={{ margin: 0 }}>
+                        {adminNote.note}
+                      </Typography.Paragraph>
+                      <Button 
+                        type="link" 
+                        icon={<FaPenFancy />} 
+                        onClick={() => {
+                          setEditingAdmin(true);
+                          setAdminNoteValue(adminNote.note);
+                        }}
+                      />
+                    </div>
+                  ) : user?.role === "admin" && editingAdmin && isMine ? (
+                    <div style={{ marginBottom: 16 }}>
+                      <Input.TextArea
+                        placeholder="Entrez votre note admin"
+                        value={adminNoteValue || ""}
+                        onChange={(e) => setAdminNoteValue(e.target.value)}
+                        rows={3}
+                        style={{marginBottom:'8px'}}
+                      />
+                      <Button 
+                        type="primary" 
+                        onClick={() => {
+                          if ((adminNoteValue || "").trim() === "") {
+                            toast.error("La note ne peut pas être vide");
+                            return;
+                          }
+                          const noteData = { colisId: selectColisNote, note: adminNoteValue };
+                          dispatch(updateAdminNote(noteData));
+                          setEditingAdmin(false);
+                        }}
+                      >
+                        Enregistrer
+                      </Button>
+                    </div>
+                  ) : (
+                    <Typography.Paragraph>
+                      {adminNote.note}
+                    </Typography.Paragraph>
+                  )}
+                </div>
+              );
+            })}
+            {/* If current admin did not provide any note, show input */}
+            {user?.role === "admin" &&
+              selectedNoteColis.adminNotes.filter(
+                (n) => n.createdBy?._id === user?.id
+              ).length === 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <Input.TextArea
+                    placeholder="Entrez votre note admin"
+                    value={adminNoteValue || ""}
+                    onChange={(e) => setAdminNoteValue(e.target.value)}
+                    rows={3}
+                    style={{marginBottom:'8px'}}
+                  />
+                  <Button 
+                    type="primary" 
+                    onClick={() => {
+                      if ((adminNoteValue || "").trim() === "") {
+                        toast.error("La note ne peut pas être vide");
+                        return;
+                      }
+                      const noteData = { colisId: selectColisNote, note: adminNoteValue };
+                      dispatch(updateAdminNote(noteData));
+                      setAdminNoteValue("");
+                    }}
+                  >
+                    Enregistrer
+                  </Button>
+                </div>
+              )}
+          </>
+        ) : (
+          user?.role === "admin" && (
+            <div style={{ marginBottom: 16 }}>
+              <Input.TextArea
+                placeholder="Entrez votre note admin"
+                value={adminNoteValue || ""}
+                onChange={(e) => setAdminNoteValue(e.target.value)}
+                rows={3}
+                style={{marginBottom:'8px'}}
+              />
+              <Button 
+                type="primary" 
+                onClick={() => {
+                  if ((adminNoteValue || "").trim() === "") {
+                    toast.error("La note ne peut pas être vide");
+                    return;
+                  }
+                  const noteData = { colisId: selectColisNote, note: adminNoteValue };
+                  dispatch(updateAdminNote(noteData));
+                  setAdminNoteValue("");
+                }}
+              >
+                Enregistrer
+              </Button>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  ) : (
+    <>
+      <Typography.Paragraph>
+        Aucune note trouvée pour ce colis.
+      </Typography.Paragraph>
+      <Button
+        type="primary"
+        onClick={() => dispatch(createNoteColis(selectColisNote))}
+      >
+        Create Note
+      </Button>
+    </>
+  )}
+</Modal>
+
+
     </div>
   );
 };

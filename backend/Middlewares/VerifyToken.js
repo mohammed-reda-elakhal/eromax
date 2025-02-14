@@ -79,7 +79,7 @@ function verifyTokenStoreTeamAdmin(req, res, next) {
 // verify token and client 
 function verifyTokenAndClient(req, res, next) {
     verifyToken(req, res, () => {
-        if (req.user.role === "client" && req.user.id === req.params.id_user) {
+        if (req.user.role === "client") {
             next();
         } else {
             return res.status(401).json({ message: "not allowed to this operation" });
@@ -90,7 +90,7 @@ function verifyTokenAndClient(req, res, next) {
 // verify token and livreur
 function verifyTokenAndLivreur(req, res, next) {
     verifyToken(req, res, () => {
-        if (req.user.role === "livreur" && req.user.id === req.params.id_user) {
+        if (req.user.role === "livreur") {
             next();
         } else {
             return res.status(401).json({ message: "not allowed to access" });

@@ -317,6 +317,7 @@ ColisSchema.pre('save', function(next) {
 });
 
 
+
 module.exports = {
     Colis,
     validateRegisterColis

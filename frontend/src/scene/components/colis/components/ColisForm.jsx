@@ -1,6 +1,6 @@
 // ColisForm.jsx
 
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
   InfoCircleOutlined,
   UserOutlined,
@@ -30,7 +30,6 @@ import {
   resetVille,
 } from '../../../../redux/apiCalls/villeApiCalls';
 import { toast } from 'react-toastify';
-import SelectAsync from 'react-select/async';
 import debounce from 'lodash/debounce';
 import { FaPhoneAlt } from 'react-icons/fa';
 import { AiFillProduct } from "react-icons/ai";
@@ -38,6 +37,7 @@ import { FaMapLocation } from "react-icons/fa6";
 import { ThemeContext } from '../../../ThemeContext'; // Ensure ThemeContext is imported
 
 const { TextArea } = Input;
+const { Option } = Select;
 
 const daysOfWeek = [
   'Lundi',
@@ -51,49 +51,13 @@ const daysOfWeek = [
 
 const ColisTypes = [
   { id: 1, name: 'Colis Simple' },
-  { id: 2, name: 'Colis Stock' }, // Ensure this matches your useEffect logic
+  { id: 2, name: 'Colis Stock' },
 ];
 
 const ColisOuvrir = [
   { id: 1, name: 'Ouvrir Colis', value: true },
   { id: 2, name: 'Ne pas Ouvrir Colis', value: false },
 ];
-
-const loadOptions = (inputValue, callback, dispatch) => {
-  if (!inputValue) {
-    callback([]);
-    return;
-  }
-
-  dispatch(searchColisByCodeSuivi(inputValue))
-    .then((result) => {
-      const { searchResults } = result;
-      const options = searchResults.map((colis) => ({
-        value: colis._id,
-        label: `${colis.code_suivi} - ${colis.nom}`,
-        data: {
-          code_suivi: colis.code_suivi,
-          nom: colis.nom,
-          tele: colis.tele,
-          ville: colis.ville?.nom || 'N/A',
-          adresse: colis.adresse,
-          prix: colis.prix,
-          commentaire: colis.commentaire,
-        },
-      }));
-      callback(options);
-    })
-    .catch(() => {
-      callback([]);
-    });
-};
-
-const debouncedLoadOptions = debounce(
-  (inputValue, callback, dispatch) => {
-    loadOptions(inputValue, callback, dispatch);
-  },
-  500
-);
 
 function ColisForm({ type }) {
   const { theme } = useContext(ThemeContext); // Access theme from ThemeContext
@@ -117,6 +81,11 @@ function ColisForm({ type }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [openOption, setOpenOption] = useState(false);
+
+  // States for the simple input search in the modal
+  const [oldColisSearch, setOldColisSearch] = useState('');
+  const [oldColisSuggestions, setOldColisSuggestions] = useState([]);
+  const [loadingOldColis, setLoadingOldColis] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -209,7 +178,7 @@ function ColisForm({ type }) {
 
     try {
       await dispatch(createColis(colis));
-      message.success('Colis créé avec succès !'); // Added success message
+      message.success('Colis créé avec succès !');
       setFormData(initialFormData);
       setPhoneError('');
       dispatch(resetVille());
@@ -222,6 +191,8 @@ function ColisForm({ type }) {
 
   const handleOpenModal = () => {
     setIsModalVisible(true);
+    setOldColisSearch(''); // Reset search input
+    setOldColisSuggestions([]);
   };
 
   const handleOkModal = () => {
@@ -239,6 +210,42 @@ function ColisForm({ type }) {
   const closeDrawer = () => {
     setIsDrawerVisible(false);
   };
+
+  // Debounced search function for old colis suggestions
+  const searchOldColis = useRef(
+    debounce((inputValue) => {
+      if (!inputValue) {
+        setOldColisSuggestions([]);
+        setLoadingOldColis(false);
+        return;
+      }
+      setLoadingOldColis(true);
+      dispatch(searchColisByCodeSuivi(inputValue))
+        .then((result) => {
+          const { searchResults } = result;
+          const options = searchResults.map((colis) => ({
+            value: colis._id,
+            label: `${colis.code_suivi} - ${colis.nom}`,
+            data: {
+              code_suivi: colis.code_suivi,
+              nom: colis.nom,
+              tele: colis.tele,
+              ville: colis.ville?.nom || 'N/A',
+              adresse: colis.adresse,
+              prix: colis.prix,
+              commentaire: colis.commentaire,
+            },
+          }));
+          setOldColisSuggestions(options);
+        })
+        .catch(() => {
+          setOldColisSuggestions([]);
+        })
+        .finally(() => {
+          setLoadingOldColis(false);
+        });
+    }, 500)
+  ).current;
 
   return (
     <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`}>
@@ -296,10 +303,9 @@ function ColisForm({ type }) {
         )}
 
         <div className="colis-form-inputs" style={{ marginTop: '24px' }}>
-
           {/* Container for simple inputs in multiple columns */}
           <div className="colis-form-line" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-            <div className="colis-form-input" >
+            <div className="colis-form-input">
               <label htmlFor="nom">
                 Nom <span style={{ color: 'red' }}>*</span>
               </label>
@@ -358,7 +364,7 @@ function ColisForm({ type }) {
               )}
             </div>
 
-            <div className="colis-form-input" >
+            <div className="colis-form-input">
               <label htmlFor="ville">
                 Ville <span style={{ color: 'red' }}>*</span>
               </label>
@@ -380,7 +386,7 @@ function ColisForm({ type }) {
               />
             </div>
 
-            <div className="colis-form-input" >
+            <div className="colis-form-input">
               <label htmlFor="prix">
                 Prix <span style={{ color: 'red' }}>*</span>
               </label>
@@ -400,7 +406,7 @@ function ColisForm({ type }) {
               />
             </div>
 
-            <div className="colis-form-input" >
+            <div className="colis-form-input">
               <label htmlFor="produit">
                 Nature de produit <span style={{ color: 'red' }}>*</span>
               </label>
@@ -419,7 +425,7 @@ function ColisForm({ type }) {
               />
             </div>
 
-            <div className="colis-form-input" >
+            <div className="colis-form-input">
               <label htmlFor="adress">
                 Adresse <span style={{ color: 'red' }}>*</span>
               </label>
@@ -436,7 +442,7 @@ function ColisForm({ type }) {
             </div>
           </div>
 
-          {/* TextAreas are separate (full width) */}
+          {/* TextArea for Commentaire */}
           <div className="colis-form-input" style={{ width: '100%', marginTop: '16px' }}>
             <label htmlFor="commentaire">
               Commentaire
@@ -451,11 +457,9 @@ function ColisForm({ type }) {
             />
           </div>
 
-          {
-            openOption 
-            ?
+          {openOption ? (
             <div className="option_colis_form">
-              {/* Replaced Select with Checkbox for Ouvrir Colis */}
+              {/* Checkbox for Ouvrir Colis */}
               <Checkbox
                 checked={formData.ouvrirColis}
                 onChange={(e) => handleInputChange('ouvrirColis', e.target.checked)}
@@ -493,22 +497,25 @@ function ColisForm({ type }) {
 
               {formData.remplaceColis && formData.oldColis && (
                 <div className='colis-form-header-oldColis' style={{ marginTop: '16px' }}>
-                  <span><strong>Code Suivi</strong> : {formData.oldColis.code_suivi}</span>
-                  <span><strong>Ville</strong> : {formData.oldColis.ville}</span>
+                  <span>
+                    <strong>Code Suivi</strong> : {formData.oldColis.code_suivi}
+                  </span>
+                  <span>
+                    <strong>Ville</strong> : {formData.oldColis.ville}
+                  </span>
                   <Button type="primary" onClick={handleOpenModal} style={{ marginTop: '8px' }}>
                     Modifier
                   </Button>
                 </div>
               )}
             </div>
-            :""
-
-          }
-         
+          ) : (
+            ""
+          )}
 
           {/* Footer Buttons */}
           <div className="colis-form-footer" style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
-            <Button type="primary" onClick={()=>setOpenOption(prev => !prev)} icon={<TfiMenuAlt />}>
+            <Button type="primary" onClick={() => setOpenOption((prev) => !prev)} icon={<TfiMenuAlt />}>
               Options Avancées
             </Button>
             <Button
@@ -525,7 +532,7 @@ function ColisForm({ type }) {
         </div>
       </form>
 
-      {/* Modal for selecting Old Colis */}
+      {/* Modal for selecting Old Colis using a simple Input with custom suggestions */}
       <Modal
         title="Rechercher l'ancien colis"
         visible={isModalVisible}
@@ -536,20 +543,48 @@ function ColisForm({ type }) {
         className={theme === 'dark' ? 'dark-mode' : ''}
       >
         <p>Recherche par code suivi:</p>
-        <SelectAsync
-          cacheOptions
-          defaultOptions
-          loadOptions={(inputValue, callback) =>
-            debouncedLoadOptions(inputValue, callback, dispatch)
-          }
-          isMulti={false}
-          onChange={handleOldColisSelect}
+        <Input
           placeholder="Rechercher par code suivi..."
-          noOptionsMessage={() => 'Aucun colis trouvé'}
+          value={oldColisSearch}
+          onChange={(e) => {
+            const value = e.target.value;
+            setOldColisSearch(value);
+            searchOldColis(value);
+          }}
+          style={{padding:"10px 20px"}}
         />
+        {loadingOldColis && <p>Chargement...</p>}
+        {oldColisSuggestions.length > 0 && (
+          <div
+            style={{
+              marginTop: '8px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              border: '1px solid #f0f0f0',
+              borderRadius: '4px',
+            }}
+          >
+            {oldColisSuggestions.map((option) => (
+              <div
+                key={option.value}
+                onClick={() => {
+                  handleOldColisSelect(option);
+                  setOldColisSearch(option.label);
+                  setOldColisSuggestions([]);
+                  setIsModalVisible(false);
+                }}
+                style={{
+                  padding: '8px',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid #f0f0f0',
+                }}
+              >
+                {option.label}
+              </div>
+            ))}
+          </div>
+        )}
       </Modal>
-
-
     </div>
   );
 }

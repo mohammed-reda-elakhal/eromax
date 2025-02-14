@@ -60,6 +60,8 @@ app.use('/api/promotions', require('./routes/promotionRoutes'));
 app.use('/api/mission', require('./routes/missionRoutes'));
 app.use('/api/external', require('./routes/apiIntegrationRoute'));
 app.use('/api/goodDelivery', require('./routes/goodDeliveryRoute'));
+app.use('/api/note/colis', require('./routes/noteColisRoute'));
+
 
 // Initialize cron jobs
 scheduleCronJobs();
