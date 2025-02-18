@@ -2,18 +2,14 @@ import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  getFacture,
-  getFactureDetailsByClient,
-  setFactureEtat,
+  getFactureClient,
   mergeFactures,
-  getFactureByUser,
-  getFactureDetailsByCode, // Action for fetching facture detail by code
-  removeColisFromClientFacture,
-  getFactureClient, // Action for removing a colis from a facture (client)
+  setFactureEtat,
+  transferColisClient, // Import the transfer action here
 } from '../../../../redux/apiCalls/factureApiCalls';
 import { IoMdRemoveCircle } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
-import { IoSettingsSharp } from "react-icons/io5";
+import { IoSend, IoSettingsSharp } from "react-icons/io5";
 import {
   Input,
   DatePicker,
@@ -25,7 +21,12 @@ import {
   Modal,
   Table,
   Descriptions,
+  Badge,
+  Divider,
+  Card,
+  Typography
 } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { FaRegFolderOpen, FaSyncAlt } from 'react-icons/fa';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +34,8 @@ import { toast } from 'react-toastify';
 import { CiSettings } from 'react-icons/ci';
 
 const { RangePicker } = DatePicker;
+const { Paragraph, Text } = Typography;
+
 
 function FactureClientTable({ theme, id }) {
   const navigate = useNavigate();
@@ -43,30 +46,26 @@ function FactureClientTable({ theme, id }) {
     user: state.auth.user,
     store: state.auth.store,
   }));
-  // Use facture detail from Redux for modal content
-  const factureDetail = useSelector((state) => state.facture.detailFacture);
+
+  // Local state for selected facture details (source facture)
+  const [selectedFacture, setSelectedFacture] = useState(null);
+  // State for the modal table row selection (selected colis)
+  const [selectedModalRowKeys, setSelectedModalRowKeys] = useState([]);
+  const [selectedModalRows, setSelectedModalRows] = useState([]);
+
+  // State for destination facture search in second modal
+  const [destinationSearchText, setDestinationSearchText] = useState("");
 
   const [searchText, setSearchText] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  
-  // Modal states for displaying facture detail
+
+  // Modal state for the first modal (colis details)
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedFactureCode, setSelectedFactureCode] = useState(null);
-
-  // When the modal opens (i.e. when selectedFactureCode changes), fetch facture details by code.
-  useEffect(() => {
-    if (selectedFactureCode) {
-      dispatch(getFactureDetailsByCode(selectedFactureCode));
-    }
-  }, [dispatch, selectedFactureCode]);
-
-  // Log the factureDetail structure (for debugging)
-  useEffect(() => {
-    console.log('Facture Detail Structure:', factureDetail);
-  }, [factureDetail]);
+  // Modal state for the second modal (destination facture selection)
+  const [isDestinationModalVisible, setIsDestinationModalVisible] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -75,7 +74,7 @@ function FactureClientTable({ theme, id }) {
         await dispatch(getFactureClient(id, 'client'));
       }
     } catch (error) {
-      // Error handling is already done in the API call
+      // Error handling is done in the API call
     } finally {
       setLoading(false);
     }
@@ -151,21 +150,18 @@ function FactureClientTable({ theme, id }) {
       title: 'Code Facture',
       dataIndex: 'code_facture',
       key: 'code_facture',
+      render: (text) => <Paragraph copyable>{text}</Paragraph>, // You can also add copyable Typography here if desired
     },
     {
       title: 'Store',
       key: 'name',
-      render: (text, record) => {
-          return record?.store?.storeName;
-      },
+      render: (text, record) => record?.store?.storeName,
     },
     {
       title: 'Total Prix',
       dataIndex: 'totalPrixAPayant',
       key: 'totalPrixAPayant',
-      render: (text) => (
-        <Tag color="blue">{text} DH</Tag>
-      ),
+      render: (text) => <Tag color="blue">{text} DH</Tag>,
     },
     {
       title: 'Nombre de Colis',
@@ -188,18 +184,10 @@ function FactureClientTable({ theme, id }) {
               />
             );
           } else {
-            return etat ? (
-              <Tag color="green">Payé</Tag>
-            ) : (
-              <Tag color="red">Non Payé</Tag>
-            );
+            return etat ? <Tag color="green">Payé</Tag> : <Tag color="red">Non Payé</Tag>;
           }
         } else {
-          return etat ? (
-            <Tag color="green">Payé</Tag>
-          ) : (
-            <Tag color="red">Non Payé</Tag>
-          );
+          return etat ? <Tag color="green">Payé</Tag> : <Tag color="red">Non Payé</Tag>;
         }
       },
     },
@@ -219,18 +207,24 @@ function FactureClientTable({ theme, id }) {
           <Button
             type="default"
             onClick={() => {
-              setSelectedFactureCode(record.code_facture);
+              // Set the selected facture from local state and open the first modal
+              const foundFacture = facture.find(
+                (f) => f.code_facture === record.code_facture
+              );
+              setSelectedFacture(foundFacture);
+              // Reset modal selection states when opening the modal
+              setSelectedModalRowKeys([]);
+              setSelectedModalRows([]);
+              setDestinationSearchText("");
               setIsModalVisible(true);
             }}
-            icon={<CiSettings/>}
-          >
-          </Button>
+            icon={<CiSettings />}
+          />
         </div>
       ),
     },
   ];
 
-  // For row selection in the main table.
   const onSelectChange = (selectedKeys) => {
     setSelectedRowKeys(selectedKeys);
   };
@@ -247,19 +241,20 @@ function FactureClientTable({ theme, id }) {
       cancelText: 'Non',
       onOk: async () => {
         try {
-          const selectedFactures = facture.filter(f => selectedRowKeys.includes(f._id));
-          const factureCodes = selectedFactures.map(f => f.code_facture);
+          const selectedFactures = facture.filter((f) =>
+            selectedRowKeys.includes(f._id)
+          );
+          const factureCodes = selectedFactures.map((f) => f.code_facture);
           await dispatch(mergeFactures(factureCodes));
           await fetchData();
           setSelectedRowKeys([]);
         } catch (error) {
-          // Error handling is done in the API call.
+          // Error handling is done in API call.
         }
-      }
+      },
     });
   };
 
-  // New columns for the modal table to display colis details.
   const modalColisColumns = [
     {
       title: '#',
@@ -272,12 +267,12 @@ function FactureClientTable({ theme, id }) {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 120,
+      width: 210,
       render: (code_suivi, record) => {
         let badgeColor = 'default';
-        if (record.statut === 'Livrée') {
+        if (record.statu_final === 'Livrée') {
           badgeColor = 'green';
-        } else if (record.statut === 'Refusée') {
+        } else if (record.statu_final === 'Refusée') {
           badgeColor = 'red';
         }
         return <Tag color={badgeColor}>{code_suivi}</Tag>;
@@ -285,8 +280,8 @@ function FactureClientTable({ theme, id }) {
     },
     {
       title: 'Date Livraison',
-      dataIndex: 'date_livraison',
-      key: 'date_livraison',
+      dataIndex: 'date_livraisant',
+      key: 'date_livraisant',
       width: 160,
       render: (text) =>
         text ? moment(text).format('DD/MM/YYYY HH:mm') : 'N/A',
@@ -300,83 +295,155 @@ function FactureClientTable({ theme, id }) {
     },
     {
       title: 'Prix',
-      dataIndex: 'prix',
+      dataIndex: 'crbt',
       key: 'prix',
       width: 100,
-      render: (prix) => `${prix} DH`,
-    },
-    {
-      title: 'Options',
-      key: 'option',
-      width: 200,
-      render: (text, record) => (
-        <Button
-          icon={<MdDelete />}
-          type="primary"
-          disabled
-          danger
-          onClick={() => {
-            Modal.confirm({
-              title: 'Confirmer la suppression',
-              content: `Voulez-vous vraiment supprimer le colis ${record.code_suivi} de la facture ?`,
-              okText: 'Oui',
-              cancelText: 'Non',
-              onOk: async () => {
-                await dispatch(removeColisFromClientFacture(selectedFactureCode, record.code_suivi));
-                // Refresh the facture detail in the modal
-                dispatch(getFactureDetailsByCode(selectedFactureCode));
-              },
-            });
-          }}
-        />
-      ),
+      render: (crbt) => `${crbt?.prix_colis || 0} DH`,
     },
   ];
 
-  // Modal content using factureDetail from Redux with horizontal Descriptions for the summary.
+  // First modal's Transfer button handler:
+  // If at least one colis is selected, open the destination selection modal.
+  const handleTransferModal = () => {
+    if (selectedModalRows.length === 0) {
+      toast.error("Veuillez sélectionner au moins un colis.");
+      return;
+    }
+    setIsDestinationModalVisible(true);
+  };
+
+  // New Facture handler: directly dispatch transfer with no destination code.
+  const handleNewFacture = () => {
+    if (selectedModalRows.length === 0) {
+      toast.error("Veuillez sélectionner au moins un colis.");
+      return;
+    }
+    const selectedCodes = selectedModalRows.map(row => row.code_suivi);
+    dispatch(transferColisClient({
+      code_facture_source: selectedFacture.code_facture,
+      code_facture_distinataire: "", // No destination facture code; API will create a new one.
+      colisCodeSuivi: selectedCodes,
+    }));
+    setIsModalVisible(false);
+  };
+
+  // Content for the first modal (colis details)
   const ModalContent = () => {
     return (
       <div>
-        <Descriptions
-          title="Récapitulatif de la Facture"
-          layout="horizontal"
+        <Descriptions 
+          title="Calcule Detail :" 
           bordered
-          size="small"
-          column={2}
-          style={{ marginBottom: '20px' }}
         >
           <Descriptions.Item label="Total Prix">
-            {factureDetail?.totalPrix} DH
+            <Tag color="green">{selectedFacture?.totalPrix} DH</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="Total Tarif">
-            {factureDetail?.totalTarif} DH
+          <Descriptions.Item label="Total Prix A Payer">
+            <Tag color="green">{selectedFacture?.totalPrixAPayant} DH</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="Frais Refus">
-            {factureDetail?.totalFraisRefus} DH
+          <Descriptions.Item label="Total Tarifs">
+            <Tag color="green">{selectedFacture?.totalTarif} DH</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="Total Tarif Suppl.">
-            {factureDetail?.totalTarifAjouter} DH
+          <Descriptions.Item label="Total Tarif Livraison">
+            <Tag color="green">{selectedFacture?.totalTarifLivraison} DH</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="Net à Payer">
-            {factureDetail?.netAPayer} DH
+          <Descriptions.Item label="Total Supplementaire">
+            <Tag color="green">{selectedFacture?.totalSupplementaire} DH</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="État">
-            {factureDetail?.etat ? (
-              <Tag color="green">Payé</Tag>
+          <Descriptions.Item label="Total Fragile">
+            <Tag color="green">{selectedFacture?.totalFragile} DH</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="Total Refusee">
+            <Tag color="red">{selectedFacture?.totalRefuse} DH</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="Total Colis">
+            {selectedFacture?.colisCount} Colis
+          </Descriptions.Item>
+          <Descriptions.Item label="Etat">
+            {selectedFacture?.etat ? (
+              <Badge status="success" text="Payée" />
             ) : (
-              <Tag color="red">Non Payé</Tag>
+              <Badge status="warning" text="Non Payée" />
             )}
           </Descriptions.Item>
         </Descriptions>
+
+        <Divider />
+
+        {/* Container for Transfer and New Facture Buttons */}
+        <div style={{ marginBottom: '10px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <Button icon={<IoSend />} type="primary" onClick={handleTransferModal}>
+            Transfer
+          </Button>
+          <Button icon={<PlusOutlined />} type="default" onClick={handleNewFacture}>
+            New Facture
+          </Button>
+        </div>
+
         <Table
           size="small"
           columns={modalColisColumns}
-          dataSource={factureDetail?.colis || []}
-          rowKey="code_suivi"
+          dataSource={selectedFacture?.colis || []}
+          rowKey="_id"
           pagination={false}
           scroll={{ y: 300 }}
           sticky
+          rowSelection={{
+            selectedRowKeys: selectedModalRowKeys,
+            onChange: (selectedRowKeys, selectedRows) => {
+              setSelectedModalRowKeys(selectedRowKeys);
+              setSelectedModalRows(selectedRows);
+            },
+          }}
         />
+      </div>
+    );
+  };
+
+  // Second modal: Destination Facture Selection
+  // Filter candidate factures by store id (same as source) and exclude the source facture.
+  const destinationCandidates = facture.filter(
+    (f) =>
+      f.store?._id === selectedFacture?.store?._id &&
+      f.code_facture !== selectedFacture?.code_facture
+  );
+
+  const DestinationModalContent = () => {
+    const filteredDestinationCandidates = destinationCandidates.filter((dest) =>
+      dest.code_facture.toLowerCase().includes(destinationSearchText.toLowerCase())
+    );
+    return (
+      <div>
+        <Input
+          placeholder="Tapez le code facture ou recherchez..."
+          value={destinationSearchText}
+          onChange={(e) => setDestinationSearchText(e.target.value)}
+          style={{ marginBottom: 16 }}
+        />
+        <Row gutter={[16, 16]}>
+          {filteredDestinationCandidates.map((dest) => (
+            <Col key={dest._id} xs={24} sm={12} md={8} lg={6} xl={4}>
+              <Card
+                hoverable
+                onClick={() => {
+                  const selectedCodes = selectedModalRows.map(row => row.code_suivi);
+                  dispatch(transferColisClient({
+                    code_facture_source: selectedFacture.code_facture,
+                    code_facture_distinataire: dest.code_facture,
+                    colisCodeSuivi: selectedCodes,
+                  }));
+                  setIsDestinationModalVisible(false);
+                  setIsModalVisible(false);
+                }}
+              >
+                <Card.Meta 
+                  title={dest.code_facture} 
+                  description={`Créé le: ${moment(dest.createdAt).format('DD/MM/YYYY HH:mm')}`} 
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
       </div>
     );
   };
@@ -384,39 +451,46 @@ function FactureClientTable({ theme, id }) {
   return (
     <div>
       <Row gutter={[16, 16]} style={{ marginBottom: '20px', alignItems: 'center' }}>
-        <Col span={8}>
-          <Input
-            placeholder="Rechercher ..."
-            value={searchText}
-            onChange={handleSearchChange}
-            allowClear
-          />
-        </Col>
-        <Col span={8}>
-          <RangePicker onChange={handleDateRangeChange} />
-        </Col>
-        <Col span={8} style={{ textAlign: 'right' }}>
-          <Button
-            type="default"
-            icon={<FaSyncAlt />}
-            onClick={fetchData}
-            style={{ marginRight: '10px' }}
-            loading={loading}
-          >
-            Refresh
-          </Button>
-          {user?.role === 'admin' && (
-            <Button
-              type="primary"
-              icon={<FaRegFolderOpen />}
-              disabled={selectedRowKeys.length < 2}
-              onClick={handleMerge}
-            >
-              Fusionner
-            </Button>
-          )}
-        </Col>
-      </Row>
+  <Col xs={24} sm={24} md={8}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+      <Input
+        placeholder="Rechercher ..."
+        value={searchText}
+        onChange={handleSearchChange}
+        allowClear
+      />
+    </div>
+  </Col>
+  <Col xs={24} sm={24} md={8} style={{ marginTop: '10px' }}>
+    <RangePicker 
+      onChange={handleDateRangeChange} 
+      style={{ width: '100%' }} 
+    />
+  </Col>
+  <Col xs={24} sm={24} md={8} style={{ textAlign: 'right', marginTop: '10px' }}>
+    <Button
+      type="default"
+      icon={<FaSyncAlt />}
+      onClick={fetchData}
+      style={{ margin: '5px' }}
+      loading={loading}
+    >
+      Refresh
+    </Button>
+    {user?.role === 'admin' && (
+      <Button
+        type="primary"
+        icon={<FaRegFolderOpen />}
+        disabled={selectedRowKeys.length < 2}
+        onClick={handleMerge}
+        style={{ margin: '5px' }}
+      >
+        Fusionner
+      </Button>
+    )}
+  </Col>
+</Row>
+
       <TableDashboard
         id="_id"
         column={columns}
@@ -429,9 +503,8 @@ function FactureClientTable({ theme, id }) {
           onChange: onSelectChange,
         }}
       />
-      {/* Modal to display facture detail using factureDetail from Redux */}
       <Modal
-        title={`Facture: ${selectedFactureCode}`}
+        title={`Facture: ${selectedFacture?.code_facture}`}
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
@@ -439,6 +512,15 @@ function FactureClientTable({ theme, id }) {
         bodyStyle={{ height: '80vh', overflowY: 'auto' }}
       >
         <ModalContent />
+      </Modal>
+      <Modal
+        title="Sélectionnez la Facture Distinataire"
+        visible={isDestinationModalVisible}
+        onCancel={() => setIsDestinationModalVisible(false)}
+        footer={null}
+        width="80%"
+      >
+        <DestinationModalContent />
       </Modal>
     </div>
   );

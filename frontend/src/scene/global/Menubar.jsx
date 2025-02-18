@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Badge, Button, Drawer, Menu } from 'antd';
+import { Badge, Button, Divider, Drawer, Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -124,9 +124,9 @@ function Menubar() {
         <div className={`header-menu reclamation-item`}>
          
             <img
-              src={theme === 'dark' ? '/image/logo.png' : '/image/logo-light.png'}
+              src={'/image/eromax_logo.png'}
               alt=""
-              style={{ width: "50px" }}
+              style={collapsed ? { width: '60px'} : { width: '100px'}}
               onClick={toggleCollapsed}
             />
         </div>

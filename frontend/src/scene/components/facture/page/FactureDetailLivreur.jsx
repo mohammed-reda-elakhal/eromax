@@ -5,7 +5,7 @@ import html2pdf from 'html2pdf.js';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getFactureDetailsByCode, getFactureLivreurByCode } from '../../../../redux/apiCalls/factureApiCalls';
+import {  getFactureLivreurByCode } from '../../../../redux/apiCalls/factureApiCalls';
 import { Table, Tag } from 'antd';
 import moment from 'moment'; // Ensure moment is installed and imported
 
@@ -22,6 +22,8 @@ const FactureDetailLivreur = () => {
     }
     window.scrollTo(0, 0);
     console.log(facture);
+    console.log("code" + code_facture);
+    
   }, [dispatch, code_facture]);
 
   // Function to generate PDF and download

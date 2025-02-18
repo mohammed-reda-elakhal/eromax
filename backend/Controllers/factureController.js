@@ -1545,23 +1545,6 @@ const mergeFactures = asyncHandler(async (req, res) => {
         mergedTotalFraisRefus += Number(facture.totalFraisRefus) || 0;
         mergedOriginalTarifLivraison += Number(facture.originalTarifLivraison) || 0;
 
-        // Handle promotions
-        if (facture.promotion) {
-            if (!mergedPromotion) {
-                mergedPromotion = facture.promotion;
-            } else {
-                // Ensure all promotions are the same; otherwise, decide on a strategy
-                // For simplicity, we'll assume all promotions are identical
-                const isSamePromotion = JSON.stringify(mergedPromotion) === JSON.stringify(facture.promotion);
-                if (!isSamePromotion) {
-                    // If promotions differ, decide whether to keep one, combine, or skip
-                    // Here, we'll skip merging if promotions differ
-                    return res.status(400).json({
-                        message: 'Cannot merge factures with different promotions.',
-                    });
-                }
-            }
-        }
     }
 
     // Optional: Remove duplicate colis IDs
@@ -2209,202 +2192,7 @@ const getColisWithoutFactureForClient = asyncHandler(async (req, res) => {
     });
 
   
-    /**
- * Controller to transfer one or more colis from one client facture (mother) to another (child).
- * 
- * Expects:
- *  - req.params.source_code_facture : The unique code of the source facture.
- *  - req.params.target_code_facture : (Optional) The unique code of the target facture.
- *      If not provided, a new facture will be created.
- *  - req.body.colisCodes : An array of colis code_suivi values to transfer.
- */
-const transferColisBetweenFactures = asyncHandler(async (req, res) => {
-const { source_code_facture, target_code_facture } = req.params;
-const { colisCodes } = req.body; // an array of colis code_suivi values
 
-if (!colisCodes || !Array.isArray(colisCodes) || colisCodes.length === 0) {
-    return res.status(400).json({ message: "No colis codes provided for transfer." });
-}
-
-// 1. Find the source facture by its unique code.
-const sourceFacture = await Facture.findOne({ code_facture: source_code_facture });
-if (!sourceFacture) {
-    return res.status(404).json({ message: "Source facture not found." });
-}
-if (sourceFacture.type !== 'client') {
-    return res.status(400).json({ message: "Source facture is not a client facture." });
-}
-
-// 2. Determine the target facture:
-//    - If a target facture code is provided, try to find it.
-//    - Otherwise, create a new facture (using the store from the first colis).
-let targetFacture;
-if (target_code_facture) {
-    targetFacture = await Facture.findOne({ code_facture: target_code_facture });
-    if (!targetFacture) {
-    return res.status(404).json({ message: "Target facture not found." });
-    }
-    if (targetFacture.type !== 'client') {
-    return res.status(400).json({ message: "Target facture is not a client facture." });
-    }
-} else {
-    // Retrieve the first colis to determine the store.
-    const firstColis = await Colis.findOne({ code_suivi: colisCodes[0] }).populate('store');
-    if (!firstColis) {
-    return res.status(404).json({ message: "The first colis was not found." });
-    }
-    targetFacture = new Facture({
-    code_facture: `F-${Date.now()}`, // simple new code generation; customize as needed
-    type: 'client',
-    store: firstColis.store._id,
-    // Initialize totals (including separate fields for old and new tariffs)
-    totalPrix: 0,
-    totalOldTarifLivraison: 0,
-    totalNewTarifLivraison: 0,
-    totalTarifFragile: 0,
-    totalTarifAjouter: 0,
-    totalTarif: 0
-    });
-    await targetFacture.save();
-}
-
-// Prepare accumulators for updating facture totals.
-let removalUpdate = { $inc: {
-    totalPrix: 0,
-    totalOldTarifLivraison: 0,
-    totalNewTarifLivraison: 0,
-    totalTarifFragile: 0,
-    totalTarifAjouter: 0,
-    totalTarif: 0
-}};
-let additionUpdate = { $inc: {
-    totalPrix: 0,
-    totalOldTarifLivraison: 0,
-    totalNewTarifLivraison: 0,
-    totalTarifFragile: 0,
-    totalTarifAjouter: 0,
-    totalTarif: 0
-}};
-
-// Process each colis code.
-for (const code_suivi of colisCodes) {
-    // 3. Find the colis by its code_suivi (populate ville and store).
-    const colis = await Colis.findOne({ code_suivi }).populate('ville store');
-    if (!colis) {
-    return res.status(404).json({ message: `Colis with code ${code_suivi} not found.` });
-    }
-
-    // 4. Verify that this colis is part of the source facture.
-    const inSource = sourceFacture.colis.some(
-    (colId) => colId.toString() === colis._id.toString()
-    );
-    if (!inSource) {
-    return res.status(400).json({ message: `Colis with code ${code_suivi} is not in the source facture.` });
-    }
-
-    /* --------------------------------------
-        REMOVAL LOGIC (from Source Facture)
-        -------------------------------------- */
-    // Use the "old" tariff from the ville (normal tariff) and fees.
-    const oldTarifLivraison = colis.ville?.tarif || 0;
-    const fragileFee = colis.is_fragile ? 5 : 0;
-    const additionalFee = colis.tarif_ajouter?.value || 0;
-    const totalTarifForColis = oldTarifLivraison + fragileFee + additionalFee;
-    // For removal, subtract the entire colis price and associated tariff fees.
-    removalUpdate.$inc.totalPrix -= colis.prix;
-    removalUpdate.$inc.totalOldTarifLivraison -= oldTarifLivraison;
-    removalUpdate.$inc.totalNewTarifLivraison -= oldTarifLivraison; // source uses normal tariff
-    removalUpdate.$inc.totalTarifFragile -= fragileFee;
-    removalUpdate.$inc.totalTarifAjouter -= additionalFee;
-    removalUpdate.$inc.totalTarif -= totalTarifForColis;
-
-    // Remove the colis from the source facture.
-    await Facture.updateOne({ _id: sourceFacture._id }, { $pull: { colis: colis._id } });
-
-    /* --------------------------------------
-        ADDITION LOGIC (to Target Facture)
-        -------------------------------------- */
-    // Only delivered colis can be added.
-    if (colis.statut !== 'Livrée') {
-    return res.status(400).json({ message: `Only delivered colis can be added to target facture. Colis ${code_suivi} has status ${colis.statut}.` });
-    }
-    // Ensure that the store matches.
-    if (targetFacture.store.toString() !== colis.store._id.toString()) {
-    return res.status(400).json({ message: `Store mismatch for colis ${code_suivi} when adding to target facture.` });
-    }
-
-    // --- Calculate tariffs for the target facture ---
-    // The "old" tariff is the normal tariff from the ville.
-    const computedOldTarif = oldTarifLivraison;
-    let computedNewTarif = computedOldTarif;
-    let appliedPromotion = null;
-
-    if (target_code_facture) {
-    // When transferring to an existing facture, apply active promotions.
-    const now = new Date();
-    const activePromotions = await Promotion.find({
-        isActive: true,
-        startDate: { $lte: now },
-        endDate: { $gte: now }
-    }).lean();
-    const promoResult = applyPromotion(colis.store._id, computedOldTarif, activePromotions);
-    computedNewTarif = promoResult.tarif_livraison;
-    // If the old tariff is greater than or equal to the computed new tariff, keep the old tariff.
-    if (computedOldTarif >= computedNewTarif) {
-        computedNewTarif = computedOldTarif;
-    }
-    appliedPromotion = promoResult.appliedPromotion;
-    } else {
-    // New facture: no promotion, so new tariff equals old tariff.
-    computedNewTarif = computedOldTarif;
-    appliedPromotion = null;
-    }
-
-    // Fees remain the same.
-    const addFragileFee = fragileFee;
-    const addAdditionalFee = additionalFee;
-    let computedTotalTarif = computedNewTarif + addFragileFee + addAdditionalFee;
-    // If the colis already has a CRBT and its tariff_total is higher, retain that value.
-    if (colis.crbt && colis.crbt.tarif_total >= computedTotalTarif) {
-    computedTotalTarif = colis.crbt.tarif_total;
-    computedNewTarif = computedOldTarif; // keep the old tariff if necessary
-    }
-    const montantAPayer = colis.prix - computedTotalTarif;
-
-    // Accumulate values for target facture update.
-    additionUpdate.$inc.totalPrix += colis.prix;
-    additionUpdate.$inc.totalOldTarifLivraison += computedOldTarif;
-    additionUpdate.$inc.totalNewTarifLivraison += computedNewTarif;
-    additionUpdate.$inc.totalTarifFragile += addFragileFee;
-    additionUpdate.$inc.totalTarifAjouter += addAdditionalFee;
-    additionUpdate.$inc.totalTarif += computedTotalTarif;
-
-    // **Do not update the colis’ CRBT field.** We only update the facture association.
-    colis.facture = targetFacture._id;
-    await colis.save();
-
-    // Add the colis to the target facture’s array.
-    await Facture.updateOne({ _id: targetFacture._id }, { $push: { colis: colis._id } });
-} // end for each colis
-
-// 7. Update the source and target facture totals.
-await Facture.updateOne({ _id: sourceFacture._id }, removalUpdate);
-await Facture.updateOne({ _id: targetFacture._id }, additionUpdate);
-
-// 8. Retrieve the updated target facture.
-const updatedTargetFacture = await Facture.findById(targetFacture._id)
-    .populate('colis store')
-    .lean();
-
-// Compute netAPayer as totalPrix minus totalTarif.
-updatedTargetFacture.netAPayer = updatedTargetFacture.totalPrix - updatedTargetFacture.totalTarif;
-
-res.status(200).json({
-    message: 'Colis transferred successfully.',
-    facture: updatedTargetFacture,
-    promotion: updatedTargetFacture.promotion || null
-});
-});
 
 
 const getFactureClientByCode = async (req, res) => {
@@ -2529,7 +2317,13 @@ try {
         .select('code_facture etat createdAt colis type')
         .populate({
             path: 'colis',
-            select: 'crbt statu_final', // Only populate the crbt field for each colis
+            select: 'crbt statu_final code_suivi date_livraisant', // Only populate the crbt field for each colis
+            populate: [
+                {
+                    path: 'ville', // Populate the 'ville' field in colis
+                    select: 'nom tarif',
+                },
+            ]
         })
         .populate({
             path: 'store',
@@ -2548,10 +2342,62 @@ try {
                     return acc + (col.crbt ? (col.crbt.prix_a_payant || 0) : 0);
                 }, 0)
                 : 0;
+        const totalPrix =
+            facture.colis && facture.colis.length > 0
+                ? facture.colis.reduce((acc, col) => {
+                    // Ensure col.crbt exists and add its prix_a_payant (defaulting to 0 if missing)
+                    return acc + (col.crbt ? (col.crbt.prix_colis || 0) : 0);
+                }, 0)
+                : 0;
+        const totalTarif =
+            facture.colis && facture.colis.length > 0
+                ? facture.colis.reduce((acc, col) => {
+                    // Ensure col.crbt exists and add its prix_a_payant (defaulting to 0 if missing)
+                    return acc + (col.crbt ? (col.crbt.total_tarif || 0) : 0);
+                }, 0)
+                : 0;
+        const totalTarifLivraison =
+            facture.colis && facture.colis.length > 0
+                ? facture.colis.reduce((acc, col) => {
+                    // Ensure col.crbt exists and add its prix_a_payant (defaulting to 0 if missing)
+                    return acc + (col.crbt ? (col.crbt.tarif_livraison || 0) : 0);
+                }, 0)
+                : 0;
+                
+        const totalSupplementaire =
+            facture.colis && facture.colis.length > 0
+                ? facture.colis.reduce((acc, col) => {
+                    // Ensure col.crbt exists and add its prix_a_payant (defaulting to 0 if missing)
+                    return acc + (col.crbt ? (col.crbt.tarif_supplementaire || 0) : 0);
+                }, 0)
+                : 0;
+
+        const totalFragile =
+            facture.colis && facture.colis.length > 0
+                ? facture.colis.reduce((acc, col) => {
+                    // Ensure col.crbt exists and add its prix_a_payant (defaulting to 0 if missing)
+                    return acc + (col.crbt ? (col.crbt.tarif_fragile || 0) : 0);
+                }, 0)
+                : 0;
+
+
+        const totalRefuse =
+            facture.colis && facture.colis.length > 0
+                ? facture.colis.reduce((acc, col) => {
+                    // Ensure col.crbt exists and add its prix_a_payant (defaulting to 0 if missing)
+                    return acc + (col.crbt ? (col.crbt.tarif_refuse || 0) : 0);
+                }, 0)
+                : 0;
         return {
             ...facture,
             colisCount,
             totalPrixAPayant,
+            totalPrix,
+            totalTarif,
+            totalTarifLivraison,
+            totalSupplementaire,
+            totalFragile,
+            totalRefuse
         };
     });
 
@@ -2628,6 +2474,8 @@ const getFactureLivreur = async (req, res) => {
             facture.prixPayer = totalPrix - totalTarifLivreur;
             facture.colisCount = colisCount ;
             colisCount = 0;
+            totalTarifLivreur = 0 ;
+            totalPrix = 0 ;
 
         }
 
@@ -2646,7 +2494,7 @@ const getFactureLivreur = async (req, res) => {
 const getFactureLivreurByCode = async (req, res) => {
     try {
         // Get facture code from query parameters
-        const { code_facture } = req.query;
+        const { code_facture } = req.params;
         const filter = { type: 'livreur' };
         if (code_facture) {
             filter.code_facture = code_facture;
@@ -2725,7 +2573,106 @@ const getFactureLivreurByCode = async (req, res) => {
 };    
       
       
-      
+     
+
+
+// transfer colis betwenn facture ---------------------------------------
+
+
+/**
+ * Controller to transfer colis from one client facture to another.
+ * 
+ * Expected request body:
+ *  - code_facture_source: The source facture code.
+ *  - code_facture_distinataire: The destination facture code.
+ *  - colisCodeSuivi: Array of colis "code_suivi" values to transfer.
+ */
+const transferColisClient = async (req, res) => {
+    try {
+      const { code_facture_source, code_facture_distinataire, colisCodeSuivi } = req.body;
+  
+      // Validate required fields
+      if (
+        !code_facture_source ||
+        !Array.isArray(colisCodeSuivi) ||
+        colisCodeSuivi.length === 0
+      ) {
+        return res.status(400).json({
+          message:
+            'code facture source, and a non-empty colisCodeSuivi array are required.',
+        });
+      }
+  
+      // Find the source facture (client type) and populate colis to access their code_suivi.
+      const sourceFacture = await Facture.findOne({
+        code_facture: code_facture_source,
+        type: 'client',
+      }).populate({ path: 'colis', select: 'code_suivi' });
+  
+      if (!sourceFacture) {
+        return res.status(404).json({ message: 'Source facture not found or not a client facture.' });
+      }
+  
+      // Try to find the destination facture (client type)
+      let destinationFacture = await Facture.findOne({
+        code_facture: code_facture_distinataire,
+        type: 'client',
+      });
+  
+      // If destination facture not found, create a new one with the same store as the source facture.
+      if (!destinationFacture) {
+        destinationFacture = new Facture({
+          code_facture: generateCodeFacture(new Date()),
+          type: 'client',
+          store: sourceFacture.store,
+          colis: []
+        });
+      } else {
+        // If destination facture exists, verify both factures belong to the same store.
+        if (String(sourceFacture.store) !== String(destinationFacture.store)) {
+          return res.status(400).json({ message: 'For client factures, both must belong to the same store.' });
+        }
+      }
+  
+      // Identify colis in the source facture that match the provided code_suivi list.
+      const sourceColis = sourceFacture.colis;
+      const colisToTransfer = sourceColis.filter((colis) =>
+        colisCodeSuivi.includes(colis.code_suivi)
+      );
+  
+      if (colisToTransfer.length === 0) {
+        return res.status(400).json({
+          message: 'No matching colis found in the source facture for the provided code_suivi list.',
+        });
+      }
+  
+      // Get the ObjectIds of the colis to transfer and record their code_suivi for the response.
+      const colisIdsToTransfer = colisToTransfer.map((colis) => colis._id.toString());
+      const transferredCodeSuivi = colisToTransfer.map((colis) => colis.code_suivi);
+  
+      // Remove these colis from the source facture's colis array.
+      sourceFacture.colis = sourceFacture.colis.filter(
+        (colis) => !colisIdsToTransfer.includes(colis._id.toString())
+      );
+  
+      // Add the colis IDs to the destination facture's colis array.
+      destinationFacture.colis = destinationFacture.colis.concat(colisIdsToTransfer);
+  
+      // Save the updated factures.
+      await sourceFacture.save();
+      await destinationFacture.save();
+  
+      return res.status(200).json({
+        message: 'Colis transferred successfully.',
+        transferredCodeSuivi,
+        destinationFacture,
+      });
+    } catch (error) {
+      console.error('Error transferring colis:', error);
+      return res.status(500).json({ message: 'Internal server error.' });
+    }
+  };
+  
 
 
       
@@ -2744,9 +2691,9 @@ module.exports = {
     removeColisFromClientFacture,
     addColisToExistingClientFacture,
     getColisWithoutFactureForClient,
-    transferColisBetweenFactures,
     getFactureClientByCode,
     getFactureClient,
     getFactureLivreur,
-    getFactureLivreurByCode
+    getFactureLivreurByCode,
+    transferColisClient
 };
