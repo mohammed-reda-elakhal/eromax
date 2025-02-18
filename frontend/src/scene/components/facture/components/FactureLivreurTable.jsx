@@ -184,6 +184,7 @@ function FactureLivreurTable({ theme , id }) {
     },
     {
       title: 'Number of Colis',
+      dataIndex:'colisCount',
       key: 'colisCount',
     },
     {

@@ -4,7 +4,7 @@ import { factureActions } from "../slices/factureSlice";
 import Cookies from "js-cookie";
 
 
-// get data user
+// get data facture  --------------------------------
 export function getFacture(type) {
     return async (dispatch) => {
         try {
@@ -177,9 +177,6 @@ export function getFactureClient(store) {
         }
     };
 }
-
-
-
 // get data user
 export function getFactureLivreur(id) {
     return async (dispatch) => {
@@ -230,22 +227,6 @@ export function getFactureRamasser() {
     };
 }
 
-// Get facture details by code with optional type filter
-export function getFactureDetailsByCode(codeFacture ) {
-    return async (dispatch) => {
-        try {
-            // Send the type as a query parameter using 'params'
-            const { data } = await request.get(`/api/facture/detail/${codeFacture}`);
-            dispatch(factureActions.setFactureDetail(data.facture));
-            dispatch(factureActions.setPromotion(data.promotion));
-            console.log(data);
-            
-        } catch (error) {
-            toast.error(error.message || "Failed to fetch facture details");
-        }
-    };
-}
-
 export function getFactureRamasserDetailsByCode(codeFacture ) {
     return async (dispatch) => {
         try {
@@ -258,16 +239,6 @@ export function getFactureRamasserDetailsByCode(codeFacture ) {
     };
 }
 
-export function getFactureDetailsByClient(id_client){
-    return async (dispatch)=>{
-        try{const {data}=await request.get(`/api/facture/detail/client/${id_client}`);
-        dispatch(factureActions.setFacture(data.factures));
-    }catch(error){
-        toast.error(error.message || "Failed to fetch facture details");
-    }
-        
-    }
-}
 
 // Action to toggle or set the 'etat' of a facture
 export function setFactureEtat(id) {
@@ -414,8 +385,9 @@ export function mergeFactures(factureCodes) {
 }
 
 
-// Remove a colis from a client facture using facture code and colis code_suivi
-export function removeColisFromClientFacture(code_facture, code_suivi) {
+// trasfer colis from facture -------------------------
+
+export function transferColisClient({ code_facture_source, code_facture_distinataire, colisCodeSuivi }) {
     return async (dispatch) => {
       try {
         const token = localStorage.getItem('token');
@@ -431,58 +403,19 @@ export function removeColisFromClientFacture(code_facture, code_suivi) {
           },
         };
   
-        // Call DELETE /api/facture/:code_facture/colis/:code_suivi
-        const { data } = await request.delete(
-          `/api/facture/${code_facture}/colis/${code_suivi}`,
+        const { data } = await request.post(
+          `/api/facture/transfer/client`,
+          { code_facture_source, code_facture_distinataire, colisCodeSuivi },
           config
         );
   
-        // Update the facture details in the Redux store with the updated facture
-        dispatch(factureActions.setFactureDetail(data.facture));
+  
         toast.success(data.message);
       } catch (error) {
         toast.error(
           error.response?.data?.message ||
             error.message ||
-            "Failed to remove colis from facture"
-        );
-      }
-    };
-  }
-  
-  // Add a colis to an existing client facture using facture code and colis code_suivi
-  export function addColisToExistingClientFacture(code_facture, code_suivi) {
-    return async (dispatch) => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          toast.error('Authentication token is missing');
-          return;
-        }
-  
-        const config = {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        };
-  
-        // Call PATCH /api/facture/:code_facture/colis/:code_suivi
-        // (The PATCH endpoint is used here to add the colis to the existing facture)
-        const { data } = await request.patch(
-          `/api/facture/${code_facture}/colis/${code_suivi}`,
-          {}, // If your PATCH endpoint requires a request body, add it here.
-          config
-        );
-  
-        // Update the facture details in the Redux store with the updated facture
-        dispatch(factureActions.setFactureDetail(data.facture));
-        toast.success(data.message);
-      } catch (error) {
-        toast.error(
-          error.response?.data?.message ||
-            error.message ||
-            "Failed to add colis to facture"
+            "Failed to transfer colis"
         );
       }
     };
