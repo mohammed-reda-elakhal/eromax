@@ -435,7 +435,7 @@ function ColisForm({ type }) {
                 maxLength={300}
                 value={formData.adress}
                 onChange={(e) => handleInputChange('adress', e.target.value)}
-                placeholder="Votre adresse"
+                placeholder="Adresse de client"
                 prefix={<FaMapLocation style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
                 required
               />
