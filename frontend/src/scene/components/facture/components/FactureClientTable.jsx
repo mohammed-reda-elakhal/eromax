@@ -204,22 +204,27 @@ function FactureClientTable({ theme, id }) {
             }}
             type="primary"
           />
-          <Button
-            type="default"
-            onClick={() => {
-              // Set the selected facture from local state and open the first modal
-              const foundFacture = facture.find(
-                (f) => f.code_facture === record.code_facture
-              );
-              setSelectedFacture(foundFacture);
-              // Reset modal selection states when opening the modal
-              setSelectedModalRowKeys([]);
-              setSelectedModalRows([]);
-              setDestinationSearchText("");
-              setIsModalVisible(true);
-            }}
-            icon={<CiSettings />}
-          />
+          {
+            user?.role === 'admin' && (
+              <Button
+                type="default"
+                onClick={() => {
+                  // Set the selected facture from local state and open the first modal
+                  const foundFacture = facture.find(
+                    (f) => f.code_facture === record.code_facture
+                  );
+                  setSelectedFacture(foundFacture);
+                  // Reset modal selection states when opening the modal
+                  setSelectedModalRowKeys([]);
+                  setSelectedModalRows([]);
+                  setDestinationSearchText("");
+                  setIsModalVisible(true);
+                }}
+                icon={<CiSettings />}
+              />
+            )
+          }
+          
         </div>
       ),
     },

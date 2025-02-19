@@ -2244,14 +2244,14 @@ try {
     // Iterate over each colis and accumulate totals based on CRBT values.
     if (Array.isArray(facture.colis)) {
     facture.colis.forEach(col => {
-        if (col.statut === 'Livrée') {
+        if (col.statu_final === 'Livrée') {
         totalPrix += col.prix || 0;
         totalTarifLivraison += col.crbt ? (col.crbt.tarif_livraison || 0) : 0;
         totalTarifFragile += col.crbt ? (col.crbt.tarif_fragile || 0) : 0;
         totalTarifAjouter += col.crbt ? (col.crbt.tarif_supplementaire || 0) : 0;
         // For delivered colis, use stored total_tarif
         totalTarif += col.crbt ? (col.crbt.total_tarif || 0) : 0;
-        } else if (['Refusée', 'En Retour', 'Fermée'].includes(col.statut)) {
+        } else if (col.statu_final ==='Refusée') {
         // For refused colis, we add the refusal tariff (plus any fragile and additional fees) even if total_tarif is 0.
         totalTarifRefuse += col.crbt ? (col.crbt.tarif_refuse || 0) : 0;
         // Also accumulate fragile and additional fees.
@@ -2345,8 +2345,8 @@ try {
         const totalPrix =
             facture.colis && facture.colis.length > 0
                 ? facture.colis.reduce((acc, col) => {
-                    // Ensure col.crbt exists and add its prix_a_payant (defaulting to 0 if missing)
-                    return acc + (col.crbt ? (col.crbt.prix_colis || 0) : 0);
+                    // Ensure col.crbt exists and add its prix (defaulting to 0 if missing) only if statu_final is 'Livrée'
+                    return acc + (col.statu_final === 'Livrée' ? (col.crbt ? (col.crbt.prix_colis || 0) : 0) : 0);
                 }, 0)
                 : 0;
         const totalTarif =
