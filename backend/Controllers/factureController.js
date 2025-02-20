@@ -2426,7 +2426,7 @@ const getFactureLivreur = async (req, res) => {
             .select('code_facture etat createdAt colis type')
             .populate({
                 path: 'colis',
-                select: 'crbt statu_final ville prix date_livraisant',
+                select: 'crbt code_suivi statu_final ville prix date_livraisant',
                 populate: [
                     {
                         path: 'ville', // Populate the 'ville' field in colis
@@ -2674,11 +2674,103 @@ const transferColisClient = async (req, res) => {
   };
   
 
+  /**
+ * Controller to transfer colis from one livreur facture to another.
+ * 
+ * Expected request body:
+ *  - code_facture_source: The source facture code.
+ *  - code_facture_distinataire: The destination facture code.
+ *  - colisCodeSuivi: Array of colis "code_suivi" values to transfer.
+ */
+const transferColisLivreur = async (req, res) => {
+    try {
+        const { code_facture_source, code_facture_distinataire, colisCodeSuivi } = req.body;
 
-      
+        // Validate required fields
+        if (
+            !code_facture_source ||
+            !Array.isArray(colisCodeSuivi) ||
+            colisCodeSuivi.length === 0
+        ) {
+            return res.status(400).json({
+                message:
+                    'code facture source, and a non-empty colisCodeSuivi array are required.',
+            });
+        }
+
+        // Find the source facture (livreur type) and populate colis to access their code_suivi.
+        const sourceFacture = await Facture.findOne({
+            code_facture: code_facture_source,
+            type: 'livreur',
+        }).populate({ path: 'colis', select: 'code_suivi' });
+
+        if (!sourceFacture) {
+            return res.status(404).json({ message: 'Source facture not found or not a livreur facture.' });
+        }
+
+        // Try to find the destination facture (livreur type)
+        let destinationFacture = await Facture.findOne({
+            code_facture: code_facture_distinataire,
+            type: 'livreur',
+        });
+
+        // If destination facture not found, create a new one with the same livreur as the source facture.
+        if (!destinationFacture) {
+            destinationFacture = new Facture({
+                code_facture: generateCodeFacture(new Date()),
+                type: 'livreur',
+                livreur: sourceFacture.livreur,
+                colis: []
+            });
+        } else {
+            // If destination facture exists, verify both factures belong to the same livreur.
+            if (String(sourceFacture.livreur) !== String(destinationFacture.livreur)) {
+                return res.status(400).json({ message: 'For livreur factures, both must belong to the same livreur.' });
+            }
+        }
+
+        // Identify colis in the source facture that match the provided code_suivi list.
+        const sourceColis = sourceFacture.colis;
+        const colisToTransfer = sourceColis.filter((colis) =>
+            colisCodeSuivi.includes(colis.code_suivi)
+        );
+
+        if (colisToTransfer.length === 0) {
+            return res.status(400).json({
+                message: 'No matching colis found in the source facture for the provided code_suivi list.',
+            });
+        }
+
+        // Get the ObjectIds of the colis to transfer and record their code_suivi for the response.
+        const colisIdsToTransfer = colisToTransfer.map((colis) => colis._id.toString());
+        const transferredCodeSuivi = colisToTransfer.map((colis) => colis.code_suivi);
+
+        // Remove these colis from the source facture's colis array.
+        sourceFacture.colis = sourceFacture.colis.filter(
+            (colis) => !colisIdsToTransfer.includes(colis._id.toString())
+        );
+
+        // Add the colis IDs to the destination facture's colis array.
+        destinationFacture.colis = destinationFacture.colis.concat(colisIdsToTransfer);
+
+        // Save the updated factures.
+        await sourceFacture.save();
+        await destinationFacture.save();
+
+        return res.status(200).json({
+            message: 'Colis transferred successfully.',
+            transferredCodeSuivi,
+            destinationFacture,
+        });
+    } catch (error) {
+        console.error('Error transferring colis:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
 module.exports = {
     createFacturesForClientsAndLivreurs,
-    getAllFacture ,
+    getAllFacture,
     getFactureByCode,
     setFacturePay,
     createOrUpdateFacture,
@@ -2695,5 +2787,9 @@ module.exports = {
     getFactureClient,
     getFactureLivreur,
     getFactureLivreurByCode,
-    transferColisClient
+    transferColisClient,
+    transferColisLivreur // Add the new controller here
 };
+
+      
+
