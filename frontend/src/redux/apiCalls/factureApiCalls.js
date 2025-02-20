@@ -387,7 +387,7 @@ export function mergeFactures(factureCodes) {
 
 // trasfer colis from facture -------------------------
 
-export function transferColisClient({ code_facture_source, code_facture_distinataire, colisCodeSuivi }) {
+export function transferColisClient({ code_facture_source, code_facture_distinataire, colisCodeSuivi , type }) {
     return async (dispatch) => {
       try {
         const token = localStorage.getItem('token');
@@ -404,7 +404,7 @@ export function transferColisClient({ code_facture_source, code_facture_distinat
         };
   
         const { data } = await request.post(
-          `/api/facture/transfer/client`,
+          `/api/facture/transfer/${type}`,
           { code_facture_source, code_facture_distinataire, colisCodeSuivi },
           config
         );

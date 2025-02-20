@@ -328,6 +328,7 @@ function FactureClientTable({ theme, id }) {
       code_facture_source: selectedFacture.code_facture,
       code_facture_distinataire: "", // No destination facture code; API will create a new one.
       colisCodeSuivi: selectedCodes,
+      type: 'client',
     }));
     setIsModalVisible(false);
   };
@@ -436,6 +437,7 @@ function FactureClientTable({ theme, id }) {
                     code_facture_source: selectedFacture.code_facture,
                     code_facture_distinataire: dest.code_facture,
                     colisCodeSuivi: selectedCodes,
+                    type: 'client',
                   }));
                   setIsDestinationModalVisible(false);
                   setIsModalVisible(false);
