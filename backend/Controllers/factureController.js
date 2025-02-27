@@ -166,7 +166,7 @@ const createOrUpdateFacture = asyncHandler(async (colisId) => {
         let total_tarifClient = 0;
         if (colis.statut === 'Refusée') {
             // Exclude tarif_livraison for Refusée colis
-            total_tarifClient = tarif_fragile + tarif_ajouter;
+            total_tarifClient = tarif_fragile + tarif_ajouter + tarif_livraisonClient;
         } else {
             total_tarifClient = tarif_livraisonClient + tarif_fragile + tarif_ajouter;
         }
@@ -176,6 +176,8 @@ const createOrUpdateFacture = asyncHandler(async (colisId) => {
         let rest = 0;
         if (colis.statut === 'Livrée') {
             rest = colis.prix - total_tarifClient;
+        }else if (colis.statut === 'Refusée') {
+            rest = rest - total_tarifClient;
         }
 
         // Validate 'rest' and 'originalTarifLivraisonClient' to prevent NaN
@@ -193,7 +195,7 @@ const createOrUpdateFacture = asyncHandler(async (colisId) => {
             tarif_refuse: colis.statut === 'Refusée' ? originalTarifLivraisonClient : 0,
             tarif_fragile: tarif_fragile,
             tarif_supplementaire: tarif_ajouter,
-            prix_a_payant: colis.statut === 'Livrée' ? rest : 0,
+            prix_a_payant: rest ,
             total_tarif: total_tarifClient,
         };
 
