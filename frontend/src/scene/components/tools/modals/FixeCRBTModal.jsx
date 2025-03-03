@@ -43,12 +43,12 @@ const FixeCRBTModal = ({ visible, onCancel }) => {
     >
       <Form layout="vertical">
         <Form.Item
-          label="Code Suivi"
+          label="Code Colis"
           required
           rules={[{ required: true, message: 'Please input the code suivi' }]}
         >
           <Input 
-            placeholder="Enter code suivi"
+            placeholder="Enter colis code"
             value={codeSuivi}
             onChange={(e) => setCodeSuivi(e.target.value)}
           />

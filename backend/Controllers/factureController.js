@@ -1413,38 +1413,43 @@ const getFactureByCode = asyncHandler(async (req, res) => {
  */
 const getCodeFactureByColis = asyncHandler(async (req, res) => {
     const { colisId } = req.params;
-
+  
     // Validate colisId
     if (!colisId) {
-        res.status(400);
-        throw new Error('Identifiant du colis est requis.');
+      return res.status(400).json({ message: "Colis ID is required." });
     }
-
+  
     // Attempt to find the colis by code_suivi or _id
-    let colis;
-    // Check if colisId matches code_suivi
-    colis = await Colis.findOne({ code_suivi: colisId });
-    // If not found, attempt to find by _id
+    let colis = await Colis.findOne({ code_suivi: colisId });
     if (!colis) {
+      // If not found by code_suivi, try by _id
+      if (mongoose.Types.ObjectId.isValid(colisId)) {
         colis = await Colis.findById(colisId);
+      }
     }
-
     if (!colis) {
-        res.status(404);
-        throw new Error('Colis non trouvé.');
+      return res.status(404).json({ message: "Colis not found." });
     }
-
-    // Search for a facture that includes this colis
-    const facture = await Facture.findOne({ colis: colis._id , type : "client" });
-
-    if (facture) {
-        res.status(200).json({facture});
-    } else {
-        res.status(404).json({
-            message: "Cette colis n'a pas de facture associée.",
-        });
-    }
-});
+  
+    // Find the facture for client type
+    const factureClient = await Facture.findOne({ colis: colis._id, type: "client" }).lean();
+    // Find the facture for livreur type
+    const factureLivreur = await Facture.findOne({ colis: colis._id, type: "livreur" }).lean();
+  
+    // Build the response object with both facture codes (if found)
+    return res.status(200).json({
+      message: "Facture codes retrieved successfully.",
+      factureContent: {
+        clientFacture: {
+          code: factureClient ? factureClient.code_facture : null,
+        },
+        livreurFacture: {
+          code: factureLivreur ? factureLivreur.code_facture : null,
+        }
+      }
+    });
+  });
+  
 
 
 
@@ -1623,232 +1628,55 @@ const mergeFactures = asyncHandler(async (req, res) => {
  */
 const removeColisFromFacture = asyncHandler(async (req, res) => {
     const { code_facture, code_suivi } = req.params;
+    const { confirm } = req.query;
 
-    // Step 1: Input Validation
-    if (!code_facture || !code_suivi) {
-        return res.status(400).json({ message: 'Both code_facture and code_suivi are required.' });
+    // Require confirmation before deleting
+    /*
+    if (confirm !== "true") {
+        return res.status(400).json({
+            message: "Please confirm deletion by setting the query parameter confirm=true."
+        });
     }
+    */
 
-    // Step 2: Fetch the Facture by code_facture
-    const facture = await Facture.findOne({ code_facture })
-        .populate('store')
-        .populate('livreur')
-        .populate('colis')
-        .exec();
-
+    // Find the facture by its code
+    const facture = await Facture.findOne({ code_facture }).exec();
     if (!facture) {
-        return res.status(404).json({ message: 'Facture not found.' });
+        return res.status(404).json({ message: "Facture not found." });
     }
 
-    // Step 3: Fetch the Colis by code_suivi
-    const colis = await Colis.findOne({ code_suivi }).populate('ville').exec();
+    // Ensure facture type is 'client' or 'livreur'
+    if (facture.type !== "client" && facture.type !== "livreur") {
+        return res.status(400).json({ message: "Facture type must be client or livreur." });
+    }
 
+    // Find the colis by its code_suivi
+    const colis = await Colis.findOne({ code_suivi }).exec();
     if (!colis) {
-        return res.status(404).json({ message: 'Colis not found.' });
+        return res.status(404).json({ message: "Colis not found." });
     }
 
-    // Step 4: Verify Colis Association with Facture
-    const colisIndex = facture.colis.findIndex(col => col.code_suivi === code_suivi);
+    // Verify that the colis is part of the facture
+    const colisIndex = facture.colis.findIndex(col => col.toString() === colis._id.toString());
     if (colisIndex === -1) {
-        return res.status(404).json({ message: 'Colis not found in the specified facture.' });
+        return res.status(404).json({ message: "Colis is not associated with this facture." });
     }
 
-    // Step 5: Calculate the Impact of Removing the Colis
-    let {
-        prix,
-        statut,
-        is_fragile,
-        tarif_ajouter,
-        ville,
-        pret_payant,
-    } = colis;
-
-    // Initialize variables for calculations
-    let originalTarifLivraison = 0;
-    let tarif_livraison = 0;
-    let tarif_fragile_val = is_fragile ? 5 : 0; // Avoid naming conflict
-    let total_tarif = 0;
-    let montant = 0;
-    let fraisRefus = 0;
-
-    if (facture.type === 'client') {
-        if (statut === 'Livrée') {
-            originalTarifLivraison = Number(ville.tarif) || 0;
-            tarif_livraison = Number(facture.originalTarifLivraison) >= originalTarifLivraison
-                ? originalTarifLivraison
-                : Number(facture.originalTarifLivraison) || 0; // Ensure consistency
-            montant = pret_payant ? 0 : (Number(prix) || 0) - (tarif_livraison + tarif_fragile_val + (Number(tarif_ajouter) || 0));
-        } else if (statut === 'Refusée') {
-            originalTarifLivraison = Number(ville.tarif_refus) || 0;
-            tarif_livraison = Number(facture.originalTarifLivraison) >= originalTarifLivraison
-                ? originalTarifLivraison
-                : Number(facture.originalTarifLivraison) || 0; // Ensure consistency
-            montant = pret_payant ? 0 : -originalTarifLivraison;
-            fraisRefus = tarif_livraison;
-        } else {
-            // Handle other statuses if necessary
-            originalTarifLivraison = Number(ville.tarif) || 0;
-            tarif_livraison = Number(facture.originalTarifLivraison) >= originalTarifLivraison
-                ? originalTarifLivraison
-                : Number(facture.originalTarifLivraison) || 0;
-            montant = pret_payant ? 0 : (Number(prix) || 0) - (tarif_livraison + tarif_fragile_val + (Number(tarif_ajouter) || 0));
-        }
-
-        total_tarif = tarif_livraison + tarif_fragile_val + (Number(tarif_ajouter) || 0);
-    } else if (facture.type === 'livreur') {
-        if (statut === 'Livrée') {
-            originalTarifLivraison = Number(facture.originalTarifLivraison) || 0;
-            tarif_livraison = originalTarifLivraison;
-            montant = pret_payant ? 0 : (Number(prix) || 0) - tarif_livraison;
-        } else {
-            originalTarifLivraison = 0;
-            tarif_livraison = 0;
-            montant = 0;
-            // Optionally handle other statuses like 'Refusée' or 'Annulée'
-        }
-
-        total_tarif = tarif_livraison; // For livreur, fragile and ajouter are typically not applicable
-    }
-
-    // Debugging: Log the calculated values
-    console.log('Calculated Values for Removal:');
-    console.log(`montant: ${montant}`);
-    console.log(`tarif_livraison: ${tarif_livraison}`);
-    console.log(`tarif_fragile_val: ${tarif_fragile_val}`);
-    console.log(`tarif_ajouter: ${tarif_ajouter}`);
-    console.log(`total_tarif: ${total_tarif}`);
-    console.log(`fraisRefus: ${fraisRefus}`);
-    console.log(`originalTarifLivraison: ${originalTarifLivraison}`);
-
-    // Ensure all variables are valid numbers
-    montant = Number(montant) || 0;
-    tarif_livraison = Number(tarif_livraison) || 0;
-    tarif_fragile_val = Number(tarif_fragile_val) || 0;
-    tarif_ajouter = Number(tarif_ajouter) || 0;
-    total_tarif = Number(total_tarif) || 0;
-    fraisRefus = Number(fraisRefus) || 0;
-    originalTarifLivraison = Number(originalTarifLivraison) || 0;
-
-    // Step 6: Update Facture Totals by Removing Colis Contributions
-    facture.colis.splice(colisIndex, 1); // Remove the colis from the array
-
-    // Adjust totals with safeguards
-    facture.totalPrix = (Number(facture.totalPrix) || 0) - montant;
-    facture.totalTarifLivraison = (Number(facture.totalTarifLivraison) || 0) - tarif_livraison;
-
-    if (facture.type === 'client') {
-        facture.totalTarifFragile = (Number(facture.totalTarifFragile) || 0) - tarif_fragile_val;
-        facture.totalTarifAjouter = (Number(facture.totalTarifAjouter) || 0) - tarif_ajouter;
-    }
-
-    facture.totalTarif = (Number(facture.totalTarif) || 0) - total_tarif;
-
-    if (statut === 'Refusée') {
-        facture.totalFraisRefus = (Number(facture.totalFraisRefus) || 0) - fraisRefus;
-    }
-
-    facture.originalTarifLivraison = (Number(facture.originalTarifLivraison) || 0) - originalTarifLivraison;
-
-    // Optional: Handle negative totals
-    // Ensure totals do not go below zero
-    facture.totalPrix = Math.max(facture.totalPrix, 0);
-    facture.totalTarifLivraison = Math.max(facture.totalTarifLivraison, 0);
-    if (facture.type === 'client') {
-        facture.totalTarifFragile = Math.max(facture.totalTarifFragile, 0);
-        facture.totalTarifAjouter = Math.max(facture.totalTarifAjouter, 0);
-    }
-    facture.totalTarif = Math.max(facture.totalTarif, 0);
-    if (statut === 'Refusée') {
-        facture.totalFraisRefus = Math.max(facture.totalFraisRefus, 0);
-    }
-    facture.originalTarifLivraison = Math.max(facture.originalTarifLivraison, 0);
-
-    // Debugging: Log the updated totals
-    console.log('Updated Facture Totals:');
-    console.log(`totalPrix: ${facture.totalPrix}`);
-    console.log(`totalTarifLivraison: ${facture.totalTarifLivraison}`);
-    if (facture.type === 'client') {
-        console.log(`totalTarifFragile: ${facture.totalTarifFragile}`);
-        console.log(`totalTarifAjouter: ${facture.totalTarifAjouter}`);
-    }
-    console.log(`totalTarif: ${facture.totalTarif}`);
-    if (statut === 'Refusée') {
-        console.log(`totalFraisRefus: ${facture.totalFraisRefus}`);
-    }
-    console.log(`originalTarifLivraison: ${facture.originalTarifLivraison}`);
-
-    // Step 7: Save the Updated Facture
+    // Remove the colis from the facture's colis array
+    facture.colis.splice(colisIndex, 1);
     await facture.save();
 
-    // Step 8: Update Related Entities (Store or Livreur)
-    if (facture.type === 'client') {
-        const store = facture.store;
-
-        if (store) {
-            // Calculate the montant to adjust the store's solde
-            const montantToAdjust = montant; // This could be positive or negative
-
-            store.solde = (Number(store.solde) || 0) - montantToAdjust; // Subtract since we're removing the colis
-            await store.save();
-
-            // Create a corresponding transaction
-            const transaction = new Transaction({
-                id_store: store._id,
-                montant: montantToAdjust,
-                type: montantToAdjust >= 0 ? 'credit' : 'debit',
-                etat: true,
-            });
-            await transaction.save();
-
-            // Send a notification to the store
-            const notification = new NotificationUser({
-                id_store: store._id,
-                title: montantToAdjust >= 0 ? `+ ${montantToAdjust} DH` : `- ${Math.abs(montantToAdjust)} DH`,
-                description: `Votre portefeuille a été ${montantToAdjust >= 0 ? 'crédité' : 'débité'} de ${Math.abs(montantToAdjust)} DH suite à la suppression du colis ${colis.code_suivi} de la facture ${facture.code_facture}.`,
-            });
-            await notification.save();
-        }
-    } else if (facture.type === 'livreur') {
-        const livreur = facture.livreur;
-
-        if (livreur) {
-            // Calculate the montant to adjust the livreur's solde
-            const montantToAdjust = montant; // This could be positive or negative
-
-            livreur.solde = (Number(livreur.solde) || 0) - montantToAdjust; // Subtract since we're removing the colis
-            await livreur.save();
-
-            // Create a corresponding transaction
-            const transaction = new Transaction({
-                id_livreur: livreur._id, // Assuming 'id_livreur' is the correct field
-                montant: montantToAdjust,
-                type: montantToAdjust >= 0 ? 'credit' : 'debit',
-                etat: true,
-            });
-            await transaction.save();
-
-            // Send a notification to the livreur
-            const notification = new NotificationUser({
-                id_livreur: livreur._id,
-                title: montantToAdjust >= 0 ? `+ ${montantToAdjust} DH` : `- ${Math.abs(montantToAdjust)} DH`,
-                description: `Votre portefeuille a été ${montantToAdjust >= 0 ? 'crédité' : 'débité'} de ${Math.abs(montantToAdjust)} DH suite à la suppression du colis ${colis.code_suivi} de la facture ${facture.code_facture}.`,
-            });
-            await notification.save();
-        }
-    }
-
-    // Step 9: Handle Empty Facture (Optional)
+    // If after removal the facture has no colis, delete the facture
     if (facture.colis.length === 0) {
-        // Decide whether to delete the facture or retain it with zero colis
-        // Here, we'll delete the facture
-        await Facture.findOneAndDelete({ code_facture });
-        return res.status(200).json({ message: 'Colis removed and facture deleted as it has no more colis.', facture: null });
+        await Facture.findByIdAndDelete(facture._id);
+        return res.status(200).json({
+            message: "Colis removed and facture deleted as it has no more colis."
+        });
     }
 
-    // Step 10: Respond to the Client with the Updated Facture
     res.status(200).json({
-        message: 'Colis removed successfully from the facture.',
-        facture,
+        message: "Colis removed successfully from the facture.",
+        facture
     });
 });
 
@@ -1875,8 +1703,11 @@ const removeColisFromClientFacture = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: 'This endpoint only handles client factures' });
     }
   
-    // 2. Find the colis by its code_suivi
-    const colis = await Colis.findOne({ code_suivi }).populate('ville').exec();
+    // 2. Find the colis by its code_suivi (with store and ville populated).
+    const colis = await Colis.findOne({ code_suivi })
+      .populate('store')
+      .populate('ville')
+      .exec();
     if (!colis) {
       return res.status(404).json({ message: 'Colis not found' });
     }
@@ -2770,6 +2601,25 @@ const transferColisLivreur = async (req, res) => {
     }
 };
 
+const deleteFactureByCode = asyncHandler(async (req, res) => {
+  const { code_facture } = req.params;
+
+  // Find the facture by its code_facture
+  const facture = await Facture.findOne({ code_facture }).exec();
+  if (!facture) {
+    return res.status(404).json({ message: "Facture not found." });
+  }
+
+  // Delete the facture using deleteOne()
+  await facture.deleteOne();
+
+  res.status(200).json({
+    message: "Facture deleted successfully."
+  });
+});
+
+
+
 module.exports = {
     createFacturesForClientsAndLivreurs,
     getAllFacture,
@@ -2790,8 +2640,9 @@ module.exports = {
     getFactureLivreur,
     getFactureLivreurByCode,
     transferColisClient,
-    transferColisLivreur // Add the new controller here
+    transferColisLivreur, // Add the new controller here
+    deleteFactureByCode,
 };
 
-      
+
 

@@ -11,6 +11,10 @@ const WalletSchema = new mongoose.Schema({
         type: number,
         default : 0,
     },
+    active: {
+        type: Boolean,
+        default: false
+    }
    
 }, { timestamps: true });
 

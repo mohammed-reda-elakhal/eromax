@@ -293,14 +293,25 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
  **/
 module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
-  const { id_colis } = req.params;
-
-  // Fetch the existing colis
-  const existingColis = await Colis.findById(id_colis)
-    .populate('ville')
-    .populate('livreur')
-    .populate('store')
-    .populate('team');
+  let { id_colis } = req.params;
+  
+  let existingColis;
+  // Check if id_colis is a valid ObjectId
+  if (mongoose.Types.ObjectId.isValid(id_colis)) {
+    existingColis = await Colis.findById(id_colis)
+      .populate('ville')
+      .populate('livreur')
+      .populate('store')
+      .populate('team');
+  }
+  // If not valid as ObjectId, try to search by code_suivi
+  if (!existingColis) {
+    existingColis = await Colis.findOne({ code_suivi: id_colis })
+      .populate('ville')
+      .populate('livreur')
+      .populate('store')
+      .populate('team');
+  }
 
   if (!existingColis) {
     return res.status(404).json({ message: "Colis non trouvé." });
@@ -310,7 +321,7 @@ module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
   let code_suivi;
   let isUnique = false;
   while (!isUnique) {
-    code_suivi = generateCodeSuivi(existingColis.ville.ref); // Adjust the generateCodeSuivi function as needed
+    code_suivi = generateCodeSuivi(existingColis.ville.ref); // Adjust as needed
     const existing = await Colis.findOne({ code_suivi });
     if (!existing) {
       isUnique = true;
@@ -326,17 +337,17 @@ module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
     commentaire: existingColis.commentaire,
     prix: existingColis.prix,
     nature_produit: existingColis.nature_produit,
-    ouvrir: existingColis.ouvrir, // Reset to default or as needed
-    is_remplace: existingColis.is_remplace, // Reset
-    is_fragile: existingColis.is_fragile, // Retain or reset based on requirements
-    store: existingColis.store, // Assign to the current user's store
-    team: null, // Assign to the current user's team (adjust as needed)
+    ouvrir: existingColis.ouvrir,
+    is_remplace: existingColis.is_remplace,
+    is_fragile: existingColis.is_fragile,
+    store: existingColis.store,
+    team: null, // Or assign to current user's team if needed
     code_suivi: code_suivi,
     livreur: null, // Exclude the livreur data
     // Optionally, add other fields as necessary
   };
 
-  // **Optional:** If you want to link the new colis to the original one
+  // Optionally link the new colis to the original one
   // colisData.originalColis = existingColis._id;
 
   // Create and save the new Colis
@@ -361,10 +372,9 @@ module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
         title: 'Nouvelle colis',
         description: `Un nouveau colis avec le code de suivi ${savedColis.code_suivi} est en attente de Ramassage.`,
       });
-      await notification.save();  // Save the notification
+      await notification.save();
     } catch (error) {
       console.error('Erreur lors de la création de la notification:', error);
-      // Continue without failing the request
     }
   }
 
@@ -374,17 +384,12 @@ module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
     code_suivi: savedColis.code_suivi,
     date_create: savedColis.createdAt,
     status_updates: [
-      { status: "Attente de Ramassage", date: new Date() }  // Initial status
+      { status: "Attente de Ramassage", date: new Date() }
     ]
   });
 
   const save_suivi = await suivi_colis.save();
 
-  // **Optional:** Mark the existing colis as cloned or perform other operations
-  // existingColis.is_cloned = true; // Ensure your model has this field
-  // await existingColis.save();
-
-  // Respond with both the new Colis and Suivi_Colis
   res.status(201).json({
     message: 'Colis cloné et créé avec succès.',
     colis: savedColis,

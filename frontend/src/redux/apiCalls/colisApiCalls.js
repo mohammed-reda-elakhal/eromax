@@ -5,7 +5,6 @@ import Cookies from "js-cookie";
 import { decodeToken } from "../../utils/tokenUtils";
 import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
-import{ message }from"antd";
 
 
 // Create Multiple Colis Function
@@ -281,6 +280,7 @@ export function deleteColis(id) {
       const { data } = await request.delete(`/api/colis/${id}` );
       toast.success(data.message);
     } catch (error) {
+
       console.error("Failed to update colis:", error);
       dispatch(colisActions.setError(error.message));
       toast.error('Failed to update colis');
@@ -291,12 +291,20 @@ export function deleteColis(id) {
 export function copieColis(id) {
   return async (dispatch) => {
     try {
-      const { data } = await request.post(`/api/colis/copie/${id}` );
+      dispatch(colisActions.setLoading(true));
+      const { data } = await request.post(`/api/colis/copie/${id}`);
+      dispatch(colisActions.setLoading(false));
       toast.success(data.message);
+      
+      // Optionally refresh the colis list after successful copy
+      // dispatch(getColis());
+      
+      return data;
     } catch (error) {
-      console.error("Failed to update colis:", error);
+      dispatch(colisActions.setLoading(false));
       dispatch(colisActions.setError(error.message));
-      toast.error('Failed to update colis');
+      toast.error('Failed to copy colis');
+      throw error;
     }
   };
 }

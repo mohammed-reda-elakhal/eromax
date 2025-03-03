@@ -9,12 +9,15 @@ import {
   getFactureByUser,
   getFactureLivreur,
   transferColisClient,
+  removeColisFromFacture,
+  deleteFacture,
 } from '../../../../redux/apiCalls/factureApiCalls';
-import { Button, Tag, Input, Switch, Modal, Row, Col, Descriptions, Badge, Divider, Table, Card } from 'antd';
+import { Button, Tag, Input, Switch, Modal, Row, Col, Descriptions, Badge, Divider, Table, Card, Popconfirm } from 'antd';
 import { FaRegFolderOpen, FaSyncAlt, FaCog, FaPlus } from "react-icons/fa";
 import moment from 'moment';
 import { toast } from 'react-toastify';
 import { IoSend } from 'react-icons/io5';
+import { MdDelete } from 'react-icons/md';
 
 function FactureLivreurTable({ theme , id }) {
   const dispatch = useDispatch();
@@ -244,16 +247,34 @@ function FactureLivreurTable({ theme , id }) {
             type="primary"
           />
           {user?.role === 'admin' && (
-            <Button
-              icon={<FaCog />}
-              onClick={() => handleOpenModal(record)}
-              type="default"
-            />
+            <>  
+              <Button
+                icon={<FaCog />}
+                onClick={() => handleOpenModal(record)}
+                type="default"
+              />
+
+              <Popconfirm
+                title={`Are you sure you want to delete facture ${record.code_facture}?`}
+                onConfirm={() => dispatch(deleteFacture(record.code_facture))}
+                okText="Yes"
+                cancelText="No"
+              >
+                <Button icon={<MdDelete />} type="default" danger />
+              </Popconfirm>
+            </>
           )}
         </div>
       ),
     },
   ];
+
+  // Handler for removing a colis from facture
+  const handleRemoveColis = (record) => {
+    if (user?.role === 'admin' && selectedFacture) {
+      dispatch(removeColisFromFacture(selectedFacture.code_facture, record.code_suivi));
+    }
+  };
 
   const modalColisColumns = [
     {
@@ -299,6 +320,23 @@ function FactureLivreurTable({ theme , id }) {
       key: 'prix',
       width: 100,
       render: (crbt) => `${crbt?.prix_colis || 0} DH`,
+    },
+    // New Action column visible only for admin
+    {
+      title: 'Action',
+      key: 'action',
+      width: 100,
+      render: (text, record) =>
+        user?.role === 'admin' && (
+          <Popconfirm
+            title="Are you sure you want to remove this colis?"
+            onConfirm={() => handleRemoveColis(record)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button icon={<MdDelete />} type="default" danger />
+          </Popconfirm>
+        ),
     },
   ];
 
