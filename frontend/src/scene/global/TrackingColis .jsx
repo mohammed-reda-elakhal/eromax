@@ -93,8 +93,6 @@ const TrackingColis = ({ codeSuivi , theme }) => {
               <Text strong>{update.status}</Text>
               {update.status === 'Expediée' && update.livreur && (
                 <div style={{ marginTop: '8px' }}>
-                  <Text>🛵 Livreur: <strong>{update.livreur.nom}</strong></Text>
-                  <br />
                   <Text>📞 Téléphone: <strong>{update.livreur.tele}</strong></Text>
                 </div>
               )}

@@ -16,7 +16,8 @@ import {
   Drawer, 
   Divider,
   Modal,
-  Input, // Import Input for search and facture lookup
+  Input,
+  Card, // Import Input for search and facture lookup
 } from 'antd';
 import { FcDocument } from "react-icons/fc";
 import { FaNoteSticky } from "react-icons/fa6";
@@ -54,6 +55,14 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import moment from 'moment';
 import request from '../../../../utils/request';
+import { 
+  FaFileInvoiceDollar, 
+  FaExternalLinkAlt, 
+  FaRegClock,
+  FaTimesCircle,
+  FaFileInvoice 
+} from 'react-icons/fa';
+import { Tag, Result } from 'antd';
 
 // Import actions
 import { 
@@ -888,35 +897,6 @@ const handleConfirmAssignLivreur = async () => {
           )}
           {user?.role === 'admin' && (
             <>
-            
-
-              <Tooltip title="Copie de colis">
-                <Popconfirm
-                  title="Êtes-vous sûr de vouloir copier ce colis?"
-                  description={`Code Suivi: ${record.code_suivi}`}
-                  okText="Oui"
-                  okType="warning"
-                  cancelText="Non"
-                  onConfirm={() => {
-                    dispatch(copieColis(record._id));
-                    message.success(`Colis avec le code ${record.code_suivi} a été cloné avec succès.`);
-                  }}
-                  onCancel={() => {
-                    // Optional: Handle cancellation if needed
-                    message.info('Copie annulée.');
-                  }}
-                >
-                  <Button 
-                    type="primary" 
-                    style={{
-                      backgroundColor: ' #5CB338',
-                      borderColor: ' #5CB338',
-                      color: '#fff'
-                    }}
-                    icon={<FaClone />}
-                  />
-                </Popconfirm>
-              </Tooltip>
               <Tooltip title="Colis est déjà payant">
                 <Button 
                   type="primary" 
@@ -952,6 +932,8 @@ const handleConfirmAssignLivreur = async () => {
                   onClick={() => {
                     dispatch(getFactureByColis(record._id)); // Dispatch the action with colis _id
                     setState(prevState => ({ ...prevState, factureModalVisible: true })); // Open the modal
+                    console.log(detailFacture);
+                    
                   }}
                   style={{
                     backgroundColor: '#ffc107',
@@ -1115,22 +1097,95 @@ const handleConfirmAssignLivreur = async () => {
           ]}
         >
           {detailFacture ? (
-            <div>
-              <p>{detailFacture.code_facture}</p>
-              <p><strong>Date de Création:</strong> {detailFacture.createdAt ? moment(detailFacture.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A'}</p>
-              <Button 
-                onClick={() => {
-                  const url = `/dashboard/facture/detail/client/${detailFacture.code_facture}`;
-                  window.open(url, '_blank'); // Open the URL in a new tab
-                }}
-                icon={<IoDocumentAttachSharp/> }
-              >
-                Ouvrir facture
-              </Button>
-            </div>
-          ) : (
-            <p>Cette colis n'a pas de facture associée.</p>
-          )}
+  <div style={{ padding: '20px' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: '20px' 
+    }}>
+      {/* Client Facture Section */}
+      <Card
+        style={{ 
+          backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f8f9fa',
+          borderRadius: '8px'
+        }}
+      >
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px',
+          marginBottom: '15px'
+        }}>
+          <FaFileInvoiceDollar style={{ fontSize: '24px', color: '#1890ff' }} />
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            Facture Client
+          </Typography.Title>
+        </div>
+        {detailFacture?.clientFacture?.code ? (
+          <Button 
+            type="primary"
+            icon={<FaExternalLinkAlt />}
+            onClick={() => {
+              const url = `/dashboard/facture/detail/client/${detailFacture?.clientFacture.code}`;
+              window.open(url, '_blank');
+            }}
+            style={{ width: '100%' }}
+          >
+            {detailFacture?.clientFacture.code}
+          </Button>
+        ) : (
+          <Tag icon={<FaTimesCircle />} color="error">
+            Pas de facture client
+          </Tag>
+        )}
+      </Card>
+
+      {/* Livreur Facture Section */}
+      <Card
+        style={{ 
+          backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f8f9fa',
+          borderRadius: '8px'
+        }}
+      >
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px',
+          marginBottom: '15px'
+        }}>
+          <FaTruck style={{ fontSize: '24px', color: '#52c41a' }} />
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            Facture Livreur
+          </Typography.Title>
+        </div>
+        {detailFacture?.livreurFacture?.code ? (
+          <Button 
+            type="primary"
+            icon={<FaExternalLinkAlt />}
+            onClick={() => {
+              const url = `/dashboard/facture/detail/livreur/${detailFacture.livreurFacture.code}`;
+              window.open(url, '_blank');
+            }}
+            style={{ width: '100%', backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+          >
+            {detailFacture.livreurFacture.code}
+          </Button>
+        ) : (
+          <Tag icon={<FaTimesCircle />} color="error">
+            Pas de facture livreur
+          </Tag>
+        )}
+      </Card>
+    </div>
+  </div>
+) : (
+  <Result
+    icon={<FaFileInvoice style={{ color: '#ff4d4f' }} />}
+    status="error"
+    title="Aucune facture trouvée"
+    subTitle="Ce colis n'a pas de facture associée pour le moment."
+  />
+)}
         </Modal>
 
         {/* Filter Bar */}

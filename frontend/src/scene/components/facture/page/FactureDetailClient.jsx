@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { getFactureClientByCode } from '../../../../redux/apiCalls/factureApiCalls';
 import { Table, Tag } from 'antd';
+import { useLocation } from 'react-router-dom';
+
 
 const FactureDetail = () => {
   const printRef = useRef();
@@ -12,6 +14,10 @@ const FactureDetail = () => {
   const facture = useSelector((state) => state.facture.detailFacture);
   const promotion = useSelector((state) => state.facture.promotionFacture);
   const { code_facture } = useParams();
+
+  const location = useLocation();
+  const highlightedColisId = location.state?.colisId;
+
 
   useEffect(() => {
     dispatch(getFactureClientByCode(code_facture));
@@ -80,6 +86,15 @@ const FactureDetail = () => {
       key: 'code_suivi',
       width: 120,
       fixed: 'left',
+      render: (text, record) => (
+        <div style={{
+          backgroundColor: record._id === highlightedColisId ? '#ffd591' : 'transparent',
+          padding: '8px',
+          borderRadius: '4px'
+        }}>
+          {text}
+        </div>
+      )
     },
     {
       title: 'Date Livraison',

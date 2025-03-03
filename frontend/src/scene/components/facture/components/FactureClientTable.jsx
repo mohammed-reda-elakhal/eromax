@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  deleteFacture,
   getFactureClient,
   mergeFactures,
   setFactureEtat,
@@ -32,6 +33,12 @@ import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { CiSettings } from 'react-icons/ci';
+// Import Popconfirm from antd (if not already imported)
+import { Popconfirm } from 'antd';
+
+// Ensure removeColisFromFacture is imported from apiCalls:
+import { removeColisFromFacture } from '../../../../redux/apiCalls/factureApiCalls';
+
 
 const { RangePicker } = DatePicker;
 const { Paragraph, Text } = Typography;
@@ -77,6 +84,12 @@ function FactureClientTable({ theme, id }) {
       // Error handling is done in the API call
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveColis = (record) => {
+    if (selectedFacture) {
+      dispatch(removeColisFromFacture(selectedFacture.code_facture, record.code_suivi));
     }
   };
 
@@ -224,6 +237,27 @@ function FactureClientTable({ theme, id }) {
               />
             )
           }
+
+          {user?.role === 'admin' && (
+        <>
+          <Button
+            type="default"
+            onClick={() => {
+              // Open modal or action for editing/setting up, etc.
+              // For deletion, you can simply call the API after a confirmation.
+              Modal.confirm({
+                title: 'Delete Facture',
+                content: `Are you sure you want to delete facture ${record.code_facture}?`,
+                okText: 'Yes',
+                cancelText: 'No',
+                onOk: () => dispatch(deleteFacture(record.code_facture))
+              });
+            }}
+            icon={<MdDelete />}
+            danger
+          />
+        </>
+      )}
           
         </div>
       ),
@@ -304,6 +338,24 @@ function FactureClientTable({ theme, id }) {
       key: 'prix',
       width: 100,
       render: (crbt) => `${crbt?.prix_colis || 0} DH`,
+    },
+    // Add the following new column in your modalColisColumns definition:
+    {
+      title: 'Action',
+      key: 'action',
+      width: 100,
+      render: (text, record) => (
+        user?.role === 'admin' && (
+          <Popconfirm
+            title="Are you sure you want to remove this colis?"
+            onConfirm={() => handleRemoveColis(record)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button  icon={<MdDelete />} type="primary" danger />
+          </Popconfirm>
+        )
+      ),
     },
   ];
 

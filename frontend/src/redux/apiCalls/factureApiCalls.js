@@ -333,7 +333,8 @@ export function getFactureByColis(colisId) {
             };
 
             const { data } = await request.get(`/api/facture/colis/${colisId}`, config);
-            dispatch(factureActions.setFactureDetail(data.facture));
+            dispatch(factureActions.setFactureDetail(data.factureContent));
+            
         } catch (error) {
             // Handle specific error messages from backend
             if (error.response && error.response.status === 404) {
@@ -421,3 +422,61 @@ export function transferColisClient({ code_facture_source, code_facture_distinat
     };
   }
   
+
+  export function removeColisFromFacture(code_facture, code_suivi) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token is missing');
+        return;
+      }
+      
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      const { data } = await request.delete(`/api/facture/colis/${code_facture}/${code_suivi}`, config);
+      toast.success(data.message);
+      // Optionally dispatch an action to update the store if needed.
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to remove colis from facture"
+      );
+    }
+  };
+}
+
+export function deleteFacture(code_facture) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token is missing');
+        return;
+      }
+      
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      const { data } = await request.delete(`/api/facture/delete/${code_facture}`, config);
+      toast.success(data.message);
+      dispatch(factureActions.removeFacture(code_facture));
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to delete facture"
+      );
+    }
+  };
+}
