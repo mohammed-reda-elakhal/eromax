@@ -36,9 +36,78 @@ import { FaBoxesStacked } from 'react-icons/fa6';
 import { IoQrCodeSharp } from 'react-icons/io5';
 import { IoMdRefresh } from 'react-icons/io';
 
+import { 
+  PhoneOutlined, 
+  EnvironmentOutlined, 
+  ShopOutlined,
+  CalendarOutlined,
+  EditOutlined,
+  DollarOutlined,
+  TagOutlined,
+  CopyOutlined,
+  CheckOutlined
+} from '@ant-design/icons';
+import { Typography } from 'antd';
+
+const getTableCellStyles = (theme) => ({
+  codeCell: {
+    background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+    padding: '12px',
+    borderRadius: '8px',
+    border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+  },
+  dateCell: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  dateItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '13px',
+    color: theme === 'dark' ? '#b3b3b3' : '#666',
+  },
+  destinataireCard: {
+    background: theme === 'dark' ? '#1f1f1f' : '#fff',
+    padding: '12px',
+    borderRadius: '8px',
+    boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+  },
+  priceTag: {
+    background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+  },
+  businessBadge: {
+    background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
+    border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+    borderRadius: '6px',
+    padding: '8px 12px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+  },
+  statusBadge: {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontWeight: '500',
+  }
+});
 
 function ColisReçu({search}) {
     const { theme } = useContext(ThemeContext);
+  const tableCellStyles = getTableCellStyles(theme);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -185,90 +254,148 @@ const handleDistribution = async (colisId) => {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      ...search('code_suivi')
+      width: 180,
+      render: (text) => (
+        <div style={tableCellStyles.codeCell}>
+          <Typography.Text
+            copyable={{
+              tooltips: ['Copier', 'Copié!'],
+              icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
+            }}
+            style={{ 
+              fontWeight: '600',
+              fontSize: '14px',
+              color: '#1677ff',
+              display: 'block'
+            }}
+          >
+            {text}
+          </Typography.Text>
+        </div>
+      ),
     },
     {
       title: 'Livreur',
       dataIndex: 'livreur',
       key: 'livreur',
       render: (text, record) => (
-        <span>
-          {
-            record.livreur 
-            ? 
-            record.livreur.nom + ' - ' + record.livreur.tele 
-            : 
+        <div style={tableCellStyles.businessBadge}>
+          <MdDeliveryDining style={{ fontSize: '16px' }} />
+          {record.livreur ? (
+            <Typography.Text strong>{record.livreur.nom} - {record.livreur.tele}</Typography.Text>
+          ) : (
             <Tag icon={<ClockCircleOutlined />} color="default">
-               Operation de Ramassage
+              Operation de Ramassage
             </Tag>
-           
-          }
-        </span> // Check if 'livreur' exists, otherwise show default message
-      )
+          )}
+        </div>
+      ),
     },
-    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
+    {
+      title: 'Date',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      width: 200,
+      render: (text) => (
+        <div style={tableCellStyles.dateCell}>
+          <div style={tableCellStyles.dateItem}>
+            <EditOutlined style={{ color: '#52c41a' }} />
+            <span>Mise à jour: {formatDate(text)}</span>
+          </div>
+        </div>
+      ),
+    },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',
-    },
-    {
-      title: 'Téléphone',
-      dataIndex: 'tele',
-      key: 'tele',
+      render: (text, record) => (
+        <div style={tableCellStyles.destinataireCard}>
+          <Typography.Text strong style={{ fontSize: '15px', display: 'block', marginBottom: '8px' }}>
+            {text}
+          </Typography.Text>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Tag icon={<PhoneOutlined />} color="blue">
+              {record.tele}
+            </Tag>
+            <Tag icon={<EnvironmentOutlined />} color="orange">
+              {record.ville.nom}
+            </Tag>
+          </div>
+        </div>
+      ),
     },
     {
       title: 'État',
       dataIndex: 'etat',
       key: 'etat',
-      render: (text, record) => (
-        record.etat ? (
-          <Tag color="success" icon={<CheckCircleOutlined />}>
-            Payée
-          </Tag>
-        ) : (
-          <Tag color="error" icon={<CloseCircleOutlined />}>
-            Non Payée
-          </Tag>
-        )
+      width: 120,
+      render: (etat) => (
+        <Tag 
+          icon={etat ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+          color={etat ? 'success' : 'error'}
+          style={{ 
+            padding: '6px 12px',
+            borderRadius: '4px',
+            fontSize: '13px'
+          }}
+        >
+          {etat ? 'Payée' : 'Non Payée'}
+        </Tag>
       ),
     },
     {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
-      render: (text, record) => (
-        <Tag icon={<SyncOutlined spin />} color="processing">
-          {record.statut}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Date de Livraison',
-      dataIndex: 'date_livraison',
-      key: 'date_livraison',
-    },
-    {
-      title: 'Ville',
-      dataIndex: 'ville',
-      key: 'ville',
-      render: (text, record) => (
-        <span>
-          {record.ville.nom}
-        </span>
-      ),
+      width: 140,
+      render: (text) => {
+        const statusConfig = {
+          'Livrée': { color: '#52c41a', icon: <CheckCircleOutlined />, bg: '#f6ffed', border: '#b7eb8f' },
+          'Annulée': { color: '#ff4d4f', icon: <CloseCircleOutlined />, bg: '#fff2f0', border: '#ffccc7' },
+          'Refusée': { color: '#ff4d4f', icon: <CloseCircleOutlined />, bg: '#fff2f0', border: '#ffccc7' },
+          'Programme': { color: '#faad14', icon: <ClockCircleOutlined />, bg: '#fffbe6', border: '#ffe58f' },
+          'En Attente': { color: '#1677ff', icon: <SyncOutlined spin />, bg: '#e6f4ff', border: '#91caff' },
+        };
+
+        const config = statusConfig[text] || statusConfig['En Attente'];
+
+        return (
+          <div style={{
+            ...tableCellStyles.statusBadge,
+            color: config.color,
+            backgroundColor: config.bg,
+            border: `1px solid ${config.border}`,
+          }}>
+            {config.icon}
+            {text}
+          </div>
+        );
+      },
     },
     {
       title: 'Prix',
       dataIndex: 'prix',
       key: 'prix',
+      width: 140,
+      render: (text) => (
+        <div style={tableCellStyles.priceTag}>
+          <DollarOutlined />
+          <span style={{ fontSize: '16px', fontWeight: '600' }}>
+            {text || 'N/A'} DH
+          </span>
+        </div>
+      ),
     },
-    {
-      title: 'Nature de Produit',
-      dataIndex: 'nature_produit',
-      key: 'nature_produit',
-    }
   ];
+
+  // Add rowSelection configuration
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (selectedRowKeys) => {
+      setSelectedRowKeys(selectedRowKeys);
+    },
+  };
 
   return (
     <div className='page-dashboard'>
@@ -297,9 +424,16 @@ const handleDistribution = async (colisId) => {
             <TableDashboard
               column={columns}
               data={data} // Use the local data state, not the Redux state
+              rowSelection={rowSelection}
               id="code_suivi"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              }}
             />
           </div>
         </div>

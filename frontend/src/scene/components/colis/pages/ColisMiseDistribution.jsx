@@ -29,6 +29,9 @@ import {
   updateStatut,
 } from '../../../../redux/apiCalls/colisApiCalls';
 import TableDashboard from '../../../global/TableDashboard';
+import { BsBoxSeam } from 'react-icons/bs';
+import { HiPhone } from 'react-icons/hi';
+import { FaMapMarkerAlt, FaMoneyBillWave } from 'react-icons/fa';
 
 const { Option } = Select;
 const { Text, Title: TextTitle } = Typography;
@@ -196,52 +199,124 @@ function ColisMiseDistribution({ search }) {
 
   const columns = [
     {
-      title: 'Code Suivi',
+      title: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BsBoxSeam /> Code Suivi
+        </div>
+      ),
       dataIndex: 'code_suivi',
       key: 'code_suivi',
       render: (text, record) => (
-        <>
-          {text}
-          {record.replacedColis && (
-            <Tag icon={<FiRefreshCcw />} color="geekblue" style={{ marginLeft: '8px' }}>
-              Remplacée
-            </Tag>
-          )}
-        </>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="code-container">
+            <Text strong style={{ fontSize: '14px' }}>{text}</Text>
+            {record.replacedColis && (
+              <Tag 
+                icon={<FiRefreshCcw />} 
+                color="blue"
+                style={{ marginLeft: '8px', borderRadius: '12px' }}
+              >
+                Remplacée
+              </Tag>
+            )}
+          </div>
+        </div>
       ),
     },
     {
-      title: 'Destinataire',
+      title: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <HiPhone /> Destinataire
+        </div>
+      ),
       dataIndex: 'nom',
       key: 'nom',
-      render: (text, record) => `${text} - ${record.tele}`,
+      render: (text, record) => (
+        <div className="contact-info">
+          <Text strong style={{ display: 'block' }}>{text}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            {record.tele}
+          </Text>
+        </div>
+      ),
     },
     {
-      title: 'Ville',
+      title: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaMapMarkerAlt /> Ville
+        </div>
+      ),
       dataIndex: ['ville', 'nom'],
       key: 'ville',
+      render: (text) => (
+        <Tag 
+          color="cyan" 
+          style={{ 
+            borderRadius: '12px', 
+            padding: '4px 12px',
+            fontSize: '13px'
+          }}
+        >
+          {text}
+        </Tag>
+      ),
     },
     {
       title: 'Adresse',
       dataIndex: 'adresse',
       key: 'adresse',
+      render: (text) => (
+        <div className="address-cell">
+          <Text
+            ellipsis={{ tooltip: text }}
+            style={{ maxWidth: '200px' }}
+          >
+            {text}
+          </Text>
+        </div>
+      ),
     },
     {
-      title: 'Prix (DH)',
+      title: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaMoneyBillWave /> Prix
+        </div>
+      ),
       dataIndex: 'prix',
       key: 'prix',
+      render: (price) => (
+        <div className="price-tag">
+          <Text strong style={{ color: '#52c41a' }}>
+            {price} DH
+          </Text>
+        </div>
+      ),
     },
     {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
       render: (status, record) => (
-        <>
-          <Tag color={getStatusTagColor(status)}>{status}</Tag>
+        <div className="status-container">
+          <Tag 
+            color={getStatusTagColor(status)}
+            style={{
+              borderRadius: '12px',
+              padding: '4px 12px',
+              fontSize: '13px',
+              textTransform: 'uppercase'
+            }}
+          >
+            {status}
+          </Tag>
           {status === "Programmée" && record.deliveryTime && (
-            <div><strong>Temps de Livraison: </strong>{record.deliveryTime}</div>
+            <div className="delivery-time">
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                Livraison: {record.deliveryTime}
+              </Text>
+            </div>
           )}
-        </>
+        </div>
       ),
     },
     {
@@ -249,11 +324,18 @@ function ColisMiseDistribution({ search }) {
       key: 'action',
       render: (text, record) => (
         <Button
-          type="default"
+          type="primary"
+          danger
           icon={<CgDanger />}
           onClick={() => handleChangeStatus(record)}
-          style={{ backgroundColor: '#f5222d', borderColor: '#f5222d', color: '#fff' }}
-          title="Changer Statut"
+          style={{ 
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '4px 12px',
+            height: 'auto'
+          }}
         >
           Changer Statut
         </Button>
@@ -387,6 +469,40 @@ function ColisMiseDistribution({ search }) {
           )}
         </Form>
       </Modal>
+      <style jsx>{`
+        .code-container {
+          padding: 4px 0;
+        }
+        .contact-info {
+          padding: 4px 0;
+        }
+        .address-cell {
+          padding: 4px 0;
+        }
+        .price-tag {
+          padding: 4px 8px;
+          border-radius: 6px;
+          background: rgba(82, 196, 26, 0.1);
+          display: inline-block;
+        }
+        .status-container {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .delivery-time {
+          margin-top: 4px;
+        }
+        :global(.ant-table-row) {
+          transition: all 0.3s ease;
+        }
+        :global(.ant-table-row:hover) {
+          background-color: ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'} !important;
+        }
+        :global(.ant-table-cell) {
+          padding: 12px 16px !important;
+        }
+      `}</style>
     </div>
   );
 }
