@@ -18,8 +18,22 @@ function ReclamationComplete({ theme }) {
         window.scrollTo(0, 0);
     }, [dispatch]);
 
-
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+      };
     const columns = [
+        {
+            title: 'Date',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            render: (text, record) => (
+                <span>
+                    {formatDate(record.createdAt)}
+                </span>
+            )
+        },
         {
             title: 'Nom Store',
             dataIndex: 'nom',
@@ -73,21 +87,6 @@ function ReclamationComplete({ theme }) {
                 <span style={{ color: resoudre ? 'green' : 'red' }}>
                     {resoudre ? 'Complète' : 'Incomplète'}
                 </span>
-            )
-        }, {
-            title: 'Action',
-            dataIndex: 'action',
-            render: (text, record) => (
-                <div className='action_user'>
-                    {!record.etat && (
-                        <Button 
-                            color="danger" 
-                            variant="solid"
-                            icon={<MdDelete/>}
-                        >
-                        </Button>
-                    )}
-                </div>
             )
         }
     ];

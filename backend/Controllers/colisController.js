@@ -651,6 +651,11 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       if (Object.keys(filter.createdAt).length === 0) {
         delete filter.createdAt;
       }
+    }else {
+      // Default: only return colis from the last two months
+      const twoMonthsAgo = new Date();
+      twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+      filter.createdAt = { $gte: twoMonthsAgo };
     }
 
     // Fetch colis based on the constructed filter
@@ -1021,29 +1026,33 @@ module.exports.updateColis = asyncHandler(async (req, res) => {
  **/
 
 module.exports.toggleColisPayant = asyncHandler(async (req, res) => {
-  try {
-    // Find the Colis by ID
-    const colis = await Colis.findById(req.params.id);
+  let identifier = req.params.id; // This can be an ObjectId or a code_suivi
+  let colis;
 
-    if (!colis) {
-      return res.status(404).json({ message: "Colis not found" });
-    }
-
-    // Toggle the `etat` value
-    colis.pret_payant = !colis.pret_payant;
-
-    // Save the updated Colis
-    const updatedColis = await colis.save();
-
-    // Return the updated Colis
-    res.status(200).json({
-      message: `Colis est modifier.`,
-      data: updatedColis,
-    });
-  } catch (error) {
-    console.error("Error toggling Colis etat:", error);
-    res.status(500).json({ message: "Server error toggling Colis etat" });
+  // Check if the identifier is a valid ObjectId
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    colis = await Colis.findById(identifier);
+  } 
+  // If not, assume it's a code_suivi
+  if (!colis) {
+    colis = await Colis.findOne({ code_suivi: identifier });
   }
+
+  if (!colis) {
+    return res.status(404).json({ message: "Colis not found" });
+  }
+
+  // Toggle the 'pret_payant' boolean
+  colis.pret_payant = !colis.pret_payant;
+
+  // Save the updated colis
+  const updatedColis = await colis.save();
+
+  // Return the updated colis data
+  res.status(200).json({
+    message: "Colis modifié avec succès.",
+    data: updatedColis,
+  });
 });
 
 /**

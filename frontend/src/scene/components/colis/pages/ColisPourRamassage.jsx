@@ -3,7 +3,7 @@ import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
-import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
+import { PlusCircleFilled, DownOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input, Tooltip } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
@@ -31,11 +31,79 @@ import { FiRefreshCcw } from 'react-icons/fi';
 import { Typography } from 'antd';
 import { ExclamationCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { IoMdRefresh } from 'react-icons/io';
-import { FaPrint } from 'react-icons/fa';
+import { FaPrint, FaTicketAlt } from 'react-icons/fa';
 import TicketColis from '../../tickets/TicketColis';
+
+// Add these imports at the top
+import { 
+  PhoneOutlined, 
+  EnvironmentOutlined, 
+  ShopOutlined,
+  CalendarOutlined,
+  EditOutlined,
+  DollarOutlined,
+  TagOutlined
+} from '@ant-design/icons';
+
+const getTableCellStyles = (theme) => ({
+  codeCell: {
+    background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+    padding: '12px',
+    borderRadius: '8px',
+    border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+  },
+  dateCell: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  dateItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '13px',
+    color: theme === 'dark' ? '#b3b3b3' : '#666',
+  },
+  destinataireCard: {
+    background: theme === 'dark' ? '#1f1f1f' : '#fff',
+    padding: '12px',
+    borderRadius: '8px',
+    boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+  },
+  priceTag: {
+    background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+  },
+  businessBadge: {
+    background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
+    border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+    borderRadius: '6px',
+    padding: '8px 12px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+  },
+  statusBadge: {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontWeight: '500',
+  }
+});
 
 function ColisPourRamassage() { // Removed 'search' prop as it's handled internally
   const { theme } = useContext(ThemeContext);
+  const tableCellStyles = getTableCellStyles(theme);
   const [data, setData] = useState([]);
   const dispatch = useDispatch();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -47,7 +115,6 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
   const [loading, setLoading] = useState(false);
   const [openTicket , setOpenTicket] = useState(false);
   const [colis , setColis] = useState(null);
-
   
   
   // **Add search state**
@@ -279,127 +346,164 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
     }
   };
 
+  const handleBatchTickets = () => {
+    if (selectedRowKeys.length === 0) {
+      warning("Veuillez sélectionner au moins un colis.");
+      return;
+    }
+    const selectedTickets = data.filter(colis => selectedRowKeys.includes(colis.code_suivi));
+    navigate('/dashboard/tickets', { state: { selectedColis: selectedTickets } });
+  };
+
   const columns = [
     {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 150,
+      width: 180,
       render: (text, record) => (
-        <>
-          {record.replacedColis ? 
-            <Tag icon={<FiRefreshCcw />} color="geekblue">
+        <div style={tableCellStyles.codeCell}>
+          {record.replacedColis && (
+            <Tag icon={<FiRefreshCcw />} color="geekblue" style={{ marginBottom: '8px' }}>
               Remplacée
             </Tag>
-            : ""
-          }
+          )}
           <Typography.Text
-            copyable
-            style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            copyable={{
+              tooltips: ['Copier', 'Copié!'],
+              icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
+            }}
+            style={{ 
+              fontWeight: '600',
+              fontSize: '14px',
+              color: '#1677ff',
+              display: 'block'
+            }}
           >
             {text}
           </Typography.Text>
-          {record.expedation_type === "ameex" ? 
-            <p style={{color:"gray", fontSize:"10px"}}>{record.code_suivi_ameex}</p> 
-            : ""
-          }
-        </>
+          {record.expedation_type === "ameex" && (
+            <Tag color="purple" style={{ marginTop: '4px' }}>AMEEX: {record.code_suivi_ameex}</Tag>
+          )}
+        </div>
       ),
     },
     {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      width: 150,
-      render : (text , record) =>{
-        return(
-          <>
-            <strong>Créer en : </strong><br /><span>{formatDate(record?.createdAt)}</span>
-            <br />
-            <strong>Modifier en : </strong><br /><span>{formatDate(record?.updatedAt)}</span>          </>
-        )
-        
-      }
+      width: 200,
+      render: (text, record) => (
+        <div style={tableCellStyles.dateCell}>
+          <div style={tableCellStyles.dateItem}>
+            <CalendarOutlined style={{ color: '#1677ff' }} />
+            <span>Créé: {formatDate(record?.createdAt)}</span>
+          </div>
+          <div style={tableCellStyles.dateItem}>
+            <EditOutlined style={{ color: '#52c41a' }} />
+            <span>Modifié: {formatDate(record?.updatedAt)}</span>
+          </div>
+        </div>
+      ),
     },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',
-      render : (text , record) =>(
-        <>
-          <span>{record.nom}</span>
-          <br />
-          <span>{record.tele}</span>
-          <br />
-          <span>{record.ville.nom}</span>
-        </>
-      )
+      render: (text, record) => (
+        <div style={tableCellStyles.destinataireCard}>
+          <Typography.Text strong style={{ fontSize: '15px', display: 'block', marginBottom: '8px' }}>
+            {record.nom}
+          </Typography.Text>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Tag icon={<PhoneOutlined />} color="blue">
+              {record.tele}
+            </Tag>
+            <Tag icon={<EnvironmentOutlined />} color="orange">
+              {record.ville.nom}
+            </Tag>
+          </div>
+        </div>
+      ),
     },
     {
       title: 'Prix',
       dataIndex: 'prix',
       key: 'prix',
-      wtidth: 40,
+      width: 140,
       render: (text, record) => (
-        <strong style={{fontSize:"18px"}}>
-          {record.prix || 'N/A'} DH
-        </strong>
+        <div style={tableCellStyles.priceTag}>
+          <DollarOutlined />
+          <span style={{ fontSize: '16px', fontWeight: '600' }}>
+            {record.prix || 'N/A'} DH
+          </span>
+        </div>
       ),
     },
     {
-      title: 'Nature de Produit',
+      title: 'Nature',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
-      width: 100,
-      render: (text) => text || 'N/A',
+      width: 150,
+      render: (text) => (
+        <Tag 
+          icon={<TagOutlined />}
+          color="cyan"
+          style={{ 
+            padding: '6px 12px',
+            borderRadius: '4px',
+            fontSize: '13px'
+          }}
+        >
+          {text || 'N/A'}
+        </Tag>
+      ),
     },
     {
-      title: 'Bussiness',
+      title: 'Business',
       dataIndex: 'store',
       key: 'store',
-      render : (text , record) => (
-        <>
-          <strong>{record.store?.storeName} </strong>
-        </>
-      )
+      render: (text, record) => (
+        <div style={tableCellStyles.businessBadge}>
+          <ShopOutlined />
+          <Typography.Text strong>
+            {record.store?.storeName}
+          </Typography.Text>
+        </div>
+      ),
     },
     {
       title: 'Statut',
       dataIndex: 'statut',
       key: 'statut',
+      width: 140,
       render: (text, record) => {
-        let color = 'processing';
-        let icon = <SyncOutlined spin />;
-        switch (record.statut) {
-          case 'Livrée':
-            color = 'success';
-            icon = <CheckCircleOutlined />;
-            break;
-          case 'Annulée':
-          case 'Refusée':
-            color = 'error';
-            icon = <CloseCircleOutlined />;
-            break;
-          case 'Programme':
-            color = 'default';
-            icon = <ClockCircleOutlined />;
-            break;
-          case 'Remplacée':
-          case 'En Retour':
-            color = 'warning';
-            icon = <ExclamationCircleOutlined />;
-            break;
-          case 'Fermée':
-            color = 'default';
-            icon = <MinusCircleOutlined />;
-            break;
-          default:
-            color = 'processing';
-            icon = <SyncOutlined spin />;
-        }
-        return <Tag icon={icon} color={color}>{record.statut}</Tag>;
+        const statusConfig = {
+          'Livrée': { color: '#52c41a', icon: <CheckCircleOutlined />, bg: '#f6ffed', border: '#b7eb8f' },
+          'Annulée': { color: '#ff4d4f', icon: <CloseCircleOutlined />, bg: '#fff2f0', border: '#ffccc7' },
+          'Refusée': { color: '#ff4d4f', icon: <CloseCircleOutlined />, bg: '#fff2f0', border: '#ffccc7' },
+          'Programme': { color: '#faad14', icon: <ClockCircleOutlined />, bg: '#fffbe6', border: '#ffe58f' },
+          'Remplacée': { color: '#722ed1', icon: <ExclamationCircleOutlined />, bg: '#f9f0ff', border: '#d3adf7' },
+          'En Retour': { color: '#eb2f96', icon: <ExclamationCircleOutlined />, bg: '#fff0f6', border: '#ffadd2' },
+          'Fermée': { color: '#8c8c8c', icon: <MinusCircleOutlined />, bg: '#fafafa', border: '#d9d9d9' },
+        };
+
+        const config = statusConfig[record.statut] || { color: '#1677ff', icon: <SyncOutlined spin />, bg: '#e6f4ff', border: '#91caff' };
+
+        return (
+          <div style={{
+            ...tableCellStyles.statusBadge,
+            color: config.color,
+            backgroundColor: config.bg,
+            border: `1px solid ${config.border}`,
+          }}>
+            {config.icon}
+            {record.statut}
+          </div>
+        );
       },
-    },{
+    },
+    {
       title: 'Action',
       key: 'action',
       render: (text, record) => (
@@ -489,6 +593,19 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
                 >
                   Export to Excel
                 </Button>
+                <Button 
+                  icon={<FaTicketAlt />} 
+                  type="primary" 
+                  onClick={handleBatchTickets}
+                  disabled={selectedRowKeys.length === 0}
+                  style={{ 
+                    marginRight: '8px',
+                    backgroundColor: '#1890ff',
+                    borderColor: '#1890ff'
+                  }}
+                >
+                  Tickets Groupés
+                </Button>
               </div>
               :
               "" 
@@ -513,6 +630,12 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
               rowSelection={{
                 selectedRowKeys: selectedRowKeys,
                 onChange: setSelectedRowKeys,
+              }}
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
               }}
             />
             <Modal

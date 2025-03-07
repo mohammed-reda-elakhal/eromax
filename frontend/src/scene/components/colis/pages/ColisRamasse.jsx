@@ -17,10 +17,79 @@ import { FaBoxesStacked } from 'react-icons/fa6';
 import { IoQrCodeSharp } from 'react-icons/io5';
 import request from '../../../../utils/request';
 import { IoMdRefresh } from 'react-icons/io';
+import { 
+  PhoneOutlined, 
+  EnvironmentOutlined, 
+  ShopOutlined,
+  CalendarOutlined,
+  EditOutlined,
+  DollarOutlined,
+  TagOutlined,
+  CopyOutlined,
+  CheckOutlined
+} from '@ant-design/icons';
+import { Typography } from 'antd';
+
+const getTableCellStyles = (theme) => ({
+  codeCell: {
+    background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+    padding: '12px',
+    borderRadius: '8px',
+    border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+  },
+  dateCell: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  dateItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '13px',
+    color: theme === 'dark' ? '#b3b3b3' : '#666',
+  },
+  destinataireCard: {
+    background: theme === 'dark' ? '#1f1f1f' : '#fff',
+    padding: '12px',
+    borderRadius: '8px',
+    boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+  },
+  priceTag: {
+    background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+  },
+  businessBadge: {
+    background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
+    border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+    borderRadius: '6px',
+    padding: '8px 12px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+  },
+  statusBadge: {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontWeight: '500',
+  }
+});
 
 
 function ColisRamasse({ search }) {
   const { theme } = useContext(ThemeContext);
+  const tableCellStyles = getTableCellStyles(theme);
   const [data, setData] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
@@ -127,63 +196,94 @@ function ColisRamasse({ search }) {
   };
 
   const columns = [
-    { title: 'Code Suivi', dataIndex: 'code_suivi', key: 'code_suivi', ...search('code_suivi') },
     {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      width: 150,
-      render : (text , record) =>{
-        return(
-          <>
-            <strong>Créer en : </strong><br /><span>{formatDate(record?.createdAt)}</span>
-            <br />
-            <strong>Modifier en : </strong><br /><span>{formatDate(record?.updatedAt)}</span>          </>
-        )
-        
-      }
+      title: 'Code Suivi',
+      dataIndex: 'code_suivi',
+      key: 'code_suivi',
+      width: 180,
+      render: (text) => (
+        <div style={tableCellStyles.codeCell}>
+          <Typography.Text
+            copyable={{
+              tooltips: ['Copier', 'Copié!'],
+              icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
+            }}
+            style={{ fontWeight: '600', fontSize: '14px', color: '#1677ff' }}
+          >
+            {text}
+          </Typography.Text>
+        </div>
+      ),
+    },
+    {
+       title: 'Date',
+            dataIndex: 'date',
+            key: 'date',
+            width: 200,
+            render: (text, record) => (
+              <div style={tableCellStyles.dateCell}>
+                <div style={tableCellStyles.dateItem}>
+                  <CalendarOutlined style={{ color: '#1677ff' }} />
+                  <span>Créé: {formatDate(record?.createdAt)}</span>
+                </div>
+                <div style={tableCellStyles.dateItem}>
+                  <EditOutlined style={{ color: '#52c41a' }} />
+                  <span>Modifié: {formatDate(record?.updatedAt)}</span>
+                </div>
+              </div>
+            ),
     },
     {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',
-      render : (text , record) =>(
-        <>
-          <span>{record.nom}</span>
-          <br />
-          <span>{record.tele}</span>
-          <br />
-          <span>{record.ville.nom}</span>
-        </>
-      )
+      render: (text, record) => (
+        <div style={tableCellStyles.destinataireCard}>
+          <Typography.Text strong style={{ fontSize: '15px', marginBottom: '8px' }}>
+            {record.nom}
+          </Typography.Text>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Tag icon={<PhoneOutlined />} color="blue">{record.tele}</Tag>
+            <Tag icon={<EnvironmentOutlined />} color="orange">{record.ville.nom}</Tag>
+          </div>
+        </div>
+      ),
     },
     {
       title: 'Prix',
       dataIndex: 'prix',
       key: 'prix',
-      wtidth: 40,
-      render: (text, record) => (
-        <strong style={{fontSize:"18px"}}>
-          {record.prix || 'N/A'} DH
-        </strong>
+      width: 140,
+      render: (text) => (
+        <div style={tableCellStyles.priceTag}>
+          <DollarOutlined />
+          <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
+            {text || 'N/A'} DH
+          </span>
+        </div>
       ),
     },
     {
-      title: 'Nature de Produit',
+      title: 'Nature',
       dataIndex: 'nature_produit',
       key: 'nature_produit',
-      width: 100,
-      render: (text) => text || 'N/A',
+      width: 150,
+      render: (text) => (
+        <Tag icon={<TagOutlined />} color="cyan" style={{ padding: '6px 12px', borderRadius: '4px' }}>
+          {text || 'N/A'}
+        </Tag>
+      ),
     },
     {
-      title: 'Bussiness',
+      title: 'Business',
       dataIndex: 'store',
       key: 'store',
-      render : (text , record) => (
-        <>
-          <strong>{record.store?.storeName} </strong>
-        </>
-      )
+      render: (text, record) => (
+        <div style={tableCellStyles.businessBadge}>
+          <ShopOutlined />
+          <Typography.Text strong>{record.store?.storeName}</Typography.Text>
+        </div>
+      ),
     },
     {
       title: 'Statut',
@@ -266,7 +366,14 @@ function ColisRamasse({ search }) {
               rowSelection={{
                 selectedRowKeys: selectedRowKeys,
                 onChange: setSelectedRowKeys,
-              }} />
+              }} 
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              }}
+            />
             {contextHolder}
           </div>
         </div>

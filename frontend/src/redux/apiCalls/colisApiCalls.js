@@ -191,25 +191,41 @@ export function getColisAmeexAsyncStatu() {
 }
 
 // set colis pret payant 
-export const setColisPayant = (id) => async (dispatch) => {
-  dispatch(colisActions.setLoading(true)); // Set loading state to true
+export const setColisPayant = (identifier) => async (dispatch) => {
+  dispatch(colisActions.setLoading(true));
   try {
-    // Make the API request to update the etat field
-    const { data } = await request.patch(`/api/colis/pret_payant/${id}`);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication token is missing');
+    }
+
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    // Make the API request to update the pret_payant field
+    const { data } = await request.patch(`/api/colis/pret_payant/${identifier}`, {}, config);
 
     // Dispatch the updated Colis to the Redux state
-    dispatch(colisActions.updateColis(data));
-    toast.success("Colis updated successfully!");
+    dispatch(colisActions.updateColis(data.data));
+    
+    const statusMessage = data.data.pret_payant ? 'marked as ready to pay' : 'unmarked as ready to pay';
+    toast.success(`Colis ${statusMessage} successfully!`);
+    
+    return data;
   } catch (error) {
-    console.error("Error updating Colis:", error);
+    console.error("Error updating Colis payment status:", error);
     dispatch(colisActions.setError(error.message));
-    toast.error(error.response?.data?.message || "Failed to update Colis");
+    toast.error(error.response?.data?.message || "Failed to update Colis payment status");
+    throw error;
   } finally {
-    dispatch(colisActions.setLoading(false)); // Set loading state to false
+    dispatch(colisActions.setLoading(false));
   }
 };
 
-// Fetch a single colis by `code_suivi`
 // Fetch a single colis by `code_suivi`
 export function getColisByCodeSuivi(code_suivi) {
     return async (dispatch) => {

@@ -24,9 +24,79 @@ import {
 import { Tag } from 'antd';
 import request from '../../../../utils/request';
 import { IoMdRefresh } from 'react-icons/io';
+import { 
+  PhoneOutlined, 
+  EnvironmentOutlined, 
+  ShopOutlined,
+  CalendarOutlined,
+  EditOutlined,
+  DollarOutlined,
+  TagOutlined,
+  CopyOutlined,
+  CheckOutlined
+} from '@ant-design/icons';
+import { Typography } from 'antd';
+
+// Add tableCellStyles after imports
+const getTableCellStyles = (theme) => ({
+  codeCell: {
+    background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+    padding: '12px',
+    borderRadius: '8px',
+    border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+  },
+  dateCell: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  dateItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '13px',
+    color: theme === 'dark' ? '#b3b3b3' : '#666',
+  },
+  destinataireCard: {
+    background: theme === 'dark' ? '#1f1f1f' : '#fff',
+    padding: '12px',
+    borderRadius: '8px',
+    boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+  },
+  priceTag: {
+    background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+  },
+  businessBadge: {
+    background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
+    border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+    borderRadius: '6px',
+    padding: '8px 12px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+  },
+  statusBadge: {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontWeight: '500',
+  }
+});
 
 function ColisExpide({ search }) {
   const { theme } = useContext(ThemeContext);
+  const tableCellStyles = getTableCellStyles(theme);
   const [data, setData] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -118,51 +188,102 @@ function ColisExpide({ search }) {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      ...search('code_suivi')
+      width: 180,
+      render: (text) => (
+        <div style={tableCellStyles.codeCell}>
+          <Typography.Text
+            copyable={{
+              tooltips: ['Copier', 'Copié!'],
+              icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
+            }}
+            style={{ fontWeight: '600', fontSize: '14px', color: '#1677ff' }}
+          >
+            {text}
+          </Typography.Text>
+        </div>
+      ),
     },
     {
       title: 'Livreur',
       dataIndex: 'livreur',
       key: 'livreur',
       render: (text, record) => (
-        <span>
-          {record.livreur ? `${record.livreur.nom} - ${record.livreur.tele}` : (
-            <Tag icon={<ClockCircleOutlined />} color="default">Operation de Ramassage</Tag>
+        <div style={tableCellStyles.businessBadge}>
+          <MdDeliveryDining style={{ fontSize: '16px', color: '#1677ff' }} />
+          {record.livreur ? (
+            <Typography.Text strong>{record.livreur.nom} - {record.livreur.tele}</Typography.Text>
+          ) : (
+            <Tag icon={<ClockCircleOutlined />} color="default">
+              Operation de Ramassage
+            </Tag>
           )}
-        </span>
-      ),
-    },
-    { title: 'Dernière Mise à Jour', dataIndex: 'updatedAt', key: 'updatedAt', render: formatDate },
-    { title: 'Destinataire', dataIndex: 'nom', key: 'nom' },
-    { title: 'Téléphone', dataIndex: 'tele', key: 'tele' },
-    {
-      title: 'État',
-      dataIndex: 'etat',
-      key: 'etat',
-      render: (text, record) => (
-        record.etat ? (
-          <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag>
-        ) : (
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-        )
+        </div>
       ),
     },
     {
-      title: 'Statut',
-      dataIndex: 'statut',
-      key: 'statut',
-      render: (text, record) => (
-        <Tag icon={<SyncOutlined spin />} color="processing">
-          {record.statut}
-        </Tag>
+      title: 'Date',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      width: 200,
+      render: (text) => (
+        <div style={tableCellStyles.dateCell}>
+          <div style={tableCellStyles.dateItem}>
+            <EditOutlined style={{ color: '#52c41a' }} />
+            <span>Mise à jour: {formatDate(text)}</span>
+          </div>
+        </div>
       ),
     },
-    { title: 'Date de Livraison', dataIndex: 'date_livraison', key: 'date_livraison' },
-    { title: 'Ville', dataIndex: 'ville', key: 'ville', render: (text, record) => <span>{record.ville.nom}</span> },
-    { title: 'Adresse', dataIndex: 'adresse', key: 'adresse' },
-    { title: 'Prix', dataIndex: 'prix', key: 'prix' },
-    { title: 'Nature de Produit', dataIndex: 'nature_produit', key: 'nature_produit' },
+    {
+      title: 'Destinataire',
+      dataIndex: 'nom',
+      key: 'nom',
+      render: (text, record) => (
+        <div style={tableCellStyles.destinataireCard}>
+          <Typography.Text strong style={{ fontSize: '15px', marginBottom: '8px' }}>
+            {text}
+          </Typography.Text>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Tag icon={<PhoneOutlined />} color="blue">{record.tele}</Tag>
+            <Tag icon={<EnvironmentOutlined />} color="orange">{record.ville.nom}</Tag>
+          </div>
+        </div>
+      ),
+    },
+    { title: 'État', dataIndex: 'etat', key: 'etat', render: (text, record) => (
+      record.etat ? (
+        <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag>
+      ) : (
+        <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
+      )
+    )},
+    { title: 'Statut', dataIndex: 'statut', key: 'statut', render: (text, record) => (
+      <Tag icon={<SyncOutlined spin />} color="processing">
+        {record.statut}
+      </Tag>
+    )},
+    {
+      title: 'Prix',
+      dataIndex: 'prix',
+      key: 'prix',
+      width: 140,
+      render: (text) => (
+        <div style={tableCellStyles.priceTag}>
+          <DollarOutlined />
+          <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
+            {text || 'N/A'} DH
+          </span>
+        </div>
+      ),
+    },
   ];
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (selectedRowKeys) => {
+      setSelectedRowKeys(selectedRowKeys);
+    },
+  };
 
   return (
     <div className='page-dashboard'>
@@ -174,15 +295,30 @@ function ColisExpide({ search }) {
             <h4>Colis Expidée</h4>
             <div className="bar-action-data">
               <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
-              <Button icon={<FaBoxesStacked/>} type="primary" onClick={handleReçu} loading={loading}>Reçu</Button>
+              <Button 
+                icon={<FaBoxesStacked/>} 
+                type="primary" 
+                onClick={handleReçu} 
+                loading={loading}
+                disabled={selectedRowKeys.length === 0}
+              >
+                Marquer comme Reçu ({selectedRowKeys.length})
+              </Button>
               <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("/dashboard/scan/statu/Reçu")} loading={loading}>Scan</Button>
             </div>
             <TableDashboard
               column={columns}
               data={data}
+              rowSelection={rowSelection}
               id="code_suivi"
               theme={theme}
               onSelectChange={setSelectedRowKeys}
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              }}
             />
             {contextHolder}
           </div>

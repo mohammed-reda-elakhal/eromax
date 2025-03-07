@@ -40,10 +40,15 @@ import {
 import { TbPhoneCall, TbTruckDelivery } from 'react-icons/tb';
 import { 
   CheckCircleOutlined, 
+  CheckOutlined, 
   ClockCircleOutlined, 
   CloseCircleOutlined, 
+  CopyOutlined, 
+  DollarOutlined, 
   InfoCircleOutlined, 
-  LoadingOutlined 
+  LoadingOutlined, 
+  PhoneOutlined,
+  TagOutlined
 } from '@ant-design/icons';
 import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
@@ -604,6 +609,66 @@ const handleConfirmAssignLivreur = async () => {
     },
   ], []);
 
+
+  const getTableCellStyles = (theme) => ({
+    codeCell: {
+      background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+      padding: '12px',
+      borderRadius: '8px',
+      border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+    },
+    dateCell: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+    },
+    dateItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px',
+      fontSize: '13px',
+      color: theme === 'dark' ? '#b3b3b3' : '#666',
+    },
+    destinataireCard: {
+      background: theme === 'dark' ? '#1f1f1f' : '#fff',
+      padding: '12px',
+      borderRadius: '8px',
+      boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+      gap:'8px',
+    },
+    priceTag: {
+      background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
+      color: 'white',
+      padding: '8px 16px',
+      borderRadius: '20px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+    },
+    businessBadge: {
+      background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
+      border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+      borderRadius: '6px',
+      padding: '8px 12px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+    },
+    statusBadge: {
+      padding: '6px 12px',
+      borderRadius: '6px',
+      fontSize: '13px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      fontWeight: '500',
+    }
+  });
+
+  const tableCellStyles = getTableCellStyles(theme);
+  
   // Define columns for the table
   const columnsColis = useMemo(() => [
     {
@@ -619,12 +684,22 @@ const handleConfirmAssignLivreur = async () => {
             </Badge>
             : ""
           }
+          <div style={tableCellStyles.codeCell}>
           <Typography.Text
-            copyable
-            style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            copyable={{
+              tooltips: ['Copier', 'Copié!'],
+              icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
+            }}
+            style={{ 
+              fontWeight: '600',
+              fontSize: '14px',
+              color: '#1677ff',
+              display: 'block'
+            }}
           >
             {text}
           </Typography.Text>
+        </div>
           {record.expedation_type === "ameex" && (
             <p style={{color:"gray", fontSize:"10px", margin: 0}}>{record.code_suivi_ameex}</p>
           )}
@@ -690,25 +765,35 @@ const handleConfirmAssignLivreur = async () => {
   
         if (!isValidPhoneNumber && errorMessage) {
           return (
-            <Tooltip title={errorMessage} placement="topLeft">
-              <Typography.Text >
+            <div title={errorMessage} placement="topLeft"             style={{display:'flex', gap: '10px', alignItems: 'start' , flexDirection:'column'}}>
                 <span>{record.nom}</span>
                 <br />
-                <span style={{ color: 'red', fontWeight: 'bold', cursor: 'pointer' }}> {text} </span>
+                <Tag icon={<PhoneOutlined />} color="red">{record.tele}</Tag>
                 <br />
-                <b>{record?.prix} DH</b>
-              </Typography.Text>
-            </Tooltip>
+                <div style={tableCellStyles.priceTag}>
+                  <DollarOutlined />
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
+                    {record.prix || 'N/A'} DH
+                  </span>
+                </div>
+            </div>
           );
         }
         return (
-          <Typography.Text>
+          <div 
+            style={{display:'flex', gap: '10px', alignItems: 'start' , flexDirection:'column'}}
+          >
             <span>{record.nom}</span>
             <br />
-            <span style={{ color: 'green', fontWeight: 'bold' }}> {text} </span>
+            <Tag icon={<PhoneOutlined />} color="blue">{record.tele}</Tag>
             <br />
-            <b>{record?.prix} DH</b>
-          </Typography.Text>
+            <div style={tableCellStyles.priceTag}>
+                <DollarOutlined />
+                <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
+                  {record.prix || 'N/A'} DH
+                </span>
+              </div>
+          </div>
         );
       },
     }, 
@@ -733,7 +818,11 @@ const handleConfirmAssignLivreur = async () => {
       dataIndex: 'nature_produit',
       key: 'nature_produit',
       width: 100,
-      render: (text) => text || 'N/A',
+      render: (text) => (
+        <Tag icon={<TagOutlined />} color="cyan" style={{ padding: '6px 12px', borderRadius: '4px' }}>
+          {text || 'N/A'}
+        </Tag>
+      ),
     },
     // Only append the admin columns if user is an admin
     ...(user?.role === 'admin' ? adminColumns : []),
@@ -897,18 +986,6 @@ const handleConfirmAssignLivreur = async () => {
           )}
           {user?.role === 'admin' && (
             <>
-              <Tooltip title="Colis est déjà payant">
-                <Button 
-                  type="primary" 
-                  onClick={() => dispatch(setColisPayant(record._id))} 
-                  style={{
-                    backgroundColor: 'green',
-                    borderColor: 'green',
-                    color: '#fff'
-                  }}
-                  icon={<MdOutlinePayment />}
-                />
-              </Tooltip>
                {/* New "Assign Livreur" Button */}
             <Tooltip title="Assign Livreur">
               <Button 
