@@ -2,42 +2,30 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import Title from '../../../global/Title';
-import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, message, Modal, Form, Tag, Typography } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
-import { MdDeliveryDining } from "react-icons/md";
-import { BsUpcScan } from "react-icons/bs";
+import { MdDeliveryDining } from 'react-icons/md';
+import { IoMdRefresh } from 'react-icons/io';
+import { FaBoxesStacked } from 'react-icons/fa6';
+import { IoQrCodeSharp } from 'react-icons/io5';
 import { useDispatch, useSelector } from 'react-redux';
-import { getColis, getColisForClient, getColisForLivreur } from '../../../../redux/apiCalls/colisApiCalls';
-import axios from 'axios';
-import { FaBoxesStacked } from "react-icons/fa6";
-import { IoQrCodeSharp } from "react-icons/io5";
-import { toast } from 'react-toastify';
+import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
+import request from '../../../../utils/request';
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
   SyncOutlined,
-} from '@ant-design/icons';
-import { Tag } from 'antd';
-import request from '../../../../utils/request';
-import { IoMdRefresh } from 'react-icons/io';
-import { 
-  PhoneOutlined, 
-  EnvironmentOutlined, 
-  ShopOutlined,
-  CalendarOutlined,
   EditOutlined,
   DollarOutlined,
-  TagOutlined,
   CopyOutlined,
-  CheckOutlined
+  CheckOutlined,
 } from '@ant-design/icons';
-import { Typography } from 'antd';
+import { PhoneOutlined, EnvironmentOutlined } from '@ant-design/icons';
 
-// Add tableCellStyles after imports
+const { Text } = Typography;
+
 const getTableCellStyles = (theme) => ({
   codeCell: {
     background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
@@ -61,7 +49,10 @@ const getTableCellStyles = (theme) => ({
     background: theme === 'dark' ? '#1f1f1f' : '#fff',
     padding: '12px',
     borderRadius: '8px',
-    boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+    boxShadow:
+      theme === 'dark'
+        ? '0 2px 4px rgba(0,0,0,0.2)'
+        : '0 2px 4px rgba(0,0,0,0.05)',
   },
   priceTag: {
     background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
@@ -91,7 +82,7 @@ const getTableCellStyles = (theme) => ({
     alignItems: 'center',
     gap: '6px',
     fontWeight: '500',
-  }
+  },
 });
 
 function ColisExpide({ search }) {
@@ -99,14 +90,14 @@ function ColisExpide({ search }) {
   const tableCellStyles = getTableCellStyles(theme);
   const [data, setData] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentColis, setCurrentColis] = useState(null);
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const success = (text) => {
     messageApi.open({
@@ -129,23 +120,22 @@ function ColisExpide({ search }) {
     });
   };
 
-  // Get Colis Data for the 'Expediée' status
+  // Retrieve Colis Data for "Expediée" status
   const { colisData, user, store } = useSelector((state) => ({
     colisData: state.colis.colis || [],
     user: state.auth.user,
     store: state.auth.store,
   }));
 
-  const getDataColis = ()=>{
+  const getDataColis = () => {
     if (user?.role) {
-      const queryParams = {
-        statut: "Expediée",
-      };
+      const queryParams = { statut: 'Expediée' };
       dispatch(getColis(queryParams));
     }
-  }
+  };
+
   useEffect(() => {
-    getDataColis()
+    getDataColis();
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
 
@@ -153,34 +143,41 @@ function ColisExpide({ search }) {
     setData(colisData);
   }, [colisData]);
 
-  // Handle Update of Colis Status to "Reçu" for selected colis
+  // Update status to "Reçu" for selected colis
   const handleReçu = async () => {
     if (selectedRowKeys.length > 0) {
       setLoading(true);
       try {
-        // Send a PUT request to update the status of selected colis
-        const response = await request.put('/api/colis/statu/update', {
+        await request.put('/api/colis/statu/update', {
           colisCodes: selectedRowKeys,
-          new_status: 'Reçu'
+          new_status: 'Reçu',
         });
         setLoading(false);
-        success(`${selectedRowKeys.length} colis marqués comme reçus avec succès.`);
+        success(
+          `${selectedRowKeys.length} colis marqués comme reçus avec succès.`
+        );
         setSelectedRowKeys([]);
-        // Update the local data to remove the updated colis
-        const newData = data.filter(item => !selectedRowKeys.includes(item.code_suivi));
+        const newData = data.filter(
+          (item) => !selectedRowKeys.includes(item.code_suivi)
+        );
         setData(newData);
       } catch (err) {
         setLoading(false);
-        error("Erreur lors de la mise à jour des colis.");
+        error('Erreur lors de la mise à jour des colis.');
       }
     } else {
-      warning("Veuillez sélectionner au moins un colis.");
+      warning('Veuillez sélectionner au moins un colis.');
     }
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    return `${String(date.getDate()).padStart(2, '0')}/${String(
+      date.getMonth() + 1
+    ).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(
+      2,
+      '0'
+    )}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
   const columns = [
@@ -188,10 +185,10 @@ function ColisExpide({ search }) {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 180,
+      width: 250,
       render: (text) => (
         <div style={tableCellStyles.codeCell}>
-          <Typography.Text
+          <Text
             copyable={{
               tooltips: ['Copier', 'Copié!'],
               icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
@@ -199,7 +196,7 @@ function ColisExpide({ search }) {
             style={{ fontWeight: '600', fontSize: '14px', color: '#1677ff' }}
           >
             {text}
-          </Typography.Text>
+          </Text>
         </div>
       ),
     },
@@ -207,11 +204,14 @@ function ColisExpide({ search }) {
       title: 'Livreur',
       dataIndex: 'livreur',
       key: 'livreur',
+      width: 300,
       render: (text, record) => (
         <div style={tableCellStyles.businessBadge}>
           <MdDeliveryDining style={{ fontSize: '16px', color: '#1677ff' }} />
           {record.livreur ? (
-            <Typography.Text strong>{record.livreur.nom} - {record.livreur.tele}</Typography.Text>
+            <Text strong>
+              {record.livreur.nom} - {record.livreur.tele}
+            </Text>
           ) : (
             <Tag icon={<ClockCircleOutlined />} color="default">
               Operation de Ramassage
@@ -224,7 +224,7 @@ function ColisExpide({ search }) {
       title: 'Date',
       dataIndex: 'updatedAt',
       key: 'updatedAt',
-      width: 200,
+      width: 250,
       render: (text) => (
         <div style={tableCellStyles.dateCell}>
           <div style={tableCellStyles.dateItem}>
@@ -238,39 +238,61 @@ function ColisExpide({ search }) {
       title: 'Destinataire',
       dataIndex: 'nom',
       key: 'nom',
+      width: 250,
+
       render: (text, record) => (
         <div style={tableCellStyles.destinataireCard}>
-          <Typography.Text strong style={{ fontSize: '15px', marginBottom: '8px' }}>
+          <Text strong style={{ fontSize: '15px', marginBottom: '8px' }}>
             {text}
-          </Typography.Text>
+          </Text>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Tag icon={<PhoneOutlined />} color="blue">{record.tele}</Tag>
-            <Tag icon={<EnvironmentOutlined />} color="orange">{record.ville.nom}</Tag>
+            <Tag icon={<PhoneOutlined />} color="blue">
+              {record.tele}
+            </Tag>
+            <Tag icon={<EnvironmentOutlined />} color="orange">
+              {record.ville.nom}
+            </Tag>
           </div>
         </div>
       ),
     },
-    { title: 'État', dataIndex: 'etat', key: 'etat', render: (text, record) => (
-      record.etat ? (
-        <Tag color="success" icon={<CheckCircleOutlined />}>Payée</Tag>
-      ) : (
-        <Tag color="error" icon={<CloseCircleOutlined />}>Non Payée</Tag>
-      )
-    )},
-    { title: 'Statut', dataIndex: 'statut', key: 'statut', render: (text, record) => (
-      <Tag icon={<SyncOutlined spin />} color="processing">
-        {record.statut}
-      </Tag>
-    )},
+    {
+      title: 'État',
+      dataIndex: 'etat',
+      width: 150,
+      key: 'etat',
+      render: (text, record) =>
+        record.etat ? (
+          <Tag color="success" icon={<CheckCircleOutlined />}>
+            Payée
+          </Tag>
+        ) : (
+          <Tag color="error" icon={<CloseCircleOutlined />}>
+            Non Payée
+          </Tag>
+        ),
+    },
+    {
+      title: 'Statut',
+      dataIndex: 'statut',
+      key: 'statut',
+      render: (text, record) => (
+        <Tag icon={<SyncOutlined spin />} color="processing">
+          {record.statut}
+        </Tag>
+      ),
+    },
     {
       title: 'Prix',
       dataIndex: 'prix',
       key: 'prix',
-      width: 140,
+      width: 250,
       render: (text) => (
         <div style={tableCellStyles.priceTag}>
           <DollarOutlined />
-          <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
+          <span
+            style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}
+          >
             {text || 'N/A'} DH
           </span>
         </div>
@@ -286,25 +308,49 @@ function ColisExpide({ search }) {
   };
 
   return (
-    <div className='page-dashboard'>
+    <div className="page-dashboard">
       <Menubar />
       <main className="page-main">
         <Topbar />
-        <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
-          <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
+        <div
+          className="page-content"
+          style={{
+            backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
+            color: theme === 'dark' ? '#fff' : '#002242',
+          }}
+        >
+          <div
+            className="content"
+            style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}
+          >
             <h4>Colis Expidée</h4>
             <div className="bar-action-data">
-              <Button icon={<IoMdRefresh />} type="primary" onClick={()=>getDataColis()} >Refresh </Button>
-              <Button 
-                icon={<FaBoxesStacked/>} 
-                type="primary" 
-                onClick={handleReçu} 
+              <Button
+                icon={<IoMdRefresh />}
+                type="primary"
+                onClick={getDataColis}
+              >
+                Refresh
+              </Button>
+              <Button
+                icon={<FaBoxesStacked />}
+                type="primary"
+                onClick={handleReçu}
                 loading={loading}
                 disabled={selectedRowKeys.length === 0}
               >
                 Marquer comme Reçu ({selectedRowKeys.length})
               </Button>
-              <Button icon={<IoQrCodeSharp/>} type="primary" onClick={()=>navigate("/dashboard/scan/statu/Reçu")} loading={loading}>Scan</Button>
+              <Button
+                icon={<IoQrCodeSharp />}
+                type="primary"
+                onClick={() =>
+                  navigate('/dashboard/scan/statu/Reçu')
+                }
+                loading={loading}
+              >
+                Scan
+              </Button>
             </div>
             <TableDashboard
               column={columns}
@@ -314,7 +360,7 @@ function ColisExpide({ search }) {
               theme={theme}
               onSelectChange={setSelectedRowKeys}
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.08)' :'#fff',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',

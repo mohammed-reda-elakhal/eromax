@@ -17,10 +17,12 @@ import {
   Divider,
   Modal,
   Input,
-  Card, // Import Input for search and facture lookup
+  Card,
+  Space, // Import Input for search and facture lookup
 } from 'antd';
+import { AiFillProduct } from "react-icons/ai";
 import { FcDocument } from "react-icons/fc";
-import { FaNoteSticky } from "react-icons/fa6";
+import { FaNoteSticky, FaUser } from "react-icons/fa6";
 import { 
   FaWhatsapp, 
   FaPrint, 
@@ -37,17 +39,21 @@ import {
   FaHeart,
   FaClock
 } from 'react-icons/fa';
-import { TbPhoneCall, TbTruckDelivery } from 'react-icons/tb';
+import { TbPhoneCall, TbShieldCode, TbTruckDelivery } from 'react-icons/tb';
 import { 
+  CalendarOutlined,
   CheckCircleOutlined, 
   CheckOutlined, 
   ClockCircleOutlined, 
   CloseCircleOutlined, 
   CopyOutlined, 
   DollarOutlined, 
+  EditOutlined, 
+  EnvironmentOutlined, 
   InfoCircleOutlined, 
   LoadingOutlined, 
   PhoneOutlined,
+  ShopOutlined,
   TagOutlined
 } from '@ant-design/icons';
 import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md';
@@ -90,9 +96,13 @@ import useColisFilters from '../hooks/useColisFilters';
 // Import global components
 import TicketColis from '../../tickets/TicketColis';
 import TrackingColis from '../../../global/TrackingColis '; // Removed trailing space
-import { IoDocumentAttachSharp } from 'react-icons/io5';
+import { IoDocumentAttachSharp, IoStorefront } from 'react-icons/io5';
 import { createNoteColis, getNoteColisById, updateAdminNote, updateClientNote, updateLivreurNote } from '../../../../redux/apiCalls/noteColisApiCalls';
 import { noteColisActions } from '../../../../redux/slices/noteColisSlice';
+import { RiUserLocationFill } from 'react-icons/ri';
+import { HiStatusOnline } from 'react-icons/hi';
+import { BsCalendar2DateFill } from 'react-icons/bs';
+import { IoMdOptions } from 'react-icons/io';
 
 
 // Lazy load components for better performance
@@ -589,23 +599,41 @@ const handleConfirmAssignLivreur = async () => {
   // Define adminColumns
   const adminColumns = useMemo(() => [
     {
-      title: 'Business',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <IoStorefront /> Store
+          </div>,
       dataIndex: 'store',
       key: 'store',
+      width: 200,
       render: (text, record) => (
-        <strong>{record.store?.storeName || 'N/A'}</strong>
+        <div style={tableCellStyles.businessBadge}>
+          <ShopOutlined />
+          <Typography.Text strong>{record.store?.storeName}</Typography.Text>
+        </div>
       ),
     },
     {
-      title: 'Livreur',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MdDeliveryDining /> Livreur
+          </div>,
       dataIndex: ['livreur', 'nom'],
       key: 'livreur_nom',
+      width: 200,
+
       render: (text, record) => (
-        <>
-          {record.livreur ? `${record.livreur.nom} ${record.livreur.prenom}` : 'Non Assigné'}
-          {record.expedation_type === 'ameex' ? ' ameex' : ''}
-        </>
-      ),
+              <div style={tableCellStyles.businessBadge}>
+                <MdDeliveryDining style={{ fontSize: '16px' }} />
+                {record.livreur ? (
+                  <Typography.Text strong>{record.livreur.nom} </Typography.Text>
+                ) : (
+                  <Tag icon={<ClockCircleOutlined />} color="default">
+                    Operation de Ramassage
+                  </Tag>
+                )}
+              </div>
+            ),
     },
   ], []);
 
@@ -672,10 +700,13 @@ const handleConfirmAssignLivreur = async () => {
   // Define columns for the table
   const columnsColis = useMemo(() => [
     {
-      title: 'Code Suivi',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <TbShieldCode /> Code
+          </div>,
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 200,
+      width: 300,
       render: (text, record) => (
         <>
           {record.replacedColis ? 
@@ -744,9 +775,13 @@ const handleConfirmAssignLivreur = async () => {
       ),
     },
     {
-      title: 'Destinataire',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FaUser /> Distinataire
+          </div>,
       dataIndex: 'tele',
       key: 'tele',
+      width:250,
       render: (text , record) => {
         // Validate phone number
         const phoneRegex = /^0[67]\d{8}$/;
@@ -798,26 +833,39 @@ const handleConfirmAssignLivreur = async () => {
       },
     }, 
     {
-      title: 'Adresse',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FaMapMarkerAlt /> adresse
+          </div>,
       dataIndex: 'adresse',
       key: 'adresse',
-      width: 150,
+      width: 300,
       render : (text , record) =>{
         return(
           <>
-            <strong>{record?.ville?.nom || 'N/A'}</strong>
-            <br />
-            <span>{text}</span>
+            <div style={tableCellStyles.dateCell}>
+              <div style={tableCellStyles.dateItem}>
+                <EnvironmentOutlined style={{ color: '#1677ff' }} />
+                <span>Ville: {record?.ville?.nom}</span>
+              </div>
+              <div style={tableCellStyles.dateItem}>
+                <RiUserLocationFill style={{ color: '#52c41a' }} />
+                <span>{text}</span>
+              </div>
+            </div>
           </>
         )
       }
     },
    
     {
-      title: 'Nature de Produit',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AiFillProduct /> Produit
+          </div>,
       dataIndex: 'nature_produit',
       key: 'nature_produit',
-      width: 100,
+      width: 180,
       render: (text) => (
         <Tag icon={<TagOutlined />} color="cyan" style={{ padding: '6px 12px', borderRadius: '4px' }}>
           {text || 'N/A'}
@@ -827,9 +875,13 @@ const handleConfirmAssignLivreur = async () => {
     // Only append the admin columns if user is an admin
     ...(user?.role === 'admin' ? adminColumns : []),
     {
-      title: 'Statut',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <HiStatusOnline /> Status
+          </div>,
       dataIndex: 'statut',
       key: 'statut',
+      width:250,
       render: (status, record) => {
         const { color, icon } = statusBadgeConfig[status] || { color: 'default', icon: <InfoCircleOutlined /> };
     
@@ -859,15 +911,15 @@ const handleConfirmAssignLivreur = async () => {
         return (
           <div>
             {(user?.role === 'admin' || user?.role === 'livreur')  ? (
-              <Badge dot color={color} style={{ cursor: 'pointer' }}>
+              <Tag dot color={color} style={{ cursor: 'pointer' }}>
                 <span onClick={() => handleStatusClick(record)} style={{ cursor: "pointer" }}>
                   {content}
                 </span>
-              </Badge>
+              </Tag>
             ) : (
-              <Badge color={color}>
+              <Tag color={color}>
                 {content}
-              </Badge>
+              </Tag>
             )}
     
             {/* Conditionally render the date below the status */}
@@ -892,23 +944,32 @@ const handleConfirmAssignLivreur = async () => {
       },
     },
     {
-      title: 'Date',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BsCalendar2DateFill /> Date
+          </div>,
       dataIndex: 'date',
       key: 'date',
       width: 200,
-      render : (text , record) =>{
-        return(
-          <>
-            <strong>Créer en : </strong><span>{formatDate(record?.createdAt)}</span>
-            <br />
-            <strong>Modifier en : </strong><span>{formatDate(record?.updatedAt)}</span>          
-          </>
-        )
-      },
+      render: (text, record) => (
+        <div style={tableCellStyles.dateCell}>
+          <div style={tableCellStyles.dateItem}>
+            <CalendarOutlined style={{ color: '#1677ff' }} />
+            <span>Créé: {formatDate(record?.createdAt)}</span>
+          </div>
+          <div style={tableCellStyles.dateItem}>
+            <EditOutlined style={{ color: '#52c41a' }} />
+            <span>Modifié: {formatDate(record?.updatedAt)}</span>
+          </div>
+        </div>
+      ),
     },
    
     {
-      title: 'Options',
+      title: 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <IoMdOptions /> Options
+          </div>,
       render: (text, record) => (
         <div className="options-actions" style={{ display: 'flex', gap: '10px' }}>
           <Tooltip title="Plus d'information">

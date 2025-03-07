@@ -200,7 +200,7 @@ function ColisRamasse({ search }) {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 180,
+      width: 200,
       render: (text) => (
         <div style={tableCellStyles.codeCell}>
           <Typography.Text

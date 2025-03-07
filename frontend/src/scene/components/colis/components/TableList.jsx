@@ -31,6 +31,12 @@ const TableList = React.memo(({
       theme={theme}
       rowSelection={rowSelection}
       loading={loading}
+      style={{
+        backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.08)' :'#fff',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+      }}
     />
   );
 });
