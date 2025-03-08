@@ -278,4 +278,49 @@ exports.colisCountUser = async (req, res) => {
   }
 };
 
+// Controller: getColisReporteeProgramméeCodes
+exports.getColisReporteeProgramméeCodes = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userStore = req.user.store;
 
+    // Build base condition based on user role
+    let baseCondition = {};
+    if (userRole === "admin") {
+      baseCondition = {}; // Admin has no restrictions
+    } else if (userRole === "client") {
+      baseCondition = { store: new mongoose.Types.ObjectId(userStore) }; // Client restricted by store
+    } else if (userRole === "livreur") {
+      baseCondition = { livreur: new mongoose.Types.ObjectId(userId) }; // Livreur restricted by their ID
+    } else {
+      return res.status(403).json({ 
+        message: "You do not have permission to access these statistics." 
+      });
+    }
+
+    // Condition to fetch colis with statut "Reportée" or "Programmée"
+    const statusCondition = { statut: { $in: ["Reporté", "Programmée"] } };
+
+    // Merge base condition with status condition
+    const queryCondition = { ...baseCondition, ...statusCondition };
+
+    // Execute both queries concurrently:
+    const [count, codes] = await Promise.all([
+      Colis.countDocuments(queryCondition),
+      Colis.find(queryCondition).select('code_suivi -_id')
+    ]);
+
+    return res.status(200).json({
+      message: "List of codes and count retrieved successfully.",
+      count,
+      codes,
+      userRole,
+    });
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({
+      message: "Server error while retrieving colis statistics."
+    });
+  }
+};

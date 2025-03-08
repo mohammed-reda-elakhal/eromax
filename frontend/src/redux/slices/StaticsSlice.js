@@ -10,7 +10,9 @@ const initialState={
     topClient: [],
     statisticColis : [] ,
     argentStatistic : [] ,
-    villeStatistic : []
+    villeStatistic : [],
+      // New state property for reportée/programmée data:
+    colisReporteeProg: { count: 0, codes: [] }
 
 };
 const staticsSlice = createSlice({
@@ -51,6 +53,10 @@ const staticsSlice = createSlice({
         },
         setTopVille(state,action){
             state.topVilles=action.payload
+        },
+          // New reducer to set the reportée/programmée data
+        setColisReporteeProgData(state, action) {
+            state.colisReporteeProg = action.payload;
         }
     }
 
