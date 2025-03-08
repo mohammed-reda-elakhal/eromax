@@ -212,3 +212,29 @@ export function getTopVille(store) {
         }
     };
 }
+
+export function getStatisticColisReporteeProg() {
+    return async (dispatch) => {
+        try {
+            // Get token from localStorage
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentification token est manquant');
+                return;
+            }
+            // Set up headers with the token
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            };
+            // Call the endpoint that returns both count and list of code_suivi
+            const { data } = await request.get(`/api/statistic/colis/reporte`, config);
+            // data should be in the format { count: <number>, codes: [ { code_suivi: ... }, ... ] }
+            dispatch(staticsActions.setColisReporteeProgData(data));
+        } catch (error) {
+            console.error(error.message || "Failed to fetch reportée/programmée data");
+        }
+    };
+}

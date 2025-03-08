@@ -103,6 +103,7 @@ import { RiUserLocationFill } from 'react-icons/ri';
 import { HiStatusOnline } from 'react-icons/hi';
 import { BsCalendar2DateFill } from 'react-icons/bs';
 import { IoMdOptions } from 'react-icons/io';
+import { getStatisticColisReporteeProg } from '../../../../redux/apiCalls/staticsApiCalls';
 
 
 // Lazy load components for better performance
@@ -232,6 +233,7 @@ const [editingAdmin, setEditingAdmin] = useState(false);
     villes, 
     loading , 
     selectedNoteColis,
+    colisReporteeProg
   } = useSelector((state) => ({
     colisData: state.colis, // Extract the entire 'colis' slice
     livreurList: state.livreur.livreurList || [], // Ensure it's an array
@@ -241,6 +243,7 @@ const [editingAdmin, setEditingAdmin] = useState(false);
     villes: state.ville.villes || [],
     loading: state.colis.loading, // Extract loading from Redux
     selectedNoteColis : state.noteColis.selectedNoteColis,
+    colisReporteeProg : state.statics.colisReporteeProg,
   }));
 
 
@@ -350,6 +353,7 @@ const allowedStatuses = useMemo(() => {
     dispatch(getLivreurList()); // Ensure livreurList is fetched
     dispatch(getStoreList());
     dispatch(getAllVilles());
+    
   }, [dispatch, getDataColis]);
 
   // Update state when colisData changes
