@@ -11,6 +11,7 @@ import '../colis.css';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getStatisticColisReporteeProg } from '../../../../redux/apiCalls/staticsApiCalls';
+import ColisReporteProgramme from '../modals/ColisReporteProgramme';
 
 function ColisList({ search }) {
   const { user } = useSelector((state) => state.auth);
@@ -137,61 +138,11 @@ function ColisList({ search }) {
           >
             <div style={{ display: 'flex', alignItems: 'start', flexDirection: "column", marginBottom: "8px" }}>
               <h4>List Colis</h4>
-              <Badge count={colisReporteeProg.count}>
-                <Tag style={{ cursor: "pointer" }} color="blue" onClick={showModal}>
-                  <Badge status="processing" text="Colis Reportée ou Programmée" />
-                </Tag>
-              </Badge>
+              <ColisReporteProgramme/>
             </div>
             <ColisTable theme={theme} darkStyle={darkStyle} search={search} />
           </div>
         </div>
-
-        {/* Modal displaying the codes list with an improved design */}
-        <Modal
-          title="List of Colis Codes"
-          visible={isModalVisible}
-          onOk={handleOk}
-          onCancel={handleCancel}
-          footer={[
-            <Button key="close" onClick={handleCancel}>
-              Close
-            </Button>
-          ]}
-        >
-          {colisReporteeProg.codes && colisReporteeProg.codes.length > 0 ? (
-            <List
-              itemLayout="horizontal"
-              dataSource={colisReporteeProg.codes}
-              renderItem={(item) => (
-                <List.Item
-                  style={{
-                    background: theme === 'dark' ? '#141414' : '#f0f2f5',
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '5px',
-                    marginBottom: '8px',
-                    padding: '10px',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Typography.Text
-                    style={{ cursor: 'pointer', fontSize: '16px', marginRight: '10px' }}
-                    onClick={() => handleCopyCode(item.code_suivi)}
-                  >
-                    {item.code_suivi}
-                  </Typography.Text>
-                  <CopyOutlined
-                    style={{ fontSize: '16px', color: '#1890ff', cursor: 'pointer' }}
-                    onClick={() => handleCopyCode(item.code_suivi)}
-                  />
-                </List.Item>
-              )}
-            />
-          ) : (
-            <p>No codes available.</p>
-          )}
-        </Modal>
       </main>
     </div>
   );

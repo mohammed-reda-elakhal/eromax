@@ -11,6 +11,7 @@ import PromotionStore from '../components/PromotionStore';
 import Mission from '../components/Mission';
 import { useSelector } from 'react-redux';
 import Promotions from '../../promotion/page/Promotion';
+import ColisReporteProgramme from '../../colis/modals/ColisReporteProgramme';
 
 
 function HomeDashboard() {
@@ -38,6 +39,7 @@ function HomeDashboard() {
                     >
                         <Notification theme={theme}/>
                         <PromotionStore />
+                        <ColisReporteProgramme />
                         {
                             user?.role ==="admin" || user?.role ==="livreur" ? 
                             <Mission theme={theme}/>
