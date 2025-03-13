@@ -5,11 +5,12 @@ import Menubar from '../../global/Menubar';
 import Topbar from '../../global/Topbar';
 import Title from '../../global/Title';
 import { Row, Col, Card, message, Button } from 'antd';
-import { MdOutlineMonetizationOn, MdContentCopy, MdPayments } from 'react-icons/md';
+import { MdOutlineMonetizationOn, MdContentCopy, MdPayments, MdPriceChange } from 'react-icons/md';
 import { useSelector } from 'react-redux';
 import FixeCRBTModal from './modals/FixeCRBTModal';  
 import CopieColisModal from './modals/CopieColisModal';
 import PretPayerModal from './modals/PretPayerModal';
+import TarifAjouterModal from './modals/TarifAjouterModal';
 
 const Tools = () => {
   const { theme } = useContext(ThemeContext);
@@ -18,6 +19,7 @@ const Tools = () => {
   const [isFixeCRBTModalVisible, setIsFixeCRBTModalVisible] = useState(false);
   const [isCopieColisModalVisible, setIsCopieColisModalVisible] = useState(false);
   const [isPretPayerModalVisible, setIsPretPayerModalVisible] = useState(false);
+  const [isTarifAjouterModalVisible, setIsTarifAjouterModalVisible] = useState(false);
 
   const toolsItems = [
     {
@@ -44,6 +46,14 @@ const Tools = () => {
       bgColor: theme === 'dark' ? '#1f1f1f' : '#f3e5f5',
       buttonColor: theme === 'dark' ? '#9c27b0' : '#673ab7'
     },
+    {
+      id: 4,
+      name: 'Prix Ajouter',
+      description: 'View and update additional pricing for packages. Enter the tracking code to manage extra fees.',
+      icon: <MdPriceChange style={{ fontSize: '40px', color: theme === 'dark' ? '#ff6b6b' : '#f50057' }} />,
+      bgColor: theme === 'dark' ? '#1f1f1f' : '#fce4ec',
+      buttonColor: theme === 'dark' ? '#ff6b6b' : '#f50057'
+    },
   ];
 
   const handleToolClick = (tool) => {
@@ -53,6 +63,8 @@ const Tools = () => {
       setIsCopieColisModalVisible(true);
     } else if (tool.name === 'Prêt à Payer') {
       setIsPretPayerModalVisible(true);
+    } else if (tool.name === 'Prix Ajouter') {
+      setIsTarifAjouterModalVisible(true);
     } else {
       message.info(`Clicked on ${tool.name}`);
     }
@@ -168,6 +180,10 @@ const Tools = () => {
       <PretPayerModal
         visible={isPretPayerModalVisible}
         onCancel={() => setIsPretPayerModalVisible(false)}
+      />
+      <TarifAjouterModal
+        visible={isTarifAjouterModalVisible}
+        onCancel={() => setIsTarifAjouterModalVisible(false)}
       />
     </div>
   );

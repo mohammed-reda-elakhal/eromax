@@ -83,6 +83,9 @@ function ScanRecherche() {
     "Reporté",
     "Confirmé Par Livreur",
     "Endomagé",
+    "Prét Pour Expédition",
+    "Manque de stock",
+    "Intéressé"
   ];
 
   // Référence pour empêcher le traitement multiple des scans

@@ -852,3 +852,88 @@ export function fixCrbtForColis(code_suivi) {
   };
 }
 
+/**
+ * Get tarif_ajouter information for a specific colis
+ * @param {string} identifier - The colis ID or code_suivi
+ */
+export function getTarifAjouter(identifier) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Authentication token is missing");
+        return;
+      }
+
+      dispatch(colisActions.setTarifAjouterLoading(true));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+
+      const { data } = await request.get(`/api/colis/tarif/${identifier}`, config);
+
+      dispatch(colisActions.setSelectedTarifAjouter(data.data.tarif_ajouter));
+      return data.data;
+
+    } catch (error) {
+      console.error("Failed to fetch tarif_ajouter:", error);
+      dispatch(colisActions.setTarifAjouterError(error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || "Failed to fetch tarif_ajouter");
+    } finally {
+      dispatch(colisActions.setTarifAjouterLoading(false));
+    }
+  };
+}
+
+/**
+ * Update tarif_ajouter for a specific colis
+ * @param {string} identifier - The colis ID or code_suivi
+ * @param {Object} tarifData - The tarif_ajouter data to update
+ * @param {number} tarifData.value - The value to set
+ * @param {string} tarifData.description - The description to set
+ */
+export function updateTarifAjouter(identifier, tarifData) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Authentication token is missing");
+        return;
+      }
+
+      dispatch(colisActions.setTarifAjouterLoading(true));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+
+      const { data } = await request.put(
+        `/api/colis/tarif/${identifier}`,
+        {
+          value: tarifData.value,
+          description: tarifData.description
+        },
+        config
+      );
+
+      dispatch(colisActions.updateTarifAjouter(data.data));
+      toast.success("Tarif ajouter updated successfully");
+      return data.data;
+
+    } catch (error) {
+      console.error("Failed to update tarif_ajouter:", error);
+      dispatch(colisActions.setTarifAjouterError(error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || "Failed to update tarif_ajouter");
+    } finally {
+      dispatch(colisActions.setTarifAjouterLoading(false));
+    }
+  };
+}
+

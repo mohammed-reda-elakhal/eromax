@@ -37,6 +37,10 @@ const colisSlice = createSlice({
       loading: false,
       error: null,
     },
+    // Add new state for tarif_ajouter
+    selectedTarifAjouter: null,
+    tarifAjouterLoading: false,
+    tarifAjouterError: null,
   },
   reducers: {
     setColis: (state, action) => {
@@ -163,6 +167,39 @@ const colisSlice = createSlice({
     fetchProduitsFailure(state, action) {
       state.produits.error = action.payload;
       state.produits.loading = false;
+    },
+    // New reducers for tarif_ajouter
+    setTarifAjouterLoading: (state, action) => {
+      state.tarifAjouterLoading = action.payload;
+    },
+    setTarifAjouterError: (state, action) => {
+      state.tarifAjouterError = action.payload;
+      state.tarifAjouterLoading = false;
+    },
+    setSelectedTarifAjouter: (state, action) => {
+      state.selectedTarifAjouter = action.payload;
+      state.tarifAjouterLoading = false;
+      state.tarifAjouterError = null;
+    },
+    updateTarifAjouter: (state, action) => {
+      const updatedColis = action.payload;
+      // Update in colis array
+      const index = state.colis.findIndex((colis) => colis._id === updatedColis._id);
+      if (index !== -1) {
+        state.colis[index] = {
+          ...state.colis[index],
+          tarif_ajouter: updatedColis.tarif_ajouter
+        };
+      }
+      // Update in selectedColis if it matches
+      if (state.selectedColis && state.selectedColis._id === updatedColis._id) {
+        state.selectedColis = {
+          ...state.selectedColis,
+          tarif_ajouter: updatedColis.tarif_ajouter
+        };
+      }
+      // Update selectedTarifAjouter
+      state.selectedTarifAjouter = updatedColis.tarif_ajouter;
     },
   },
 });

@@ -61,6 +61,9 @@ const updateSuiviColis = asyncHandler(async (req, res) => {
     "Confirmé Par Livreur",
     "Endomagé",
     "Préparer pour Roteur",
+    "Prét Pour Expédition",
+    "Manque de stock",
+    "Intéressé"
   ];
 
   // Validate inputs
@@ -262,6 +265,9 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
       "Reporté",
       "Confirmé Par Livreur",
       "Endomagé",
+      "Prét Pour Expédition",
+      "Manque de stock",
+      "Intéressé"
   ];
 
   // Validate inputs

@@ -94,19 +94,9 @@ router.route("/programme").post(colisController.colisProgramme);//move to client
 router.route("/annule").post(colisController.annulerColis);//move to client route pour executer
 router.route("/refuser").post(colisController.refuserColis);//move to client route pour executer
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Routes for managing tarif_ajouter
+router.route('/tarif/:identifier')
+    .get(verifyTokenAndAdmin, colisController.getTarifAjouter)
+    .put(verifyTokenAndAdmin, colisController.updateTarifAjouter);
 
 module.exports= router;

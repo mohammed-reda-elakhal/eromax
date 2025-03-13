@@ -2404,3 +2404,157 @@ exports.fixCrbtForColis = async (req, res) => {
     });
   }
 };
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Update tarif_ajouter for a specific colis
+ * @route    /api/colis/tarif/:identifier
+ * @method   PUT
+ * @access   private (only admin)
+ * -------------------------------------------------------------------
+ **/
+exports.updateTarifAjouter = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    const { value, description } = req.body;
+
+    // Validate the input
+    if (typeof value !== 'number') {
+      return res.status(400).json({ message: "Value must be a number" });
+    }
+
+    // Find the colis either by ID or code_suivi and populate ville
+    let colis;
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+      colis = await Colis.findById(identifier).populate('ville');
+    } else {
+      colis = await Colis.findOne({ code_suivi: identifier }).populate('ville');
+    }
+
+    if (!colis) {
+      return res.status(404).json({ message: "Colis not found" });
+    }
+
+    // Update the tarif_ajouter field
+    colis.tarif_ajouter = {
+      value: value,
+      description: description || '' // Use empty string if description is not provided
+    };
+
+    // Check if colis has a final status and recalculate CRBT if needed
+    if (colis.statu_final === "Livrée" || colis.statu_final === "Refusée") {
+      // Ensure CRBT object exists
+      if (!colis.crbt) {
+        colis.crbt = {
+          prix_colis: 0,
+          tarif_livraison: 0,
+          tarif_refuse: 0,
+          tarif_fragile: 0,
+          tarif_supplementaire: 0,
+          prix_a_payant: 0,
+          total_tarif: 0
+        };
+      }
+
+      // Get existing values
+      let prixColis = colis.crbt.prix_colis || colis.prix || 0;
+      let tarifLivraison = colis.crbt.tarif_livraison || 0;
+      let tarifRefuse = colis.crbt.tarif_refuse || 0;
+      let tarifFragile = colis.is_fragile ? 5 : 0;
+      
+      // Update supplementary tarif with new value
+      let tarifSupplementaire = value;
+
+      // Calculate totals based on status
+      let totalTarif, prixAPayant;
+
+      if (colis.statu_final === "Refusée") {
+        // For refused colis
+        tarifLivraison = 0;
+        if (tarifRefuse === 0 && colis.ville && colis.ville.tarif_refus) {
+          tarifRefuse = colis.ville.tarif_refus;
+        }
+        totalTarif = tarifLivraison + tarifRefuse + tarifFragile + tarifSupplementaire;
+        prixAPayant = -totalTarif;
+      } else {
+        // For delivered colis
+        if (tarifLivraison === 0 && colis.ville && colis.ville.tarif) {
+          tarifLivraison = colis.ville.tarif;
+        }
+        totalTarif = tarifLivraison + tarifRefuse + tarifFragile + tarifSupplementaire;
+        prixAPayant = prixColis - totalTarif;
+      }
+
+      // Update CRBT fields
+      colis.crbt = {
+        ...colis.crbt,
+        prix_colis: prixColis,
+        tarif_livraison: tarifLivraison,
+        tarif_refuse: tarifRefuse,
+        tarif_fragile: tarifFragile,
+        tarif_supplementaire: tarifSupplementaire,
+        total_tarif: totalTarif,
+        prix_a_payant: prixAPayant
+      };
+    }
+
+    // Save the updated colis
+    await colis.save();
+
+    // Return the updated colis
+    res.status(200).json({
+      message: "Tarif ajouter updated successfully",
+      data: colis
+    });
+
+  } catch (error) {
+    console.error("Error updating tarif_ajouter:", error);
+    res.status(500).json({
+      message: "Server error while updating tarif_ajouter",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Get tarif_ajouter for a specific colis
+ * @route    /api/colis/tarif/:identifier
+ * @method   GET
+ * @access   private (only admin)
+ * -------------------------------------------------------------------
+ **/
+exports.getTarifAjouter = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+
+    // Find the colis either by ID or code_suivi
+    let colis;
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+      colis = await Colis.findById(identifier);
+    } else {
+      colis = await Colis.findOne({ code_suivi: identifier });
+    }
+
+    if (!colis) {
+      return res.status(404).json({ message: "Colis not found" });
+    }
+
+    // Return the tarif_ajouter information
+    res.status(200).json({
+      message: "Tarif ajouter retrieved successfully",
+      data: {
+        id: colis._id,
+        code_suivi: colis.code_suivi,
+        tarif_ajouter: colis.tarif_ajouter
+      }
+    });
+
+  } catch (error) {
+    console.error("Error retrieving tarif_ajouter:", error);
+    res.status(500).json({
+      message: "Server error while retrieving tarif_ajouter",
+      error: error.message
+    });
+  }
+};

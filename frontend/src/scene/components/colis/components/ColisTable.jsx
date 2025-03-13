@@ -275,7 +275,10 @@ const allowedStatuses = useMemo(() => {
       "Endomagé",
       "Préparer pour Roteur",
       "En Retour",
-      "Fermée"
+      "Fermée",
+      "Prét Pour Expédition",
+      "Manque de stock",
+      "Intéressé"
     ];
   } else if (user?.role === 'livreur') {
     return [
@@ -299,6 +302,8 @@ const allowedStatuses = useMemo(() => {
       "Confirmé Par Livreur",
       "Endomagé",
       "Préparer pour Roteur",
+      "Manque de stock",
+      "Intéressé"
     ];
   } else {
     return []; // Or some default set of statuses for other roles
