@@ -79,6 +79,7 @@ import Tools from "./scene/components/tools/Tools";
 import Transfer from "./scene/components/portfeuille/page/Transfer";
 import Wallet from "./scene/components/portfeuille/page/Wallet";
 import Withdrawal from "./scene/components/portfeuille/page/Withdrawal";
+import Contact from "./scene/components/home/pages/Contact";
 
 
 function App() {
@@ -207,6 +208,8 @@ function App() {
           
           <Route path='dashboard' element={<ProtectedRoute/>}>
             <Route path="home" element={<HomeDashboard />} />
+            <Route path="support" element={<Contact />} />
+
             <Route path="bussness" element={<Store />} />
             <Route path="payement" element={<Pyements />} />
             <Route path="document" element={<DocumentProfile />} />

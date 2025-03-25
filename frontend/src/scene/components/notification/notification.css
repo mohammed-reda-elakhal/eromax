@@ -1,0 +1,101 @@
+.list_notification_home {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notification_home {
+    position: relative;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 5px solid;
+    overflow: hidden;
+}
+
+.notification_home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+}
+
+/* Type-specific styles with modern colors */
+.notification-info {
+    border-left-color: #2196F3;
+    background: linear-gradient(to right, rgba(33, 150, 243, 0.05), transparent);
+}
+
+.notification-success {
+    border-left-color: #4CAF50;
+    background: linear-gradient(to right, rgba(76, 175, 80, 0.05), transparent);
+}
+
+.notification-warning {
+    border-left-color: #FF9800;
+    background: linear-gradient(to right, rgba(255, 152, 0, 0.05), transparent);
+}
+
+.notification-error {
+    border-left-color: #f44336;
+    background: linear-gradient(to right, rgba(244, 67, 54, 0.05), transparent);
+}
+
+.notification-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #2c3e50;
+    margin-bottom: 12px;
+}
+
+.notification-message {
+    margin-bottom: 16px;
+}
+
+.notification-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 8px;
+    padding: 8px 16px;
+    background-color: rgba(25, 118, 210, 0.1);
+    border-radius: 6px;
+    color: #1976d2;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    gap: 8px;
+}
+
+.notification-link:hover {
+    background-color: rgba(25, 118, 210, 0.2);
+    transform: translateX(2px);
+}
+
+.notification-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+/* Dark theme adjustments */
+[data-theme='dark'] .notification_home {
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='dark'] .notification-content {
+    color: #e0e0e0;
+}
+
+/* Custom styling for Ant Design Tags */
+.notification-meta .ant-tag {
+    margin: 0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border: none;
+}

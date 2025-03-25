@@ -6,7 +6,7 @@ import { ThemeContext } from '../ThemeContext';
 import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt, FaClipboardList, FaTools } from "react-icons/fa";
 import { IoWalletSharp } from "react-icons/io5";
 import { LuBox, LuScanLine } from "react-icons/lu";
-import { BiNote, BiTagAlt } from "react-icons/bi";
+import { BiNote, BiSupport, BiTagAlt } from "react-icons/bi";
 import { BsFillFileEarmarkSpreadsheetFill, BsFillInboxesFill } from "react-icons/bs";
 import { CgDanger } from "react-icons/cg";
 import StoreDown from './StoreDown'; // Ensure this component is correctly implemented
@@ -419,6 +419,10 @@ function Menubar() {
             </Menu.SubMenu>
           )
         }
+
+        <Menu.Item icon={<BiSupport />}>
+          <Link to="/dashboard/support">Support</Link>
+        </Menu.Item>
 
       </Menu>
       

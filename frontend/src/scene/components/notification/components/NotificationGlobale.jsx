@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import TableDashboard from '../../../global/TableDashboard';
-import { Button, Switch, Drawer, Form, Input, Space, Modal } from 'antd';
+import { Button, Switch, Drawer, Form, Input, Space, Modal, Select, Tag } from 'antd';
 import { FaPenToSquare, FaPlus } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
@@ -40,7 +40,10 @@ function NotificationGlobale({ theme }) {
         setTimeout(() => {
             form.setFieldsValue({ 
                 message: notification.message, 
-                visibility: notification.visibility 
+                visibility: notification.visibility,
+                type: notification.type,
+                priority: notification.priority,
+                link: notification.link
             });
         }, 0);
     };
@@ -57,10 +60,22 @@ function NotificationGlobale({ theme }) {
     const handleFormSubmit = (values) => {
         if (editingNotification) {
             // Update existing notification
-            dispatch(updateNotification(editingNotification._id, { message: values.message, visibility: values.visibility }));
+            dispatch(updateNotification(editingNotification._id, { 
+                message: values.message, 
+                visibility: values.visibility,
+                type: values.type,
+                priority: values.priority,
+                link: values.link
+            }));
         } else {
             // Add new notification
-            dispatch(createNotification({ message: values.message, visibility: values.visibility }));
+            dispatch(createNotification({ 
+                message: values.message, 
+                visibility: values.visibility,
+                type: values.type,
+                priority: values.priority,
+                link: values.link
+            }));
         }
         setDrawerVisible(false);
         form.resetFields();
@@ -76,6 +91,36 @@ function NotificationGlobale({ theme }) {
             title: 'Notification',
             dataIndex: 'message',
             key: 'message'
+        },
+        {
+            title: 'Type',
+            dataIndex: 'type',
+            key: 'type',
+            render: (type) => (
+                <Tag color={
+                    type === 'success' ? 'green' :
+                    type === 'error' ? 'red' :
+                    type === 'warning' ? 'orange' :
+                    'blue'
+                }>
+                    {type.toUpperCase()}
+                </Tag>
+            )
+        },
+        {
+            title: 'Priority',
+            dataIndex: 'priority',
+            key: 'priority',
+            render: (priority) => (
+                <Tag color={
+                    priority === 1 ? 'red' :
+                    priority === 2 ? 'orange' :
+                    'green'
+                }>
+                    {priority === 1 ? 'High' : priority === 2 ? 'Medium' : 'Low'}
+                </Tag>
+            ),
+            sorter: (a, b) => a.priority - b.priority
         },
         {
             title: 'Visibility',
@@ -132,7 +177,12 @@ function NotificationGlobale({ theme }) {
                     layout="vertical"
                     onFinish={handleFormSubmit}
                     form={form}
-                    initialValues={{ message: '', visibility: true }} // Ajustement des valeurs initiales
+                    initialValues={{ 
+                        message: '', 
+                        visibility: true,
+                        type: 'info',
+                        priority: 3
+                    }}
                 >
                     <Form.Item
                         name="message"
@@ -145,6 +195,46 @@ function NotificationGlobale({ theme }) {
                             allowClear
                         />
                     </Form.Item>
+
+                    <Form.Item
+                        name="type"
+                        label="Type"
+                        rules={[{ required: true }]}
+                    >
+                        <Select>
+                            <Select.Option value="info">Info</Select.Option>
+                            <Select.Option value="warning">Warning</Select.Option>
+                            <Select.Option value="success">Success</Select.Option>
+                            <Select.Option value="error">Error</Select.Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="priority"
+                        label="Priority"
+                        rules={[{ required: true }]}
+                    >
+                        <Select>
+                            <Select.Option value={1}>High</Select.Option>
+                            <Select.Option value={2}>Medium</Select.Option>
+                            <Select.Option value={3}>Low</Select.Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="link"
+                        label="Link (Optional)"
+                    >
+                        <Input.Group compact>
+                            <Form.Item name={['link', 'text']} noStyle>
+                                <Input placeholder="Link Text" style={{ width: '50%' }} />
+                            </Form.Item>
+                            <Form.Item name={['link', 'url']} noStyle>
+                                <Input placeholder="URL" style={{ width: '50%' }} />
+                            </Form.Item>
+                        </Input.Group>
+                    </Form.Item>
+
                     <Form.Item
                         name="visibility"
                         label="Visibility"
