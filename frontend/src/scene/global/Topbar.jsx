@@ -7,7 +7,7 @@ import { ThemeContext } from '../ThemeContext';
 import { logoutUser } from '../../redux/apiCalls/authApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoIosNotifications, IoMdExit, IoMdWallet } from 'react-icons/io';
-import { FaFileArchive, FaPaypal, FaRegEyeSlash, FaStore } from 'react-icons/fa';
+import { FaFileArchive, FaPaypal, FaRegEyeSlash, FaRegEye, FaStore } from 'react-icons/fa';
 import { deleteAllNotifications, getNotificationUserByStore, notificationRead } from '../../redux/apiCalls/notificationApiCalls';
 import { getStoreById } from '../../redux/apiCalls/profileApiCalls';
 import SoldeCart from '../components/portfeuille/components/SoldeCart';
@@ -15,6 +15,7 @@ import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait'
 import { notificationActions } from '../../redux/slices/notificationSlice';
 import { toast } from 'react-toastify';
 import InfoWalet from '../components/portfeuille/page/InfoWalet';
+import WalletInfo from '../components/portfeuille/components/WalletInfo';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -27,7 +28,7 @@ function Topbar() {
   // top bar
   const { theme, toggleTheme } = useContext(ThemeContext);
   const { user , store } = useSelector((state) => state.auth);
-  const storeData = useSelector((state) => state.profile.store);
+  const { selectedWallet } = useSelector((state) => state.wallet);
   const notificationUser = useSelector((state) => state.notification.notification_user);
 
   const navigate = useNavigate();
@@ -137,12 +138,64 @@ function Topbar() {
               style={{
                 backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
                 color: theme === 'dark' ? '#fff' : '#002242',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                border: `1px solid ${theme === 'dark' ? '#1890ff' : '#e8e8e8'}`
               }}
+              onClick={() => setShowSolde(prev => !prev)}
             >
-              <div className="solde-wallet" /* onClick={/*() => setShowSolde((prev) => !prev)}*/>
-                {showSolde ? <p>{storeData.solde} <span>MAD</span></p> : <p><FaRegEyeSlash /> <span>MAD</span></p>}
+              <div 
+                className="solde-wallet"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                {showSolde ? (
+                  <>
+                    <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>
+                      {selectedWallet?.solde?.toLocaleString() || '0'} <span>DH</span>
+                    </p>
+                    <FaRegEye 
+                      style={{ 
+                        color: theme === 'dark' ? '#1890ff' : '#1890ff',
+                        fontSize: '16px'
+                      }} 
+                    />
+                  </>
+                ) : (
+                  <>
+                    <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>
+                      •••••• <span>DH</span>
+                    </p>
+                    <FaRegEyeSlash 
+                      style={{ 
+                        color: theme === 'dark' ? '#1890ff' : '#1890ff',
+                        fontSize: '16px'
+                      }} 
+                    />
+                  </>
+                )}
               </div>
-              <Avatar icon={<IoMdWallet />} size={25} className='wallet_icon' onClick={() => setOpenRetrait(true)} />
+              <Avatar 
+                icon={<IoMdWallet />} 
+                size={25} 
+                className='wallet_icon' 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenRetrait(true);
+                }}
+                style={{
+                  backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                  cursor: 'pointer'
+                }}
+              />
             </div>
           )}
 
@@ -225,16 +278,8 @@ function Topbar() {
       </div>
 
       {/* Withdraw request drawer */}
-      <Drawer  className={theme === 'dark' ? 'dark-mode' : ''} title="Demande De Retrait" onClose={() => setOpenRetrait((prev) => !prev)} open={openRetrait}>
-        {
-          /**
-           * 
-           *  <SoldeCart theme={theme} />
-        <DemandeRetrait setOpenWallet={setOpenRetrait} theme={theme} />
-           */
-        }
-        <InfoWalet/>
-       
+      <Drawer className={theme === 'dark' ? 'dark-mode' : ''} title="Wallet Information" onClose={() => setOpenRetrait((prev) => !prev)} open={openRetrait}>
+        <WalletInfo theme={theme} showTransactions={false} />
       </Drawer>
     </Header>
   );

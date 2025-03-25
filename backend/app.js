@@ -3,6 +3,7 @@ const connectToDB = require("./config/connectToDb");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require('dotenv');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -61,9 +62,17 @@ app.use('/api/mission', require('./routes/missionRoutes'));
 app.use('/api/external', require('./routes/apiIntegrationRoute'));
 app.use('/api/goodDelivery', require('./routes/goodDeliveryRoute'));
 app.use('/api/note/colis', require('./routes/noteColisRoute'));
+app.use('/api/wallet', require('./routes/walletRoutes'));
+app.use('/api/transfer', require('./routes/transferRoutes'));
+app.use('/api/withdrawal', require('./routes/withdrawalRoutes'));
 
 
-// Initialize cron jobs
+// ...existing code...
+
+// Add this line with your other route configurations
+app.use('/api/upload', uploadRoutes);
+
+// Initialize cron jobs 
 scheduleCronJobs();
 
 // Optional: Initialize Good Delivery Livreur

@@ -4,7 +4,7 @@ import { MdDomainVerification, MdAttachMoney } from "react-icons/md";
 import { GrInProgress } from "react-icons/gr";
 import { MdCancelScheduleSend } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
-import { getStatisticArgent, getStatisticColis } from '../../../../redux/apiCalls/staticsApiCalls';
+import { getStatisticArgent, getTransferStatistics, getStatisticColis } from '../../../../redux/apiCalls/staticsApiCalls';
 
 function StatsColis({ theme }) {
     const dispatch = useDispatch();
@@ -16,7 +16,7 @@ function StatsColis({ theme }) {
     useEffect(() => {
         dispatch(getStatisticColis());
         if (user?.role === "client") {
-            dispatch(getStatisticArgent());
+            dispatch(getTransferStatistics());
         }
     }, [dispatch, user, store]);
 
@@ -55,22 +55,22 @@ function StatsColis({ theme }) {
         {
             id: 1,
             icon: <MdAttachMoney />,
-            num: argentCount.totalDebit || 0,
+            num: argentCount.totalTransfers || 0,
             desc: "Total des gains",
             color: '#4CAF50',
         },
         {
             id: 2,
             icon: <MdAttachMoney />,
-            num: argentCount.lastTransaction || 0,
-            desc: "Dernière paiement est traité",
+            num: argentCount.lastTransferMontant || 0,
+            desc: "Dernière paiement traité",
             color: '#2196F3',
         },
         {
             id: 3,
             icon: <MdAttachMoney />,
-            num: argentCount.largestDebitTransaction || 0,
-            desc: "Plus grand Gains",
+            num: argentCount.largestTransferMontant || 0,
+            desc: "Plus grand paiement",
             color: '#FF7F50',
         },
     ];
@@ -81,7 +81,7 @@ function StatsColis({ theme }) {
             style={{
                 backgroundColor: theme === 'dark' ? '#002242' : '#fff',
                 color: theme === 'dark' ? '#fff' : '#333',
-                padding: '20px',
+                padding: '30px', // Added padding for the parent container
                 borderRadius: '12px',
                 boxShadow: theme === 'dark'
                     ? '0px 4px 6px rgba(0, 0, 0, 0.5)'
@@ -90,7 +90,15 @@ function StatsColis({ theme }) {
             }}
         >
             {user?.role === "client" && (
-                <div className="statistic-argent">
+                <div 
+                    className="statistic-argent"
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', // Responsive grid layout
+                        gap: '20px', // Added spacing between boxes
+                        marginBottom: '30px', // Added spacing below the "argent" section
+                    }}
+                >
                     {argent.map((item) => (
                         <StatisBox
                             key={item.id}
@@ -103,7 +111,14 @@ function StatsColis({ theme }) {
                     ))}
                 </div>
             )}
-            <div className="statistic-colis">
+            <div 
+                className="statistic-colis"
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', // Responsive grid layout
+                    gap: '20px', // Added spacing between boxes
+                }}
+            >
                 {data.map((item) => (
                     <StatisBox
                         key={item.id}

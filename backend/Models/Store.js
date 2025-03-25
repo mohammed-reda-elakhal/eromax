@@ -1,4 +1,13 @@
 const mongoose = require("mongoose");
+const { Wallet } = require("./Wallet");
+const moment = require("moment");
+
+// Generate unique wallet key function
+const generateWalletKey = () => {
+    const date = moment().format('YYYYMMDD-HH-mm');
+    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+    return `EROMAX-WALLET-${date}-${random}`;
+};
 
 const StoreSchema = new mongoose.Schema({
     id_client: {
@@ -51,6 +60,30 @@ const StoreSchema = new mongoose.Schema({
     },
    
 }, { timestamps: true });
+
+// Post-save middleware to create wallet for new stores
+StoreSchema.post('save', async function(doc, next) {
+    try {
+        // Check if this is a new store
+        if (this.isNew) {
+            // Check if wallet already exists
+            const existingWallet = await Wallet.findOne({ store: doc._id });
+            if (!existingWallet) {
+                // Create new wallet
+                const wallet = new Wallet({
+                    key: generateWalletKey(),
+                    store: doc._id,
+                    solde: 0,
+                    active: false
+                });
+                await wallet.save();
+            }
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 const Store = mongoose.model('Store', StoreSchema);
 

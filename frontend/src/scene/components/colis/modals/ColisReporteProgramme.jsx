@@ -56,7 +56,7 @@ function ColisReporteProgramme() {
         });
       };
   return (
-    <>
+    <div style={{ margin: '16px 0' }}>
     
         <Badge count={colisReporteeProg.count}>
             <Tag style={{ cursor: "pointer" }} color="blue" onClick={showModal}>
@@ -109,7 +109,7 @@ function ColisReporteProgramme() {
             <p>No codes available.</p>
           )}
         </Modal>
-    </>
+    </div>
   )
 }
 

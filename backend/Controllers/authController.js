@@ -1,6 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const moment = require('moment');  // Add this import
+const { Wallet } = require("../Models/Wallet");  // Add this import
 const { Admin, validateLogin, adminValidation } = require("../Models/Admin");
 const { Client , clientValidation } = require("../Models/Client");
 const { Livreur, livreurValidation } = require("../Models/Livreur");
@@ -9,6 +11,13 @@ const { teamValidation, Team } = require("../Models/Team");
 
 const generateToken = (id, role, store) => {
     return jwt.sign({ id, role, store }, process.env.JWT_SECRET, { expiresIn: '1y' });
+};
+
+// Add this function after imports
+const generateWalletKey = () => {
+    const date = moment().format('YYYYMMDD-HH-mm');
+    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+    return `EROMAX-WALLET-${date}-${random}`;
 };
 
 /**
@@ -192,7 +201,7 @@ module.exports.selectStoreCtrl = asyncHandler(async (req, res) => {
  });
  
 module.exports.registerClient = asyncHandler(async (req, res) => {
-    const {storeName , ...clientData} = req.body
+    const {storeName , ...clientData} = req.body;
     const { error } = clientValidation(clientData);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -205,26 +214,39 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const username = req.body.prenom +"_"+ req.body.nom
+    const username = req.body.prenom +"_"+ req.body.nom;
     const client = new Client({ email, password: hashedPassword, username , ...rest });
 
     await client.save();
 
-    // create store of client
+    // Create store for client
     let store = await Store.create({
         id_client : client._id,
         storeName : req.body.storeName,
-        tele : client.tele ,
+        tele : client.tele,
         default : true
-    })
+    });
+
+    // Create wallet for the store
+    const wallet = await Wallet.create({
+        store: store._id,
+        key: generateWalletKey(),
+        solde: 0,
+        active: false
+    });
 
     // Populate the client data in store
-    store = await store.populate('id_client',  ["-password"]);
+    store = await store.populate('id_client', ["-password"]);
 
     res.status(201).json({
         message : `Bonjour ${client.prenom} , Votre compte est créer`,
         role: client.role,
-        store
+        store,
+        wallet: {
+            key: wallet.key,
+            solde: wallet.solde,
+            active: wallet.active
+        }
     });
 });
 

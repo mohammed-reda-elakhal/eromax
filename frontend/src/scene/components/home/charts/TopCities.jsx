@@ -64,13 +64,25 @@ function TopCitiesChart() {
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 1000,
+            easing: 'easeInOutQuart'
+        },
         plugins: {
             legend: {
-                display: false, // Hide legend for a cleaner look
+                display: false,
             },
             tooltip: {
+                backgroundColor: theme === 'dark' ? '#001529' : '#fff',
+                titleColor: theme === 'dark' ? '#fff' : '#333',
+                bodyColor: theme === 'dark' ? '#fff' : '#333',
+                borderColor: theme === 'dark' ? '#1d4f91' : '#4CAF50',
+                borderWidth: 1,
+                padding: 10,
+                displayColors: false,
                 callbacks: {
-                    label: (context) => `${context.raw} colis`, // Custom tooltip format
+                    label: (context) => `${context.raw} colis`,
                 },
             },
         },
@@ -84,6 +96,9 @@ function TopCitiesChart() {
                 ticks: {
                     color: theme === 'dark' ? '#fff' : '#666',
                 },
+                grid: {
+                    display: false
+                }
             },
             y: {
                 title: {
@@ -96,32 +111,27 @@ function TopCitiesChart() {
                     stepSize: yStepSize, // Set the dynamic step size here
                     beginAtZero: true, // Ensure the y-axis starts at zero
                 },
-            },
+                grid: {
+                    color: theme === 'dark' ? '#1d4f91' : '#e0e0e0',
+                    drawBorder: false
+                }
+            }
         },
+        onHover: (event, chartElement) => {
+            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+        }
     };
 
     return (
-        <div
-            className="chart-container"
-            style={{
-                width: '100%',
-                margin: '20px auto',
-                padding: '20px',
-                backgroundColor: theme === 'dark' ? '#001529' : '#fff',
-                color: theme === 'dark' ? '#fff' : '#333',
-                borderRadius: '12px',
-                boxShadow: theme === 'dark'
-                    ? '0 4px 12px rgba(0, 0, 0, 0.7)'
-                    : '0 4px 12px rgba(0, 0, 0, 0.1)',
-                transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
-            }}
-        >
-            <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Top 10 Villes</h2>
-            {villes.length > 0 ? (
-                <Bar data={chartData} options={options} />
-            ) : (
-                <p style={{ textAlign: 'center' }}>Chargement des données...</p>
-            )}
+        <div className="chart-container">
+            <h2>Top 10 Villes</h2>
+            <div className="chart-wrapper" style={{ height: '50vh', minHeight: '300px' }}>
+                {villes.length > 0 ? (
+                    <Bar data={chartData} options={options} />
+                ) : (
+                    <p>Chargement des données...</p>
+                )}
+            </div>
         </div>
     );
 }

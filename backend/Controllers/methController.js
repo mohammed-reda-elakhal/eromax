@@ -9,13 +9,27 @@ const Payement = require('../Models/Payement');
 const createMeth = async (req, res) => {
     try {
         const { bank } = req.body;
-        if (!bank) {
-            return res.status(400).json({ error: 'Bank name is required' });
+        
+        // Validate bank name
+        if (!bank || typeof bank !== 'string' || bank.trim().length === 0) {
+            return res.status(400).json({ 
+                error: 'Bank name is required and must be a non-empty string' 
+            });
         }
 
-        // Ensure the file has uploaded in req
+        // Validate image upload
         if (!req.file) {
-            return res.status(400).json({ error: 'No image file uploaded' });
+            return res.status(400).json({ 
+                error: 'Bank image is required' 
+            });
+
+        }
+
+        // Validate file type
+        if (!req.file.mimetype.startsWith('image/')) {
+            return res.status(400).json({ 
+                error: 'Uploaded file must be an image' 
+            });
         }
 
         const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
@@ -25,22 +39,24 @@ const createMeth = async (req, res) => {
 
         // Check error during upload
         if (result instanceof Error) {
-            return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: result.message });
+            return res.status(500).json({ 
+                error: 'Failed to upload image to Cloudinary', 
+                details: result.message 
+            });
         }
-        console.log(result);
 
         // Create a new Meth_Payement with the image URL and public_id
         const newMethPayement = new Meth_Payement({
-            Bank:bank,
+            Bank: bank.trim(),
             image: {
-                url: result.secure_url, // URL of the image in Cloudinary
-                public_id: result.public_id // Cloudinary public_id
+                url: result.secure_url,
+                public_id: result.public_id
+
             }
         });
-        console.log(newMethPayement);
-        const savedMethPayement = await newMethPayement.save();
-        res.status(201).json(savedMethPayement);
 
+        const savedMethPayement = await newMethPayement.save();
+        
         // Remove the local file after upload
         try {
             fs.unlinkSync(imagePath);
@@ -48,8 +64,13 @@ const createMeth = async (req, res) => {
             console.error("Failed to delete local image:", err);
         }
 
+        res.status(201).json(savedMethPayement);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('Error in createMeth:', error);
+        res.status(400).json({ 
+            error: error.message || 'Failed to create payment method',
+            details: error.stack
+        });
     }
 };
 
@@ -68,6 +89,7 @@ const getMethPayementById = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
         const methPayement = await Meth_Payement.findById(id);
+        
 
         if (!methPayement) {
             return res.status(404).json({ message: 'Bank payment method not found' });

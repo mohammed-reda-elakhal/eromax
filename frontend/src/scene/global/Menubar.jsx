@@ -23,7 +23,10 @@ import { CiMenuFries } from 'react-icons/ci';
 import { GiSettingsKnobs } from "react-icons/gi";
 import { IoIosAdd, IoMdPricetags } from 'react-icons/io';
 import { getColisATRToday, getColisExpidée, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
-
+import { FaTruck, FaMoneyBillWave, FaShippingFast, FaListAlt, FaFileImport, FaReceipt } from "react-icons/fa";
+import { MdLocalShipping, MdInventory, MdPendingActions } from "react-icons/md";
+import { TbTruckDelivery } from "react-icons/tb";
+import { AiOutlineFileSync } from "react-icons/ai";
 
 const colorBadge = "rgb(0, 106, 177)"
 
@@ -156,25 +159,25 @@ function Menubar() {
         {
           (userData.role === "admin" || userData.role === "team") && (
             <Menu.SubMenu
-              icon={<LuBox />}
+              icon={<MdInventory />}
               title={
                 <span>
                   Colis {totaleColisAdmin > 0 ? <Badge count={totaleColisAdmin} color={colorBadge} /> : ""}
                 </span>
               }
             >
-              <Menu.Item icon={<IoIosAdd />}>
+              <Menu.Item icon={<FaRegSquarePlus />}>
                 <Link to="/dashboard/ajouter/colis/admin/simple">Ajouter Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaClipboardList />}>
+              <Menu.Item icon={<FaListAlt />}>
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaBoxesPacking />}>
+              <Menu.Item icon={<FaShippingFast />}>
                 <Link to="/dashboard/colis-ar">
                   Colis Pour Ramassage {colis.length > 0 ? <Badge count={colis.length} color={colorBadge} /> : ""}
                 </Link>
               </Menu.Item>
-              <Menu.Item icon={<GrObjectGroup />}>
+              <Menu.Item icon={<MdLocalShipping />}>
                 <Link to="/dashboard/colis-r">
                   Colis Ramasse {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
                 </Link>
@@ -191,26 +194,26 @@ function Menubar() {
          {
           userData.role ==="admin" && (
             <Menu.SubMenu 
-              icon={<MdPayment />} 
+              icon={<FaMoneyBillWave />} 
               title={
                 <span>
                   Payements {totalRetrait > 0 ? <Badge count={totalRetrait} color={colorBadge} /> : ""}
                 </span>
               }
             >
-              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+              <Menu.Item icon={<IoWalletSharp />} className={isNewReclamation ? "change-color-animation" : ""}>
                 <Link to="/dashboard/demande-retrait">
                   Demande retrait {demandeRetrait.length > 0 ? <Badge count={demandeRetrait.length} color={colorBadge} /> : ""}
                 </Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<FaFileInvoiceDollar />}>
                 <Link to={'/dashboard/transaction'}>
-                  List transactions
+                  Transactions
                 </Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
+              <Menu.Item icon={<MdPayment />} className={isNewReclamation ? "change-color-animation" : ""}>
                 <Link to="/dashboard/payement/list">
-                  List Methode Payement
+                  Methode Payement
                 </Link>
               </Menu.Item>
             </Menu.SubMenu>
@@ -222,10 +225,10 @@ function Menubar() {
                   <Menu.Item icon={<BiTagAlt />}>
                     <Link to="/dashboard/facture/client">Facture ( client )</Link>
                   </Menu.Item>
-                  <Menu.Item icon={<BiTagAlt />}>
+                  <Menu.Item icon={<AiOutlineFileSync />}>
                     <Link to="/dashboard/facture/retour">Bon Retour</Link>
                   </Menu.Item>
-                  <Menu.Item icon={<BiTagAlt />}>
+                  <Menu.Item icon={<FaReceipt />}>
                     <Link to="/dashboard/facture/livreur">Facture ( Livreur )</Link>
                   </Menu.Item>
                   <Menu.Item icon={<BiTagAlt />}>
@@ -310,13 +313,19 @@ function Menubar() {
           userData.role ==="client" && (
             <>
               <Menu.SubMenu icon={<IoWalletSharp />} title="Portfeuille">
-                <Menu.Item icon={<BiTagAlt />}>
+                <Menu.Item icon={<IoWalletSharp />}>
                   <Link to={"/dashboard/portfeuille"}>Portfeuille</Link>
                 </Menu.Item>
-                <Menu.Item icon={<BiTagAlt />}>
+                <Menu.Item icon={<FaFileInvoiceDollar />}>
                   <Link to={'/dashboard/transaction'}>List transactions</Link>
                 </Menu.Item>
+                <Menu.Item icon={<FaMoneyBillWave />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/demande-retrait">
+                  Demande retrait {demandeRetrait.length > 0 ? <Badge count={demandeRetrait.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
               </Menu.SubMenu>
+              
               <Drawer
                 title="Portfeuille"
                 open={openWallet}
@@ -336,20 +345,20 @@ function Menubar() {
 
         {
           userData.role ==="client" && (
-            <Menu.SubMenu icon={<LuBox />} title="Gestion colis">
-              <Menu.Item icon={<IoIosAdd />}>
+            <Menu.SubMenu icon={<MdInventory />} title="Gestion colis">
+              <Menu.Item icon={<FaRegSquarePlus />}>
                 <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaClipboardList />}>
+              <Menu.Item icon={<FaListAlt />}>
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaBoxesPacking />}>
+              <Menu.Item icon={<FaShippingFast />}>
                 <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
               </Menu.Item>
-              <Menu.Item icon={<BsFillFileEarmarkSpreadsheetFill />}>
+              <Menu.Item icon={<FaFileImport />}>
                 <Link to="/dashboard/import-colis">Import Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<MdFactCheck />}>
+              <Menu.Item icon={<FaReceipt />}>
                 <Link to="/dashboard/facture/globale">Fichier</Link>
               </Menu.Item>
             </Menu.SubMenu>
@@ -365,20 +374,20 @@ function Menubar() {
 
         {
           userData.role ==="livreur" && (
-            <Menu.SubMenu icon={<LuBox />} title="Espace Livreur">
-              <Menu.Item icon={<BiTagAlt />}>
+            <Menu.SubMenu icon={<TbTruckDelivery />} title="Espace Livreur">
+              <Menu.Item icon={<FaTruck />}>
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<MdLocalShipping />}>
                 <Link to="/dashboard/colis-ex">Colis Expidée</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<FaShippingFast />}>
                 <Link to="/dashboard/colis-rc">Colis Reçu</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<MdPendingActions />}>
                 <Link to="/dashboard/colis-md">Colis Mise en distrubution</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<MdFactCheck />}>
                 <Link to="/dashboard/colis-l">Colis Livrée</Link>
               </Menu.Item>
             </Menu.SubMenu>
@@ -391,7 +400,7 @@ function Menubar() {
               <Menu.Item icon={<BiTagAlt />}>
                 <Link to="/dashboard/facture/client">Facture ( client )</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<AiOutlineFileSync />}>
                 <Link to="/dashboard/facture/retour">Bon Retour</Link>
               </Menu.Item>
             </Menu.SubMenu>
@@ -401,10 +410,10 @@ function Menubar() {
         {
           userData.role === "livreur"&& (
             <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<AiOutlineFileSync />}>
                 <Link to="/dashboard/facture/retour">Bon Retour</Link>
               </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />}>
+              <Menu.Item icon={<FaReceipt />}>
                 <Link to="/dashboard/facture/livreur">Facture ( Livreur )</Link>
               </Menu.Item>
             </Menu.SubMenu>

@@ -76,6 +76,9 @@ import InfoWalet from "./scene/components/portfeuille/page/InfoWalet";
 import TarifLivreur  from "../src/scene/components/tarif livreur/page/TarifLivreur";
 import Crbt from "./scene/components/colis/pages/Crbt";
 import Tools from "./scene/components/tools/Tools";
+import Transfer from "./scene/components/portfeuille/page/Transfer";
+import Wallet from "./scene/components/portfeuille/page/Wallet";
+import Withdrawal from "./scene/components/portfeuille/page/Withdrawal";
 
 
 function App() {
@@ -211,7 +214,7 @@ function App() {
 
             
             <Route path="profile/:id" element={<Profile />} />
-            <Route path="portfeuille" element={<InfoWalet />} />
+            <Route path="portfeuille" element={<Wallet />} />
             <Route path="scan" element={<Scan />} /> 
             <Route path="ville" element={<Ville />} /> 
             <Route path="tarif-livreur" element={<TarifLivreur />} /> 
@@ -219,8 +222,8 @@ function App() {
             <Route path="reclamation" element={<Reclamation />} />
             <Route path="reclamation-complete" element={<ReclamationOk />} />
             <Route path="gnotification" element={<Notification />} /> 
-            <Route path="demande-retrait" element={<InfoWalet />} /> 
-            <Route path="transaction" element={<InfoWalet />} /> 
+            <Route path="demande-retrait" element={<Withdrawal />} /> 
+            <Route path="transaction" element={<Transfer />} /> 
             <Route path="tickets" element={<TicketBatch />} /> 
             
             <Route path="scan">

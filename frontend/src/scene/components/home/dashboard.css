@@ -1,4 +1,3 @@
-
 .statistic{
     width: 100%;
     margin: 2em auto;
@@ -60,13 +59,33 @@
 .chart-container {
     max-width: 100%;
     box-sizing: border-box;
+    width: 100%;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.chart-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 50vh !important;
+    min-height: 300px;
+    margin-top: 20px;
 }
 
 .chart-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
     font-size: 1.5rem;
-    font-weight: bold;
+    font-weight: 600;
 }
-
 
 /* Dark Mode Support */
 body[theme='dark'] .statistic-colis-box {
@@ -128,9 +147,28 @@ body[theme='dark'] .statistic-colis-box span {
     
 }
 
+@media (max-width: 1200px) {
+    .chart-wrapper {
+        height: 45vh !important;
+    }
+}
 
+@media (max-width: 992px) {
+    .statistic-chart {
+        flex-direction: column;
+    }
+    
+    .chart-container {
+        width: 100%;
+        margin: 10px 0;
+    }
 
-
+    .chart-circl-colis, 
+    .chart-bar-colis {
+        width: 100% !important;
+        margin: 10px 0;
+    }
+}
 
 @media only screen and (max-width: 600px){
     .statistic-colis{
@@ -166,6 +204,32 @@ body[theme='dark'] .statistic-colis-box span {
      }
 }
 
+@media (max-width: 768px) {
+    .chart-wrapper {
+        height: 40vh !important;
+        min-height: 250px;
+    }
+    
+    .chart-container {
+        padding: 10px;
+    }
+    
+    .chart-container h2 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .chart-wrapper {
+        height: 35vh !important;
+        min-height: 200px;
+    }
+
+    .statistic-chart {
+        margin: 0;
+        padding: 0;
+    }
+}
 
   @media only screen and (min-width: 601px) and (max-width: 900px) {
     .statistic-colis{
@@ -189,6 +253,20 @@ body[theme='dark'] .statistic-colis-box span {
         text-align: center;
     }
   }
+
+  @media (max-width: 768px) {
+    .chart-wrapper {
+        height: 40vh !important;
+    }
+    
+    .chart-container {
+        padding: 10px;
+    }
+    
+    .chart-container h2 {
+        font-size: 1.2rem;
+    }
+}
 
   .table-container .ant-table-title {
     width: 100%; /* Assure que le titre prend toute la largeur du conteneur */

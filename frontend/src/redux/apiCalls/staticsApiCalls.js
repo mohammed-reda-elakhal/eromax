@@ -238,3 +238,52 @@ export function getStatisticColisReporteeProg() {
         }
     };
 }
+
+export function getTransferStatistics() {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            const { data } = await request.get(`/api/statistic/transfer/statistics`, config);
+
+            dispatch(staticsActions.setArgentData(data.data));
+        } catch (error) {
+            console.error(error.message || "Failed to fetch transfer statistics");
+        }
+    };
+}
+
+export function getIncompleteWithdrawals() {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            const { data } = await request.get(`/api/statistic/withdrawal/incomplete`, config);
+            dispatch(staticsActions.setIncompleteWithdrawals(data.count));
+        } catch (error) {
+            console.error(error.message || "Failed to fetch incomplete withdrawals count");
+        }
+    };
+}

@@ -4,20 +4,20 @@ const jwt = require("jsonwebtoken");
 // verify token
 function verifyToken(req, res, next) {
     const authToken = req.headers.authorization;  // Check for 'authorization' header
-    if (authToken) {
-        const token = authToken.split(" ")[1];  // Split to get the token part
-
-        try {
-            const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = decodedPayload;
-            next();
-        } catch (error) {
-            console.error("Invalid token:", error);  // Log the error
-            return res.status(401).json({ message: "Invalid token, access denied" });
-        }
-    } else {
+    if (!authToken) {
         console.warn("No token provided");
         return res.status(401).json({ message: "No token provided, access denied" });
+    }
+
+    const token = authToken.split(" ")[1];  // Split to get the token part
+
+    try {
+        const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decodedPayload;
+        next();
+    } catch (error) {
+        console.error("Invalid token:", error);  // Log the error
+        return res.status(401).json({ message: "Invalid token, access denied" });
     }
 }
 

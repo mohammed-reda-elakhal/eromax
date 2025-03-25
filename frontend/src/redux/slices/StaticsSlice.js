@@ -9,11 +9,15 @@ const initialState={
     topVilles: [],
     topClient: [],
     statisticColis : [] ,
-    argentStatistic : [] ,
+    argentStatistic: {
+        totalTransfers: 0,
+        lastTransferMontant: 0,
+        largestTransferMontant: 0,
+    },
     villeStatistic : [],
       // New state property for reportée/programmée data:
-    colisReporteeProg: { count: 0, codes: [] }
-
+    colisReporteeProg: { count: 0, codes: [] },
+    incompleteWithdrawals: 0
 };
 const staticsSlice = createSlice({
     name: "statics",
@@ -57,6 +61,9 @@ const staticsSlice = createSlice({
           // New reducer to set the reportée/programmée data
         setColisReporteeProgData(state, action) {
             state.colisReporteeProg = action.payload;
+        },
+        setIncompleteWithdrawals(state, action) {
+            state.incompleteWithdrawals = action.payload;
         }
     }
 

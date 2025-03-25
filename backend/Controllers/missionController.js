@@ -2,6 +2,8 @@ const DemandeRetrait = require('../Models/Demande_Retrait');
 const { Reclamation } = require('../Models/Reclamation');
 const { Colis } = require('../Models/Colis');
 const { Client } = require('../Models/Client');
+const { Withdrawal } = require('../Models/Withdrawal');
+const { Wallet } = require('../Models/Wallet');
 
 // Get all Demande Retrait without date condition
 const getDemandeRetraitToday = async (req, res) => {
@@ -127,10 +129,26 @@ const countPretToLivreeColisForLivreur = async (req, res) => {
     }
 };
 
+// Add this new controller function
+const getIncompleteWithdrawalsCount = async (req, res) => {
+    try {
+        // Count withdrawals that are not complete (not 'done' or 'rejected')
+        const incompleteCount = await Withdrawal.countDocuments({
+            status: { 
+                $nin: ['done', 'rejected']
+            }
+        });
 
+        return res.status(200).json({
+            message: "Incomplete withdrawals count retrieved successfully",
+            count: incompleteCount
+        });
 
-
-
+    } catch (error) {
+        console.error("Server error:", error);
+        return res.status(500).json({ message: "Server error while counting incomplete withdrawals." });
+    }
+};
 
 module.exports = {
     getDemandeRetraitToday,
@@ -139,5 +157,6 @@ module.exports = {
     countExpedieColisForLivreur,
     countPretToLivreeColisForLivreur,
     getNouveauClient,
-    getColisR
+    getColisR,
+    getIncompleteWithdrawalsCount
 };

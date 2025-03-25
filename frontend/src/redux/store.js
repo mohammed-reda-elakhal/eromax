@@ -19,9 +19,9 @@ import { messageReducer } from "./slices/messageSlice";
 import { docReducer } from "./slices/docSlices";
 import { tarifLivreurReducer } from "./slices/tarifLivreurSlice";
 import { noteColisReducer } from "./slices/noteColisSlice";
-
-
-
+import { walletReducer } from "./slices/walletSlice";
+import { transferReducer } from "./slices/transferSlice";
+import { withdrawalReducer } from "./slices/withdrawalSlice";
 
 const store = configureStore({
   reducer: {
@@ -34,17 +34,20 @@ const store = configureStore({
     reclamation: reclamationReducer,
     facture: factureReducer,
     meth_payement: meth_payementReducer,
-    payement: payementReducer, // Add payement reducer to the store
-    transaction:transactionReducer,
-    demandeRetrait:demandeRetraitReducer,
-    store: storeReducer, // Add store reducer to the store
-    statics:staticsReducer,
+    payement: payementReducer,
+    transaction: transactionReducer,
+    demandeRetrait: demandeRetraitReducer,
+    store: storeReducer,
+    statics: staticsReducer,
     promotion: promotionReducer,
     mission: missionReducer,
     message: messageReducer,
-    file : docReducer,
-    tarifLivreur: tarifLivreurReducer,  // Add tarifLivreur reducer to the store
-    noteColis : noteColisReducer
+    file: docReducer,
+    tarifLivreur: tarifLivreurReducer,
+    noteColis: noteColisReducer,
+    wallet: walletReducer,
+    transfer: transferReducer,
+    withdrawal: withdrawalReducer
   },
 });
 

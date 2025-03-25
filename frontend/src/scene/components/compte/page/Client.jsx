@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
-import { FaBox, FaPenFancy, FaPlus } from "react-icons/fa";
+import { FaBox, FaPenFancy, FaPlus, FaWallet } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { GoVerified } from "react-icons/go";
 import { 
@@ -22,8 +22,8 @@ import {
     Image,
     Form,
     message ,
-    Input // Import Input from antd if you prefer
-
+    Input,
+    Empty
 } from 'antd';
 import { 
     EnvironmentOutlined, 
@@ -56,6 +56,83 @@ import { IoDocumentAttach } from 'react-icons/io5';
 import { FaB } from 'react-icons/fa6';
 import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls';
 import { TbLockPassword } from 'react-icons/tb';
+import { getWalletByStore, toggleWalletActivation } from '../../../../redux/apiCalls/walletApiCalls';
+import { Table } from 'antd';
+import styled from 'styled-components';
+
+const StyledTable = styled(Table)`
+  .ant-table {
+    background: ${props => props.theme === 'dark' ? '#001529' : '#fff'};
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .ant-table-thead > tr > th {
+    background: ${props => props.theme === 'dark' ? '#002242' : '#f0f2f5'};
+    color: ${props => props.theme === 'dark' ? '#fff' : '#001529'};
+    font-weight: 600;
+    padding: 16px;
+    border-bottom: 2px solid ${props => props.theme === 'dark' ? '#1f1f1f' : '#e8e8e8'};
+  }
+
+  .ant-table-tbody > tr > td {
+    padding: 16px;
+    transition: background 0.3s;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: ${props => props.theme === 'dark' ? '#003366' : '#f5f5f5'};
+  }
+
+  .ant-table-pagination {
+    margin: 16px 0;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 768px) {
+    .ant-table {
+      overflow-x: auto;
+    }
+    
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 12px 8px;
+      white-space: nowrap;
+    }
+  }
+`;
+
+const ActionButton = styled(Button)`
+  margin: 0 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+`;
+
+const StatusTag = styled(Tag)`
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  text-transform: capitalize;
+`;
+
+const SearchWrapper = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+  }
+`;
 
 function Client({ search }) {
     const { theme } = useContext(ThemeContext);
@@ -76,6 +153,9 @@ function Client({ search }) {
     const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null); // Store selected user for password reset
     const [form] = Form.useForm(); // Ant Design Form instance
+
+    const [isWalletModalVisible, setIsWalletModalVisible] = useState(false);
+    const [loadingWallet, setLoadingWallet] = useState(false);
 
     const showPasswordModal = (user) => {
         setSelectedUser(user); // Set the selected user
@@ -120,6 +200,12 @@ function Client({ search }) {
     }));
 
     const { files, loading: loadingDocs, error: errorDocs } = useSelector((state) => state.file);
+
+    const { wallets, selectedWallet, loading: walletLoading } = useSelector((state) => ({
+        wallets: state.wallet.wallets,
+        selectedWallet: state.wallet.selectedWallet,
+        loading: state.wallet.loading
+    }));
 
     useEffect(() => {
         dispatch(getProfileList("client"));
@@ -211,6 +297,37 @@ function Client({ search }) {
         });
     };
 
+    const showWalletModal = async (storeId) => {
+        setLoadingWallet(true);
+        try {
+            // Ensure storeId is a string
+            const id = typeof storeId === 'object' ? storeId._id : String(storeId);
+            await dispatch(getWalletByStore(id));
+            setIsWalletModalVisible(true);
+        } catch (error) {
+            console.error("Failed to fetch wallet:", error);
+            message.error("Failed to fetch wallet information");
+        } finally {
+            setLoadingWallet(false);
+        }
+    };
+
+    const handleToggleWallet = async (walletId, currentStatus) => {
+        try {
+            setLoadingWallet(true);
+            
+            // Call the API to toggle the wallet status
+            const success = await dispatch(toggleWalletActivation(walletId));
+            
+            // Only refresh if the toggle was successful
+            if (success && selectedWallet?.store) {
+                await dispatch(getWalletByStore(selectedWallet.store));
+            }
+        } finally {
+            setLoadingWallet(false);
+        }
+    };
+
     const columns = [
         {
             title: 'Profile',
@@ -219,14 +336,16 @@ function Client({ search }) {
                 <Tooltip title={record.verify ? "Compte vérifié" : "Compte non vérifié"}>
                     <Avatar 
                         src={record.profile?.url || '/image/user.png'} 
-                        className='profile_image_user' 
+                        size="large"
                         style={{
-                            border: `2px solid ${record.verify ? 'green' : 'red'}`,
-                            boxSizing: 'border-box',
+                            border: `2px solid ${record.verify ? '#52c41a' : '#ff4d4f'}`,
+                            cursor: 'pointer',
+                            transition: 'all 0.3s'
                         }}
                     />
                 </Tooltip>
             ),
+            width: 80,
         },
         {
             title: 'Register Date',
@@ -234,6 +353,7 @@ function Client({ search }) {
             render: (text, record) => (
                 <>{formatDate(record.createdAt)}</>
             ),
+            width: 150,
         },
         {
             title: 'Nom Complet',
@@ -242,12 +362,14 @@ function Client({ search }) {
             render: (text, record) => (
                 <span>{record.nom} {record.prenom}</span>
             ),
+            width: 200,
         },
         {
             title: 'Username',
             dataIndex: 'username',
             key: 'username',
             ...search('username'),
+            width: 150,
         },
         {
             title: 'N° Store',
@@ -260,21 +382,18 @@ function Client({ search }) {
               >
                 {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
               </Tag>
-            )
+            ),
+            width: 100,
           },
           {
             title: 'Store Info',
             render: (text, record) => (
               <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                {/* Display the store name and balance (solde) */}
                 {record.stores && record.stores.length > 0 ? (
                   record.stores.map((store, index) => (
                     <div key={index} style={{ marginBottom: '8px' }}>
                       <div style={{ fontWeight: 'bold', color: '#28a745' }}>
                         {store.storeName}
-                      </div>
-                      <div style={{ color: '#007bff'  , fontSize: '16px', fontWeight: 'bold' }}>
-                        {store.solde} DH
                       </div>
                     </div>
                   ))
@@ -282,11 +401,12 @@ function Client({ search }) {
                   <span>No stores found</span>
                 )}
               </div>
-            )
+            ),
+            width: 200,
           },       
-          {
-            title: 'N° Colis', // This is the new column
-            width: 150, // Set the width of the column
+        {
+            title: 'N° Colis',
+            width: 150,
             render: (text, record) => (
                 <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
                     {record.stores && record.stores.length > 0 ? (
@@ -308,28 +428,33 @@ function Client({ search }) {
             dataIndex: 'email',
             key: 'email',
             ...search('email'),
+            width: 200,
         },
         {
             title: 'Téléphone',
             dataIndex: 'tele',
             key: 'tele',
             ...search('tele'),
+            width: 150,
         },
         {
             title: 'Ville',
             dataIndex: 'ville',
             key: 'ville',
             ...search('ville'),
+            width: 150,
         },
         {
             title: 'Adresse',
             dataIndex: 'adresse',
             key: 'adresse',
+            width: 200,
         },
         {
             title: 'Role',
             dataIndex: 'role',
             key: 'role',
+            width: 100,
         },
         {
             title: 'Autre',
@@ -339,6 +464,7 @@ function Client({ search }) {
                     <span>Envoyer : <strong>{record.number_colis} colis</strong> </span> 
                 </>
             ),
+            width: 200,
         },
         {
             title: 'Activation de compte',
@@ -346,24 +472,43 @@ function Client({ search }) {
             key: 'active',
             render: (active, record) => (
                 <Switch
-                    checked={active} // If the account is active, switch is checked
-                    onChange={() => toggleActiveCompte(record._id , record?.role)} // Trigger toggle action on change
-                    checkedChildren="Activer" // Displayed when checked
-                    unCheckedChildren="Désactiver" // Displayed when unchecked
+                    checked={active}
+                    onChange={() => toggleActiveCompte(record._id , record?.role)}
+                    checkedChildren="Activer"
+                    unCheckedChildren="Désactiver"
                     style={{
-                        backgroundColor: active ? '#28a745' : '#dc3545', // Green for active, red for inactive
-                        borderColor: active ? '#28a745' : '#dc3545', // Same color for border
+                        backgroundColor: active ? '#28a745' : '#dc3545',
+                        borderColor: active ? '#28a745' : '#dc3545',
                     }}
                 />
             ),
-        }
-,        
+            width: 150,
+        },
+        {
+            title: 'Wallet Info',
+            dataIndex: 'wallet',
+            render: (text, record) => (
+                <div>
+                    {record.stores && record.stores.map((store, index) => (
+                        <Tag
+                            key={index}
+                            color="blue"
+                            style={{ cursor: 'pointer', marginBottom: '4px', display: 'block' }}
+                            onClick={() => showWalletModal(store._id)}
+                        >
+                            <FaWallet /> Wallet
+                        </Tag>
+                    ))}
+                </div>
+            ),
+            width: 150,
+        },
         {
             title: 'Action',
             dataIndex: 'action',
             render: (text, record) => (
                 <div className='action_user'>
-                    <Tooltip title="Voir Documents" key="docs">
+                    <Tooltip title="Voir Documents" key="view-docs">
                         <Button 
                             type="link" 
                             style={{ color: '#0080ff', borderColor: "#0080ff", background: "transparent", marginRight: '8px' }} 
@@ -371,7 +516,7 @@ function Client({ search }) {
                             onClick={() => openDocumentsModal(record)}
                         />
                     </Tooltip>
-                    <Tooltip title="Chnage mots de passe" key="docs">
+                    <Tooltip title="Change mots de passe" key="change-password">
                         <Button 
                             type="link" 
                             style={{ color: 'blue', borderColor: "blue" , background: "transparent", marginRight: '8px' }} 
@@ -380,7 +525,7 @@ function Client({ search }) {
                         />
                     </Tooltip>
                     {!record.verify && (
-                        <Tooltip title="Vérifier le client" key="verify">
+                        <Tooltip title="Vérifier le client" key="verify-client">
                             <Button 
                                 type="link" 
                                 style={{ color: 'green', borderColor: "green", background: "transparent", marginRight: '8px' }} 
@@ -390,7 +535,7 @@ function Client({ search }) {
                         </Tooltip>
                     )}
                     
-                    <Tooltip title="Edit Client" key="editClient">
+                    <Tooltip title="Edit Client" key="edit-client">
                         <Button 
                             type="link" 
                             style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent", marginRight: '8px' }} 
@@ -398,7 +543,7 @@ function Client({ search }) {
                             onClick={() => navigate(`/dashboard/compte/client/${record._id}`, { state: { from: '/dashboard/compte/client' } })}
                         />
                     </Tooltip>
-                    <Tooltip title="Delete Client" key="deleteClient">
+                    <Tooltip title="Delete Client" key="delete-client">
                         <Button 
                             type="link" 
                             style={{ color: 'red', borderColor: "red", background: "transparent" }} 
@@ -407,11 +552,11 @@ function Client({ search }) {
                         />
                     </Tooltip>
                 </div>
-            )
+            ),
+            width: 200,
         }
     ];
 
-    // Filter the profileList based on the searchTerm
     const filteredData = profileList.filter(client => {
         const fullText = [
             client.nom,
@@ -468,13 +613,13 @@ function Client({ search }) {
                             >
                                 Add Client
                             </Button>
-                        {/* Add your search input here */}
-                        <div className='ville_header'  style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                            <Input
+                        <SearchWrapper>
+                            <Input.Search
                                 placeholder="Rechercher..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{ width: 200 }}
+                                style={{ width: 300 }}
+                                allowClear
                             />
                             <Button
                                 type="primary"
@@ -483,12 +628,27 @@ function Client({ search }) {
                             >
                                 Rafraîchir
                             </Button>
-                            
-                        </div>
+                        </SearchWrapper>
                         
-                        <TableDashboard theme={theme} column={columns} id="_id" data={filteredData} />
+                        <StyledTable
+                            columns={columns}
+                            dataSource={filteredData}
+                            rowKey="_id"
+                            theme={theme}
+                            scroll={{ x: 'max-content' }}
+                            pagination={{
+                                pageSize: 10,
+                                showSizeChanger: true,
+                                showTotal: (total, range) => 
+                                    `${range[0]}-${range[1]} sur ${total} éléments`,
+                            }}
+                            size="middle"
+                            bordered
+                            rowClassName={(record) => 
+                                record.active ? 'table-row-active' : 'table-row-inactive'
+                            }
+                        />
                         
-                        {/* Stores Modal */}
                         <Modal
                             title="Stores"
                             open={isModalStoreOpen}
@@ -598,7 +758,6 @@ function Client({ search }) {
                             )}
                         </Modal>
 
-                        {/* Store Form Drawer */}
                         <Drawer
                             title={storeToEdit ? "Edit Store" : "Add Store"}
                             placement="right"
@@ -614,7 +773,6 @@ function Client({ search }) {
                             />
                         </Drawer>
 
-                        {/* Client Form Drawer */}
                         <Drawer
                             title={currentClient ? "Edit Client" : "Add Client"}
                             placement="right"
@@ -626,7 +784,6 @@ function Client({ search }) {
                             <ClientFormAdd client={currentClient} close={closeDrawer} />
                         </Drawer>
 
-                        {/* Documents Modal */}
                         <Modal
                             title={selectedClient ? `Documents de ${selectedClient.nom} ${selectedClient.prenom}` : "Documents"}
                             visible={isDocumentsModalVisible}
@@ -670,8 +827,7 @@ function Client({ search }) {
                             )}
                         </Modal>
 
-                         {/* Password Reset Modal */}
-            <Modal
+                         <Modal
                 title="Reset User Password"
                 visible={isPasswordModalVisible}
                 onCancel={handleCancel}
@@ -721,11 +877,103 @@ function Client({ search }) {
                     </Form.Item>
                 </Form>
             </Modal>
+
+            <Modal
+                title="Wallet Information"
+                open={isWalletModalVisible}
+                onCancel={() => setIsWalletModalVisible(false)}
+                footer={[
+                    <Button key="close" onClick={() => setIsWalletModalVisible(false)}>
+                        Close
+                    </Button>
+                ]}
+            >
+                {loadingWallet ? (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                        <Spin size="large" />
+                    </div>
+                ) : (
+                    <div>
+                        {selectedWallet ? (
+                            <Descriptions bordered column={1}>
+                                <Descriptions.Item label="Wallet Key">
+                                    <Tag color="green">
+                                        <Typography.Text copyable style={{ color: 'inherit' }}>
+                                            {selectedWallet.key}
+                                        </Typography.Text>
+                                    </Tag>
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Balance">
+                                    <Tag color="blue" style={{ fontSize: '16px' }}>
+                                        {selectedWallet.solde} DH
+                                    </Tag>
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Status">
+                                    <Space>
+                                        <Tag color={selectedWallet.active ? "green" : "red"}>
+                                            {selectedWallet.active ? "Active" : "Inactive"}
+                                        </Tag>
+                                        <Switch
+                                            checked={selectedWallet.active}
+                                            onChange={() => handleToggleWallet(selectedWallet._id, selectedWallet.active)}
+                                            loading={walletLoading}
+                                            checkedChildren="Active"
+                                            unCheckedChildren="Inactive"
+                                            style={{
+                                                backgroundColor: selectedWallet.active ? '#52c41a' : '#ff4d4f',
+                                            }}
+                                        />
+                                    </Space>
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Created At">
+                                    {new Date(selectedWallet.createdAt).toLocaleString()}
+                                </Descriptions.Item>
+                            </Descriptions>
+                        ) : (
+                            <Empty description="No wallet information available" />
+                        )}
+                    </div>
+                )}
+            </Modal>
                     </div>
                 </div>
             </main>
         </div>
     );
 }
+
+const styles = `
+  .table-row-active {
+    background-color: rgba(82, 196, 26, 0.1);
+  }
+
+  .table-row-inactive {
+    background-color: rgba(255, 77, 79, 0.1);
+  }
+
+  .ant-avatar:hover {
+    transform: scale(1.1);
+  }
+
+  .ant-tag {
+    cursor: default;
+    transition: all 0.3s;
+  }
+
+  .ant-tag:hover {
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 576px) {
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      font-size: 12px;
+    }
+  }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
 
 export default Client;

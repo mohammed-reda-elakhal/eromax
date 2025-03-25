@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getColisATRToday, getColisExpidée, getColisPret, getDemandeRetraitToday, getNouveauClient, getReclamationToday } from '../../../../redux/apiCalls/missionApiCalls';
+import { getColisATRToday, getColisExpidée, getColisPret, getDemandeRetraitToday, getNouveauClient, getReclamationToday, getIncompleteWithdrawals } from '../../../../redux/apiCalls/missionApiCalls';
 import { Card, Row, Col } from 'antd';
 import { MailOutlined, DropboxOutlined, SolutionOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { FaParachuteBox, FaUser } from 'react-icons/fa';
 import { TbTruckDelivery } from 'react-icons/tb';
+import CountUp from 'react-countup';
+import { FaMoneyBill1Wave } from 'react-icons/fa6';
 
 function Mission({ theme }) {
-    const { demandeRetrait, colis, reclamations, user , colisExp , colisPret , client } = useSelector((state) => ({
+    const { demandeRetrait, colis, reclamations, user, colisExp, colisPret, client, incompleteWithdrawals } = useSelector((state) => ({
         demandeRetrait: state.mission.demandeRetrait,
         colis: state.mission.colis,
         colisExp: state.mission.colisExp,
@@ -16,6 +18,7 @@ function Mission({ theme }) {
         reclamations: state.mission.reclamations,
         client : state.mission.client,
         user: state.auth.user,
+        incompleteWithdrawals: state.mission.incompleteWithdrawals,
     }));
 
     const dispatch = useDispatch();
@@ -28,6 +31,7 @@ function Mission({ theme }) {
             dispatch(getReclamationToday());
             dispatch(getColisATRToday());
             dispatch(getNouveauClient(15))
+            dispatch(getIncompleteWithdrawals());
         }else if(user?.role === "livreur"){
             dispatch(getColisExpidée())
             dispatch(getColisPret())
@@ -68,6 +72,12 @@ function Mission({ theme }) {
             icon: <FaUser style={{ fontSize: '20px', color: theme === 'dark' ? '#95de64' : '#52c41a' }} />,
             link: '/dashboard/compte/client',
         },
+        {
+            title: 'Demandes Retrait En Cours',
+            count: incompleteWithdrawals,
+            icon: <FaMoneyBill1Wave style={{ fontSize: '20px', color: theme === 'dark' ? '#ff4d4f' : '#f5222d' }} />,
+            link: '/dashboard/demande-retrait',
+        },
     ];
 
     const livreurCardsData = [
@@ -88,54 +98,167 @@ function Mission({ theme }) {
     // Dynamically choose the cards data based on user role
     const cardsData = user?.role === 'admin' ? adminCardsData : livreurCardsData;
 
-    return (
-        <Card
-            title="Missions du Jour"
-            bordered={true}
+    const CardBox = ({ title, count, icon, color, onClick }) => (
+        <div 
+            onClick={onClick}
             style={{
-                maxWidth: '800px',
-                margin: '20px auto',
-                backgroundColor: theme === 'dark' ? '#001529' : '#fff',
-                color: theme === 'dark' ? '#fff' : '#333',
-                boxShadow: theme === 'dark'
-                    ? '0 4px 12px rgba(0, 0, 0, 0.5)'
-                    : '0 4px 12px rgba(0, 0, 0, 0.1)',
-                transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
+                backgroundColor: theme === 'dark' ? '#1a1f36' : '#ffffff',
+                borderRadius: '20px',
+                padding: '25px',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                border: `1px solid ${color}22`,
+                boxShadow: count > 0 
+                    ? `0 10px 25px ${color}40`
+                    : `0 10px 20px ${color}15`,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '15px',
+                minHeight: '160px',
+                transform: 'translateY(0)',
+                animation: count > 0 ? 'pulse 2s infinite' : 'none',
+                '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: count > 0 
+                        ? `0 20px 35px ${color}50`
+                        : `0 15px 30px ${color}25`,
+                }
             }}
         >
-            <Row gutter={[16, 16]}>
-                {cardsData.map((card, index) => (
-                    <Col xs={24} sm={12} key={index}>
-                        <Card
-                            hoverable
-                            size="small"
-                            className={card.count > 0 ? 'highlight-card' : ''}
-                            style={{
-                                textAlign: 'center',
-                                cursor: 'pointer',
-                                backgroundColor: theme === 'dark' ? '#333' : '#fff',
-                                color: theme === 'dark' ? '#fff' : '#333',
-                                border: theme === 'dark' ? '1px solid #444' : '1px solid #ddd',
-                                boxShadow: theme === 'dark'
-                                    ? '0 4px 8px rgba(0, 0, 0, 0.5)'
-                                    : '0 4px 8px rgba(0, 0, 0, 0.1)',
-                                transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
-                            }}
-                            bordered={true}
-                            onClick={() => navigate(card.link)}
-                        >
-                            {card.icon}
-                            <h3 style={{ margin: '10px 0 5px', color: theme === 'dark' ? '#fff' : '#333' }}>
-                                {card.title}
-                            </h3>
-                            <p style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 10px', color: theme === 'dark' ? '#fff' : '#333' }}>
-                                {card.count}
-                            </p>
-                        </Card>
-                    </Col>
+            <style>
+                {`
+                    @keyframes pulse {
+                        0% { box-shadow: 0 10px 25px ${color}40; }
+                        50% { box-shadow: 0 15px 30px ${color}60; }
+                        100% { box-shadow: 0 10px 25px ${color}40; }
+                    }
+                `}
+            </style>
+            {/* Header with enhanced hover effect */}
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                position: 'relative',
+                zIndex: 1,
+                transition: 'transform 0.3s ease'
+            }}>
+                <div style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '15px',
+                    backgroundColor: count > 0 ? `${color}25` : `${color}15`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.5rem',
+                    color: color,
+                    transition: 'transform 0.3s ease, background-color 0.3s ease',
+                    transform: count > 0 ? 'scale(1.05)' : 'scale(1)'
+                }}>
+                    {icon}
+                </div>
+                <div style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    backgroundColor: count > 0 ? `${color}20` : `${color}10`,
+                    color: color,
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease'
+                }}>
+                    {count > 0 ? 'Active' : 'Mission'}
+                </div>
+            </div>
+
+            {/* Count with enhanced visibility for non-zero values */}
+            <div style={{ 
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                position: 'relative',
+                zIndex: 1
+            }}>
+                <h3 style={{ 
+                    fontSize: count > 0 ? '2.7rem' : '2.5rem', 
+                    fontWeight: '700',
+                    margin: '0',
+                    color: count > 0 ? color : `${color}99`,
+                    textShadow: count > 0 
+                        ? `0 0 20px ${color}40` 
+                        : theme === 'dark' ? `0 0 20px ${color}33` : 'none',
+                    transition: 'all 0.3s ease'
+                }}>
+                    <CountUp end={count || 0} duration={2} separator="," />
+                </h3>
+                <p style={{
+                    margin: '10px 0 0',
+                    fontSize: '1rem',
+                    color: count > 0 
+                        ? (theme === 'dark' ? '#ffffffcc' : '#000000cc')
+                        : (theme === 'dark' ? '#ffffff99' : '#00000099'),
+                    fontWeight: count > 0 ? '600' : '500',
+                    transition: 'all 0.3s ease'
+                }}>
+                    {title}
+                </p>
+            </div>
+
+            {/* Enhanced background decoration */}
+            <div style={{
+                position: 'absolute',
+                top: '-20%',
+                right: '-10%',
+                width: '200px',
+                height: '200px',
+                background: `radial-gradient(circle, ${color}${count > 0 ? '20' : '10'} 0%, transparent 70%)`,
+                borderRadius: '50%',
+                zIndex: 0,
+                opacity: count > 0 ? 0.7 : 0.5,
+                transition: 'all 0.3s ease',
+                transform: count > 0 ? 'scale(1.1)' : 'scale(1)'
+            }}/>
+        </div>
+    );
+
+    return (
+        <div style={{
+            padding: '30px',
+            backgroundColor: theme === 'dark' ? '#002242' : '#fff',
+            borderRadius: '20px',
+            boxShadow: theme === 'dark'
+                ? '0 8px 32px rgba(0, 0, 0, 0.37)'
+                : '0 8px 32px rgba(31, 38, 135, 0.15)',
+        }}>
+            <h2 style={{
+                marginBottom: '25px',
+                color: theme === 'dark' ? '#fff' : '#333',
+                fontSize: '1.5rem',
+                fontWeight: '600'
+            }}>
+                Missions du Jour
+            </h2>
+            
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: '20px'
+            }}>
+                {(user?.role === 'admin' ? adminCardsData : livreurCardsData).map((card, index) => (
+                    <CardBox
+                        key={index}
+                        title={card.title}
+                        count={card.count}
+                        icon={card.icon}
+                        color={theme === 'dark' ? '#69c0ff' : '#1890ff'}
+                        onClick={() => navigate(card.link)}
+                    />
                 ))}
-            </Row>
-        </Card>
+            </div>
+        </div>
     );
 }
 

@@ -205,3 +205,27 @@ export function getColisPret() {
     };
 }
 
+export function getIncompleteWithdrawals() {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Authentication token is missing');
+                return;
+            }
+
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            const { data } = await request.get(`/api/mission/withdrawal-incomplete`, config);
+            dispatch(missionActions.setIncompleteWithdrawals(data.count));
+        } catch (error) {
+            console.error(error.message || "Failed to fetch incomplete withdrawals count");
+        }
+    };
+}
+

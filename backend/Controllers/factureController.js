@@ -14,6 +14,9 @@ const NotificationUser = require('../Models/Notification_User');
 const Promotion = require('../Models/Promotion'); // Import the Promotion model
 const { createAutomaticDemandeRetrait } = require('./demandeRetraitController');
 const { TarifLivreur } = require('../Models/Tarif_livreur');
+const { Transfer, validateTransfer } = require('../Models/Transfer');
+const { Wallet } = require('../Models/Wallet');
+const { depositToWallet } = require('../Middlewares/payments');
 
 // Function to generate code_facture
 const generateCodeFacture = (date) => {
@@ -198,6 +201,21 @@ const createOrUpdateFacture = asyncHandler(async (colisId) => {
             prix_a_payant: rest ,
             total_tarif: total_tarifClient,
         };
+
+        // If colis is delivered and not yet processed for wallet, handle the wallet deposit
+        if ((colis.statut === 'Livrée' ||colis.statut === 'Refusée' ) && !colis.wallet_prosseced) {
+            try {
+                // Use the calculated prix_a_payant from crbtData
+                await depositToWallet(
+                    colis.store._id,    // store ID
+                    crbtData.prix_a_payant, // amount to deposit from CRBT calculation
+                    colis._id           // colis ID
+                );
+            } catch (walletError) {
+                console.error('Error processing wallet deposit:', walletError);
+                // Continue with facture creation even if wallet deposit fails
+            }
+        }
 
         // -------------------------
         // Handle Client Facture

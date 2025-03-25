@@ -4,6 +4,9 @@ const { default: mongoose } = require("mongoose");
 const Transaction = require("../Models/Transaction");
 const { subDays } = require('date-fns'); // Optionally use date-fns for date handling
 const { Store } = require("../Models/Store");
+const { Wallet } = require("../Models/Wallet"); // Import Wallet model
+const { Transfer } = require("../Models/Transfer");
+const { Withdrawal } = require("../Models/Withdrawal");
 
 
 
@@ -322,5 +325,159 @@ exports.getColisReporteeProgramméeCodes = async (req, res) => {
     return res.status(500).json({
       message: "Server error while retrieving colis statistics."
     });
+  }
+};
+
+exports.getLastTransfer = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userStore = req.user.store;
+
+    // Verify the user role
+    if (userRole !== "client") {
+      return res.status(403).json({ message: "Access denied. Only clients can access this resource." });
+    }
+
+    // Ensure the store ID is provided
+    if (!userStore) {
+      return res.status(400).json({ message: "Store ID is not defined for the user." });
+    }
+
+    // Convert store ID to ObjectId
+    const storeId = new mongoose.Types.ObjectId(userStore);
+
+    // Find the wallet associated with the store
+    const wallet = await Wallet.findOne({ store: storeId });
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found for the user's store." });
+    }
+
+    // Find the last transfer related to the wallet
+    const lastTransfer = await Transfer.findOne({ wallet: wallet._id })
+      .sort({ createdAt: -1 }) // Sort by descending creation date
+      .select("montant") // Select only the montant field
+      .lean();
+
+    // Calculate the total of transfer.montant for the wallet
+    const totalTransfers = await Transfer.aggregate([
+      { $match: { wallet: wallet._id } },
+      { $group: { _id: null, total: { $sum: "$montant" } } },
+    ]);
+
+    // Find the largest transfer related to the wallet
+    const largestTransfer = await Transfer.findOne({ wallet: wallet._id })
+      .sort({ montant: -1 }) // Sort by descending montant
+      .select("montant") // Select only the montant field
+      .lean();
+
+    // Prepare the response
+    return res.status(200).json({
+      message: "Transfer statistics retrieved successfully.",
+      data: {
+        walletId: wallet._id,
+        lastTransferMontant: lastTransfer?.montant || 0,
+        totalTransfers: totalTransfers[0]?.total || 0,
+        largestTransferMontant: largestTransfer?.montant || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({ message: "Server error while retrieving transfer statistics." });
+  }
+};
+
+exports.getTransferStatistics = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userStore = req.user.store;
+
+    // Verify the user role
+    if (userRole !== "client") {
+      return res.status(403).json({ message: "Access denied. Only clients can access this resource." });
+    }
+
+    // Ensure the store ID is provided
+    if (!userStore) {
+      return res.status(400).json({ message: "Store ID is not defined for the user." });
+    }
+
+    // Convert store ID to ObjectId
+    const storeId = new mongoose.Types.ObjectId(userStore);
+
+    // Find the wallet associated with the store
+    const wallet = await Wallet.findOne({ store: storeId });
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found for the user's store." });
+    }
+
+    // Find the last transfer related to the wallet
+    const lastTransfer = await Transfer.findOne({ wallet: wallet._id })
+      .sort({ createdAt: -1 })
+      .select("montant")
+      .lean();
+
+    // Calculate the total of transfer.montant for the wallet
+    const totalTransfers = await Transfer.aggregate([
+      { $match: { wallet: wallet._id } },
+      { $group: { _id: null, total: { $sum: "$montant" } } },
+    ]);
+
+    // Find the largest transfer related to the wallet
+    const largestTransfer = await Transfer.findOne({ wallet: wallet._id })
+      .sort({ montant: -1 })
+      .select("montant")
+      .lean();
+
+    // Prepare the response
+    return res.status(200).json({
+      message: "Transfer statistics retrieved successfully.",
+      data: {
+        walletId: wallet._id,
+        lastTransferMontant: lastTransfer?.montant || 0,
+        totalTransfers: totalTransfers[0]?.total || 0,
+        largestTransferMontant: largestTransfer?.montant || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({ message: "Server error while retrieving transfer statistics." });
+  }
+};
+
+exports.WithdrawalNotComplete = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userStore = req.user.store;
+
+    // Verify user role
+    if (userRole !== "client") {
+      return res.status(403).json({ message: "Access denied. Only clients can access this resource." });
+    }
+
+    // Get the wallet associated with the store
+    const wallet = await Wallet.findOne({ store: userStore });
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found for the user's store." });
+    }
+
+    // Count withdrawals that are not complete (not 'done' or 'rejected')
+    const incompleteCount = await Withdrawal.countDocuments({
+      wallet: wallet._id,
+      status: { 
+        $nin: ['done', 'rejected']
+      }
+    });
+
+    return res.status(200).json({
+      message: "Incomplete withdrawals count retrieved successfully",
+      count: incompleteCount
+    });
+
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({ message: "Server error while counting incomplete withdrawals." });
   }
 };

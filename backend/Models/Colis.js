@@ -9,6 +9,10 @@ const ColisSchema = new mongoose.Schema({
         unique: true,
         default: shortid.generate
     },
+    wallet_prosseced: {
+        type: Boolean,
+        default: false
+    },
     clientId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Client',
@@ -245,6 +249,7 @@ function validateRegisterColis(obj) {
         prix: Joi.number().required(),
         commentaire: Joi.string(),
         etat: Joi.boolean(),
+        wallet_prosseced: Joi.boolean(),
         nature_produit: Joi.string(),
         statut: Joi.string().valid(...[
             "Nouveau Colis",

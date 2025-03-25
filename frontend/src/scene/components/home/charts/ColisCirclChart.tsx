@@ -133,19 +133,19 @@ function ColisCirclChart() {
           ? '0px 4px 6px rgba(0, 0, 0, 0.5)'
           : '0px 4px 6px rgba(0, 0, 0, 0.1)',
         display: 'flex',
-        flexDirection: 'row', // Arrange both charts side by side
+        flexDirection: window.innerWidth <= 992 ? 'column' : 'row',
         gap: '20px',
         justifyContent: 'space-between',
-        transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
+        transition: 'all 0.3s ease',
       }}
     >
       <h1>Statistic Colis</h1>
       <div
         className="chart-circl-colis"
         style={{
-          width: '40%',
-          height: '400px',
-          padding: '20px',
+          width: window.innerWidth <= 992 ? '100%' : '40%',
+          height: window.innerWidth <= 768 ? '300px' : '400px',
+          padding: window.innerWidth <= 576 ? '10px' : '20px',
           backgroundColor: theme === 'dark' ? '#001529' : '#fff',
           borderRadius: '12px',
         }}
@@ -155,9 +155,9 @@ function ColisCirclChart() {
       <div
         className="chart-bar-colis"
         style={{
-          width: '40%',
-          height: '400px',
-          padding: '20px',
+          width: window.innerWidth <= 992 ? '100%' : '40%',
+          height: window.innerWidth <= 768 ? '300px' : '400px',
+          padding: window.innerWidth <= 576 ? '10px' : '20px',
           backgroundColor: theme === 'dark' ? '#001529' : '#fff',
           borderRadius: '12px',
         }}

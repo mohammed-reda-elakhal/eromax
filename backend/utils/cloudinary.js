@@ -46,4 +46,5 @@ const cloudinaryRemoveImage = async (imagePublicId) => {
 module.exports = {
     cloudinaryUploadImage,
     cloudinaryRemoveImage
+    
 };

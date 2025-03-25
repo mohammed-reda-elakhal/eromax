@@ -93,11 +93,23 @@ function ClientChart() {
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 1000,
+            easing: 'easeInOutQuart'
+        },
         plugins: {
             legend: {
                 display: false,
             },
             tooltip: {
+                backgroundColor: theme === 'dark' ? '#001529' : '#fff',
+                titleColor: theme === 'dark' ? '#fff' : '#333',
+                bodyColor: theme === 'dark' ? '#fff' : '#333',
+                borderColor: theme === 'dark' ? '#1d4f91' : '#4CAF50',
+                borderWidth: 1,
+                padding: 10,
+                displayColors: false,
                 callbacks: {
                     label: (context) => `${context.raw} colis`,
                     title: (context) => {
@@ -107,7 +119,7 @@ function ClientChart() {
                     },
                 },
             },
-            avatarPlugin, // Register the custom avatar plugin
+            avatarPlugin,
         },
         scales: {
             x: {
@@ -120,6 +132,9 @@ function ClientChart() {
                     color: theme === 'dark' ? '#fff' : '#666',
                     padding: 30,
                 },
+                grid: {
+                    display: false
+                }
             },
             y: {
                 title: {
@@ -132,8 +147,15 @@ function ClientChart() {
                     stepSize: yStepSize, // Set the dynamic step size here
                     beginAtZero: true, // Ensure the y-axis starts at zero
                 },
-            },
+                grid: {
+                    color: theme === 'dark' ? '#1d4f91' : '#e0e0e0',
+                    drawBorder: false
+                }
+            }
         },
+        onHover: (event, chartElement) => {
+            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+        }
     };
 
     return (
@@ -153,11 +175,13 @@ function ClientChart() {
             }}
         >
             <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Top 10 Clients</h2>
-            {topClients.length > 0 ? (
-                <Bar data={chartData} options={options} plugins={[avatarPlugin]} />
-            ) : (
-                <p style={{ textAlign: 'center' }}>Chargement des données...</p>
-            )}
+            <div className="chart-wrapper" style={{ height: '50vh', minHeight: '300px' }}>
+                {topClients.length > 0 ? (
+                    <Bar data={chartData} options={options} plugins={[avatarPlugin]} />
+                ) : (
+                    <p style={{ textAlign: 'center' }}>Chargement des données...</p>
+                )}
+            </div>
         </div>
     );
 }
