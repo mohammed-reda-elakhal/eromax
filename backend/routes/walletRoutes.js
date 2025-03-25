@@ -8,7 +8,7 @@ const {
     depositMoney,
     withdrawMoney,
     resetWallet
-} = require('../Controllers/WalletController');
+} = require('../Controllers/walletController');
 
 // Route to create wallets for all stores that don't have one
 router.post('/create', createWalletsForStores);

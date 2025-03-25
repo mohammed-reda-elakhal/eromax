@@ -643,6 +643,7 @@ function Client({ search }) {
                                     `${range[0]}-${range[1]} sur ${total} éléments`,
                             }}
                             size="middle"
+                            
                             bordered
                             rowClassName={(record) => 
                                 record.active ? 'table-row-active' : 'table-row-inactive'
