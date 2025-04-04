@@ -22,12 +22,7 @@ const app = express();
 app.use(express.json());
 
 // CORS Configuration
-const allowedOrigins = [
-  process.env.BASE_URL,
-  'http://localhost:3000',
-  'http://localhost:8084',
-  'https://www.eromax.me'
-]; 
+const allowedOrigins = [process.env.BASE_URL];
 
 app.use(cors({
   origin: function(origin, callback) {
