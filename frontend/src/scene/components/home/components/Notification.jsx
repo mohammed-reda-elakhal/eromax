@@ -43,24 +43,7 @@ function Notification({theme}) {
               </a>
             )}
           </div>
-          <div className="notification-meta">
-            <Tag color={
-              notification.priority === 1 ? 'red' :
-              notification.priority === 2 ? 'orange' :
-              'green'
-            }>
-              {notification.priority === 1 ? 'High' : 
-               notification.priority === 2 ? 'Medium' : 'Low'}
-            </Tag>
-            <Tag color={
-              notification.type === 'success' ? 'green' :
-              notification.type === 'error' ? 'red' :
-              notification.type === 'warning' ? 'orange' :
-              'blue'
-            }>
-              {notification.type.toUpperCase()}
-            </Tag>
-          </div>
+         
         </div>
       ))}
     </div>

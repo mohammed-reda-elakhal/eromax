@@ -5,12 +5,13 @@ import Menubar from '../../global/Menubar';
 import Topbar from '../../global/Topbar';
 import Title from '../../global/Title';
 import { Row, Col, Card, message, Button } from 'antd';
-import { MdOutlineMonetizationOn, MdContentCopy, MdPayments, MdPriceChange } from 'react-icons/md';
+import { MdOutlineMonetizationOn, MdContentCopy, MdPayments, MdPriceChange, MdLocalPrintshop } from 'react-icons/md';
 import { useSelector } from 'react-redux';
 import FixeCRBTModal from './modals/FixeCRBTModal';  
 import CopieColisModal from './modals/CopieColisModal';
 import PretPayerModal from './modals/PretPayerModal';
 import TarifAjouterModal from './modals/TarifAjouterModal';
+import TicketGeneratorModal from './modals/TicketGeneratorModal';
 
 const Tools = () => {
   const { theme } = useContext(ThemeContext);
@@ -20,6 +21,7 @@ const Tools = () => {
   const [isCopieColisModalVisible, setIsCopieColisModalVisible] = useState(false);
   const [isPretPayerModalVisible, setIsPretPayerModalVisible] = useState(false);
   const [isTarifAjouterModalVisible, setIsTarifAjouterModalVisible] = useState(false);
+  const [isTicketGeneratorModalVisible, setIsTicketGeneratorModalVisible] = useState(false);
 
   const toolsItems = [
     {
@@ -54,6 +56,14 @@ const Tools = () => {
       bgColor: theme === 'dark' ? '#1f1f1f' : '#fce4ec',
       buttonColor: theme === 'dark' ? '#ff6b6b' : '#f50057'
     },
+    {
+      id: 5,
+      name: 'Générateur de Tickets',
+      description: 'Créer et personnaliser des tickets de livraison au format 450x450.',
+      icon: <MdLocalPrintshop style={{ fontSize: '40px', color: theme === 'dark' ? '#2196f3' : '#1976d2' }} />,
+      bgColor: theme === 'dark' ? '#1f1f1f' : '#e3f2fd',
+      buttonColor: theme === 'dark' ? '#2196f3' : '#1976d2'
+    },
   ];
 
   const handleToolClick = (tool) => {
@@ -65,6 +75,8 @@ const Tools = () => {
       setIsPretPayerModalVisible(true);
     } else if (tool.name === 'Prix Ajouter') {
       setIsTarifAjouterModalVisible(true);
+    } else if (tool.name === 'Générateur de Tickets') {
+      setIsTicketGeneratorModalVisible(true);
     } else {
       message.info(`Clicked on ${tool.name}`);
     }
@@ -184,6 +196,10 @@ const Tools = () => {
       <TarifAjouterModal
         visible={isTarifAjouterModalVisible}
         onCancel={() => setIsTarifAjouterModalVisible(false)}
+      />
+      <TicketGeneratorModal
+        visible={isTicketGeneratorModalVisible}
+        onCancel={() => setIsTicketGeneratorModalVisible(false)}
       />
     </div>
   );

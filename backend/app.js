@@ -22,15 +22,28 @@ const app = express();
 app.use(express.json());
 
 // CORS Configuration
-const allowedOrigin = process.env.BASE_URL ;  // Fallback to localhost:3000 if BASE_URL is undefined
+const allowedOrigins = [
+  process.env.BASE_URL,
+  'http://localhost:3000',
+  'http://localhost:8084',
+  'https://www.eromax.me'
+]; 
 
 app.use(cors({
-  origin: allowedOrigin,  // Allow requests from your specified origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],  // Specify allowed HTTP methods
-  credentials: true,  // Allow credentials (cookies, HTTP authentication)
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
-
-
 
 app.use(cookieParser());
 
@@ -65,9 +78,6 @@ app.use('/api/note/colis', require('./routes/noteColisRoute'));
 app.use('/api/wallet', require('./routes/walletRoutes'));
 app.use('/api/transfer', require('./routes/transferRoutes'));
 app.use('/api/withdrawal', require('./routes/withdrawalRoutes'));
-
-
-// ...existing code...
 
 // Add this line with your other route configurations
 app.use('/api/upload', uploadRoutes);

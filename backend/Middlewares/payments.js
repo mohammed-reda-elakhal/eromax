@@ -35,7 +35,7 @@ const createTransferOperation = async (id_colis, id_wallet, type, montant) => {
 const withdrawalWallet = async (walletId, montant, paymentId) => {
     try {
         const frais = 5; // Fixed frais
-        const totalAmount = montant + frais;
+        const totalAmount = montant ;
 
         // Verify wallet exists and is active
         const wallet = await Wallet.findById(walletId);
@@ -79,21 +79,19 @@ const withdrawalWallet = async (walletId, montant, paymentId) => {
             }
         });
 
-        /*
-
         if (lastWithdrawal) {
             const timeLeft = Math.ceil((24 * 60 * 60 * 1000 - (Date.now() - lastWithdrawal.createdAt)) / (1000 * 60 * 60));
             throw new Error(`You can only make one withdrawal every 24 hours. Please wait ${timeLeft} hours before trying again.`);
         }
-    */
+    
 
         // Update wallet balance
-        wallet.solde -= totalAmount;
+        wallet.solde -= montant;
         await wallet.save();
 
         return {
             wallet,
-            pureMontant: montant, // This is the amount user requested
+            pureMontant: montant - frais, // This is the amount user requested
             frais
         };
     } catch (error) {

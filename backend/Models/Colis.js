@@ -150,11 +150,6 @@ const ColisSchema = new mongoose.Schema({
     date_livraisant: {
         type: Date,
     },
-    replacedColis: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Colis',
-        default: null, // Changed from array to single reference
-    },
     code_suivi_ameex: {
         type: String,
         required: false 
@@ -294,7 +289,6 @@ function validateRegisterColis(obj) {
                 variants: Joi.array().items(Joi.string()),
             })
         ),
-        replacedColis: Joi.string(),
         expedation_type: Joi.string(),
         code_suivi_ameex: Joi.string(),
         tarif_ajouter: Joi.object({

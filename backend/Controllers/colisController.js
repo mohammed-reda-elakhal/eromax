@@ -75,34 +75,6 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     code_suivi,
   };
 
-  // If is_remplace is true, handle replacement
-  if (req.body.is_remplace) {
-    const { replacedColis } = req.body;
-    if (!replacedColis) { // Now expecting a single ID 
-      return res.status(400).json({ message: "Aucun colis à remplacer sélectionné." });
-    }
-
-    // Validate that the replacedColis ID corresponds to a delivered Colis and not already replaced
-    const oldColis = await Colis.findOne({
-      _id: replacedColis,
-      statut: 'Livrée',
-      is_remplace: false,
-    });
-
-    if (!oldColis) {
-      return res.status(400).json({
-        message: "Le colis à remplacer est invalide (soit non livré, soit déjà remplacé).",
-      });
-    }
-
-    // Mark the old Colis as replaced
-    oldColis.is_remplace = true;
-    await oldColis.save();
-
-    // Link the old Colis to the new Colis
-    colisData.replacedColis = replacedColis;
-  }
-
   // Create and save the new Colis
   const newColis = new Colis(colisData);
   const saveColis = await newColis.save();
@@ -199,34 +171,6 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
     ville: ville._id,  // Add the ville reference
     code_suivi,
   };
-
-  // If is_remplace is true, handle replacement
-  if (req.body.is_remplace) {
-    const { replacedColis } = req.body;
-    if (!replacedColis) { // Now expecting a single ID 
-      return res.status(400).json({ message: "Aucun colis à remplacer sélectionné." });
-    }
-
-    // Validate that the replacedColis ID corresponds to a delivered Colis and not already replaced
-    const oldColis = await Colis.findOne({
-      _id: replacedColis,
-      statut: 'Livrée',
-      is_remplace: false,
-    });
-
-    if (!oldColis) {
-      return res.status(400).json({
-        message: "Le colis à remplacer est invalide (soit non livré, soit déjà remplacé).",
-      });
-    }
-
-    // Mark the old Colis as replaced
-    oldColis.is_remplace = true;
-    await oldColis.save();
-
-    // Link the old Colis to the new Colis
-    colisData.replacedColis = replacedColis;
-  }
 
   // Create and save the new Colis
   const newColis = new Colis(colisData);
@@ -664,14 +608,6 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
       .populate('ville')
-      .populate({
-        path: 'replacedColis',
-        select: 'code_suivi prix statut', // Include specific fields from replacedColis
-        populate: {
-          path: 'ville',
-          select: 'nom', // Include the ville name
-        },
-      })
       .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order
 
     // Get total count for reference (optional since no pagination)
@@ -704,14 +640,6 @@ module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
       .populate('ville')     
-      .populate({
-        path: 'replacedColis',
-        select: 'code_suivi prix statut', // Include the fields you want from replacedColis
-        populate: {
-          path: 'ville',
-          select: 'nom', // Include the ville name if needed
-        },
-      })
       .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
   if(!colis){
       return res.status(404).json({message:"Colis not found"});
@@ -743,14 +671,6 @@ exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
     .populate('livreur')     // Populate the livreur details
     .populate('store')       // Populate the store details
     .populate('ville')     
-    .populate({
-      path: 'replacedColis',
-      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
-      populate: {
-        path: 'ville',
-        select: 'nom', // Include the ville name if needed
-      },
-    })
     .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
     // If no colis found, return 404
@@ -782,14 +702,6 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
     .populate('store')
     .populate('team')
     .populate('ville')     
-    .populate({
-      path: 'replacedColis',
-      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
-      populate: {
-        path: 'ville',
-        select: 'nom', // Include the ville name if needed
-      },
-    })
     .sort({ updatedAt: -1 });
 
 
@@ -871,14 +783,6 @@ exports.getColisAmeexCtrl = asyncHandler(async (req, res) => {
     .populate('store')
     .populate('team')
     .populate('ville')     
-    .populate({
-      path: 'replacedColis',
-      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
-      populate: {
-        path: 'ville',
-        select: 'nom', // Include the ville name if needed
-      },
-    })
     .sort({ updatedAt: -1 });
 
 
@@ -931,14 +835,6 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
       }
     })
     .populate('ville')     
-    .populate({
-      path: 'replacedColis',
-      select: 'code_suivi prix statut', // Include the fields you want from replacedColis
-      populate: {
-        path: 'ville',
-        select: 'nom', // Include the ville name if needed
-      },
-    })
     .sort({ updatedAt: -1 });
 
   if (!colis) {    

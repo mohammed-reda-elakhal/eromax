@@ -70,10 +70,9 @@ function ColisForm({ type }) {
     prix: '',
     produit: '',
     colisType: ColisTypes[0].name,
-    remplaceColis: false,
-    ouvrirColis: true, // Default to true (Ouvrir Colis)
+    is_remplace: false,
+    ouvrirColis: true,
     is_fragile: false,
-    oldColis: null,
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -115,18 +114,6 @@ function ColisForm({ type }) {
     dispatch(getVilleById(value));
   };
 
-  const handleOldColisSelect = (selectedOption) => {
-    if (selectedOption) {
-      handleInputChange('oldColis', {
-        value: selectedOption.value,
-        label: selectedOption.label,
-        ...selectedOption.data,
-      });
-    } else {
-      handleInputChange('oldColis', null);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const {
@@ -138,9 +125,8 @@ function ColisForm({ type }) {
       prix,
       produit,
       ouvrirColis,
-      remplaceColis,
+      is_remplace,
       is_fragile,
-      oldColis,
     } = formData;
 
     const phoneRegex = /^0\d{9}$/;
@@ -164,17 +150,9 @@ function ColisForm({ type }) {
       prix: parseFloat(prix),
       nature_produit: produit,
       ouvrir: ouvrirColis,
-      is_remplace: remplaceColis,
+      is_remplace,
       is_fragile,
     };
-
-    if (remplaceColis) {
-      if (!oldColis) {
-        toast.error('Veuillez sélectionner un colis à remplacer.');
-        return;
-      }
-      colis.replacedColis = oldColis.value;
-    }
 
     try {
       await dispatch(createColis(colis));
@@ -189,20 +167,6 @@ function ColisForm({ type }) {
     }
   };
 
-  const handleOpenModal = () => {
-    setIsModalVisible(true);
-    setOldColisSearch(''); // Reset search input
-    setOldColisSuggestions([]);
-  };
-
-  const handleOkModal = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleCancelModal = () => {
-    setIsModalVisible(false);
-  };
-
   const showDrawer = () => {
     setIsDrawerVisible(true);
   };
@@ -210,42 +174,6 @@ function ColisForm({ type }) {
   const closeDrawer = () => {
     setIsDrawerVisible(false);
   };
-
-  // Debounced search function for old colis suggestions
-  const searchOldColis = useRef(
-    debounce((inputValue) => {
-      if (!inputValue) {
-        setOldColisSuggestions([]);
-        setLoadingOldColis(false);
-        return;
-      }
-      setLoadingOldColis(true);
-      dispatch(searchColisByCodeSuivi(inputValue))
-        .then((result) => {
-          const { searchResults } = result;
-          const options = searchResults.map((colis) => ({
-            value: colis._id,
-            label: `${colis.code_suivi} - ${colis.nom}`,
-            data: {
-              code_suivi: colis.code_suivi,
-              nom: colis.nom,
-              tele: colis.tele,
-              ville: colis.ville?.nom || 'N/A',
-              adresse: colis.adresse,
-              prix: colis.prix,
-              commentaire: colis.commentaire,
-            },
-          }));
-          setOldColisSuggestions(options);
-        })
-        .catch(() => {
-          setOldColisSuggestions([]);
-        })
-        .finally(() => {
-          setLoadingOldColis(false);
-        });
-    }, 500)
-  ).current;
 
   return (
     <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`}>
@@ -476,38 +404,14 @@ function ColisForm({ type }) {
               >
                 Colis fragile
               </Checkbox>
-              <br />
 
               <Checkbox
-                onChange={(e) => handleInputChange('remplaceColis', e.target.checked)}
-                checked={formData.remplaceColis}
+                onChange={(e) => handleInputChange('is_remplace', e.target.checked)}
+                checked={formData.is_remplace}
                 style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
               >
                 Colis à remplacer
-                <p style={{ fontSize: '12px', marginTop: '4px' }}>
-                  (Le colis sera remplacé avec l'ancien à la livraison.)
-                </p>
               </Checkbox>
-
-              {formData.remplaceColis && !formData.oldColis && (
-                <Button type="primary" onClick={handleOpenModal} style={{ marginBottom: '16px' }}>
-                  Rechercher l'ancien colis
-                </Button>
-              )}
-
-              {formData.remplaceColis && formData.oldColis && (
-                <div className='colis-form-header-oldColis' style={{ marginTop: '16px' }}>
-                  <span>
-                    <strong>Code Suivi</strong> : {formData.oldColis.code_suivi}
-                  </span>
-                  <span>
-                    <strong>Ville</strong> : {formData.oldColis.ville}
-                  </span>
-                  <Button type="primary" onClick={handleOpenModal} style={{ marginTop: '8px' }}>
-                    Modifier
-                  </Button>
-                </div>
-              )}
             </div>
           ) : (
             ""
@@ -531,60 +435,6 @@ function ColisForm({ type }) {
           </div>
         </div>
       </form>
-
-      {/* Modal for selecting Old Colis using a simple Input with custom suggestions */}
-      <Modal
-        title="Rechercher l'ancien colis"
-        visible={isModalVisible}
-        onOk={handleOkModal}
-        onCancel={handleCancelModal}
-        okText="Confirmer"
-        cancelText="Annuler"
-        className={theme === 'dark' ? 'dark-mode' : ''}
-      >
-        <p>Recherche par code suivi:</p>
-        <Input
-          placeholder="Rechercher par code suivi..."
-          value={oldColisSearch}
-          onChange={(e) => {
-            const value = e.target.value;
-            setOldColisSearch(value);
-            searchOldColis(value);
-          }}
-          style={{padding:"10px 20px"}}
-        />
-        {loadingOldColis && <p>Chargement...</p>}
-        {oldColisSuggestions.length > 0 && (
-          <div
-            style={{
-              marginTop: '8px',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              border: '1px solid #f0f0f0',
-              borderRadius: '4px',
-            }}
-          >
-            {oldColisSuggestions.map((option) => (
-              <div
-                key={option.value}
-                onClick={() => {
-                  handleOldColisSelect(option);
-                  setOldColisSearch(option.label);
-                  setOldColisSuggestions([]);
-                  setIsModalVisible(false);
-                }}
-                style={{
-                  padding: '8px',
-                  cursor: 'pointer',
-                  borderBottom: '1px solid #f0f0f0',
-                }}
-              >
-                {option.label}
-              </div>
-            ))}
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

@@ -8,10 +8,11 @@ const fs = require("fs");
 const File = require("../Models/File");
 const { Colis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
+const { Wallet } = require("../Models/Wallet"); // Add this import at the top
 
 
 /** -------------------------------------------
- * @desc get list of clients along with their stores
+ * @desc get list of clients along with their stores and wallets
  * @router /api/client
  * @method GET
  * @access private Only admin
@@ -23,32 +24,43 @@ const getAllClients = asyncHandler(async (req, res) => {
         // Fetch all clients
         const clients = await Client.find().sort({ createdAt: -1 });
 
-        // Fetch stores for each client and count colis for each store
+        // Fetch stores and wallets for each client
         const clientsWithStoresAndColis = await Promise.all(
             clients.map(async (client) => {
                 const stores = await Store.find({ id_client: client._id });
 
-                // For each store, count the number of colis
-                const storesWithColisCount = await Promise.all(
+                // For each store, count colis and get wallet info
+                const storesWithColisAndWallet = await Promise.all(
                     stores.map(async (store) => {
                         const colisCount = await Colis.countDocuments({ store: store._id });
+                        
+                        // Get wallet information for the store
+                        const wallet = await Wallet.findOne({ store: store._id })
+                            .select('key active solde')
+                            .lean();
+
                         return {
                             ...store._doc,
                             colisCount,
+                            wallet: wallet || { key: null, active: false, solde: 0 }
                         };
                     })
                 );
 
                 return {
-                    ...client._doc, // Use _doc to get the actual client data
-                    stores: storesWithColisCount, // Add stores with colis count
+                    ...client._doc,
+                    stores: storesWithColisAndWallet,
                 };
             })
         );
 
         res.json(clientsWithStoresAndColis);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in getAllClients:', error);
+        res.status(500).json({ 
+            message: error.message,
+            error: 'Error fetching clients data'
+        });
     }
 });
 

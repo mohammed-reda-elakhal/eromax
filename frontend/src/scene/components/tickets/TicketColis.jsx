@@ -56,9 +56,9 @@ function TicketColis({ colis , showDownloadButton }) {
         </div>
         <div className="ticket-colis-main">
           <div className="ticket-colis-main-header">
-            <p style={{color : 'white' , background:'black' , padding:"4px 8px" } }>{colis?.ouvrir ? "Ouvrir Colis" : "Ne pas Ouvrir"}</p>
-            <p style={{color : 'white' , background:'black' } }>{colis.is_remplace ? "Remplace" : ""}</p>
-            <p style={{color : 'white' , background:'black'  } }>{colis.is_fragile ? "Fragile" : ""}</p>
+            <p style={{color : 'black' , background:'#E5E4E2'  , fontSize:"18px" , fontWeight:'800' } }>{colis?.ouvrir ? "Ouvrir Colis" : "Ne pas Ouvrir"}</p>
+            <p style={{color : 'black' , background:'#E5E4E2',  fontSize:"18px" , fontWeight:'800'  } }>{colis.is_remplace ? "Remplace" : ""}</p>
+            <p style={{color : 'black' , background:'#E5E4E2' ,  fontSize:"18px" , fontWeight:'800'  } }>{colis.is_fragile ? "Fragile" : ""}</p>
           </div>
           <div className="ticket-colis-main-content">
             <div className="ticket-colis-main-expedateur">

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import TableDashboard from '../../../global/TableDashboard';
-import { FaBox, FaPenFancy, FaPlus, FaWallet } from "react-icons/fa";
+import { FaBox, FaInfoCircle, FaPenFancy, FaPlus, FaWallet } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { GoVerified } from "react-icons/go";
 import { 
@@ -38,11 +38,14 @@ import {
     toggleActiveClient,
     verifyClient 
 } from '../../../../redux/apiCalls/profileApiCalls';
+// Add these imports at the top of the file
+import { FaKey } from 'react-icons/fa';
 import { 
     getStoreByUser, 
     deleteStore,
     toggleAutoDR
 } from '../../../../redux/apiCalls/storeApiCalls'; 
+
 import { 
     fetchUserDocuments,  
 } from '../../../../redux/apiCalls/docApiCalls'; 
@@ -298,17 +301,11 @@ function Client({ search }) {
     };
 
     const showWalletModal = async (storeId) => {
-        setLoadingWallet(true);
         try {
-            // Ensure storeId is a string
-            const id = typeof storeId === 'object' ? storeId._id : String(storeId);
-            await dispatch(getWalletByStore(id));
+            dispatch(getWalletByStore(storeId)); // Dispatch action to fetch wallet info
             setIsWalletModalVisible(true);
         } catch (error) {
-            console.error("Failed to fetch wallet:", error);
             message.error("Failed to fetch wallet information");
-        } finally {
-            setLoadingWallet(false);
         }
     };
 
@@ -370,6 +367,68 @@ function Client({ search }) {
             key: 'username',
             ...search('username'),
             width: 150,
+        },
+        {
+            title: 'Wallet Info',
+            dataIndex: 'wallet',
+            render: (text, record) => (
+                <div>
+                    {record.stores && record.stores.map((store, index) => (
+                        <div
+                            key={index}
+                            className="wallet-info-card"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '10px',
+                                marginBottom: '8px',
+                                background: theme === 'dark' ? '#1f1f1f' : '#f5f5f5',
+                                borderRadius: '8px',
+                                border: `1px solid ${theme === 'dark' ? '#303030' : '#e8e8e8'}`,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            <div style={{ flex: 1 }}>
+                                <div style={{ 
+                                    marginBottom: '4px', 
+                                    color: theme === 'dark' ? '#fff' : '#000',
+                                    fontSize: '14px',
+                                    fontWeight: '500' 
+                                }}>
+                                    <FaWallet style={{ marginRight: '8px', color: '#1890ff' }} />
+                                    {store.wallet?.solde || 0} DH
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Tag color={store.wallet?.active ? 'success' : 'error'}>
+                                        {store.wallet?.active ? 'Active' : 'Inactive'}
+                                    </Tag>
+                                    {store.wallet?.key && (
+                                        <Typography.Text
+                                            copyable={{
+                                                text: store.wallet.key,
+                                                tooltip: 'Copy wallet key'
+                                            }}
+                                            style={{ fontSize: '12px' }}
+                                        >
+                                            <FaKey style={{ color: '#1890ff' }} />
+                                        </Typography.Text>
+                                    )}
+                                    
+                                </div>
+                            </div>
+                            <Button
+                                type="link"
+                                icon={<FaInfoCircle />}
+                                onClick={() => showWalletModal(store._id)}
+                                style={{ padding: '4px' }}
+                            />
+                        </div>
+                    ))}
+                </div>
+            ),
+            width: 200,
         },
         {
             title: 'N° Store',
@@ -484,25 +543,7 @@ function Client({ search }) {
             ),
             width: 150,
         },
-        {
-            title: 'Wallet Info',
-            dataIndex: 'wallet',
-            render: (text, record) => (
-                <div>
-                    {record.stores && record.stores.map((store, index) => (
-                        <Tag
-                            key={index}
-                            color="blue"
-                            style={{ cursor: 'pointer', marginBottom: '4px', display: 'block' }}
-                            onClick={() => showWalletModal(store._id)}
-                        >
-                            <FaWallet /> Wallet
-                        </Tag>
-                    ))}
-                </div>
-            ),
-            width: 150,
-        },
+       
         {
             title: 'Action',
             dataIndex: 'action',

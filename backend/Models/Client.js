@@ -20,6 +20,7 @@ const ClientSchema= new mongoose.Schema({
             publicId: null,
         }
     },
+    
     active: { type: Boolean, default: true },
     verify: { type: Boolean, default: false },
     role: {
