@@ -11,10 +11,30 @@ const factureSlice = createSlice({
         promotionFacture : [],
         detailFactureRamasser: [],
         detailFactureRetour: [],
+        dateRange: 'last_week', // Default date range is last week
+        customDateRange: {
+            startDate: null,
+            endDate: null
+        },
     },
     reducers: {
         setFacture(state, action) {
             state.facture = action.payload;
+        },
+        setDateRange(state, action) {
+            state.dateRange = action.payload;
+            // Reset custom date range when selecting a predefined range
+            if (action.payload !== 'custom') {
+                state.customDateRange = {
+                    startDate: null,
+                    endDate: null
+                };
+            }
+        },
+        setCustomDateRange(state, action) {
+            state.customDateRange = action.payload;
+            // Set dateRange to 'custom' when setting custom dates
+            state.dateRange = 'custom';
         },
         setFactureGroupe(state, action) {
             state.factureGroupe = action.payload;

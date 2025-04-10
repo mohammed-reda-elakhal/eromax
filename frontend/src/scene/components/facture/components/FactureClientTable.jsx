@@ -25,7 +25,9 @@ import {
   Badge,
   Divider,
   Card,
-  Typography
+  Typography,
+  Select,
+  Space
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { FaRegFolderOpen, FaSyncAlt } from 'react-icons/fa';
@@ -40,8 +42,8 @@ import { Popconfirm } from 'antd';
 import { removeColisFromFacture } from '../../../../redux/apiCalls/factureApiCalls';
 
 
-const { RangePicker } = DatePicker;
 const { Paragraph, Text } = Typography;
+const { Option } = Select;
 
 
 function FactureClientTable({ theme, id }) {
@@ -68,17 +70,29 @@ function FactureClientTable({ theme, id }) {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedDateRange, setSelectedDateRange] = useState('last_week'); // Default to last week
 
   // Modal state for the first modal (colis details)
   const [isModalVisible, setIsModalVisible] = useState(false);
   // Modal state for the second modal (destination facture selection)
   const [isDestinationModalVisible, setIsDestinationModalVisible] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = async (dateRange = selectedDateRange) => {
     setLoading(true);
     try {
       if (user) {
-        await dispatch(getFactureClient(id, 'client'));
+        if (dateRange === 'custom') {
+          if (startDate && endDate) {
+            // If custom date range is selected and dates are set
+            dispatch(getFactureClient(id, 'custom', startDate, endDate));
+          } else {
+            // If custom is selected but no dates are set yet, don't fetch
+            toast.info('Veuillez sélectionner une plage de dates');
+          }
+        } else {
+          // For predefined date ranges
+          dispatch(getFactureClient(id, dateRange));
+        }
       }
     } catch (error) {
       // Error handling is done in the API call
@@ -97,6 +111,20 @@ function FactureClientTable({ theme, id }) {
     fetchData();
     window.scrollTo(0, 0);
   }, [dispatch, user, store]);
+
+  // Handle date range selection change
+  const handleDateRangeSelectChange = (value) => {
+    setSelectedDateRange(value);
+
+    // If custom is not selected, clear the custom date picker values and fetch data
+    if (value !== 'custom') {
+      setStartDate(null);
+      setEndDate(null);
+      setLoading(true); // Set loading state before fetching
+      fetchData(value);
+    }
+    // If custom is selected, don't fetch data yet - wait for date selection
+  };
 
   const filterData = (text, start, end) => {
     let filtered = [...facture];
@@ -133,13 +161,25 @@ function FactureClientTable({ theme, id }) {
     setSearchText(e.target.value.toLowerCase());
   };
 
-  const handleDateRangeChange = (dates) => {
-    if (dates) {
-      setStartDate(moment(dates[0]).startOf('day'));
-      setEndDate(moment(dates[1]).endOf('day'));
-    } else {
-      setStartDate(null);
-      setEndDate(null);
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value ? moment(e.target.value).startOf('day') : null;
+    setStartDate(newStartDate);
+
+    // If both dates are set and custom is selected, fetch data
+    if (newStartDate && endDate && selectedDateRange === 'custom') {
+      setLoading(true); // Set loading state before fetching
+      fetchData('custom');
+    }
+  };
+
+  const handleEndDateChange = (e) => {
+    const newEndDate = e.target.value ? moment(e.target.value).endOf('day') : null;
+    setEndDate(newEndDate);
+
+    // If both dates are set and custom is selected, fetch data
+    if (startDate && newEndDate && selectedDateRange === 'custom') {
+      setLoading(true); // Set loading state before fetching
+      fetchData('custom');
     }
   };
 
@@ -258,7 +298,7 @@ function FactureClientTable({ theme, id }) {
           />
         </>
       )}
-          
+
         </div>
       ),
     },
@@ -389,8 +429,8 @@ function FactureClientTable({ theme, id }) {
   const ModalContent = () => {
     return (
       <div>
-        <Descriptions 
-          title="Calcule Detail :" 
+        <Descriptions
+          title="Calcule Detail :"
           bordered
         >
           <Descriptions.Item label="Total Prix">
@@ -495,9 +535,9 @@ function FactureClientTable({ theme, id }) {
                   setIsModalVisible(false);
                 }}
               >
-                <Card.Meta 
-                  title={dest.code_facture} 
-                  description={`Créé le: ${moment(dest.createdAt).format('DD/MM/YYYY HH:mm')}`} 
+                <Card.Meta
+                  title={dest.code_facture}
+                  description={`Créé le: ${moment(dest.createdAt).format('DD/MM/YYYY HH:mm')}`}
                 />
               </Card>
             </Col>
@@ -510,7 +550,7 @@ function FactureClientTable({ theme, id }) {
   return (
     <div>
       <Row gutter={[16, 16]} style={{ marginBottom: '20px', alignItems: 'center' }}>
-  <Col xs={24} sm={24} md={8}>
+  <Col xs={24} sm={24} md={6}>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
       <Input
         placeholder="Rechercher ..."
@@ -520,33 +560,68 @@ function FactureClientTable({ theme, id }) {
       />
     </div>
   </Col>
-  <Col xs={24} sm={24} md={8} style={{ marginTop: '10px' }}>
-    <RangePicker 
-      onChange={handleDateRangeChange} 
-      style={{ width: '100%' }} 
-    />
-  </Col>
-  <Col xs={24} sm={24} md={8} style={{ textAlign: 'right', marginTop: '10px' }}>
-    <Button
-      type="default"
-      icon={<FaSyncAlt />}
-      onClick={fetchData}
-      style={{ margin: '5px' }}
-      loading={loading}
+  <Col xs={24} sm={24} md={6} >
+    <Select
+      value={selectedDateRange}
+      onChange={handleDateRangeSelectChange}
+      style={{ width: '100%' }}
+      disabled={loading}
     >
-      Refresh
-    </Button>
-    {user?.role === 'admin' && (
+      <Option value="last_week">Dernière semaine</Option>
+      <Option value="last_2_weeks">2 dernières semaines</Option>
+      <Option value="last_month">Dernier mois</Option>
+      <Option value="last_2_months">2 derniers mois</Option>
+      <Option value="custom">Personnalisé</Option>
+    </Select>
+  </Col>
+  <Col xs={24} sm={24} md={6} >
+    <Row gutter={8}>
+      <Col span={12}>
+        <Input
+          type="date"
+          placeholder="Date début"
+          disabled={selectedDateRange !== 'custom' || loading}
+          onChange={handleStartDateChange}
+          value={startDate ? moment(startDate).format('YYYY-MM-DD') : ''}
+          style={{ width: '100%' }}
+        />
+      </Col>
+      <Col span={12}>
+        <Input
+          type="date"
+          placeholder="Date fin"
+          disabled={selectedDateRange !== 'custom' || loading}
+          onChange={handleEndDateChange}
+          value={endDate ? moment(endDate).format('YYYY-MM-DD') : ''}
+          style={{ width: '100%' }}
+        />
+      </Col>
+    </Row>
+  </Col>
+  <Col xs={24} sm={24} md={6} style={{ textAlign: 'right' }}>
+    <Space>
       <Button
-        type="primary"
-        icon={<FaRegFolderOpen />}
-        disabled={selectedRowKeys.length < 2}
-        onClick={handleMerge}
-        style={{ margin: '5px' }}
+        type="default"
+        icon={<FaSyncAlt />}
+        onClick={() => {
+          setLoading(true);
+          fetchData(selectedDateRange);
+        }}
+        loading={loading}
       >
-        Fusionner
+        Refresh
       </Button>
-    )}
+      {user?.role === 'admin' && (
+        <Button
+          type="primary"
+          icon={<FaRegFolderOpen />}
+          disabled={selectedRowKeys.length < 2}
+          onClick={handleMerge}
+        >
+          Fusionner
+        </Button>
+      )}
+    </Space>
   </Col>
 </Row>
 

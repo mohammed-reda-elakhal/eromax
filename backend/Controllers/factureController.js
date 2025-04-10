@@ -1,4 +1,4 @@
-const { Colis } = require('../Models/Colis'); 
+const { Colis } = require('../Models/Colis');
 const Facture = require('../Models/Facture');
 const moment = require('moment');
 const mongoose = require('mongoose');
@@ -347,7 +347,7 @@ const createOrUpdateFacture = asyncHandler(async (colisId) => {
         throw error; // Propagate the error to be handled upstream
     }
 });
-  
+
 
 
 
@@ -551,7 +551,7 @@ const createFacturesForClientsAndLivreurs = async (req, res) => {
             }
 
             // Determine applicable promotions for this store
-            const storeSpecificPromotions = activePromotions.filter(promo => 
+            const storeSpecificPromotions = activePromotions.filter(promo =>
                 promo.appliesTo === 'specific' && promo.clients.map(client => client.toString()).includes(storeId)
             );
 
@@ -1431,12 +1431,12 @@ const getFactureByCode = asyncHandler(async (req, res) => {
  */
 const getCodeFactureByColis = asyncHandler(async (req, res) => {
     const { colisId } = req.params;
-  
+
     // Validate colisId
     if (!colisId) {
       return res.status(400).json({ message: "Colis ID is required." });
     }
-  
+
     // Attempt to find the colis by code_suivi or _id
     let colis = await Colis.findOne({ code_suivi: colisId });
     if (!colis) {
@@ -1448,12 +1448,12 @@ const getCodeFactureByColis = asyncHandler(async (req, res) => {
     if (!colis) {
       return res.status(404).json({ message: "Colis not found." });
     }
-  
+
     // Find the facture for client type
     const factureClient = await Facture.findOne({ colis: colis._id, type: "client" }).lean();
     // Find the facture for livreur type
     const factureLivreur = await Facture.findOne({ colis: colis._id, type: "livreur" }).lean();
-  
+
     // Build the response object with both facture codes (if found)
     return res.status(200).json({
       message: "Facture codes retrieved successfully.",
@@ -1467,7 +1467,7 @@ const getCodeFactureByColis = asyncHandler(async (req, res) => {
       }
     });
   });
-  
+
 
 
 
@@ -1711,7 +1711,7 @@ const removeColisFromFacture = asyncHandler(async (req, res) => {
 const removeColisFromClientFacture = asyncHandler(async (req, res) => {
     // Get facture code and colis code_suivi from request parameters
     const { code_facture, code_suivi } = req.params;
-  
+
     // 1. Find the facture by its code_facture
     const facture = await Facture.findOne({ code_facture });
     if (!facture) {
@@ -1720,7 +1720,7 @@ const removeColisFromClientFacture = asyncHandler(async (req, res) => {
     if (facture.type !== 'client') {
       return res.status(400).json({ message: 'This endpoint only handles client factures' });
     }
-  
+
     // 2. Find the colis by its code_suivi (with store and ville populated).
     const colis = await Colis.findOne({ code_suivi })
       .populate('store')
@@ -1729,7 +1729,7 @@ const removeColisFromClientFacture = asyncHandler(async (req, res) => {
     if (!colis) {
       return res.status(404).json({ message: 'Colis not found' });
     }
-  
+
     // 3. Verify that this colis is part of the facture
     const colisExists = facture.colis.some(
       (colId) => colId.toString() === colis._id.toString()
@@ -1737,7 +1737,7 @@ const removeColisFromClientFacture = asyncHandler(async (req, res) => {
     if (!colisExists) {
       return res.status(404).json({ message: 'Colis is not associated with this facture' });
     }
-  
+
     // 4. Recompute pricing details for the colis using the same logic as when adding it
     let originalTarifLivraisonClient = 0;
     if (colis.statut === 'Livrée') {
@@ -1745,31 +1745,31 @@ const removeColisFromClientFacture = asyncHandler(async (req, res) => {
     } else if (colis.statut === 'Refusée') {
       originalTarifLivraisonClient = colis.ville?.tarif_refus || 0;
     }
-  
+
     // For this example, assume that any promotion adjustments have been saved previously in the colis.crbt field.
     // If not, you can re-run your promotion logic here.
     const tarif_livraisonClient = colis.crbt ? colis.crbt.tarif_livraison : originalTarifLivraisonClient;
     const tarif_fragile = colis.crbt ? colis.crbt.tarif_fragile : (colis.is_fragile ? 5 : 0);
     const tarif_ajouter = colis.crbt ? colis.crbt.tarif_supplementaire : (colis.tarif_ajouter?.value || 0);
-  
+
     let total_tarifClient = 0;
     if (colis.statut === 'Refusée') {
       total_tarifClient = tarif_fragile + tarif_ajouter;
     } else {
       total_tarifClient = tarif_livraisonClient + tarif_fragile + tarif_ajouter;
     }
-  
+
     // Calculate the "rest" (prix à payer) for delivered colis
     let rest = 0;
     if (colis.statut === 'Livrée') {
       rest = colis.prix - total_tarifClient;
     }
-  
+
     // 5. Build the update object to remove this colis and adjust totals accordingly.
     const update = {
         $pull: { colis: new mongoose.Types.ObjectId(colis._id) }, // Use 'new' here
       };
-      
+
       // Adjust totals based on the colis status
       if (colis.statut === 'Livrée') {
         update.$inc = {
@@ -1793,12 +1793,12 @@ const removeColisFromClientFacture = asyncHandler(async (req, res) => {
       }
     // 6. Update the facture document in the database
     await Facture.updateOne({ _id: facture._id }, update);
-  
+
     // 7. Optionally, update the colis document (e.g. remove its facture reference)
     // For example, if you keep a 'facture' field on the colis, set it to null.
     colis.facture = null;
     await colis.save();
-  
+
     // 8. Return the updated facture document or a success message
     const updatedFacture = await Facture.findById(facture._id).lean();
     res.status(200).json({
@@ -1826,7 +1826,7 @@ const removeColisFromClientFacture = asyncHandler(async (req, res) => {
  */
 const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
     const { code_facture, code_suivi } = req.params;
-  
+
     // 1. Find the existing facture by its unique code.
     const facture = await Facture.findOne({ code_facture });
     if (!facture) {
@@ -1835,7 +1835,7 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
     if (facture.type !== 'client') {
       return res.status(400).json({ message: 'This endpoint only applies to client factures' });
     }
-  
+
     // 2. Find the colis by its code_suivi (with store and ville populated).
     const colis = await Colis.findOne({ code_suivi })
       .populate('store')
@@ -1844,19 +1844,19 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
     if (!colis) {
       return res.status(404).json({ message: 'Colis not found' });
     }
-  
+
     // 3. Verify that the colis has statut "Livrée".
     if (colis.statut !== 'Livrée') {
       return res.status(400).json({ message: 'Only colis with status "Livrée" can be added to a facture' });
     }
-  
+
     // 4. Verify that the store in the colis matches the store in the facture.
     if (facture.store.toString() !== colis.store._id.toString()) {
       return res.status(400).json({
         message: 'The store in the colis does not match the store in the facture',
       });
     }
-  
+
     // 5. Ensure the colis is not already associated with any client facture.
     const existingFactureForColis = await Facture.findOne({
       type: 'client',
@@ -1867,7 +1867,7 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
         message: `Colis with code ${colis.code_suivi} is already associated with a client facture`,
       });
     }
-  
+
     // 6. Fetch active promotions.
     const now = new Date();
     const activePromotions = await Promotion.find({
@@ -1875,10 +1875,10 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
       startDate: { $lte: now },
       endDate: { $gte: now },
     }).lean();
-  
+
     // 7. Calculate the original delivery tariff from the ville.
     const originalTarifLivraisonClient = colis.ville?.tarif || 0;
-  
+
     // 8. Apply any active promotion.
     let tarif_livraisonClient = originalTarifLivraisonClient;
     let appliedPromotion = null;
@@ -1889,17 +1889,17 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
     );
     tarif_livraisonClient = promotionResult.tarif_livraison;
     appliedPromotion = promotionResult.appliedPromotion;
-  
+
     // 9. Compute additional fees:
     const tarif_fragile = colis.is_fragile ? 5 : 0;
     const tarif_ajouter = colis.tarif_ajouter?.value || 0;
-  
+
     // 10. Compute the total tariff for this colis.
     const total_tarifClient = tarif_livraisonClient + tarif_fragile + tarif_ajouter;
-  
+
     // 11. Calculate the "rest" (prix à payer) for this colis.
     const rest = colis.prix - total_tarifClient;
-  
+
     // 12. Build the cost breakdown (CRBT) object.
     const crbtData = {
       prix_colis: colis.prix,
@@ -1910,10 +1910,10 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
       prix_a_payant: rest,
       total_tarif: total_tarifClient,
     };
-  
+
     // 13. (Optional) Verify that the facture date (grouping key) is consistent.
     // Here, we assume that the facture already exists, so we do not change its date.
-  
+
     // 14. Check if the colis is already included in this facture.
     const alreadyInFacture = facture.colis.some(
       (existingId) => existingId.toString() === colis._id.toString()
@@ -1923,7 +1923,7 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
         message: `Colis with code ${colis.code_suivi} is already included in this facture`,
       });
     }
-  
+
     // 15. Update the facture by adding the colis and updating totals.
     const updateFields = {
       $push: { colis: colis._id },
@@ -1939,19 +1939,19 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
       updateFields.$set = { promotion: appliedPromotion };
     }
     await Facture.updateOne({ _id: facture._id }, updateFields);
-  
+
     // 16. Update the colis document to record its association with the facture and CRBT details.
     colis.facture = facture._id; // If you track this relation.
     colis.crbt = crbtData;
     colis.statu_final = 'Livrée';
     await colis.save();
-  
+
     // 17. Return the updated facture.
     const updatedFacture = await Facture.findById(facture._id)
       .populate('store')
       .populate('colis')
       .lean();
-  
+
     res.status(200).json({
       message: 'Colis added successfully to the existing client facture',
       facture: updatedFacture,
@@ -1961,7 +1961,7 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
 
 
 
- 
+
 /**
  * Controller to get colis without facture (for client factures).
  * The query returns colis that:
@@ -1977,11 +1977,11 @@ const addColisToExistingClientFacture = asyncHandler(async (req, res) => {
 const getColisWithoutFactureForClient = asyncHandler(async (req, res) => {
     try {
         const { storeId } = req.query;
-    
+
         // 1. Retrieve only factures of type 'client' and select the 'colis' field.
         const factures = await Facture.find({ type: 'client' }, 'colis').lean();
         console.log('Retrieved Factures (type: client):', factures);
-    
+
         // 2. Extract all colis IDs from the factures.
         let facturedColisIds = [];
         factures.forEach((facture) => {
@@ -1994,13 +1994,13 @@ const getColisWithoutFactureForClient = asyncHandler(async (req, res) => {
             });
           }
         });
-    
+
         // Remove duplicates and convert to ObjectId
         facturedColisIds = Array.from(new Set(facturedColisIds)).map(
           (id) => new mongoose.Types.ObjectId(id)
         );
         console.log('Collected factured Colis IDs:', facturedColisIds);
-    
+
         // 3. Build the base query for Colis:
         //    - Filter for client colis (store not null)
         //    - No assigned livreur (explicitly check for null)
@@ -2008,13 +2008,13 @@ const getColisWithoutFactureForClient = asyncHandler(async (req, res) => {
           store: { $ne: null },
           livreur: null,
         };
-    
+
         // 4. Exclude colis that are referenced in a client facture.
         // If facturedColisIds is empty, this condition does nothing.
         if (facturedColisIds.length > 0) {
           query._id = { $nin: facturedColisIds };
         }
-        
+
         // 5. Optionally filter by storeId if provided.
         if (storeId) {
           if (mongoose.Types.ObjectId.isValid(storeId)) {
@@ -2023,14 +2023,14 @@ const getColisWithoutFactureForClient = asyncHandler(async (req, res) => {
             console.warn(`Ignoring invalid storeId "${storeId}".`);
           }
         }
-    
+
         // 6. Debug: Log the final query
         console.log('Final Colis query:', JSON.stringify(query, null, 2));
-    
+
         // 7. Query Colis collection with the constructed query.
         const colisWithoutFacture = await Colis.find(query).lean();
         console.log(`Found ${colisWithoutFacture.length} colis without facture.`);
-    
+
         // 8. Return the results.
         res.status(200).json({
           message: 'Colis without facture retrieved successfully',
@@ -2042,7 +2042,7 @@ const getColisWithoutFactureForClient = asyncHandler(async (req, res) => {
       }
     });
 
-  
+
 
 
 
@@ -2064,9 +2064,9 @@ try {
     .populate({
         path: 'store',
         select: 'storeName id_client adress phone',
-        populate: { 
-        path: 'id_client', 
-        select: 'tele email' 
+        populate: {
+        path: 'id_client',
+        select: 'tele email'
         },
     })
     .populate({
@@ -2142,12 +2142,12 @@ try {
     res.status(500).json({ message: 'Internal server error' });
 }
 };
-      
+
 
 const getFactureClient = async (req, res) => {
 try {
-    // Get store id and date range from query parameters
-    const { store: storeId, startDate, endDate } = req.query;
+    // Get store id, date range, and dateRange type from query parameters
+    const { store: storeId, startDate, endDate, dateRange } = req.query;
 
     // Build the query filter. Always include type 'client' and optionally filter by store.
     const filter = { type: 'client' };
@@ -2155,11 +2155,53 @@ try {
         filter.store = storeId;
     }
 
-    // Date filtering (optional)
+    // Date filtering
     if (startDate && endDate) {
+        // If specific date range is provided, use it
         filter.createdAt = {
             $gte: new Date(startDate),  // Greater than or equal to start date
             $lte: new Date(endDate),    // Less than or equal to end date
+        };
+    } else if (dateRange) {
+        // Dynamic date range based on dateRange parameter
+        const now = new Date();
+        let startDateDynamic;
+
+        switch (dateRange) {
+            case 'last_week':
+                startDateDynamic = new Date();
+                startDateDynamic.setDate(now.getDate() - 7);
+                break;
+            case 'last_2_weeks':
+                startDateDynamic = new Date();
+                startDateDynamic.setDate(now.getDate() - 14);
+                break;
+            case 'last_month':
+                startDateDynamic = new Date();
+                startDateDynamic.setMonth(now.getMonth() - 1);
+                break;
+            case 'last_2_months':
+                startDateDynamic = new Date();
+                startDateDynamic.setMonth(now.getMonth() - 2);
+                break;
+            default:
+                // Default to last week if dateRange is invalid
+                startDateDynamic = new Date();
+                startDateDynamic.setDate(now.getDate() - 7);
+        }
+
+        filter.createdAt = {
+            $gte: startDateDynamic,
+            $lte: now,
+        };
+    } else {
+        // If no date range is provided, default to last 1 week
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        filter.createdAt = {
+            $gte: oneWeekAgo,  // Greater than or equal to 1 week ago
+            $lte: new Date(),  // Less than or equal to now
         };
     }
 
@@ -2214,7 +2256,7 @@ try {
                     return acc + (col.crbt ? (col.crbt.tarif_livraison || 0) : 0);
                 }, 0)
                 : 0;
-                
+
         const totalSupplementaire =
             facture.colis && facture.colis.length > 0
                 ? facture.colis.reduce((acc, col) => {
@@ -2264,12 +2306,62 @@ try {
 
 const getFactureLivreur = async (req, res) => {
     try {
-        // Get livreurId from query parameters
-        const { livreurId } = req.query;
+        // Get livreurId, date range, and dateRange type from query parameters
+        const { livreurId, startDate, endDate, dateRange } = req.query;
 
         const filter = { type: 'livreur' };
         if (livreurId) {
             filter.livreur = livreurId;
+        }
+
+        // Date filtering
+        if (startDate && endDate) {
+            // If specific date range is provided, use it
+            filter.createdAt = {
+                $gte: new Date(startDate),  // Greater than or equal to start date
+                $lte: new Date(endDate),    // Less than or equal to end date
+            };
+        } else if (dateRange) {
+            // Dynamic date range based on dateRange parameter
+            const now = new Date();
+            let startDateDynamic;
+
+            switch (dateRange) {
+                case 'last_week':
+                    startDateDynamic = new Date();
+                    startDateDynamic.setDate(now.getDate() - 7);
+                    break;
+                case 'last_2_weeks':
+                    startDateDynamic = new Date();
+                    startDateDynamic.setDate(now.getDate() - 14);
+                    break;
+                case 'last_month':
+                    startDateDynamic = new Date();
+                    startDateDynamic.setMonth(now.getMonth() - 1);
+                    break;
+                case 'last_2_months':
+                    startDateDynamic = new Date();
+                    startDateDynamic.setMonth(now.getMonth() - 2);
+                    break;
+                default:
+                    // Default to last week if dateRange is invalid
+                    startDateDynamic = new Date();
+                    startDateDynamic.setDate(now.getDate() - 7);
+            }
+
+            filter.createdAt = {
+                $gte: startDateDynamic,
+                $lte: now,
+            };
+        } else {
+            // If no date range is provided, default to last 1 week
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            filter.createdAt = {
+                $gte: oneWeekAgo,  // Greater than or equal to 1 week ago
+                $lte: new Date(),  // Less than or equal to now
+            };
         }
 
         // Find factures of type "livreur" and select necessary fields.
@@ -2299,13 +2391,13 @@ const getFactureLivreur = async (req, res) => {
         let totalTarifLivreur = 0 ;
         let totalPrix = 0 ;
         let colisCount = 0;
-        
+
 
         // Now loop through each facture and colis to get the corresponding tarif from TarifLivreur
         for (const facture of factures) {
             for (const colis of facture.colis) {
                 const { ville, livreur } = colis;
-                
+
                 // Get the tarif from TarifLivreur based on livreur and ville
                 const tarif = await TarifLivreur.findOne({
                     id_livreur: livreur._id,
@@ -2388,19 +2480,19 @@ const getFactureLivreurByCode = async (req, res) => {
             for (const colis of facture.colis) {
                 // Sum the colis price from crbt.prix_colis (default to 0 if not available)
                 totalPrixColis += colis.crbt?.prix_colis || 0;
-                
+
                 // Destructure ville and livreur from the colis
                 const { ville, livreur } = colis;
-                
+
                 // Get the tarif from TarifLivreur based on livreur._id and ville._id
                 const tarifDoc = await TarifLivreur.findOne({
                     id_livreur: livreur._id,
                     id_ville: ville._id
                 }).select('tarif').lean();
-                
+
                 // Use the found tarif or default to 20 if not found
                 const tarifLivreur = tarifDoc ? tarifDoc.tarif : 20;
-                
+
                 // Sum up the total tarif and attach it to the colis object
                 totalTarifLivreur += tarifLivreur;
                 colis.tarif_livreur = tarifLivreur;
@@ -2421,10 +2513,10 @@ const getFactureLivreurByCode = async (req, res) => {
         console.error('Error fetching facture:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-};    
-      
-      
-     
+};
+
+
+
 
 
 // transfer colis betwenn facture ---------------------------------------
@@ -2432,7 +2524,7 @@ const getFactureLivreurByCode = async (req, res) => {
 
 /**
  * Controller to transfer colis from one client facture to another.
- * 
+ *
  * Expected request body:
  *  - code_facture_source: The source facture code.
  *  - code_facture_distinataire: The destination facture code.
@@ -2441,7 +2533,7 @@ const getFactureLivreurByCode = async (req, res) => {
 const transferColisClient = async (req, res) => {
     try {
       const { code_facture_source, code_facture_distinataire, colisCodeSuivi } = req.body;
-  
+
       // Validate required fields
       if (
         !code_facture_source ||
@@ -2453,23 +2545,23 @@ const transferColisClient = async (req, res) => {
             'code facture source, and a non-empty colisCodeSuivi array are required.',
         });
       }
-  
+
       // Find the source facture (client type) and populate colis to access their code_suivi.
       const sourceFacture = await Facture.findOne({
         code_facture: code_facture_source,
         type: 'client',
       }).populate({ path: 'colis', select: 'code_suivi' });
-  
+
       if (!sourceFacture) {
         return res.status(404).json({ message: 'Source facture not found or not a client facture.' });
       }
-  
+
       // Try to find the destination facture (client type)
       let destinationFacture = await Facture.findOne({
         code_facture: code_facture_distinataire,
         type: 'client',
       });
-  
+
       // If destination facture not found, create a new one with the same store as the source facture.
       if (!destinationFacture) {
         destinationFacture = new Facture({
@@ -2484,35 +2576,35 @@ const transferColisClient = async (req, res) => {
           return res.status(400).json({ message: 'For client factures, both must belong to the same store.' });
         }
       }
-  
+
       // Identify colis in the source facture that match the provided code_suivi list.
       const sourceColis = sourceFacture.colis;
       const colisToTransfer = sourceColis.filter((colis) =>
         colisCodeSuivi.includes(colis.code_suivi)
       );
-  
+
       if (colisToTransfer.length === 0) {
         return res.status(400).json({
           message: 'No matching colis found in the source facture for the provided code_suivi list.',
         });
       }
-  
+
       // Get the ObjectIds of the colis to transfer and record their code_suivi for the response.
       const colisIdsToTransfer = colisToTransfer.map((colis) => colis._id.toString());
       const transferredCodeSuivi = colisToTransfer.map((colis) => colis.code_suivi);
-  
+
       // Remove these colis from the source facture's colis array.
       sourceFacture.colis = sourceFacture.colis.filter(
         (colis) => !colisIdsToTransfer.includes(colis._id.toString())
       );
-  
+
       // Add the colis IDs to the destination facture's colis array.
       destinationFacture.colis = destinationFacture.colis.concat(colisIdsToTransfer);
-  
+
       // Save the updated factures.
       await sourceFacture.save();
       await destinationFacture.save();
-  
+
       return res.status(200).json({
         message: 'Colis transferred successfully.',
         transferredCodeSuivi,
@@ -2523,11 +2615,11 @@ const transferColisClient = async (req, res) => {
       return res.status(500).json({ message: 'Internal server error.' });
     }
   };
-  
+
 
   /**
  * Controller to transfer colis from one livreur facture to another.
- * 
+ *
  * Expected request body:
  *  - code_facture_source: The source facture code.
  *  - code_facture_distinataire: The destination facture code.

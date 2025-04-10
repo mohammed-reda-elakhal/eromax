@@ -14,7 +14,7 @@ export function getFacture(type) {
                 toast.error('Authentification token is missing');
                 return;
             }
-    
+
             const config = {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -39,19 +39,19 @@ export function getFactureClientByCode(code_facture) {
           toast.error('Authentication token is missing');
           return;
         }
-        
+
         const config = {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         };
-  
+
         const { data } = await request.get(`/api/facture/detail/client/${code_facture}`, config);
-  
+
         // Dispatch the facture detail to the store
         dispatch(factureActions.setFactureDetail(data.facture));
-  
+
         // Optionally update the promotion if provided in the response
         if (data.promotion) {
           dispatch(factureActions.setPromotion(data.promotion));
@@ -74,16 +74,16 @@ export function getFactureClientByCode(code_facture) {
           toast.error('Authentication token is missing');
           return;
         }
-        
+
         const config = {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         };
-  
+
         const { data } = await request.get(`/api/facture/detail/livreur/${code_facture}`, config);
-  
+
         // Dispatch the facture detail to the store
         dispatch(factureActions.setFactureDetail(data.factures));
       } catch (error) {
@@ -105,7 +105,7 @@ export function getFactureGroupeByUser(type) {
                 toast.error('Authentification token is missing');
                 return;
             }
-    
+
             const config = {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -134,7 +134,7 @@ export function getFactureByUser(storeId, type) {
                 toast.error('Authentification token is missing');
                 return;
             }
-    
+
             const config = {
                 headers: {
                     'Content-Type': 'application/json',
@@ -154,15 +154,15 @@ export function getFactureByUser(storeId, type) {
 }
 
 // get data user
-export function getFactureClient(store) {
-    return async (dispatch) => {
+export function getFactureClient(store, dateRange, customStartDate, customEndDate) {
+    return async (dispatch, getState) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 toast.error('Authentication token is missing');
                 return;
             }
-    
+
             const config = {
                 headers: {
                     'Content-Type': 'application/json',
@@ -170,7 +170,57 @@ export function getFactureClient(store) {
                 },
             };
 
-            const { data } = await request.get(`/api/facture/client?store=${store}`, config);
+            // Get the current date range from state if not provided
+            const state = getState();
+            const currentDateRange = dateRange || state.facture.dateRange;
+
+            // Build the URL with query parameters
+            let url = `/api/facture/client?store=${store}`;
+
+            // Add date range parameters
+            if (currentDateRange === 'custom' && customStartDate && customEndDate) {
+                // Format dates as ISO strings for the API
+                let startDateStr, endDateStr;
+
+                // Handle different date formats
+                if (customStartDate) {
+                    if (typeof customStartDate === 'string') {
+                        startDateStr = new Date(customStartDate).toISOString();
+                    } else if (customStartDate._isAMomentObject) {
+                        startDateStr = customStartDate.toISOString();
+                    } else if (customStartDate instanceof Date) {
+                        startDateStr = customStartDate.toISOString();
+                    } else {
+                        startDateStr = new Date(customStartDate).toISOString();
+                    }
+                }
+
+                if (customEndDate) {
+                    if (typeof customEndDate === 'string') {
+                        endDateStr = new Date(customEndDate).toISOString();
+                    } else if (customEndDate._isAMomentObject) {
+                        endDateStr = customEndDate.toISOString();
+                    } else if (customEndDate instanceof Date) {
+                        endDateStr = customEndDate.toISOString();
+                    } else {
+                        endDateStr = new Date(customEndDate).toISOString();
+                    }
+                }
+
+                url += `&startDate=${startDateStr}&endDate=${endDateStr}`;
+
+                // Update the custom date range in the store
+                dispatch(factureActions.setCustomDateRange({
+                    startDate: customStartDate,
+                    endDate: customEndDate
+                }));
+            } else {
+                url += `&dateRange=${currentDateRange}`;
+                // Update the date range in the store
+                dispatch(factureActions.setDateRange(currentDateRange));
+            }
+
+            const { data } = await request.get(url, config);
             dispatch(factureActions.setFacture(data.factures));
         } catch (error) {
             toast.error(error.message || "Failed to fetch notifications");
@@ -178,15 +228,15 @@ export function getFactureClient(store) {
     };
 }
 // get data user
-export function getFactureLivreur(id) {
-    return async (dispatch) => {
+export function getFactureLivreur(id, dateRange, customStartDate, customEndDate) {
+    return async (dispatch, getState) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 toast.error('Authentication token is missing');
                 return;
             }
-    
+
             const config = {
                 headers: {
                     'Content-Type': 'application/json',
@@ -194,7 +244,57 @@ export function getFactureLivreur(id) {
                 },
             };
 
-            const { data } = await request.get(`/api/facture/livreur?livreurId=${id}`, config);
+            // Get the current date range from state if not provided
+            const state = getState();
+            const currentDateRange = dateRange || state.facture.dateRange;
+
+            // Build the URL with query parameters
+            let url = `/api/facture/livreur?livreurId=${id}`;
+
+            // Add date range parameters
+            if (currentDateRange === 'custom' && customStartDate && customEndDate) {
+                // Format dates as ISO strings for the API
+                let startDateStr, endDateStr;
+
+                // Handle different date formats
+                if (customStartDate) {
+                    if (typeof customStartDate === 'string') {
+                        startDateStr = new Date(customStartDate).toISOString();
+                    } else if (customStartDate._isAMomentObject) {
+                        startDateStr = customStartDate.toISOString();
+                    } else if (customStartDate instanceof Date) {
+                        startDateStr = customStartDate.toISOString();
+                    } else {
+                        startDateStr = new Date(customStartDate).toISOString();
+                    }
+                }
+
+                if (customEndDate) {
+                    if (typeof customEndDate === 'string') {
+                        endDateStr = new Date(customEndDate).toISOString();
+                    } else if (customEndDate._isAMomentObject) {
+                        endDateStr = customEndDate.toISOString();
+                    } else if (customEndDate instanceof Date) {
+                        endDateStr = customEndDate.toISOString();
+                    } else {
+                        endDateStr = new Date(customEndDate).toISOString();
+                    }
+                }
+
+                url += `&startDate=${startDateStr}&endDate=${endDateStr}`;
+
+                // Update the custom date range in the store
+                dispatch(factureActions.setCustomDateRange({
+                    startDate: customStartDate,
+                    endDate: customEndDate
+                }));
+            } else {
+                url += `&dateRange=${currentDateRange}`;
+                // Update the date range in the store
+                dispatch(factureActions.setDateRange(currentDateRange));
+            }
+
+            const { data } = await request.get(url, config);
             dispatch(factureActions.setFacture(data.factures));
         } catch (error) {
             toast.error(error.message || "Failed to fetch notifications");
@@ -206,13 +306,13 @@ export function getFactureLivreur(id) {
 export function getFactureRamasser() {
     return async (dispatch) => {
         try {
-            
+
             const token = localStorage.getItem('token');
             if (!token) {
                 toast.error('Authentification token is missing');
                 return;
             }
-    
+
             const config = {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -269,7 +369,7 @@ export function getFactureDetailsByLivreur(id){
     }catch(error){
         toast.error(error.message || "Failed to fetch facture details");
     }
-        
+
     }
 }
 
@@ -283,7 +383,7 @@ export function getFactureRetour(type) {
                 toast.error('Authentication token is missing');
                 return;
             }
-            
+
             const config = {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -291,9 +391,9 @@ export function getFactureRetour(type) {
                 },
                 params: { type } // Use 'params' for query parameters
             };
-            
+
             const { data } = await request.get(`/api/facture/retour`, config);
-            
+
             // Process data to match specified structure
             dispatch(factureActions.setFactureRetour(data.data));
         } catch (error) {
@@ -334,7 +434,7 @@ export function getFactureByColis(colisId) {
 
             const { data } = await request.get(`/api/facture/colis/${colisId}`, config);
             dispatch(factureActions.setFactureDetail(data.factureContent));
-            
+
         } catch (error) {
             // Handle specific error messages from backend
             if (error.response && error.response.status === 404) {
@@ -365,7 +465,7 @@ export function mergeFactures(factureCodes) {
             };
 
             const { data } = await request.post(`/api/facture/merge`, { factureCodes }, config);
-            
+
             // Dispatch an action to add the merged facture
             dispatch(factureActions.addFacture(data.mergedFacture));
 
@@ -396,21 +496,21 @@ export function transferColisClient({ code_facture_source, code_facture_distinat
           toast.error('Authentication token is missing');
           return;
         }
-  
+
         const config = {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         };
-  
+
         const { data } = await request.post(
           `/api/facture/transfer/${type}`,
           { code_facture_source, code_facture_distinataire, colisCodeSuivi },
           config
         );
-  
-  
+
+
         toast.success(data.message);
       } catch (error) {
         toast.error(
@@ -421,7 +521,7 @@ export function transferColisClient({ code_facture_source, code_facture_distinat
       }
     };
   }
-  
+
 
   export function removeColisFromFacture(code_facture, code_suivi) {
   return async (dispatch) => {
@@ -431,7 +531,7 @@ export function transferColisClient({ code_facture_source, code_facture_distinat
         toast.error('Authentication token is missing');
         return;
       }
-      
+
       const config = {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -460,7 +560,7 @@ export function deleteFacture(code_facture) {
         toast.error('Authentication token is missing');
         return;
       }
-      
+
       const config = {
         headers: {
           'Authorization': `Bearer ${token}`,

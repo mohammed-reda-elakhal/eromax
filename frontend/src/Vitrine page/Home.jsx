@@ -10,10 +10,32 @@ import Contact from '../components/contact/Contact';
 import Tarif from '../components/tarif/Tarif';
 import Footer from '../components/footer/Footer';
 import Map from './../components/map/Map';
+import SEO from '../components/SEO/SEO';
 
 function Home() {
+  // Structured data for the homepage (Organization)
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Eromax",
+    "url": window.location.origin,
+    "logo": `${window.location.origin}/logo192.png`,
+    "description": "Eromax provides reliable delivery and logistics services for businesses and individuals.",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+212-XXXXXXXX", // Replace with actual phone number
+      "contactType": "customer service"
+    }
+  };
+
   return (
     <div className='home'>
+        <SEO
+          title="Home"
+          description="Eromax provides reliable delivery and logistics services for businesses and individuals. Track your packages, learn about our services, and contact us for more information."
+          keywords="delivery, logistics, shipping, courier, packages, tracking, morocco, express delivery"
+          structuredData={structuredData}
+        />
         <Header/>
         <Cover/>
         <Track/>
@@ -33,7 +55,7 @@ function Home() {
         </div>
         <Map/>
         <Footer/>
-    </div>  
+    </div>
   )
 }
 

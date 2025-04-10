@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch , useSelector } from 'react-redux';
 import { registerUser } from '../redux/apiCalls/authApiCalls';
 import { getAllVilles } from '../redux/apiCalls/villeApiCalls';
+import SEO from '../components/SEO/SEO';
 
 const { Option } = Select;
 
@@ -58,6 +59,11 @@ function Register() {
 
   return (
     <div className="register-section">
+      <SEO
+        title="Register"
+        description="Create your Eromax account to start shipping packages, tracking deliveries, and managing your logistics needs."
+        keywords="register, sign up, create account, eromax account, delivery service registration"
+      />
       <Link to="/" className="register-section-logo">
         <img src="/image/logo-light.png" alt="Logo" />
       </Link>
@@ -68,7 +74,7 @@ function Register() {
           </div>
           <p>Créer votre compte sur EROMAX</p>
         </div>
-        
+
         <Form
           form={form}
           onFinish={handleFinish}

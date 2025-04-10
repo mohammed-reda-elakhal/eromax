@@ -6,18 +6,19 @@ import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import './login.css';
 import { loginUser, logoutUser } from '../redux/apiCalls/authApiCalls';
 import { FaFacebook, FaInstagram, FaWhatsapp } from 'react-icons/fa';
+import SEO from '../components/SEO/SEO';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('client');
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Clear data and possibly logout user on component mount
   useEffect(() => {
-    dispatch(logoutUser()); 
+    dispatch(logoutUser());
     setEmail('');
     setPassword('');
   }, [dispatch]);
@@ -31,11 +32,11 @@ const Login = () => {
 
   const handleRegisterNavigation = () => {
     if (role === 'client') {
-      navigate('/register'); 
+      navigate('/register');
     } else if (role === 'livreur') {
-      navigate('/register/livreur'); 
+      navigate('/register/livreur');
     } else if (role === 'staf') {
-      navigate('/'); 
+      navigate('/');
     }
   };
 
@@ -46,14 +47,19 @@ const Login = () => {
 
   return (
     <div className="login-container">
+      <SEO
+        title="Login"
+        description="Log in to your Eromax account to track your packages, manage your shipments, and more."
+        keywords="login, sign in, account, eromax account, delivery account"
+      />
       <div className="login-card">
         <div className="login-header">
-          <img 
-            src="/image/logo-light.png" 
-            onClick={() => navigate('/')} 
-            style={{ cursor: "pointer" }} 
-            alt="Landino" 
-            className="login-logo" 
+          <img
+            src="/image/logo-light.png"
+            onClick={() => navigate('/')}
+            style={{ cursor: "pointer" }}
+            alt="Landino"
+            className="login-logo"
           />
           <h2>Login</h2>
         </div>
@@ -97,9 +103,9 @@ const Login = () => {
         </form>
         <div className="login-footer">
           <span>No account yet?</span>
-          <Button 
-            onClick={handleRegisterNavigation} 
-            className="login-footer-link" 
+          <Button
+            onClick={handleRegisterNavigation}
+            className="login-footer-link"
             style={{ border: 'none', padding: 0, background: 'transparent', color: '#1890ff' }}
           >
             Register

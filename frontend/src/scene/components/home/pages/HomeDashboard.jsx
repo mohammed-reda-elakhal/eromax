@@ -12,6 +12,7 @@ import Mission from '../components/Mission';
 import { useSelector } from 'react-redux';
 import Promotions from '../../promotion/page/Promotion';
 import ColisReporteProgramme from '../../colis/modals/ColisReporteProgramme';
+import DashboardSEO from '../../SEO/DashboardSEO';
 
 
 function HomeDashboard() {
@@ -21,6 +22,10 @@ function HomeDashboard() {
     }));
   return (
     <div className='page-dashboard'>
+            <DashboardSEO
+                title="Dashboard Home"
+                description="Manage your Eromax delivery services, view statistics, and track your shipments."
+            />
             <Menubar />
             <main className="page-main">
                 <Topbar />
@@ -41,11 +46,11 @@ function HomeDashboard() {
                         <PromotionStore />
                         <ColisReporteProgramme />
                         {
-                            user?.role ==="admin" || user?.role ==="livreur" ? 
+                            user?.role ==="admin" || user?.role ==="livreur" ?
                             <Mission theme={theme}/>
                             :""
                         }
-        
+
                         <Statistic theme={theme} userRole={user.role} />
                     </div>
                 </div>

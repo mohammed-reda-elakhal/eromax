@@ -12,12 +12,14 @@ import {
   removeColisFromFacture,
   deleteFacture,
 } from '../../../../redux/apiCalls/factureApiCalls';
-import { Button, Tag, Input, Switch, Modal, Row, Col, Descriptions, Badge, Divider, Table, Card, Popconfirm } from 'antd';
+import { Button, Tag, Input, Switch, Modal, Row, Col, Descriptions, Badge, Divider, Table, Card, Popconfirm, Select, Space } from 'antd';
 import { FaRegFolderOpen, FaSyncAlt, FaCog, FaPlus } from "react-icons/fa";
-import moment from 'moment';
-import { toast } from 'react-toastify';
 import { IoSend } from 'react-icons/io5';
 import { MdDelete } from 'react-icons/md';
+import { toast } from 'react-toastify';
+import moment from 'moment';
+
+const { Option } = Select;
 
 function FactureLivreurTable({ theme , id }) {
   const dispatch = useDispatch();
@@ -26,7 +28,7 @@ function FactureLivreurTable({ theme , id }) {
     user: state.auth.user,
   }));
 
-  const [searchText, setSearchText] = useState(''); 
+  const [searchText, setSearchText] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -35,13 +37,27 @@ function FactureLivreurTable({ theme , id }) {
   const [selectedColis, setSelectedColis] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [searchFactureText, setSearchFactureText] = useState('');
+  const [selectedDateRange, setSelectedDateRange] = useState('last_week'); // Default to last week
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
-  const fetchData = async () => {
+  const fetchData = async (dateRange = selectedDateRange) => {
     setLoading(true);
     try {
       if (user) {
-        await dispatch(getFactureLivreur(id));
-      } 
+        if (dateRange === 'custom') {
+          if (startDate && endDate) {
+            // If custom date range is selected and dates are set
+            dispatch(getFactureLivreur(id, 'custom', startDate, endDate));
+          } else {
+            // If custom is selected but no dates are set yet, don't fetch
+            toast.info('Veuillez sélectionner une plage de dates');
+          }
+        } else {
+          // For predefined date ranges
+          dispatch(getFactureLivreur(id, dateRange));
+        }
+      }
     } catch (error) {
       // La gestion des erreurs est déjà gérée dans les appels API
     } finally {
@@ -53,6 +69,44 @@ function FactureLivreurTable({ theme , id }) {
     fetchData();
     window.scrollTo(0, 0);
   }, [dispatch, user]);
+
+  // Handle date range selection change
+  const handleDateRangeSelectChange = (value) => {
+    setSelectedDateRange(value);
+
+    // If custom is not selected, clear the custom date picker values and fetch data
+    if (value !== 'custom') {
+      setStartDate(null);
+      setEndDate(null);
+      setLoading(true); // Set loading state before fetching
+      fetchData(value);
+    }
+    // If custom is selected, don't fetch data yet - wait for date selection
+  };
+
+  // Handle start date change
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value ? moment(e.target.value).startOf('day') : null;
+    setStartDate(newStartDate);
+
+    // If both dates are set and custom is selected, fetch data
+    if (newStartDate && endDate && selectedDateRange === 'custom') {
+      setLoading(true); // Set loading state before fetching
+      fetchData('custom');
+    }
+  };
+
+  // Handle end date change
+  const handleEndDateChange = (e) => {
+    const newEndDate = e.target.value ? moment(e.target.value).endOf('day') : null;
+    setEndDate(newEndDate);
+
+    // If both dates are set and custom is selected, fetch data
+    if (startDate && newEndDate && selectedDateRange === 'custom') {
+      setLoading(true); // Set loading state before fetching
+      fetchData('custom');
+    }
+  };
 
   const filterData = (text) => {
     let filtered = [...facture];
@@ -138,7 +192,7 @@ function FactureLivreurTable({ theme , id }) {
     const selectedCodeSuivi = selectedRows.map(row => row.code_suivi);
     setSelectedColis(selectedCodeSuivi);
   };
-  
+
 
   const handleFactureClick = (destinationFacture) => {
     dispatch(transferColisClient({
@@ -164,8 +218,8 @@ function FactureLivreurTable({ theme , id }) {
     setSearchFactureText(e.target.value);
   };
 
-  const filteredFactures = facture.filter(f => 
-    f._id !== selectedFacture?._id && 
+  const filteredFactures = facture.filter(f =>
+    f._id !== selectedFacture?._id &&
     f.code_facture.toLowerCase().includes(searchFactureText.toLowerCase())
   );
 
@@ -247,7 +301,7 @@ function FactureLivreurTable({ theme , id }) {
             type="primary"
           />
           {user?.role === 'admin' && (
-            <>  
+            <>
               <Button
                 icon={<FaCog />}
                 onClick={() => handleOpenModal(record)}
@@ -343,7 +397,7 @@ function FactureLivreurTable({ theme , id }) {
   return (
     <div>
       <Row gutter={[16, 16]} style={{ marginBottom: '20px', alignItems: 'center' }}>
-        <Col span={8}>
+        <Col xs={24} sm={24} md={6}>
           <Input
             placeholder="Rechercher ..."
             value={searchText}
@@ -351,26 +405,68 @@ function FactureLivreurTable({ theme , id }) {
             allowClear
           />
         </Col>
-        <Col span={16} style={{ textAlign: 'right' }}>
-          <Button
-            type="default"
-            icon={<FaSyncAlt />}
-            onClick={fetchData}
-            style={{ marginRight: '10px' }}
-            loading={loading}
+        <Col xs={24} sm={24} md={6} >
+          <Select
+            value={selectedDateRange}
+            onChange={handleDateRangeSelectChange}
+            style={{ width: '100%' }}
+            disabled={loading}
           >
-            Refresh
-          </Button>
-          {user?.role === 'admin' && (
+            <Option value="last_week">Dernière semaine</Option>
+            <Option value="last_2_weeks">2 dernières semaines</Option>
+            <Option value="last_month">Dernier mois</Option>
+            <Option value="last_2_months">2 derniers mois</Option>
+            <Option value="custom">Personnalisé</Option>
+          </Select>
+        </Col>
+        <Col xs={24} sm={24} md={6} >
+          <Row gutter={8}>
+            <Col span={12}>
+              <Input
+                type="date"
+                placeholder="Date début"
+                disabled={selectedDateRange !== 'custom' || loading}
+                onChange={handleStartDateChange}
+                value={startDate ? moment(startDate).format('YYYY-MM-DD') : ''}
+                style={{ width: '100%' }}
+              />
+            </Col>
+            <Col span={12}>
+              <Input
+                type="date"
+                placeholder="Date fin"
+                disabled={selectedDateRange !== 'custom' || loading}
+                onChange={handleEndDateChange}
+                value={endDate ? moment(endDate).format('YYYY-MM-DD') : ''}
+                style={{ width: '100%' }}
+              />
+            </Col>
+          </Row>
+        </Col>
+        <Col xs={24} sm={24} md={6} style={{ textAlign: 'right'}}>
+          <Space>
             <Button
-              type="primary"
-              icon={<FaRegFolderOpen />}
-              disabled={selectedRowKeys.length < 2}
-              onClick={handleMerge}
+              type="default"
+              icon={<FaSyncAlt />}
+              onClick={() => {
+                setLoading(true);
+                fetchData(selectedDateRange);
+              }}
+              loading={loading}
             >
-              Fusionner
+              Refresh
             </Button>
-          )}
+            {user?.role === 'admin' && (
+              <Button
+                type="primary"
+                icon={<FaRegFolderOpen />}
+                disabled={selectedRowKeys.length < 2}
+                onClick={handleMerge}
+              >
+                Fusionner
+              </Button>
+            )}
+          </Space>
         </Col>
       </Row>
       <TableDashboard
@@ -405,7 +501,7 @@ function FactureLivreurTable({ theme , id }) {
         {selectedFacture && (
           <div>
             <Descriptions
-              title="Calcule Detail :" 
+              title="Calcule Detail :"
               bordered
             >
               <Descriptions.Item label="Total Prix">
