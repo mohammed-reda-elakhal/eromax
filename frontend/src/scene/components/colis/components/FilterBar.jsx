@@ -1,10 +1,9 @@
 // components/ColisTable/FilterBar.jsx
 
 import React from 'react';
-import { Button, Select, DatePicker, Avatar } from 'antd';
+import { Button, Select, Input, Avatar, Row, Col } from 'antd';
 import { FaSearch } from 'react-icons/fa';
 
-const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 /**
@@ -13,28 +12,34 @@ const { Option } = Select;
  * Props:
  * - filters: current filter state
  * - handleFilterChange: function to handle changes in filter inputs
- * - handleDateRangeChange: function to handle date range changes
  * - handleApplyFilters: function to apply filters
  * - handleResetFilters: function to reset filters
  * - stores: array of store objects
  * - villes: array of ville objects
  * - allowedStatuses: array of allowed status strings
- * - livreurs: array of livreur objects **(New Prop)**
+ * - livreurs: array of livreur objects
  * - user: current user object
  * - theme: 'dark' or 'light'
+ * - startDate: start date for custom date range
+ * - endDate: end date for custom date range
+ * - handleStartDateChange: function to handle start date changes
+ * - handleEndDateChange: function to handle end date changes
  */
 const FilterBar = React.memo(({
   filters,
   handleFilterChange,
-  handleDateRangeChange,
   handleApplyFilters,
   handleResetFilters,
   stores,
   villes,
   allowedStatuses,
-  livreurs, // **New Prop**
+  livreurs,
   user,
   theme,
+  startDate,
+  endDate,
+  handleStartDateChange,
+  handleEndDateChange,
 }) => {
   return (
     <div className="filter_bar" style={{ margin: '16px 0', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -140,35 +145,68 @@ const FilterBar = React.memo(({
         </div>
        )}
 
-      {/* Date Range Picker */}
-      <div className="colis-form-input" style={{ flex: '1 1 300px' }}>
-        <label>Date de Création</label>
-        <RangePicker
-          value={filters.dateRange}
-          onChange={handleDateRangeChange}
+      {/* Date Range Type Selector */}
+      <div className="colis-form-input" style={{ flex: '1 1 200px' }}>
+        <label>Période</label>
+        <Select
+          value={filters.dateRangeType}
+          onChange={(value) => handleFilterChange(value, 'dateRangeType')}
           style={{ width: '100%' }}
-          format="DD/MM/YYYY"
-          allowClear
-        />
+          className={`colis-select-date-range ${theme === 'dark' ? 'dark-mode' : ''}`}
+        >
+          <Option value="last_week">Dernière semaine</Option>
+          <Option value="last_2_weeks">2 dernières semaines</Option>
+          <Option value="last_month">Dernier mois</Option>
+          <Option value="last_2_months">2 derniers mois</Option>
+          <Option value="last_6_months">6 derniers mois</Option>
+          <Option value="custom">Personnalisé</Option>
+        </Select>
       </div>
+
+      {/* Custom Date Range */}
+      {filters.dateRangeType === 'custom' && (
+        <div className="colis-form-input" style={{ flex: '1 1 300px' }}>
+          <label>Date Personnalisée</label>
+          <Row gutter={8}>
+            <Col span={12}>
+              <Input
+                type="date"
+                placeholder="Date début"
+                onChange={handleStartDateChange}
+                value={startDate ? startDate.format('YYYY-MM-DD') : ''}
+                style={{ width: '100%' }}
+              />
+            </Col>
+            <Col span={12}>
+              <Input
+                type="date"
+                placeholder="Date fin"
+                onChange={handleEndDateChange}
+                value={endDate ? endDate.format('YYYY-MM-DD') : ''}
+                style={{ width: '100%' }}
+              />
+            </Col>
+          </Row>
+        </div>
+      )}
 
       {/* Apply Filters Button */}
       <div className="colis-form-input" style={{ flex: '1 1 150px', alignSelf: 'end' }}>
-        <Button 
-          type="primary" 
-          onClick={handleApplyFilters} 
+        <Button
+          type="primary"
+          onClick={handleApplyFilters}
           style={{ width: '100%' }}
           icon={<FaSearch />}
         >
           Filtrer
         </Button>
       </div>
-      
+
       {/* Reset Filters Button */}
       <div className="colis-form-input" style={{ flex: '1 1 100px', alignSelf: 'end' }}>
-        <Button 
-          type="default" 
-          onClick={handleResetFilters} 
+        <Button
+          type="default"
+          onClick={handleResetFilters}
           style={{ width: '100%' }}
         >
           Réinitialiser

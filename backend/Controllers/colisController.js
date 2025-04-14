@@ -238,7 +238,7 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
  **/
 module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
   let { id_colis } = req.params;
-  
+
   let existingColis;
   // Check if id_colis is a valid ObjectId
   if (mongoose.Types.ObjectId.isValid(id_colis)) {
@@ -519,7 +519,7 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
  **/
 module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
   try {
-    const { statut, store, ville, livreur, dateFrom, dateTo } = req.query; // Extract query params
+    const { statut, store, ville, livreur, dateFrom, dateTo, dateRange } = req.query; // Extract query params
     const user = req.user; // Extract user information from request (set by verifyToken middleware)
 
     let filter = {};
@@ -573,8 +573,45 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       filter.livreur = livreur;
     }
 
-    // Optional date range filtering based on createdAt
-    if (dateFrom || dateTo) {
+    // Date filtering based on dateRange or specific dateFrom/dateTo
+    if (dateRange && dateRange !== 'custom') {
+      // Dynamic date range based on dateRange parameter
+      const now = new Date();
+      let startDateDynamic;
+
+      switch (dateRange) {
+        case 'last_week':
+          startDateDynamic = new Date();
+          startDateDynamic.setDate(now.getDate() - 7);
+          break;
+        case 'last_2_weeks':
+          startDateDynamic = new Date();
+          startDateDynamic.setDate(now.getDate() - 14);
+          break;
+        case 'last_month':
+          startDateDynamic = new Date();
+          startDateDynamic.setMonth(now.getMonth() - 1);
+          break;
+        case 'last_2_months':
+          startDateDynamic = new Date();
+          startDateDynamic.setMonth(now.getMonth() - 2);
+          break;
+        case 'last_6_months':
+          startDateDynamic = new Date();
+          startDateDynamic.setMonth(now.getMonth() - 6);
+          break;
+        default:
+          // Default to last month if dateRange is invalid
+          startDateDynamic = new Date();
+          startDateDynamic.setMonth(now.getMonth() - 1);
+      }
+
+      filter.createdAt = {
+        $gte: startDateDynamic,
+        $lte: now,
+      };
+    } else if (dateFrom || dateTo) {
+      // Custom date range filtering based on createdAt
       filter.createdAt = {}; // Assuming you want to filter based on creation date
 
       if (dateFrom) {
@@ -595,11 +632,11 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       if (Object.keys(filter.createdAt).length === 0) {
         delete filter.createdAt;
       }
-    }else {
-      // Default: only return colis from the last two months
-      const twoMonthsAgo = new Date();
-      twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-      filter.createdAt = { $gte: twoMonthsAgo };
+    } else {
+      // Default: only return colis from the last month
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      filter.createdAt = { $gte: oneMonthAgo };
     }
 
     // Fetch colis based on the constructed filter
@@ -639,7 +676,7 @@ module.exports.getColisByIdCtrl=asyncHandler(async(req,res)=>{
   .populate('team')        // Populate the team details
       .populate('livreur')     // Populate the livreur details
       .populate('store')       // Populate the store details
-      .populate('ville')     
+      .populate('ville')
       .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
   if(!colis){
       return res.status(404).json({message:"Colis not found"});
@@ -670,7 +707,7 @@ exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
     .populate('team')        // Populate the team details
     .populate('livreur')     // Populate the livreur details
     .populate('store')       // Populate the store details
-    .populate('ville')     
+    .populate('ville')
     .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
     // If no colis found, return 404
@@ -701,7 +738,7 @@ exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
     .populate('livreur')
     .populate('store')
     .populate('team')
-    .populate('ville')     
+    .populate('ville')
     .sort({ updatedAt: -1 });
 
 
@@ -782,7 +819,7 @@ exports.getColisAmeexCtrl = asyncHandler(async (req, res) => {
     .populate('livreur')
     .populate('store')
     .populate('team')
-    .populate('ville')     
+    .populate('ville')
     .sort({ updatedAt: -1 });
 
 
@@ -806,20 +843,20 @@ exports.getColisAmeexCtrl = asyncHandler(async (req, res) => {
  * @access   private (only logged in user)
  * -------------------------------------------------------------------
 **/
-exports.getColisByUserOrStore = asyncHandler(async (req, res) => {  
-  let colis;  
-  let team = req.user.id;  
-  let store = req.user.store;  
-  let filter = {};  
-  const { statut } = req.query;  
-  if (req.user.role === "team" || req.user.role === "admin") {    
-    filter.team = team;  
-  } else {    
-    filter.store = store;  
-  }  
-  if (statut) {    
-    filter.statut = statut;  
-  }  
+exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
+  let colis;
+  let team = req.user.id;
+  let store = req.user.store;
+  let filter = {};
+  const { statut } = req.query;
+  if (req.user.role === "team" || req.user.role === "admin") {
+    filter.team = team;
+  } else {
+    filter.store = store;
+  }
+  if (statut) {
+    filter.statut = statut;
+  }
   if(statut == "attente de ramassage" || statut == "Ramassée"  ){
     filter.expedation_type = "eromax"
   }
@@ -831,15 +868,15 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
       path: 'store',
       populate: {
         path: 'id_client',
-        select: '-password'  
+        select: '-password'
       }
     })
-    .populate('ville')     
+    .populate('ville')
     .sort({ updatedAt: -1 });
 
-  if (!colis) {    
-    return res.status(404).json({ message: "Colis not found" });  
-  }  
+  if (!colis) {
+    return res.status(404).json({ message: "Colis not found" });
+  }
 
   res.status(200).json(colis);
 });
@@ -847,7 +884,7 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
 
 
 /**
- * 
+ *
  */
 exports.getColisByClient = asyncHandler(async (req, res) => {
 
@@ -897,7 +934,7 @@ module.exports.deleteColis = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
  **/
 module.exports.updateColis = asyncHandler(async (req, res) => {
- 
+
 
   // Find and update Colis by _id
   const updatedColis = await Colis.findByIdAndUpdate(req.params.id, req.body, { new: true })
@@ -928,7 +965,7 @@ module.exports.toggleColisPayant = asyncHandler(async (req, res) => {
   // Check if the identifier is a valid ObjectId
   if (mongoose.Types.ObjectId.isValid(identifier)) {
     colis = await Colis.findById(identifier);
-  } 
+  }
   // If not, assume it's a code_suivi
   if (!colis) {
     colis = await Colis.findOne({ code_suivi: identifier });
@@ -953,7 +990,7 @@ module.exports.toggleColisPayant = asyncHandler(async (req, res) => {
 
 /**
  * -------------------------------------------------------------------
- * @desc     update statu colis 
+ * @desc     update statu colis
  * @route    /api/colis/statu/:id
  * @method   PUT
  * @access   private (only autorise User )
@@ -967,7 +1004,7 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
   const validStatuses = [
     "nouveau colis",
     "attend de ramassage",
-    //   || admin changer statu => team replacer admin 
+    //   || admin changer statu => team replacer admin
     "ramasser",
     "expidie", // affectation livreur and get data  ( nom , tele ) , autorisation
     "reçu",
@@ -1027,7 +1064,7 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
 
 /**
  * -------------------------------------------------------------------
- * @desc     get suivi colis code suivi 
+ * @desc     get suivi colis code suivi
  * @route    api/colis/truck/:code_suivi
  * @method   GET
  * @access   private ( only admin )
@@ -1201,7 +1238,7 @@ exports.getColisByStore = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
  * @desc     Affecter Livreur
  * @route    api/colis/livreur
- * @method   GET 
+ * @method   GET
  * @access   private ( admin )
  * -------------------------------------------------------------------
  **/
@@ -1232,13 +1269,13 @@ module.exports.affecterLivreur = async (req, res) => {
     // Affecter le livreur et mettre à jour le statut du colis
     colis.livreur = livreurId;
     colis.statut = 'Expediée';  // Update the status to 'Expediée'
-    
+
     // Sauvegarder les modifications sur le colis
     await colis.save();
 
     // Récupérer le suivi de colis, ou en créer un nouveau s'il n'existe pas
     let suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });
-    
+
     if (!suivi_colis) {
       suivi_colis = new Suivi_Colis({
         id_colis: colisId,
@@ -1446,7 +1483,7 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
   let colis;
   const livreurId = req.params.id_livreur;
   let filter = {};
-  
+
   // Define the allowed statuses
   const allowedStatuses = [
     "Expediée",
@@ -1500,11 +1537,11 @@ exports.getColisByLivreur = asyncHandler(async (req, res) => {
 
   // Fetch colis based on the constructed filter
   colis = await Colis.find(filter)
-    .populate('team')        
-    .populate('livreur')     
-    .populate('store')       
-    .populate('ville')       
-    .sort({ updatedAt: -1 }); 
+    .populate('team')
+    .populate('livreur')
+    .populate('store')
+    .populate('ville')
+    .sort({ updatedAt: -1 });
 
   if (!colis || colis.length === 0) {
     return res.status(404).json({ message: "Colis not found" });
@@ -1584,7 +1621,7 @@ exports.colisProgramme = asyncHandler(async (req, res) => {
     return res.status(500).send("Something went wrong: " + error.message);
   }
 });
- 
+
 // Controller function to group by store and show data per day
 exports.createFactureByClient = async (req, res) => {
   try {
@@ -1726,7 +1763,7 @@ exports.countColisLivre = async (req, res) => {
   try {
     // Count the number of colis with the status "Livré"
     const colisCount = await Colis.countDocuments({ statut: 'Livrée' });
-    
+
     // Return the count in the response
     return res.status(200).json({ message: 'Nombre de colis livrés', count: colisCount });
   } catch (error) {
@@ -2219,7 +2256,7 @@ exports.fixCrbtForColis = async (req, res) => {
 
       if (suivi) {
         // Look for a status update that is "Livrée" or "Refusée"
-        const statusUpdate = suivi.status_updates.find(update => 
+        const statusUpdate = suivi.status_updates.find(update =>
           update.status === "Livrée" || update.status === "Refusée"
         );
 
@@ -2357,7 +2394,7 @@ exports.updateTarifAjouter = async (req, res) => {
       let tarifLivraison = colis.crbt.tarif_livraison || 0;
       let tarifRefuse = colis.crbt.tarif_refuse || 0;
       let tarifFragile = colis.is_fragile ? 5 : 0;
-      
+
       // Update supplementary tarif with new value
       let tarifSupplementaire = value;
 

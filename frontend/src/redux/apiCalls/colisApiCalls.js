@@ -33,7 +33,7 @@ export function createColisAdmin(colis) {
 
       // Display success notification
       toast.success(data.message || 'Colis créés avec succès');
-      
+
     } catch (error) {
       // Error handling
       toast.error(error.response?.data?.message || error.message || "Failed to create colis");
@@ -110,13 +110,14 @@ export function getColis(filters = {}) {
           livreur: filters.livreur || '', // **Added livreur parameter**
           dateFrom: filters.dateFrom || '',
           dateTo: filters.dateTo || '',
+          dateRange: filters.dateRange || '',
         },
       };
 
       dispatch(colisActions.setLoading(true)); // Set loading state to true
 
       const { data } = await request.get(`/api/colis`, config);
-      
+
       dispatch(colisActions.setColis(data)); // Use action creator
     } catch (error) {
       console.error("Failed to fetch colis:", error);
@@ -190,7 +191,7 @@ export function getColisAmeexAsyncStatu() {
   };
 }
 
-// set colis pret payant 
+// set colis pret payant
 export const setColisPayant = (identifier) => async (dispatch) => {
   dispatch(colisActions.setLoading(true));
   try {
@@ -211,10 +212,10 @@ export const setColisPayant = (identifier) => async (dispatch) => {
 
     // Dispatch the updated Colis to the Redux state
     dispatch(colisActions.updateColis(data.data));
-    
+
     const statusMessage = data.data.pret_payant ? 'marked as ready to pay' : 'unmarked as ready to pay';
     toast.success(`Colis ${statusMessage} successfully!`);
-    
+
     return data;
   } catch (error) {
     console.error("Error updating Colis payment status:", error);
@@ -237,14 +238,14 @@ export function getColisByCodeSuivi(code_suivi) {
           dispatch(colisActions.setLoading(false));
           return;
         }
-  
+
         const config = {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           }
         };
-  
+
         const { data } = await request.get(`/api/colis/code_suivi/${code_suivi}`, config);
         dispatch(colisActions.setSelectedColis(data));
       } catch (error) {
@@ -256,7 +257,7 @@ export function getColisByCodeSuivi(code_suivi) {
       }
     };
 }
-  
+
 // Update a Colis by _id
 export function updateColisById(id, colisData) {
   return async (dispatch) => {
@@ -289,7 +290,7 @@ export function updateColisById(id, colisData) {
   };
 }
 
-// delete colis 
+// delete colis
 export function deleteColis(id) {
   return async (dispatch) => {
     try {
@@ -303,7 +304,7 @@ export function deleteColis(id) {
     }
   };
 }
-// cloner colis 
+// cloner colis
 export function copieColis(id) {
   return async (dispatch) => {
     try {
@@ -311,10 +312,10 @@ export function copieColis(id) {
       const { data } = await request.post(`/api/colis/copie/${id}`);
       dispatch(colisActions.setLoading(false));
       toast.success(data.message);
-      
+
       // Optionally refresh the colis list after successful copy
       // dispatch(getColis());
-      
+
       return data;
     } catch (error) {
       dispatch(colisActions.setLoading(false));
@@ -335,19 +336,19 @@ export function copieColis(id) {
         // Fetch Villes
         const { data: villes } = await request.get(`/api/ville`);
         dispatch(colisActions.fetchVillesSuccess(villes));
-  
+
         // Fetch Stores
         const { data: stores } = await request.get(`/api/store`);
         dispatch(colisActions.fetchStoresSuccess(stores));
-  
+
         // Fetch Livreurs
         const { data: livreurs } = await request.get(`/api/livreur`);
         dispatch(colisActions.fetchLivreursSuccess(livreurs));
-  
+
         // Fetch Produits
         const { data: produits } = await request.get(`/api/produit`);
         dispatch(colisActions.fetchProduitsSuccess(produits));
-  
+
       } catch (error) {
         console.error("Failed to fetch options:", error);
         dispatch(colisActions.setError(error.message));
@@ -390,7 +391,7 @@ export const getColisForClient = (storeId , statut) => async (dispatch) => {
         const token = localStorage.getItem('token');
         if(!token){
             toast.error('Authentification token is missing')
-            
+
         }
 
         const config = {
@@ -430,28 +431,28 @@ export function searchColisByCodeSuivi(code_suivi) {
     return async (dispatch) => {
       try {
         dispatch(colisActions.setSearchLoading(true));
-  
+
         const token = localStorage.getItem('token');
         if (!token) {
           toast.error('Authentification token is missing');
           dispatch(colisActions.setSearchLoading(false));
           return;
         }
-  
+
         const config = {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           }
         };
-  
+
         const { data } = await request.get(`/api/colis/code_suivi/${code_suivi}`, config);
-        
+
         // Assume backend returns a single colis or null
         const filteredData = data && data.statut === 'Livrée' && !data.is_remplace ? [data] : [];
-  
+
         dispatch(colisActions.setSearchResults(filteredData));
-        
+
         return { searchResults: filteredData };
       } catch (error) {
         console.error("Failed to search colis by code_suivi:", error);
@@ -470,12 +471,12 @@ export function createColis(colis) {
         // Get token and user data from cookies
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user'));
-  
+
         // Check for token and user data
         if (!token || !user) {
           throw new Error('Missing authentication token or user information.');
         }
-  
+
         // Determine the correct ID to use for clients, admin, or team
         let idToUse;
         if (user.role === 'client') {
@@ -490,7 +491,7 @@ export function createColis(colis) {
         } else {
           throw new Error('User role is not authorized to create a colis.');
         }
-  
+
         // Set up headers with the token
         const config = {
           headers: {
@@ -498,7 +499,7 @@ export function createColis(colis) {
             'Content-Type': 'application/json',
           },
         };
-  
+
         // Send a POST request to create a single colis with `replacedColis` if available
         const { data } = await request.post(`/api/colis/user/${idToUse}`, colis, config);
       } catch (error) {
@@ -643,7 +644,7 @@ export const colisProgramme=(colisId,daysToAdd)=>async(dispatch)=>{
         // Stop loading in case of failure
         dispatch(colisActions.setLoading(false));
     }
-    
+
 
 }
 
@@ -662,13 +663,13 @@ export const annulerColis = (idColis, commentaire) => async (dispatch) => {
     }
 };
 
-  
+
 
 // redux/apiCalls/colisApiCalls.js
 
 export const affectationColisAmeex = (colisDataArray) => async (dispatch) => {
   try {
-    
+
     const codes_suivi = colisDataArray.map(colis => colis.code_suivi);
     const response = await request.post('/api/livreur/ameex', { codes_suivi });
 

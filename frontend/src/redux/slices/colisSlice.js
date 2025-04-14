@@ -17,6 +17,11 @@ const colisSlice = createSlice({
     error: null,
     searchResults: [], // To store search results for old colis
     isLoadingSearch: false, // Loading state for search
+    dateRange: 'last_month', // Default date range is last month
+    customDateRange: {
+      startDate: null,
+      endDate: null
+    },
     villes: {
       data: [],
       loading: false,
@@ -180,6 +185,22 @@ const colisSlice = createSlice({
       state.selectedTarifAjouter = action.payload;
       state.tarifAjouterLoading = false;
       state.tarifAjouterError = null;
+    },
+    // Date range reducers
+    setDateRange(state, action) {
+      state.dateRange = action.payload;
+      // Reset custom date range when selecting a predefined range
+      if (action.payload !== 'custom') {
+        state.customDateRange = {
+          startDate: null,
+          endDate: null
+        };
+      }
+    },
+    setCustomDateRange(state, action) {
+      state.customDateRange = action.payload;
+      // Set dateRange to 'custom' when setting custom dates
+      state.dateRange = 'custom';
     },
     updateTarifAjouter: (state, action) => {
       const updatedColis = action.payload;

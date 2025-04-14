@@ -1,19 +1,19 @@
 // components/ColisTable/components/ColisTable.jsx
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
-import { 
-  Button, 
-  Select, 
-  DatePicker, 
-  Avatar, 
-  Badge, 
-  Tooltip, 
-  Popconfirm, 
-  Typography, 
-  Spin, 
-  Form, 
-  message, 
-  Drawer, 
+import {
+  Button,
+  Select,
+  DatePicker,
+  Avatar,
+  Badge,
+  Tooltip,
+  Popconfirm,
+  Typography,
+  Spin,
+  Form,
+  message,
+  Drawer,
   Divider,
   Modal,
   Input,
@@ -23,13 +23,13 @@ import {
 import { AiFillProduct } from "react-icons/ai";
 import { FcDocument } from "react-icons/fc";
 import { FaNoteSticky, FaUser } from "react-icons/fa6";
-import { 
-  FaWhatsapp, 
-  FaPrint, 
-  FaPenFancy, 
-  FaClone, 
-  FaInfoCircle, 
-  FaCheck, 
+import {
+  FaWhatsapp,
+  FaPrint,
+  FaPenFancy,
+  FaClone,
+  FaInfoCircle,
+  FaCheck,
   FaTruck,
   FaQuestionCircle,
   FaSms,
@@ -40,18 +40,18 @@ import {
   FaClock
 } from 'react-icons/fa';
 import { TbPhoneCall, TbShieldCode, TbTruckDelivery } from 'react-icons/tb';
-import { 
+import {
   CalendarOutlined,
-  CheckCircleOutlined, 
-  CheckOutlined, 
-  ClockCircleOutlined, 
-  CloseCircleOutlined, 
-  CopyOutlined, 
-  DollarOutlined, 
-  EditOutlined, 
-  EnvironmentOutlined, 
-  InfoCircleOutlined, 
-  LoadingOutlined, 
+  CheckCircleOutlined,
+  CheckOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  CopyOutlined,
+  DollarOutlined,
+  EditOutlined,
+  EnvironmentOutlined,
+  InfoCircleOutlined,
+  LoadingOutlined,
   PhoneOutlined,
   ShopOutlined,
   TagOutlined
@@ -66,22 +66,22 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import moment from 'moment';
 import request from '../../../../utils/request';
-import { 
-  FaFileInvoiceDollar, 
-  FaExternalLinkAlt, 
+import {
+  FaFileInvoiceDollar,
+  FaExternalLinkAlt,
   FaRegClock,
   FaTimesCircle,
-  FaFileInvoice 
+  FaFileInvoice
 } from 'react-icons/fa';
 import { Tag, Result } from 'antd';
 
 // Import actions
-import { 
+import {
   copieColis,
-  deleteColis, 
-  getColis, 
-  setColisPayant, 
-  updateStatut 
+  deleteColis,
+  getColis,
+  setColisPayant,
+  updateStatut
 } from '../../../../redux/apiCalls/colisApiCalls';
 import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
@@ -116,10 +116,8 @@ const TicketModal = React.lazy(() => import('../modals/TicketModal'));
 const AssignLivreurModal = React.lazy(() => import('../modals/AssignLivreurModal'));
 const StatusModal = React.lazy(() => import('../modals/StatusModal'));
 
-const { Text } = Typography;
-const { Option } = Select;
-const { RangePicker } = DatePicker;
-const { Search } = Input; // Destructure Search if needed
+// Destructure components we need
+const { Search } = Input;
 
 
 // Define status comments
@@ -201,7 +199,7 @@ const [editingAdmin, setEditingAdmin] = useState(false);
     setState(prevState => ({ ...prevState, noteColisModalVisible: true }));
     setSelectColisNote(colisId)
   };
-  
+
   const { detailFacture } = useSelector((state) => state.facture);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]); // Array of selected code_suivi
 
@@ -224,14 +222,14 @@ const [editingAdmin, setEditingAdmin] = useState(false);
   const navigate = useNavigate();
 
   // Extract Redux states
-  const { 
-    livreurList, 
-    colisData, 
-    user, 
+  const {
+    livreurList,
+    colisData,
+    user,
     store,
-    stores, 
-    villes, 
-    loading , 
+    stores,
+    villes,
+    loading ,
     selectedNoteColis,
     colisReporteeProg
   } = useSelector((state) => ({
@@ -320,9 +318,12 @@ const allowedStatuses = useMemo(() => {
     appliedFilters,
     queryParams,
     handleFilterChange,
-    handleDateRangeChange,
     handleApplyFilters,
     handleResetFilters,
+    startDate,
+    endDate,
+    handleStartDateChange,
+    handleEndDateChange,
   } = useColisFilters();
 
   // Debounced Search
@@ -358,7 +359,7 @@ const allowedStatuses = useMemo(() => {
     dispatch(getLivreurList()); // Ensure livreurList is fetched
     dispatch(getStoreList());
     dispatch(getAllVilles());
-    
+
   }, [dispatch, getDataColis]);
 
   // Update state when colisData changes
@@ -476,10 +477,10 @@ const allowedStatuses = useMemo(() => {
           // Optionally, update the local state if not handled by Redux
           const newData = state.data.map(item => {
             if (item._id === state.selectedColis._id) {
-              return { 
-                ...item, 
-                statut: status, 
-                commentaire: comment, 
+              return {
+                ...item,
+                statut: status,
+                commentaire: comment,
                 [dateField]: date ? date.format('YYYY-MM-DD') : item[dateField],
                 note: note || item.note,
               };
@@ -608,7 +609,7 @@ const handleConfirmAssignLivreur = async () => {
   // Define adminColumns
   const adminColumns = useMemo(() => [
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <IoStorefront /> Store
           </div>,
@@ -623,7 +624,7 @@ const handleConfirmAssignLivreur = async () => {
       ),
     },
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <MdDeliveryDining /> Livreur
           </div>,
@@ -705,11 +706,11 @@ const handleConfirmAssignLivreur = async () => {
   });
 
   const tableCellStyles = getTableCellStyles(theme);
-  
+
   // Define columns for the table
   const columnsColis = useMemo(() => [
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <TbShieldCode /> Code
           </div>,
@@ -718,7 +719,7 @@ const handleConfirmAssignLivreur = async () => {
       width: 300,
       render: (text, record) => (
         <>
-          {record.replacedColis ? 
+          {record.replacedColis ?
             <Badge color="default" dot style={{ marginRight: '5px' }}>
               <FaClone /> {/* Changed icon to FaClone for better representation */}
             </Badge>
@@ -730,7 +731,7 @@ const handleConfirmAssignLivreur = async () => {
               tooltips: ['Copier', 'Copié!'],
               icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
             }}
-            style={{ 
+            style={{
               fontWeight: '600',
               fontSize: '14px',
               color: '#1677ff',
@@ -746,16 +747,16 @@ const handleConfirmAssignLivreur = async () => {
           <Divider />
           <div style={{display:'flex' , width:"100%" , justifyContent:"space-around"}}>
             <Tooltip title="Contact via WhatsApp">
-              <Button 
-                type="primary" 
-                icon={<FaWhatsapp />} 
+              <Button
+                type="primary"
+                icon={<FaWhatsapp />}
                 onClick={() => {
                   // Constructing the message
                   const messageText = `Bonjour, je suis ${user.nom} ${user.prenom}, j'ai besoin de discuter pour le colis de code ${record.code_suivi}.`;
-                  
+
                   // Ensure the message is properly URL-encoded
                   const encodedMessage = encodeURIComponent(messageText);
-                  
+
                   // Open WhatsApp with the encoded message
                   const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}&text=${encodedMessage}`;
                   window.open(whatsappUrl, '_blank');
@@ -768,9 +769,9 @@ const handleConfirmAssignLivreur = async () => {
               />
             </Tooltip>
             <Tooltip title="Call Support">
-              <Button 
-                type="primary" 
-                icon={<TbPhoneCall />} 
+              <Button
+                type="primary"
+                icon={<TbPhoneCall />}
                 onClick={() => window.location.href = `tel:${phoneNumber}`}
                 style={{
                   backgroundColor: '#007bff',
@@ -784,7 +785,7 @@ const handleConfirmAssignLivreur = async () => {
       ),
     },
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaUser /> Distinataire
           </div>,
@@ -795,7 +796,7 @@ const handleConfirmAssignLivreur = async () => {
         // Validate phone number
         const phoneRegex = /^0[67]\d{8}$/;
         const isValidPhoneNumber = phoneRegex.test(text);
-  
+
         let errorMessage = '';
         if (text) {
           if (!text.startsWith('06') && !text.startsWith('07') && text.length === 10) {
@@ -806,7 +807,7 @@ const handleConfirmAssignLivreur = async () => {
             errorMessage = 'Le numéro doit commencer par 06 ou 07 et comporter 10 chiffres.';
           }
         }
-  
+
         if (!isValidPhoneNumber && errorMessage) {
           return (
             <div title={errorMessage} placement="topLeft"             style={{display:'flex', gap: '10px', alignItems: 'start' , flexDirection:'column'}}>
@@ -824,7 +825,7 @@ const handleConfirmAssignLivreur = async () => {
           );
         }
         return (
-          <div 
+          <div
             style={{display:'flex', gap: '10px', alignItems: 'start' , flexDirection:'column'}}
           >
             <span>{record.nom}</span>
@@ -840,9 +841,9 @@ const handleConfirmAssignLivreur = async () => {
           </div>
         );
       },
-    }, 
+    },
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaMapMarkerAlt /> adresse
           </div>,
@@ -866,9 +867,9 @@ const handleConfirmAssignLivreur = async () => {
         )
       }
     },
-   
+
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <AiFillProduct /> Produit
           </div>,
@@ -884,7 +885,7 @@ const handleConfirmAssignLivreur = async () => {
     // Only append the admin columns if user is an admin
     ...(user?.role === 'admin' ? adminColumns : []),
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <HiStatusOnline /> Status
           </div>,
@@ -893,30 +894,30 @@ const handleConfirmAssignLivreur = async () => {
       width:250,
       render: (status, record) => {
         const { color, icon } = statusBadgeConfig[status] || { color: 'default', icon: <InfoCircleOutlined /> };
-    
+
         const content = (
           <span style={{ display: 'flex', alignItems: 'center' }}>
             {icon}
             <span style={{ marginLeft: 8 }}>{status}</span>
           </span>
         );
-    
+
         // Determine if the status is "Programmée" or "Reporté" to display the corresponding date
         const isProgrammée = status === "Programmée";
         const isReporté = status === "Reporté";
-    
+
         // Retrieve the corresponding date from the record
         const dateToDisplay = isProgrammée
           ? record.date_programme
           : isReporté
           ? record.date_reporte
           : null;
-    
+
         // Format the date if it exists
         const formattedDate = dateToDisplay
           ? moment(dateToDisplay).format('DD-MM-YYYY')
           : null;
-    
+
         return (
           <div>
             {(user?.role === 'admin' || user?.role === 'livreur')  ? (
@@ -930,7 +931,7 @@ const handleConfirmAssignLivreur = async () => {
                 {content}
               </Tag>
             )}
-    
+
             {/* Conditionally render the date below the status */}
             {formattedDate && (
               <div style={{ marginTop: '4px', marginLeft: '28px' }}>
@@ -939,7 +940,7 @@ const handleConfirmAssignLivreur = async () => {
                 </Typography.Text>
               </div>
             )}
-    
+
             {/* If status is 'Livrée' and record.etat is true, show 'Facturée' */}
             {status === "Livrée" && record.etat && (
               <div style={{ marginTop: '4px', marginLeft: '28px' }}>
@@ -953,7 +954,7 @@ const handleConfirmAssignLivreur = async () => {
       },
     },
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <BsCalendar2DateFill /> Date
           </div>,
@@ -973,18 +974,18 @@ const handleConfirmAssignLivreur = async () => {
         </div>
       ),
     },
-   
+
     {
-      title: 
+      title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <IoMdOptions /> Options
           </div>,
       render: (text, record) => (
         <div className="options-actions" style={{ display: 'flex', gap: '10px' }}>
           <Tooltip title="Plus d'information">
-            <Button 
-              type="primary" 
-              icon={<FaInfoCircle />} 
+            <Button
+              type="primary"
+              icon={<FaInfoCircle />}
               onClick={()=>handleInfo(record._id)}
               style={{
                 backgroundColor: '#17a2b8',
@@ -994,9 +995,9 @@ const handleConfirmAssignLivreur = async () => {
             />
           </Tooltip>
           <Tooltip title="Suivi colis">
-            <Button 
-              type="primary" 
-              icon={<TbTruckDelivery />} 
+            <Button
+              type="primary"
+              icon={<TbTruckDelivery />}
               onClick={() => setState(prevState => ({ ...prevState, drawerOpen: true, selectedColis: record }))}
               style={{
                 backgroundColor: '#17a2b8',
@@ -1006,10 +1007,10 @@ const handleConfirmAssignLivreur = async () => {
             />
           </Tooltip>
           <Tooltip title="Ticket colis">
-            <Button 
-              type="primary" 
-              icon={<FaPrint  />} 
-              onClick={() => handleTicket(record)} 
+            <Button
+              type="primary"
+              icon={<FaPrint  />}
+              onClick={() => handleTicket(record)}
               style={{
                 backgroundColor: '#0d6efd',
                 borderColor: '#0d6efd',
@@ -1018,18 +1019,18 @@ const handleConfirmAssignLivreur = async () => {
             />
           </Tooltip>
           <Tooltip title="Note Colis">
-                <Button 
-                  type="primary" 
-                  icon={<FaNoteSticky />} 
-                  onClick={() => openNoteColisModal(record._id)} 
+                <Button
+                  type="primary"
+                  icon={<FaNoteSticky />}
+                  onClick={() => openNoteColisModal(record._id)}
                   style={{ backgroundColor: '#8e44ad', borderColor: '#8e44ad', color: '#fff' }}
                 />
               </Tooltip>
           {user.role === 'admin' && (
             <Tooltip title="Edit Record">
-              <Button 
-                type="primary" 
-                icon={<FaPenFancy />} 
+              <Button
+                type="primary"
+                icon={<FaPenFancy />}
                 onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
                 style={{
                   backgroundColor: '#ffac33',
@@ -1041,9 +1042,9 @@ const handleConfirmAssignLivreur = async () => {
           )}
           {user?.role === 'client' && (
             <Tooltip title="File a Reclamation">
-              <Button 
-                type="primary" 
-                onClick={() => openReclamationModal(record)} 
+              <Button
+                type="primary"
+                onClick={() => openReclamationModal(record)}
                 style={{
                   backgroundColor: '#dc3545',
                   borderColor: '#dc3545',
@@ -1058,9 +1059,9 @@ const handleConfirmAssignLivreur = async () => {
             <>
                {/* New "Assign Livreur" Button */}
             <Tooltip title="Assign Livreur">
-              <Button 
-                type="primary" 
-                icon={<FaTruck />} 
+              <Button
+                type="primary"
+                icon={<FaTruck />}
                 onClick={() => {
                   setSelectedRowKeys([record.code_suivi]); // Select single Colis
                   setAssignModalVisible(true); // Open the AssignLivreurModal
@@ -1074,13 +1075,13 @@ const handleConfirmAssignLivreur = async () => {
             </Tooltip>
               {/* New "Facture" Button */}
               <Tooltip title="Voir Facture">
-                <Button 
-                  type="default" 
+                <Button
+                  type="default"
                   onClick={() => {
                     dispatch(getFactureByColis(record._id)); // Dispatch the action with colis _id
                     setState(prevState => ({ ...prevState, factureModalVisible: true })); // Open the modal
                     console.log(detailFacture);
-                    
+
                   }}
                   style={{
                     backgroundColor: '#ffc107',
@@ -1120,7 +1121,7 @@ const handleConfirmAssignLivreur = async () => {
             />
           </Popconfirm>
         </Tooltip>
-        
+
       )}
         </div>
       ),
@@ -1144,7 +1145,7 @@ const handleConfirmAssignLivreur = async () => {
       description: message,
     };
     console.log(reclamationData);
-    
+
 
     dispatch(createReclamation(reclamationData));
     setState(prevState => ({
@@ -1229,7 +1230,7 @@ const handleConfirmAssignLivreur = async () => {
           <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
         </div>
       )}
-      
+
       {/* Suspense for lazy-loaded components */}
       <Suspense fallback={<div style={{ textAlign: 'center', padding: '20px 0' }}><Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} /></div>}>
         {/* Facture Modal */}
@@ -1245,21 +1246,21 @@ const handleConfirmAssignLivreur = async () => {
         >
           {detailFacture ? (
   <div style={{ padding: '20px' }}>
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: '20px' 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px'
     }}>
       {/* Client Facture Section */}
       <Card
-        style={{ 
+        style={{
           backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f8f9fa',
           borderRadius: '8px'
         }}
       >
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
           gap: '10px',
           marginBottom: '15px'
         }}>
@@ -1269,7 +1270,7 @@ const handleConfirmAssignLivreur = async () => {
           </Typography.Title>
         </div>
         {detailFacture?.clientFacture?.code ? (
-          <Button 
+          <Button
             type="primary"
             icon={<FaExternalLinkAlt />}
             onClick={() => {
@@ -1289,14 +1290,14 @@ const handleConfirmAssignLivreur = async () => {
 
       {/* Livreur Facture Section */}
       <Card
-        style={{ 
+        style={{
           backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f8f9fa',
           borderRadius: '8px'
         }}
       >
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
           gap: '10px',
           marginBottom: '15px'
         }}>
@@ -1306,7 +1307,7 @@ const handleConfirmAssignLivreur = async () => {
           </Typography.Title>
         </div>
         {detailFacture?.livreurFacture?.code ? (
-          <Button 
+          <Button
             type="primary"
             icon={<FaExternalLinkAlt />}
             onClick={() => {
@@ -1339,15 +1340,18 @@ const handleConfirmAssignLivreur = async () => {
         <FilterBar
           filters={filters}
           handleFilterChange={handleFilterChange}
-          handleDateRangeChange={handleDateRangeChange}
           handleApplyFilters={handleApplyFilters}
           handleResetFilters={handleResetFilters}
           stores={stores}
           villes={villes}
           allowedStatuses={allowedStatuses}
-          livreurs={livreurList} // Pass livreurList to FilterBar
+          livreurs={livreurList}
           user={user}
           theme={theme}
+          startDate={startDate}
+          endDate={endDate}
+          handleStartDateChange={handleStartDateChange}
+          handleEndDateChange={handleEndDateChange}
         />
 
         {/* Action Bar */}
@@ -1410,9 +1414,9 @@ const handleConfirmAssignLivreur = async () => {
           visible={state.drawerOpen}
           width={600}
         >
-          <TrackingColis 
-            theme={theme} 
-            codeSuivi={state.selectedColis?.code_suivi} 
+          <TrackingColis
+            theme={theme}
+            codeSuivi={state.selectedColis?.code_suivi}
           />
         </Drawer>
 
@@ -1498,9 +1502,9 @@ const handleConfirmAssignLivreur = async () => {
               <Typography.Paragraph style={{ margin: 0 }}>
                 {selectedNoteColis.clientNote.note}
               </Typography.Paragraph>
-              <Button 
-                type="link" 
-                icon={<FaPenFancy />} 
+              <Button
+                type="link"
+                icon={<FaPenFancy />}
                 onClick={() => {
                   setEditingClient(true);
                   setClientNoteValue(selectedNoteColis.clientNote.note);
@@ -1516,8 +1520,8 @@ const handleConfirmAssignLivreur = async () => {
                 rows={3}
                 style={{marginBottom:'8px'}}
               />
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 onClick={() => {
                   if (clientNoteValue.trim() === "") {
                     toast.error("La note ne peut pas être vide");
@@ -1547,8 +1551,8 @@ const handleConfirmAssignLivreur = async () => {
               rows={3}
               style={{marginBottom:'8px'}}
             />
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={() => {
                 if ((clientNoteValue || "").trim() === "") {
                   toast.error("La note ne peut pas être vide");
@@ -1581,9 +1585,9 @@ const handleConfirmAssignLivreur = async () => {
               <Typography.Paragraph style={{ margin: 0 }}>
                 {selectedNoteColis.livreurNote.note}
               </Typography.Paragraph>
-              <Button 
-                type="link" 
-                icon={<FaPenFancy />} 
+              <Button
+                type="link"
+                icon={<FaPenFancy />}
                 onClick={() => {
                   setEditingLivreur(true);
                   setLivreurNoteValue(selectedNoteColis.livreurNote.note);
@@ -1599,8 +1603,8 @@ const handleConfirmAssignLivreur = async () => {
                 rows={3}
                 style={{marginBottom:'8px'}}
               />
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 onClick={() => {
                   if ((livreurNoteValue || "").trim() === "") {
                     toast.error("La note ne peut pas être vide");
@@ -1630,8 +1634,8 @@ const handleConfirmAssignLivreur = async () => {
               rows={3}
               style={{marginBottom:'8px'}}
             />
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={() => {
                 if ((livreurNoteValue || "").trim() === "") {
                   toast.error("La note ne peut pas être vide");
@@ -1670,9 +1674,9 @@ const handleConfirmAssignLivreur = async () => {
                       <Typography.Paragraph style={{ margin: 0 }}>
                         {adminNote.note}
                       </Typography.Paragraph>
-                      <Button 
-                        type="link" 
-                        icon={<FaPenFancy />} 
+                      <Button
+                        type="link"
+                        icon={<FaPenFancy />}
                         onClick={() => {
                           setEditingAdmin(true);
                           setAdminNoteValue(adminNote.note);
@@ -1688,8 +1692,8 @@ const handleConfirmAssignLivreur = async () => {
                         rows={3}
                         style={{marginBottom:'8px'}}
                       />
-                      <Button 
-                        type="primary" 
+                      <Button
+                        type="primary"
                         onClick={() => {
                           if ((adminNoteValue || "").trim() === "") {
                             toast.error("La note ne peut pas être vide");
@@ -1724,8 +1728,8 @@ const handleConfirmAssignLivreur = async () => {
                     rows={3}
                     style={{marginBottom:'8px'}}
                   />
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     onClick={() => {
                       if ((adminNoteValue || "").trim() === "") {
                         toast.error("La note ne peut pas être vide");
@@ -1751,8 +1755,8 @@ const handleConfirmAssignLivreur = async () => {
                 rows={3}
                 style={{marginBottom:'8px'}}
               />
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 onClick={() => {
                   if ((adminNoteValue || "").trim() === "") {
                     toast.error("La note ne peut pas être vide");
