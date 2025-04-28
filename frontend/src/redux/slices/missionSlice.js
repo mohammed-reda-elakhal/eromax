@@ -6,6 +6,7 @@ const missionSlice = createSlice({
         demandeRetrait: [],
         client: [],
         reclamations: [],
+        openReclamationsCount: 0,
         colis: [],
         colisR: [],
         colisExp : [],
@@ -24,6 +25,10 @@ const missionSlice = createSlice({
         // Set Reclamation data
         setReclamation(state, action) {
             state.reclamations = action.payload;
+        },
+        // Set Open Reclamations Count
+        setOpenReclamationsCount(state, action) {
+            state.openReclamationsCount = action.payload;
         },
         // Set Colis data
         setColis(state, action) {

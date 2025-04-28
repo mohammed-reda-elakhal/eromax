@@ -60,7 +60,7 @@ const StatusModal = React.memo(({
   return (
     <Modal
       title={`Changer le Statut de ${selectedColis ? selectedColis.code_suivi : ''}`}
-      visible={visible}
+      open={visible}
       onOk={onOk}
       onCancel={onCancel}
       okText="Confirmer"
@@ -76,9 +76,9 @@ const StatusModal = React.memo(({
         >
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {allowedStatuses.map((status, index) => (
-              <Badge 
-                key={index} 
-                dot 
+              <Badge
+                key={index}
+                dot
                 color={statusBadgeConfig[status]?.color || 'default'}
               >
                 <Tag.CheckableTag
@@ -126,8 +126,8 @@ const StatusModal = React.memo(({
               label={statusType === "Programmée" ? "Date Programmée" : "Date Reportée"}
               rules={[{ required: true, message: `Veuillez sélectionner une date pour ${statusType.toLowerCase()}.` }]}
             >
-              <DatePicker 
-                style={{ width: '100%' }} 
+              <DatePicker
+                style={{ width: '100%' }}
                 disabledDate={(current) => current && current < moment().startOf('day')} // Disable past dates
                 format="YYYY-MM-DD"
               />

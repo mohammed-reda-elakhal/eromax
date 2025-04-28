@@ -36,7 +36,7 @@ const AssignLivreurModal = React.memo(({
   return (
     <Modal
       title={`Affecter un Livreur au Colis Sélectionné`}
-      visible={visible}
+      open={visible}
       onOk={onAssign}
       onCancel={onCancel}
       okText="Affecter"
@@ -48,10 +48,10 @@ const AssignLivreurModal = React.memo(({
         <Button key="cancel" onClick={onCancel}>
           Annuler
         </Button>,
-        <Button 
-          key="assign" 
-          type="primary" 
-          onClick={onAssign} 
+        <Button
+          key="assign"
+          type="primary"
+          onClick={onAssign}
           disabled={!assignSelectedLivreur} // Disable if no livreur is selected
           loading={loadingAssign}
         >

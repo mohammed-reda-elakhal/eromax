@@ -4,19 +4,19 @@ import TableDashboard from '../../../global/TableDashboard';
 import { FaBox, FaInfoCircle, FaPenFancy, FaPlus, FaWallet } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { GoVerified } from "react-icons/go";
-import { 
-    Drawer, 
-    Modal, 
-    Button, 
-    Spin, 
-    Card, 
-    Avatar, 
-    Row, 
-    Col, 
-    Typography, 
-    Space, 
-    Tooltip, 
-    Tag, 
+import {
+    Drawer,
+    Modal,
+    Button,
+    Spin,
+    Card,
+    Avatar,
+    Row,
+    Col,
+    Typography,
+    Space,
+    Tooltip,
+    Tag,
     Descriptions,
     Switch ,
     Image,
@@ -25,30 +25,30 @@ import {
     Input,
     Empty
 } from 'antd';
-import { 
-    EnvironmentOutlined, 
-    PhoneOutlined, 
-    DollarCircleOutlined, 
+import {
+    EnvironmentOutlined,
+    PhoneOutlined,
+    DollarCircleOutlined,
     ReloadOutlined
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-    deleteProfile, 
-    getProfileList, 
+import {
+    deleteProfile,
+    getProfileList,
     toggleActiveClient,
-    verifyClient 
+    verifyClient
 } from '../../../../redux/apiCalls/profileApiCalls';
 // Add these imports at the top of the file
 import { FaKey } from 'react-icons/fa';
-import { 
-    getStoreByUser, 
+import {
+    getStoreByUser,
     deleteStore,
     toggleAutoDR
-} from '../../../../redux/apiCalls/storeApiCalls'; 
+} from '../../../../redux/apiCalls/storeApiCalls';
 
-import { 
-    fetchUserDocuments,  
-} from '../../../../redux/apiCalls/docApiCalls'; 
+import {
+    fetchUserDocuments,
+} from '../../../../redux/apiCalls/docApiCalls';
 import { docActions } from '../../../../redux/slices/docSlices';
 import { useNavigate } from 'react-router-dom';
 import ClientFormAdd from '../components/ClientFormAdd';
@@ -97,7 +97,7 @@ const StyledTable = styled(Table)`
     .ant-table {
       overflow-x: auto;
     }
-    
+
     .ant-table-thead > tr > th,
     .ant-table-tbody > tr > td {
       padding: 12px 8px;
@@ -112,7 +112,7 @@ const ActionButton = styled(Button)`
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
@@ -312,10 +312,10 @@ function Client({ search }) {
     const handleToggleWallet = async (walletId, currentStatus) => {
         try {
             setLoadingWallet(true);
-            
+
             // Call the API to toggle the wallet status
             const success = await dispatch(toggleWalletActivation(walletId));
-            
+
             // Only refresh if the toggle was successful
             if (success && selectedWallet?.store) {
                 await dispatch(getWalletByStore(selectedWallet.store));
@@ -331,8 +331,8 @@ function Client({ search }) {
             dataIndex: 'profile',
             render: (text, record) => (
                 <Tooltip title={record.verify ? "Compte vérifié" : "Compte non vérifié"}>
-                    <Avatar 
-                        src={record.profile?.url || '/image/user.png'} 
+                    <Avatar
+                        src={record.profile?.url || '/image/user.png'}
                         size="large"
                         style={{
                             border: `2px solid ${record.verify ? '#52c41a' : '#ff4d4f'}`,
@@ -391,11 +391,11 @@ function Client({ search }) {
                             }}
                         >
                             <div style={{ flex: 1 }}>
-                                <div style={{ 
-                                    marginBottom: '4px', 
+                                <div style={{
+                                    marginBottom: '4px',
                                     color: theme === 'dark' ? '#fff' : '#000',
                                     fontSize: '14px',
-                                    fontWeight: '500' 
+                                    fontWeight: '500'
                                 }}>
                                     <FaWallet style={{ marginRight: '8px', color: '#1890ff' }} />
                                     {store.wallet?.solde || 0} DH
@@ -415,7 +415,7 @@ function Client({ search }) {
                                             <FaKey style={{ color: '#1890ff' }} />
                                         </Typography.Text>
                                     )}
-                                    
+
                                 </div>
                             </div>
                             <Button
@@ -434,9 +434,9 @@ function Client({ search }) {
             title: 'N° Store',
             dataIndex: 'stores',
             render: (text, record) => (
-              <Tag 
-                color='green' 
-                style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }} 
+              <Tag
+                color='green'
+                style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
                 onClick={() => openStoresModal(record._id)}
               >
                 {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
@@ -462,7 +462,7 @@ function Client({ search }) {
               </div>
             ),
             width: 200,
-          },       
+          },
         {
             title: 'N° Colis',
             width: 150,
@@ -481,7 +481,7 @@ function Client({ search }) {
                     )}
                 </div>
             )
-        }, 
+        },
         {
             title: 'Email',
             dataIndex: 'email',
@@ -520,7 +520,7 @@ function Client({ search }) {
             render: (text, record) => (
                 <>
                     <span>Debut en : <strong>{record.start_date}</strong> </span> <br />
-                    <span>Envoyer : <strong>{record.number_colis} colis</strong> </span> 
+                    <span>Envoyer : <strong>{record.number_colis} colis</strong> </span>
                 </>
             ),
             width: 200,
@@ -543,51 +543,51 @@ function Client({ search }) {
             ),
             width: 150,
         },
-       
+
         {
             title: 'Action',
             dataIndex: 'action',
             render: (text, record) => (
                 <div className='action_user'>
                     <Tooltip title="Voir Documents" key="view-docs">
-                        <Button 
-                            type="link" 
-                            style={{ color: '#0080ff', borderColor: "#0080ff", background: "transparent", marginRight: '8px' }} 
+                        <Button
+                            type="link"
+                            style={{ color: '#0080ff', borderColor: "#0080ff", background: "transparent", marginRight: '8px' }}
                             icon={<IoDocumentAttach size={20} />}
                             onClick={() => openDocumentsModal(record)}
                         />
                     </Tooltip>
                     <Tooltip title="Change mots de passe" key="change-password">
-                        <Button 
-                            type="link" 
-                            style={{ color: 'blue', borderColor: "blue" , background: "transparent", marginRight: '8px' }} 
+                        <Button
+                            type="link"
+                            style={{ color: 'blue', borderColor: "blue" , background: "transparent", marginRight: '8px' }}
                             icon={<TbLockPassword size={20} />}
                             onClick={() => showPasswordModal(record)}
                         />
                     </Tooltip>
                     {!record.verify && (
                         <Tooltip title="Vérifier le client" key="verify-client">
-                            <Button 
-                                type="link" 
-                                style={{ color: 'green', borderColor: "green", background: "transparent", marginRight: '8px' }} 
+                            <Button
+                                type="link"
+                                style={{ color: 'green', borderColor: "green", background: "transparent", marginRight: '8px' }}
                                 icon={<GoVerified size={20} />}
                                 onClick={() => handleVerifyClient(record._id)}
                             />
                         </Tooltip>
                     )}
-                    
+
                     <Tooltip title="Edit Client" key="edit-client">
-                        <Button 
-                            type="link" 
-                            style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent", marginRight: '8px' }} 
+                        <Button
+                            type="link"
+                            style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent", marginRight: '8px' }}
                             icon={<FaPenFancy size={20} />}
                             onClick={() => navigate(`/dashboard/compte/client/${record._id}`, { state: { from: '/dashboard/compte/client' } })}
                         />
                     </Tooltip>
                     <Tooltip title="Delete Client" key="delete-client">
-                        <Button 
-                            type="link" 
-                            style={{ color: 'red', borderColor: "red", background: "transparent" }} 
+                        <Button
+                            type="link"
+                            style={{ color: 'red', borderColor: "red", background: "transparent" }}
                             icon={<MdDelete size={20} />}
                             onClick={() => handleDeleteProfile(record._id)}
                         />
@@ -599,6 +599,11 @@ function Client({ search }) {
     ];
 
     const filteredData = profileList.filter(client => {
+        // Get store names if available
+        const storeNames = client.stores && client.stores.length > 0
+            ? client.stores.map(store => store.storeName).join(' ')
+            : '';
+
         const fullText = [
             client.nom,
             client.prenom,
@@ -606,7 +611,8 @@ function Client({ search }) {
             client.email,
             client.tele,
             client.ville,
-            client.adresse
+            client.adresse,
+            storeNames // Add store names to the search text
         ].join(' ').toLowerCase();
 
         return fullText.includes(searchTerm.toLowerCase());
@@ -642,21 +648,21 @@ function Client({ search }) {
                         className="content"
                         style={{
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
-                        }} 
+                        }}
                     >
                         <Typography.Title level={4} style={{ marginBottom: '16px' }}>Gestion des utilisateurs ( client )</Typography.Title>
-                        
-                            <Button 
-                                type="primary" 
-                                icon={<FaPlus />} 
+
+                            <Button
+                                type="primary"
+                                icon={<FaPlus />}
                                 onClick={() => openDrawer(null)}
-                                style={{ marginBottom: 16 }} 
+                                style={{ marginBottom: 16 }}
                             >
                                 Add Client
                             </Button>
                         <SearchWrapper>
                             <Input.Search
-                                placeholder="Rechercher..."
+                                placeholder="Rechercher par nom, email, store..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 style={{ width: 300 }}
@@ -670,7 +676,7 @@ function Client({ search }) {
                                 Rafraîchir
                             </Button>
                         </SearchWrapper>
-                        
+
                         <StyledTable
                             columns={columns}
                             dataSource={filteredData}
@@ -680,17 +686,17 @@ function Client({ search }) {
                             pagination={{
                                 pageSize: 10,
                                 showSizeChanger: true,
-                                showTotal: (total, range) => 
+                                showTotal: (total, range) =>
                                     `${range[0]}-${range[1]} sur ${total} éléments`,
                             }}
                             size="middle"
-                            
+
                             bordered
-                            rowClassName={(record) => 
+                            rowClassName={(record) =>
                                 record.active ? 'table-row-active' : 'table-row-inactive'
                             }
                         />
-                        
+
                         <Modal
                             title="Stores"
                             open={isModalStoreOpen}
@@ -712,9 +718,9 @@ function Client({ search }) {
                             ) : (
                                 <>
                                     <Space style={{ marginBottom: 16 }}>
-                                        <Button 
-                                            type="primary" 
-                                            icon={<FaPlus />} 
+                                        <Button
+                                            type="primary"
+                                            icon={<FaPlus />}
                                             onClick={() => openStoreForm(null)}
                                         >
                                             Add Store
@@ -728,19 +734,19 @@ function Client({ search }) {
                                                         hoverable
                                                         actions={[
                                                             <Tooltip title="Edit Store" key="edit">
-                                                                <Button 
-                                                                    type="link" 
-                                                                    icon={<FaPenFancy />} 
+                                                                <Button
+                                                                    type="link"
+                                                                    icon={<FaPenFancy />}
                                                                     onClick={() => openStoreForm(store)}
                                                                 >
                                                                     Edit
                                                                 </Button>
                                                             </Tooltip>,
                                                             <Tooltip title="Delete Store" key="delete">
-                                                                <Button 
-                                                                    type="link" 
-                                                                    icon={<MdDelete />} 
-                                                                    danger 
+                                                                <Button
+                                                                    type="link"
+                                                                    icon={<MdDelete />}
+                                                                    danger
                                                                     onClick={() => dispatch(deleteStore(store._id))}
                                                                 >
                                                                     Delete
@@ -748,7 +754,7 @@ function Client({ search }) {
                                                             </Tooltip>,
                                                         ]}
                                                     >
-                                                        <Card.Meta 
+                                                        <Card.Meta
                                                             title={store.storeName}
                                                             description={
                                                                 <Descriptions size="small" column={1} bordered>
@@ -777,10 +783,10 @@ function Client({ search }) {
                                                                         </Space>
                                                                     </Descriptions.Item>
                                                                     <Descriptions.Item label="Auto D-R">
-                                                                        <Switch 
+                                                                        <Switch
                                                                             checked={store.auto_DR}
                                                                             onChange={() => handleToggleAutoDR(store._id)}
-                                                                            checkedChildren="Oui" 
+                                                                            checkedChildren="Oui"
                                                                             unCheckedChildren="Non"
                                                                         />
                                                                     </Descriptions.Item>
@@ -808,10 +814,10 @@ function Client({ search }) {
                             width={500}
                             destroyOnClose
                         >
-                            <StoreForm 
-                                onClose={closeStoreForm} 
-                                initialValues={storeToEdit} 
-                                isEdit={Boolean(storeToEdit)} 
+                            <StoreForm
+                                onClose={closeStoreForm}
+                                initialValues={storeToEdit}
+                                isEdit={Boolean(storeToEdit)}
                             />
                         </Drawer>
 

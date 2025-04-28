@@ -10,12 +10,12 @@ import CountUp from 'react-countup';
 import { FaMoneyBill1Wave } from 'react-icons/fa6';
 
 function Mission({ theme }) {
-    const { demandeRetrait, colis, reclamations, user, colisExp, colisPret, client, incompleteWithdrawals } = useSelector((state) => ({
+    const { demandeRetrait, colis, openReclamationsCount, user, colisExp, colisPret, client, incompleteWithdrawals } = useSelector((state) => ({
         demandeRetrait: state.mission.demandeRetrait,
         colis: state.mission.colis,
         colisExp: state.mission.colisExp,
         colisPret: state.mission.colisPret,
-        reclamations: state.mission.reclamations,
+        openReclamationsCount: state.mission.openReclamationsCount,
         client : state.mission.client,
         user: state.auth.user,
         incompleteWithdrawals: state.mission.incompleteWithdrawals,
@@ -35,7 +35,7 @@ function Mission({ theme }) {
         }else if(user?.role === "livreur"){
             dispatch(getColisExpidée())
             dispatch(getColisPret())
-        } 
+        }
     };
 
     useEffect(() => {
@@ -53,8 +53,8 @@ function Mission({ theme }) {
             link: '/dashboard/colis-ar',
         },
         {
-            title: 'Reclamations',
-            count: reclamations.length,
+            title: 'Réclamations Ouvertes',
+            count: openReclamationsCount,
             icon: <SolutionOutlined style={{ fontSize: '20px', color: theme === 'dark' ? '#ffc069' : '#faad14' }} />,
             link: '/dashboard/reclamation',
         },
@@ -99,7 +99,7 @@ function Mission({ theme }) {
     const cardsData = user?.role === 'admin' ? adminCardsData : livreurCardsData;
 
     const CardBox = ({ title, count, icon, color, onClick }) => (
-        <div 
+        <div
             onClick={onClick}
             style={{
                 backgroundColor: theme === 'dark' ? '#1a1f36' : '#ffffff',
@@ -109,7 +109,7 @@ function Mission({ theme }) {
                 overflow: 'hidden',
                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                 border: `1px solid ${color}22`,
-                boxShadow: count > 0 
+                boxShadow: count > 0
                     ? `0 10px 25px ${color}40`
                     : `0 10px 20px ${color}15`,
                 cursor: 'pointer',
@@ -121,7 +121,7 @@ function Mission({ theme }) {
                 animation: count > 0 ? 'pulse 2s infinite' : 'none',
                 '&:hover': {
                     transform: 'translateY(-8px)',
-                    boxShadow: count > 0 
+                    boxShadow: count > 0
                         ? `0 20px 35px ${color}50`
                         : `0 15px 30px ${color}25`,
                 }
@@ -137,8 +137,8 @@ function Mission({ theme }) {
                 `}
             </style>
             {/* Header with enhanced hover effect */}
-            <div style={{ 
-                display: 'flex', 
+            <div style={{
+                display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 position: 'relative',
@@ -174,7 +174,7 @@ function Mission({ theme }) {
             </div>
 
             {/* Count with enhanced visibility for non-zero values */}
-            <div style={{ 
+            <div style={{
                 flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
@@ -182,13 +182,13 @@ function Mission({ theme }) {
                 position: 'relative',
                 zIndex: 1
             }}>
-                <h3 style={{ 
-                    fontSize: count > 0 ? '2.7rem' : '2.5rem', 
+                <h3 style={{
+                    fontSize: count > 0 ? '2.7rem' : '2.5rem',
                     fontWeight: '700',
                     margin: '0',
                     color: count > 0 ? color : `${color}99`,
-                    textShadow: count > 0 
-                        ? `0 0 20px ${color}40` 
+                    textShadow: count > 0
+                        ? `0 0 20px ${color}40`
                         : theme === 'dark' ? `0 0 20px ${color}33` : 'none',
                     transition: 'all 0.3s ease'
                 }}>
@@ -197,7 +197,7 @@ function Mission({ theme }) {
                 <p style={{
                     margin: '10px 0 0',
                     fontSize: '1rem',
-                    color: count > 0 
+                    color: count > 0
                         ? (theme === 'dark' ? '#ffffffcc' : '#000000cc')
                         : (theme === 'dark' ? '#ffffff99' : '#00000099'),
                     fontWeight: count > 0 ? '600' : '500',
@@ -241,7 +241,7 @@ function Mission({ theme }) {
             }}>
                 Missions du Jour
             </h2>
-            
+
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',

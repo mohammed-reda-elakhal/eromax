@@ -28,10 +28,10 @@ const TicketModal = React.memo(({
   });
 
   return (
-    <Modal 
-      title="Ticket Colis" 
-      visible={visible} 
-      onCancel={onClose} 
+    <Modal
+      title="Ticket Colis"
+      open={visible}
+      onCancel={onClose}
       footer={[
         <Button key="print" type="primary" onClick={handlePrint}>
           Imprimer
@@ -39,7 +39,7 @@ const TicketModal = React.memo(({
         <Button key="close" onClick={onClose}>
           Fermer
         </Button>
-      ]} 
+      ]}
       width={600}
       className={theme === 'dark' ? 'dark-mode' : ''}
     >

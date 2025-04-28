@@ -83,7 +83,7 @@ import {
   setColisPayant,
   updateStatut
 } from '../../../../redux/apiCalls/colisApiCalls';
-import { createReclamation, getReclamationsByColis } from '../../../../redux/apiCalls/reclamationApiCalls';
+import { createReclamation } from '../../../../redux/apiCalls/reclamationApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
 import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls';
@@ -174,7 +174,9 @@ const ColisTable = ({ theme }) => {
     infoModalVisible: false,
     ticketModalVisible: false,
     drawerOpen: false,
-    initialMessage: '',
+    reclamationType: 'Type de reclamation',
+    subject: '',
+    message: '',
     factureModalVisible: false, // New state for facture modal visibility
     searchColisId: '', // State to store the searched colis ID
     noteColisModalVisible: false, // NEW: controls visibility of Note Colis modal
@@ -339,17 +341,11 @@ const allowedStatuses = useMemo(() => {
 
   // Function to open the Reclamation Modal
   const openReclamationModal = useCallback((colis) => {
-    // Create a default initial message with the colis code
-    const defaultMessage = `Je souhaite signaler un problème concernant le colis ${colis.code_suivi}.\n\nDétails du problème: ___`;
-
     setState(prevState => ({
       ...prevState,
       selectedColis: colis,
-      initialMessage: defaultMessage,
       reclamationModalVisible: true,
     }));
-
-    console.log('Opening reclamation modal for colis:', colis);
   }, []);
 
   // Fetch data based on user role and appliedFilters
@@ -880,33 +876,11 @@ const handleConfirmAssignLivreur = async () => {
       dataIndex: 'nature_produit',
       key: 'nature_produit',
       width: 180,
-      render: (text) => {
-        if (!text) return <Tag color="cyan">N/A</Tag>;
-
-        // Limit to first 2-3 words (max 20 characters)
-        const words = text.split(' ');
-        const shortText = words.slice(0, 2).join(' ');
-        const displayText = shortText.length > 20 ? shortText.substring(0, 20) + '...' : shortText;
-        const hasMore = text.length > displayText.length;
-
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Tag icon={<TagOutlined />} color="cyan" style={{ padding: '6px 12px', borderRadius: '4px' }}>
-              {displayText}
-            </Tag>
-            {hasMore && (
-              <Tooltip title={text} >
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<InfoCircleOutlined />}
-                  style={{ padding: '0 4px', color: '#1890ff' }}
-                />
-              </Tooltip>
-            )}
-          </div>
-        );
-      },
+      render: (text) => (
+        <Tag icon={<TagOutlined />} color="cyan" style={{ padding: '6px 12px', borderRadius: '4px' }}>
+          {text || 'N/A'}
+        </Tag>
+      ),
     },
     // Only append the admin columns if user is an admin
     ...(user?.role === 'admin' ? adminColumns : []),
@@ -1067,66 +1041,17 @@ const handleConfirmAssignLivreur = async () => {
             </Tooltip>
           )}
           {user?.role === 'client' && (
-            <Tooltip title="Créer une réclamation">
+            <Tooltip title="File a Reclamation">
               <Button
                 type="primary"
-                onClick={() => {
-                  // First check if there's an open reclamation for this colis
-                  dispatch(getReclamationsByColis(record._id))
-                    .then((reclamations) => {
-                      if (reclamations && reclamations.length > 0) {
-                        // Check if any reclamation is open (not closed)
-                        const openReclamation = reclamations.find(r => r.closed === false);
-
-                        if (openReclamation) {
-                          // Show error with option to view the existing reclamation
-                          toast.error(
-                            <div>
-                              Une réclamation est déjà ouverte pour ce colis.
-                              <div style={{ marginTop: '10px' }}>
-                                <button
-                                  onClick={() => navigate(`/dashboard/reclamation`, {
-                                    state: { viewReclamation: openReclamation._id }
-                                  })}
-                                  style={{
-                                    padding: '5px 10px',
-                                    backgroundColor: '#1890ff',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  Voir la réclamation existante
-                                </button>
-                              </div>
-                            </div>,
-                            { autoClose: 8000 }
-                          );
-                          return;
-                        }
-                      }
-
-                      // If no open reclamation exists, navigate to create a new one
-                      navigate('/dashboard/reclamation', {
-                        state: {
-                          createReclamation: true,
-                          colis: record
-                        }
-                      });
-                    })
-                    .catch((error) => {
-                      console.error('Error checking existing reclamations:', error);
-                      toast.error("Erreur lors de la vérification des réclamations existantes.");
-                    });
-                }}
+                onClick={() => openReclamationModal(record)}
                 style={{
                   backgroundColor: '#dc3545',
                   borderColor: '#dc3545',
                   color: '#fff'
                 }}
               >
-                Réclamation
+                Reclamation
               </Button>
             </Tooltip>
           )}
@@ -1206,53 +1131,30 @@ const handleConfirmAssignLivreur = async () => {
   const columns = useMemo(() => columnsColis, [columnsColis]);
 
   const handleCreateReclamation = useCallback(() => {
-    const { initialMessage, selectedColis } = state;
+    const { subject, message, selectedColis } = state;
 
-    if (!initialMessage || !selectedColis) {
-      toast.error("Veuillez remplir le message initial.");
-      return;
-    }
-
-    // Ensure we have the colis ID
-    if (!selectedColis._id) {
-      toast.error("Impossible de créer une réclamation: ID du colis manquant.");
-      console.error('Missing colis ID:', selectedColis);
+    if (!subject || !message || !selectedColis) {
+      toast.error("Veuillez remplir tous les champs.");
       return;
     }
 
     const reclamationData = {
+      clientId: store?._id, // Assuming user.store holds the store ID
       colisId: selectedColis._id,
-      initialMessage: initialMessage
+      subject,
+      description: message,
     };
+    console.log(reclamationData);
 
-    console.log('Creating reclamation with data:', reclamationData);
 
-    // Show loading toast
-    const loadingToast = toast.loading("Création de la réclamation en cours...");
-
-    dispatch(createReclamation(reclamationData))
-      .then((response) => {
-        toast.dismiss(loadingToast);
-        if (response && response.reclamation) {
-          toast.success("Réclamation créée avec succès!");
-          console.log('Reclamation created successfully:', response);
-
-          // Close the modal after successful creation
-          setState(prevState => ({
-            ...prevState,
-            reclamationModalVisible: false,
-            initialMessage: '',
-          }));
-        } else {
-          toast.error("Erreur lors de la création de la réclamation.");
-        }
-      })
-      .catch((error) => {
-        toast.dismiss(loadingToast);
-        console.error('Error creating reclamation:', error);
-        toast.error(error?.response?.data?.message || "Erreur lors de la création de la réclamation.");
-      });
-  }, [state, dispatch]);
+    dispatch(createReclamation(reclamationData));
+    setState(prevState => ({
+      ...prevState,
+      reclamationModalVisible: false,
+      subject: '',
+      message: '',
+    }));
+  }, [state, dispatch, user.store]);
 
   const handleCloseTicketModal = useCallback(() => {
     setState(prevState => ({
@@ -1334,7 +1236,7 @@ const handleConfirmAssignLivreur = async () => {
         {/* Facture Modal */}
         <Modal
           title="Détails de la Facture"
-          open={state.factureModalVisible}
+          visible={state.factureModalVisible}
           onCancel={() => setState(prevState => ({ ...prevState, factureModalVisible: false }))}
           footer={[
             <Button key="close" onClick={() => setState(prevState => ({ ...prevState, factureModalVisible: false }))}>
@@ -1486,12 +1388,13 @@ const handleConfirmAssignLivreur = async () => {
 
         {/* Reclamation Modal */}
         <ReclamationModal
-          open={state.reclamationModalVisible}
+          visible={state.reclamationModalVisible}
           onCreate={handleCreateReclamation}
           onCancel={() => setState(prevState => ({ ...prevState, reclamationModalVisible: false }))}
-          initialMessage={state.initialMessage}
-          setInitialMessage={(value) => setState(prevState => ({ ...prevState, initialMessage: value }))}
-          selectedColis={state.selectedColis}
+          subject={state.subject}
+          setSubject={(value) => setState(prevState => ({ ...prevState, subject: value }))}
+          message={state.message}
+          setMessage={(value) => setState(prevState => ({ ...prevState, message: value }))}
           theme={theme}
         />
 
@@ -1508,7 +1411,7 @@ const handleConfirmAssignLivreur = async () => {
           title="Suivi du Colis"
           placement="right"
           onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))}
-          open={state.drawerOpen}
+          visible={state.drawerOpen}
           width={600}
         >
           <TrackingColis
@@ -1551,7 +1454,7 @@ const handleConfirmAssignLivreur = async () => {
 {/* Note Colis Modal */}
 <Modal
   title="Note Colis"
-  open={state.noteColisModalVisible}
+  visible={state.noteColisModalVisible}
   onCancel={() => {
     setState(prevState => ({
       ...prevState,

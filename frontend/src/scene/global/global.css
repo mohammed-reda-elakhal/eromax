@@ -197,49 +197,49 @@
     color: #fff;
     margin-top: 16px;
   }
-  
+
   .table-dark .ant-table-thead > tr > th {
     background-color: transparent;
     color: #fff;
   }
-  
+
   .table-dark .ant-table-tbody > tr > td {
     background-color: transparent;
     color: #fff;
   }
-  
+
   .table-dark .ant-table-tbody > tr.ant-table-row:hover > td,
   .table-dark .ant-table-tbody > tr.ant-table-row-selected > td {
     background-color: #002242;
     color: var(--white);
   }
-  
+
   .table-dark .ant-pagination {
     color: #fff;
   }
-  
+
   .table-dark .ant-pagination-item-active {
     border-color: #666;
     background-color: #666;
   }
-  
+
   .table-light .ant-table {
     background-color: transparent;
     color: #000;
     margin-top: 16px;
   }
-  
+
   .table-light .ant-table-thead > tr > th {
     background-color: transparent;
     color: #000;
   }
-  
+
   .table-light .ant-table-tbody > tr > td {
     background-color: transparent;
     color: #000;
   }
 
-  
+
 /* Pagination Colors */
 .table-dark .ant-pagination {
   color: #fff;
@@ -276,7 +276,7 @@
   color: #1890ff; /* Highlight on hover */
 }
 
-/* You can also adjust styles for expanded content within the expanded row, 
+/* You can also adjust styles for expanded content within the expanded row,
    for example: */
 
 .table-dark .ant-table-expanded-row-content,
@@ -284,13 +284,13 @@
   padding: 16px;
   /* Add any additional styling for the expanded content here */
 }
-  
+
   .table-light .ant-table-tbody > tr.ant-table-row:hover > td,
   .table-light .ant-table-tbody > tr.ant-table-row-selected > td {
     background-color: var(--gray);
     color: #000;
   }
-  
+
   .table-light .ant-pagination {
     color: #000;
   }
@@ -382,4 +382,41 @@
 
 .change-color-animation {
   animation: changeColor 2s infinite;
+}
+
+/* New badge animation */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+.new-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ff4d4f;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 4px;
+  text-transform: uppercase;
+  animation: pulse 2s infinite;
+  line-height: 1;
+  height: 16px;
+}
+
+.reclamation-item-with-badge {
+  position: relative;
+}
+
+/* Style for collapsed menu */
+.ant-menu-inline-collapsed .new-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin-left: 0;
+  z-index: 1;
 }

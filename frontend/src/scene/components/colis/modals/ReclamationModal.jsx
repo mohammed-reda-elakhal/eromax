@@ -1,20 +1,22 @@
 // components/ColisTable/modals/ReclamationModal.jsx
 
 import React, { useState } from 'react';
-import { Modal, Input, Select } from 'antd';
-import { 
-  DollarOutlined, 
-  UserSwitchOutlined, 
-  EditOutlined, 
+import { Modal, Input, Select, Alert, Typography } from 'antd';
+import {
+  DollarOutlined,
+  UserSwitchOutlined,
+  EditOutlined,
   PhoneOutlined,
   CustomerServiceOutlined,
   StopOutlined,
   RollbackOutlined,
   WarningOutlined,
-  FormOutlined
+  FormOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 
 const { Option } = Select;
+const { Text } = Typography;
 
 /**
  * ReclamationModal component handles filing a reclamation.
@@ -23,138 +25,149 @@ const { Option } = Select;
  * - visible: boolean to control modal visibility
  * - onCreate: function to handle creation of reclamation
  * - onCancel: function to handle modal cancel
- * - subject: string for subject input
- * - setSubject: function to update subject
- * - message: string for message input
- * - setMessage: function to update message
+ * - initialMessage: string for initial message input
+ * - setInitialMessage: function to update initial message
+ * - selectedColis: the colis object for which the reclamation is being created
  * - theme: 'dark' or 'light'
  */
 const ReclamationModal = React.memo(({
   visible,
   onCreate,
   onCancel,
-  subject,
-  setSubject,
-  message,
-  setMessage,
+  initialMessage,
+  setInitialMessage,
+  selectedColis,
   theme,
 }) => {
-  const [isCustomSubject, setIsCustomSubject] = useState(false);
+  const [messageType, setMessageType] = useState('changement_prix');
 
-  // Predefined subjects with icons and default messages
-  const subjectOptions = [
-    { 
-      value: 'changement_prix', 
+  // Predefined message templates with icons
+  const messageTemplates = [
+    {
+      value: 'changement_prix',
       label: 'Changement de prix',
       icon: <DollarOutlined />,
-      defaultMessage: "Je souhaite modifier le prix du colis.\n\nNouveau prix: ___ DH\nRaison du changement: ___"
+      template: `Je souhaite modifier le prix du colis ${selectedColis?.code_suivi || ''}.\n\nNouveau prix: ___ DH\nRaison du changement: ___`
     },
-    { 
-      value: 'changement_destinataire', 
+    {
+      value: 'changement_destinataire',
       label: 'Changement de destinataire',
       icon: <UserSwitchOutlined />,
-      defaultMessage: "Je souhaite modifier le destinataire du colis.\n\nNouveau nom: ___\nNouveau téléphone: ___"
+      template: `Je souhaite modifier le destinataire du colis ${selectedColis?.code_suivi || ''}.\n\nNouveau nom: ___\nNouveau téléphone: ___`
     },
-    { 
-      value: 'changement_infos', 
+    {
+      value: 'changement_infos',
       label: 'Changement des informations',
       icon: <EditOutlined />,
-      defaultMessage: "Je souhaite modifier les informations suivantes:\n\nAdresse: ___ .\nTéléphone: ___ .\nAutres modifications: ___"
+      template: `Je souhaite modifier les informations du colis ${selectedColis?.code_suivi || ''}.\n\nAdresse: ___ \nTéléphone: ___ \nAutres modifications: ___`
     },
-    { 
-      value: 'ajouter_numero', 
+    {
+      value: 'ajouter_numero',
       label: 'Ajouter un autre numéro',
       icon: <PhoneOutlined />,
-      defaultMessage: "Je souhaite ajouter un numéro de téléphone supplémentaire:\n\nNuméro additionnel: ___ .\nNom du contact: ___"
+      template: `Je souhaite ajouter un numéro de téléphone supplémentaire pour le colis ${selectedColis?.code_suivi || ''}.\n\nNuméro additionnel: ___ \nNom du contact: ___`
     },
-    { 
-      value: 'rappeler_client', 
+    {
+      value: 'rappeler_client',
       label: 'Rappeler le client',
       icon: <CustomerServiceOutlined />,
-      defaultMessage: "Merci de rappeler le client.\n\nMeilleur moment pour appeler: ___ .\nRaison de l'appel: ___"
+      template: `Merci de rappeler le client pour le colis ${selectedColis?.code_suivi || ''}.\n\nMeilleur moment pour appeler: ___ \nRaison de l'appel: ___`
     },
-    { 
-      value: 'annuler_colis', 
+    {
+      value: 'annuler_colis',
       label: 'Annuler le colis',
       icon: <StopOutlined />,
-      defaultMessage: "Je souhaite annuler ce colis.\n\nRaison de l'annulation: ___\nInstructions particulières: ___"
+      template: `Je souhaite annuler le colis ${selectedColis?.code_suivi || ''}.\n\nRaison de l'annulation: ___\nInstructions particulières: ___`
     },
-    { 
-      value: 'demande_retour', 
+    {
+      value: 'demande_retour',
       label: 'Demande le retour',
       icon: <RollbackOutlined />,
-      defaultMessage: "Je demande le retour du colis.\n\nRaison du retour: ___\nAdresse de retour: ___"
+      template: `Je demande le retour du colis ${selectedColis?.code_suivi || ''}.\n\nRaison du retour: ___\nAdresse de retour: ___`
     },
-    { 
-      value: 'plainte_livreur', 
+    {
+      value: 'plainte_livreur',
       label: 'Plainte concernant le livreur',
       icon: <WarningOutlined />,
-      defaultMessage: "Je souhaite signaler un problème concernant le livreur:\n\nDate de l'incident: ___\nDescription du problème: ___"
+      template: `Je souhaite signaler un problème concernant le livreur pour le colis ${selectedColis?.code_suivi || ''}.\n\nDate de l'incident: ___\nDescription du problème: ___`
     },
-    { 
-      value: 'custom', 
+    {
+      value: 'custom',
       label: 'Autre...',
       icon: <FormOutlined />,
-      defaultMessage: ""
+      template: `Concernant le colis ${selectedColis?.code_suivi || ''}:\n\n`
     }
   ];
 
-  const handleSubjectChange = (value) => {
-    if (value === 'custom') {
-      setIsCustomSubject(true);
-      setSubject('');
-      setMessage('');
-    } else {
-      setIsCustomSubject(false);
-      const selectedOption = subjectOptions.find(option => option.value === value);
-      setSubject(selectedOption?.label || '');
-      setMessage(selectedOption?.defaultMessage || '');
-    }
+  const handleMessageTypeChange = (value) => {
+    setMessageType(value);
+    const selectedTemplate = messageTemplates.find(template => template.value === value);
+    setInitialMessage(selectedTemplate?.template || '');
   };
 
   return (
-    <Modal 
-      title="Reclamation" 
-      visible={visible} 
-      onOk={onCreate} 
-      onCancel={onCancel} 
+    <Modal
+      title={
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <InfoCircleOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
+          <span>Créer une réclamation</span>
+        </div>
+      }
+      open={visible}
+      onOk={onCreate}
+      onCancel={onCancel}
+      okText="Créer la réclamation"
+      cancelText="Annuler"
       className={theme === 'dark' ? 'dark-mode' : ''}
     >
-      <div style={{ marginBottom: '10px' }}>
+      <Alert
+        message="Nouvelle approche de réclamation"
+        description="Les réclamations sont maintenant créées directement avec un message initial. Choisissez un type de message ci-dessous et personnalisez-le selon vos besoins."
+        type="info"
+        showIcon
+        style={{ marginBottom: '16px' }}
+      />
+
+      {selectedColis && (
+        <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f5f5f5', borderRadius: '4px' }}>
+          <Text strong>Colis:</Text> {selectedColis.code_suivi}<br />
+          <Text strong>Destinataire:</Text> {selectedColis.nom}<br />
+          <Text strong>Téléphone:</Text> {selectedColis.tele}<br />
+          <Text strong>Ville:</Text> {selectedColis.ville?.nom || 'N/A'}
+        </div>
+      )}
+
+      <div style={{ marginBottom: '16px' }}>
+        <Text strong>Type de message:</Text>
         <Select
-          style={{ width: '100%', marginBottom: isCustomSubject ? '10px' : '0' }}
-          placeholder="Sélectionnez le sujet"
-          onChange={handleSubjectChange}
-          value={isCustomSubject ? 'custom' : subject}
+          style={{ width: '100%', marginTop: '8px' }}
+          placeholder="Sélectionnez le type de message"
+          onChange={handleMessageTypeChange}
+          value={messageType}
         >
-          {subjectOptions.map(option => (
+          {messageTemplates.map(option => (
             <Option key={option.value} value={option.value}>
               {option.icon} {option.label}
             </Option>
           ))}
         </Select>
-        
-        {isCustomSubject && (
-          <Input 
-            placeholder="Entrez votre sujet" 
-            value={subject} 
-            onChange={(e) => setSubject(e.target.value)} 
-            style={{ width: '100%' }} 
-          />
-        )}
       </div>
 
-      <Input.TextArea 
-        placeholder="Message/Description" 
-        value={message} 
-        onChange={(e) => setMessage(e.target.value)} 
-        rows={6}
-        style={{ 
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '14px',
-          lineHeight: '1.5'
-        }}
-      />
+      <div>
+        <Text strong>Votre message:</Text>
+        <Input.TextArea
+          placeholder="Écrivez votre message ici"
+          value={initialMessage}
+          onChange={(e) => setInitialMessage(e.target.value)}
+          rows={8}
+          style={{
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            lineHeight: '1.5',
+            marginTop: '8px'
+          }}
+        />
+      </div>
     </Modal>
   );
 });

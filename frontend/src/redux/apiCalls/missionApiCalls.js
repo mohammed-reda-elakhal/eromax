@@ -33,7 +33,7 @@ export function getDemandeRetraitToday() {
 // Get new clients with optional 'days' parameter
 export function getNouveauClient(days) {
     return async (dispatch) => {
-        
+
         try {
 
             // Get token from cookies
@@ -55,11 +55,11 @@ export function getNouveauClient(days) {
             dispatch(missionActions.setNouveauClient(data));
         } catch (error) {
             toast.error(error.message || "Failed to fetch new clients");
-        } 
+        }
     };
 }
 
-// Fetch today's unresolved reclamations
+// Fetch count of open reclamations (where closed = false)
 export function getReclamationToday() {
     return async (dispatch) => {
 
@@ -78,12 +78,13 @@ export function getReclamationToday() {
               },
           };
 
-
         try {
-            const { data } = await request.get(`/api/mission/reclamation` , config);
-            dispatch(missionActions.setReclamation(data));
+            const { data } = await request.get(`/api/mission/reclamation`, config);
+            // The API now returns an object with a count property
+            dispatch(missionActions.setOpenReclamationsCount(data.count));
         } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to fetch today's reclamations");
+            console.error("Error fetching open reclamations count:", error);
+            toast.error(error.response?.data?.message || "Échec de la récupération du nombre de réclamations ouvertes");
         }
     };
 }

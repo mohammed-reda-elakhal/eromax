@@ -30,7 +30,7 @@ const InfoModal = React.memo(({
   return (
     <Modal
       title="Détails du Colis"
-      visible={visible}
+      open={visible}
       onCancel={onClose}
       footer={null}
       className={theme === 'dark' ? 'dark-mode' : ''}
@@ -111,16 +111,16 @@ const InfoModal = React.memo(({
         {/* Additional fields */}
         <Descriptions.Item label="État">
           <Col xs={24} sm={12} md={8}>
-            {selectedColis.etat ? 
-              <Badge 
-                dot 
-                color="green" 
+            {selectedColis.etat ?
+              <Badge
+                dot
+                color="green"
                 style={{ marginRight: '8px' }}
               />
-              : 
-              <Badge 
-                dot 
-                color="red" 
+              :
+              <Badge
+                dot
+                color="red"
                 style={{ marginRight: '8px' }}
               />
             }
@@ -130,16 +130,16 @@ const InfoModal = React.memo(({
 
         <Descriptions.Item label="Prés payant">
           <Col xs={24} sm={12} md={8}>
-            {selectedColis.pret_payant ? 
-              <Badge 
-                dot 
-                color="green" 
+            {selectedColis.pret_payant ?
+              <Badge
+                dot
+                color="green"
                 style={{ marginRight: '8px' }}
               />
-              : 
-              <Badge 
-                dot 
-                color="red" 
+              :
+              <Badge
+                dot
+                color="red"
                 style={{ marginRight: '8px' }}
               />
             }

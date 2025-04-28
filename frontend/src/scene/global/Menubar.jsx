@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Badge, Button, Divider, Drawer, Menu } from 'antd';
+import { Badge, Button, Divider, Drawer, Menu, Tag } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -34,11 +34,12 @@ function Menubar() {
   const { theme } = useContext(ThemeContext);
   const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('menuCollapsed')) || false);
   const [isNewReclamation, setIsNewReclamation] = useState(false);
+  const [showNewBadge, setShowNewBadge] = useState(false);
   const [openWallet, setOpenWallet] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const [userData , setUserData] = useState({})
   const {user} = useSelector(state => state.auth );
-  
+
 
     const { demandeRetrait, colis, reclamations , colisExp , colisPret , client , colisR } = useSelector((state) => ({
           demandeRetrait: state.mission.demandeRetrait,
@@ -50,13 +51,13 @@ function Menubar() {
           client : state.mission.client,
       }));
 
-      let totaleColisAdmin = colis.length + colisR.length; 
-      let totaleCompteAdmin = client.length ; 
+      let totaleColisAdmin = colis.length + colisR.length;
+      let totaleCompteAdmin = client.length ;
       let totalRetrait = demandeRetrait.length ;
-      let totalReclamation = reclamations.length 
-  
+      let totalReclamation = reclamations.length
+
       const dispatch = useDispatch();
-  
+
       // Function to dispatch actions based on the user role
       const getData = () => {
           if(user?.role === "admin"){
@@ -67,7 +68,7 @@ function Menubar() {
           }else if(user?.role === "livreur"){
               dispatch(getColisExpidée())
               dispatch(getColisPret())
-          } 
+          }
       };
 
   useEffect(()=>{
@@ -75,8 +76,39 @@ function Menubar() {
     getData()
   },[dispatch])
 
-  
- 
+  // Handle the "New" badge for reclamation feature
+  useEffect(() => {
+    // Check if we should show the badge
+    const badgeInfo = localStorage.getItem('reclamationNewBadge');
+
+    if (badgeInfo) {
+      // Parse the stored data
+      const { showUntil } = JSON.parse(badgeInfo);
+      const currentTime = new Date().getTime();
+
+      // If the current time is before the expiration time, show the badge
+      if (currentTime < showUntil) {
+        setShowNewBadge(true);
+      } else {
+        // If expired, remove from localStorage
+        localStorage.removeItem('reclamationNewBadge');
+        setShowNewBadge(false);
+      }
+    } else {
+      // If no badge info exists, create it (feature is new)
+      const currentTime = new Date().getTime();
+      const showUntil = currentTime + (48 * 60 * 60 * 1000); // 48 hours in milliseconds
+
+      localStorage.setItem('reclamationNewBadge', JSON.stringify({
+        showUntil
+      }));
+
+      setShowNewBadge(true);
+    }
+  }, [])
+
+
+
 
   const toggleCollapsed = () => {
     const newCollapsedState = !collapsed;
@@ -103,10 +135,10 @@ function Menubar() {
         localStorage.setItem('menuCollapsed', JSON.stringify(false));
       }
     };
-  
+
     handleResize(); // Set the initial state on load
     window.addEventListener('resize', handleResize);
-  
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -125,7 +157,7 @@ function Menubar() {
           </Button>
         </div>
         <div className={`header-menu reclamation-item`}>
-         
+
             <img
               src={'/image/eromax_logo.png'}
               alt=""
@@ -134,7 +166,7 @@ function Menubar() {
             />
         </div>
 
-   
+
 
         {/* admin menu items  */}
 
@@ -147,7 +179,7 @@ function Menubar() {
               <Link to="/dashboard/scan">Scan</Link>
             </Menu.Item>
           )
-        } 
+        }
         {
           userData.role === "admin" &&(
             <Menu.Item icon={<FaTools />}>
@@ -190,11 +222,11 @@ function Menubar() {
         }
 
 
-       
+
          {
           userData.role ==="admin" && (
-            <Menu.SubMenu 
-              icon={<FaMoneyBillWave />} 
+            <Menu.SubMenu
+              icon={<FaMoneyBillWave />}
               title={
                 <span>
                   Payements {totalRetrait > 0 ? <Badge count={totalRetrait} color={colorBadge} /> : ""}
@@ -261,28 +293,7 @@ function Menubar() {
           )
         }
 
-        {
-          userData.role ==="admin" && (
-            <Menu.SubMenu 
-              icon={<CgDanger />} 
-              title={
-                <span>
-                  Reclamations {reclamations.length > 0 ? <Badge count={totalReclamation} color={colorBadge} /> : ""}
-                </span>
-              }
-            >
-              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/reclamation">
-                  Reclamation Non Complete {reclamations.length > 0 ? <Badge count={reclamations.length} color={colorBadge} /> : ""}
-                </Link>
-              </Menu.Item>
-              <Menu.Item icon={<BiTagAlt />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/reclamation-complete">List Reclamation</Link>
-              </Menu.Item>
-            </Menu.SubMenu>
-          )
-        }
-       
+
         {
           userData.role === "admin" &&(
             <Menu.SubMenu icon={<IoMdPricetags />} title="Tarif">
@@ -292,23 +303,11 @@ function Menubar() {
                   <Menu.Item icon={<MdPriceCheck />}>
                     <Link to="/dashboard/tarif-livreur">Livreur</Link>
                   </Menu.Item>
-                  
+
             </Menu.SubMenu>
           )
         }
-        {
-          userData.role === "admin" &&(
-            <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
-                  <Menu.Item icon={<BiNote />}>
-                    <Link to="/dashboard/gnotification">Notifications</Link>
-                  </Menu.Item>
-                  <Menu.Item icon={<RiDiscountPercentLine />}>
-                    <Link to="/dashboard/promotion">Promotions</Link>
-                  </Menu.Item>
-                  
-            </Menu.SubMenu>
-          )
-        }
+
         {
           userData.role ==="client" && (
             <>
@@ -325,7 +324,7 @@ function Menubar() {
                 </Link>
               </Menu.Item>
               </Menu.SubMenu>
-              
+
               <Drawer
                 title="Portfeuille"
                 open={openWallet}
@@ -338,9 +337,9 @@ function Menubar() {
           )
         }
 
-       
 
-        
+
+
 
 
         {
@@ -361,6 +360,36 @@ function Menubar() {
               <Menu.Item icon={<FaReceipt />}>
                 <Link to="/dashboard/facture/globale">Fichier</Link>
               </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
+        {
+          (userData.role === "admin" || userData.role === "client") && (
+            <Menu.Item icon={<CgDanger />} className="reclamation-item-with-badge">
+              <Link to="/dashboard/reclamation">
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    Reclamation
+                    {showNewBadge && <span className="new-badge">new</span>}
+                  </span>
+                  {totalReclamation > 0 ? <Badge count={totalReclamation} color={colorBadge} style={{ marginLeft: '8px' }} /> : ""}
+                </span>
+              </Link>
+            </Menu.Item>
+          )
+        }
+
+{
+          userData.role === "admin" &&(
+            <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
+                  <Menu.Item icon={<BiNote />}>
+                    <Link to="/dashboard/gnotification">Notifications</Link>
+                  </Menu.Item>
+                  <Menu.Item icon={<RiDiscountPercentLine />}>
+                    <Link to="/dashboard/promotion">Promotions</Link>
+                  </Menu.Item>
+
             </Menu.SubMenu>
           )
         }
@@ -425,7 +454,7 @@ function Menubar() {
         </Menu.Item>
 
       </Menu>
-      
+
     </div>
   );
 }

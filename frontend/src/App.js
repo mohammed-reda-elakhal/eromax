@@ -223,7 +223,6 @@ function App() {
             <Route path="tarif-livreur" element={<TarifLivreur />} /> 
             <Route path="tarif-livreur/:idLivreur" element={<TarifLivreur />} /> 
             <Route path="reclamation" element={<Reclamation />} />
-            <Route path="reclamation-complete" element={<ReclamationOk />} />
             <Route path="gnotification" element={<Notification />} /> 
             <Route path="demande-retrait" element={<Withdrawal />} /> 
             <Route path="transaction" element={<Transfer />} /> 

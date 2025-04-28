@@ -101,6 +101,21 @@ const FactureDetailLivreur = () => {
       title: 'Code Suivi',
       dataIndex: 'code_suivi',
       key: 'code_suivi',
+    }, {
+      title: 'Date Livraison',
+      dataIndex: 'date_livraisant',
+      key: 'date_livraisant',
+      width: 160,
+      render: (text) =>
+        text
+          ? new Date(text).toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : 'N/A',
     },
     {
           title: 'Statu Final',

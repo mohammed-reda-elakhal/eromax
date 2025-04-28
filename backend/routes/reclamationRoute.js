@@ -1,19 +1,61 @@
-const { createReclamation, getReclamations, getReclamationById, updateReclamation, deleteReclamtion, updateReclamationStatus, getReclamationByClient } = require("../Controllers/reclamationController");
+const {
+    createReclamation,
+    getReclamations,
+    getReclamationById,
+    getReclamationsByStore,
+    getReclamationsByColis,
+    addMessage,
+    updateReclamationStatus,
+    reopenReclamation,
+    deleteReclamation,
+    markMessageAsRead,
+    deleteMessage
+} = require("../Controllers/reclamationController");
 
+const {
+    verifyToken,
+    verifyTokenAndAdmin,
+    verifyTokenAdminTeam,
+    verifyTokenAndClient
+} = require("../Middlewares/VerifyToken");
 const router = require("express").Router();
 
+// Base routes
 router.route("/")
-        .get(getReclamations)
-        .post(createReclamation)
+    .get(verifyToken, getReclamations)
+    .post(verifyTokenAndClient, createReclamation);
 
-// api/reclamation/:id
+// Routes for specific reclamation by ID
 router.route("/:id")
-        .get(getReclamationById)
-        .put(updateReclamation)
-        .delete(deleteReclamtion)
+    .get(verifyToken, getReclamationById)
+    .delete(verifyTokenAdminTeam, deleteReclamation);
 
-router.route("/statut/:id").put(updateReclamationStatus);
-// api/reclamation/:id_user
-router.route("/client/:id_user").get(getReclamationByClient)
+// Routes for reclamation status
+router.route("/:id/status")
+    .put(verifyTokenAdminTeam, updateReclamationStatus);
 
-module.exports=router;
+// Route to reopen a closed reclamation
+router.route("/:id/reopen")
+    .put(verifyTokenAdminTeam, reopenReclamation);
+
+// Routes for messages
+router.route("/:id/message")
+    .post(verifyToken, addMessage);
+
+// Routes for specific messages
+router.route("/:id/message/:messageId/read")
+    .put(verifyToken, markMessageAsRead);
+
+// Route to delete a message
+router.route("/:id/message/:messageId")
+    .delete(verifyToken, deleteMessage);
+
+// Routes to get reclamations by store
+router.route("/store/:storeId")
+    .get(verifyToken, getReclamationsByStore);
+
+// Routes to get reclamations by colis
+router.route("/colis/:colisId")
+    .get(verifyToken, getReclamationsByColis);
+
+module.exports = router;

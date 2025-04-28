@@ -30,16 +30,22 @@ const getNouveauClient = async (req, res) => {
 };
 
 
-// Get all Reclamation without date condition
+// Get count of open reclamations (where closed = false)
 const getReclamationToday = async (req, res) => {
     try {
-        const reclamations = await Reclamation.find({
-            resoudre: false, // Assuming `resoudre` is a boolean field
+        // Count reclamations where closed is false
+        const openReclamationsCount = await Reclamation.countDocuments({
+            closed: false
         });
 
-        res.status(200).json(reclamations);
+        // Return the count
+        res.status(200).json({
+            message: "Open reclamations count retrieved successfully",
+            count: openReclamationsCount
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching reclamations', error });
+        console.error("Error fetching open reclamations count:", error);
+        res.status(500).json({ message: 'Error fetching open reclamations count', error: error.message });
     }
 };
 
@@ -96,7 +102,7 @@ const countExpedieColisForLivreur = async (req, res) => {
 const countPretToLivreeColisForLivreur = async (req, res) => {
     try {
         const livreurId = req.user.id;  // Assuming the livreur's id is in req.user.id
-        
+
         // The list of statuses that represent "pret to livrée"
         const readyToDeliverStatuses = [
             "Mise en Distribution",
@@ -134,7 +140,7 @@ const getIncompleteWithdrawalsCount = async (req, res) => {
     try {
         // Count withdrawals that are not complete (not 'done' or 'rejected')
         const incompleteCount = await Withdrawal.countDocuments({
-            status: { 
+            status: {
                 $nin: ['done', 'rejected']
             }
         });
