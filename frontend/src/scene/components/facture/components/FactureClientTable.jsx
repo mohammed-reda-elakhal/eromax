@@ -549,81 +549,81 @@ function FactureClientTable({ theme, id }) {
 
   return (
     <div>
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px', alignItems: 'center' }}>
-  <Col xs={24} sm={24} md={6}>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-      <Input
-        placeholder="Rechercher ..."
-        value={searchText}
-        onChange={handleSearchChange}
-        allowClear
-      />
-    </div>
-  </Col>
-  <Col xs={24} sm={24} md={6} >
-    <Select
-      value={selectedDateRange}
-      onChange={handleDateRangeSelectChange}
-      style={{ width: '100%' }}
-      disabled={loading}
-    >
-      <Option value="last_week">Dernière semaine</Option>
-      <Option value="last_2_weeks">2 dernières semaines</Option>
-      <Option value="last_month">Dernier mois</Option>
-      <Option value="last_2_months">2 derniers mois</Option>
-      <Option value="custom">Personnalisé</Option>
-    </Select>
-  </Col>
-  <Col xs={24} sm={24} md={6} >
-    <Row gutter={8}>
-      <Col span={12}>
-        <Input
-          type="date"
-          placeholder="Date début"
-          disabled={selectedDateRange !== 'custom' || loading}
-          onChange={handleStartDateChange}
-          value={startDate ? moment(startDate).format('YYYY-MM-DD') : ''}
-          style={{ width: '100%' }}
-        />
-      </Col>
-      <Col span={12}>
-        <Input
-          type="date"
-          placeholder="Date fin"
-          disabled={selectedDateRange !== 'custom' || loading}
-          onChange={handleEndDateChange}
-          value={endDate ? moment(endDate).format('YYYY-MM-DD') : ''}
-          style={{ width: '100%' }}
-        />
-      </Col>
-    </Row>
-  </Col>
-  <Col xs={24} sm={24} md={6} style={{ textAlign: 'right' }}>
-    <Space>
-      <Button
-        type="default"
-        icon={<FaSyncAlt />}
-        onClick={() => {
-          setLoading(true);
-          fetchData(selectedDateRange);
-        }}
-        loading={loading}
-      >
-        Refresh
-      </Button>
       {user?.role === 'admin' && (
-        <Button
-          type="primary"
-          icon={<FaRegFolderOpen />}
-          disabled={selectedRowKeys.length < 2}
-          onClick={handleMerge}
-        >
-          Fusionner
-        </Button>
+        <Row gutter={[16, 16]} style={{ marginBottom: '20px', alignItems: 'center' }}>
+          <Col xs={24} sm={24} md={6}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <Input
+                placeholder="Rechercher ..."
+                value={searchText}
+                onChange={handleSearchChange}
+                allowClear
+              />
+            </div>
+          </Col>
+          <Col xs={24} sm={24} md={6} >
+            <Select
+              value={selectedDateRange}
+              onChange={handleDateRangeSelectChange}
+              style={{ width: '100%' }}
+              disabled={loading}
+            >
+              <Option value="last_week">Dernière semaine</Option>
+              <Option value="last_2_weeks">2 dernières semaines</Option>
+              <Option value="last_month">Dernier mois</Option>
+              <Option value="last_2_months">2 derniers mois</Option>
+              <Option value="custom">Personnalisé</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={24} md={6} >
+            <Row gutter={8}>
+              <Col span={12}>
+                <Input
+                  type="date"
+                  placeholder="Date début"
+                  disabled={selectedDateRange !== 'custom' || loading}
+                  onChange={handleStartDateChange}
+                  value={startDate ? moment(startDate).format('YYYY-MM-DD') : ''}
+                  style={{ width: '100%' }}
+                />
+              </Col>
+              <Col span={12}>
+                <Input
+                  type="date"
+                  placeholder="Date fin"
+                  disabled={selectedDateRange !== 'custom' || loading}
+                  onChange={handleEndDateChange}
+                  value={endDate ? moment(endDate).format('YYYY-MM-DD') : ''}
+                  style={{ width: '100%' }}
+                />
+              </Col>
+            </Row>
+          </Col>
+          <Col xs={24} sm={24} md={6} style={{ textAlign: 'right' }}>
+            <Space>
+              <Button
+                type="default"
+                icon={<FaSyncAlt />}
+                onClick={() => {
+                  setLoading(true);
+                  fetchData(selectedDateRange);
+                }}
+                loading={loading}
+              >
+                Refresh
+              </Button>
+              <Button
+                type="primary"
+                icon={<FaRegFolderOpen />}
+                disabled={selectedRowKeys.length < 2}
+                onClick={handleMerge}
+              >
+                Fusionner
+              </Button>
+            </Space>
+          </Col>
+        </Row>
       )}
-    </Space>
-  </Col>
-</Row>
 
       <TableDashboard
         id="_id"
