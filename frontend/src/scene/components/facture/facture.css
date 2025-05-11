@@ -7,7 +7,7 @@
 .old_price{
     color: red;
     font-size: 14px;
-    text-decoration-line: line-through; 
+    text-decoration-line: line-through;
 }
 .facture-buttons button {
     background-color: #008cba;
@@ -128,28 +128,277 @@
     text-align: center;
     margin: 0;
 }
-.table-facture{
-    padding: 6em 2rem;
+/* Simple section styling for facture */
+.simple-section {
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
 }
-.table-calcul{
-    padding: 3em 2rem;
-    width: 50%;
+
+.simple-header {
+    background-color: #f5f5f5;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.simple-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Table section styling - kept for backward compatibility */
+.table-section {
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.section-header {
+    background-color: #f5f5f5;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.table-facture {
+    padding: 0;
+}
+
+.table-calcul {
+    padding: 0;
+    width: 40%;
+    margin: 0 0 0 auto; /* Align to the right side */
+}
+
+.table-supplements {
+    padding: 0;
+}
+
+/* Table row styling */
+.table-row-light {
+    background-color: #f9f9f9;
+}
+
+.table-row-dark {
+    background-color: #f0f0f0;
+}
+
+.total-row {
+    background-color: #fffbe6;
+    font-weight: bold;
+}
+
+.total-row td {
+    border-top: 2px solid #820300 !important;
+    color: #820300;
+    font-size: 16px;
+}
+
+/* Simplified recap section styling */
+.recap-section {
+    margin: 20px 0;
+    padding: 0;
+}
+
+.recap-header {
+    margin-bottom: 5px;
+    text-align: right;
+}
+
+.recap-header h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.recap-row td {
+    border-bottom: 1px solid #eee !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    padding: 4px 8px !important;
+}
+
+.total-row-simple td {
+    border-top: 1px solid #333 !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    font-weight: bold;
+    padding: 4px 8px !important;
+}
+
+/* Simple table styling */
+.table-simple {
+    font-size: 12px;
+}
+
+.table-simple th {
+    background-color: #f5f5f5 !important;
+    font-weight: 600;
+    padding: 6px !important;
+}
+
+.table-simple td {
+    padding: 6px !important;
+}
+
+/* Simplified tarification styling */
+.tarif-description {
+    font-size: 12px;
+    font-style: italic;
+    margin-top: 2px;
+}
+
+/* Make tables responsive */
+@media (max-width: 768px) {
+    .table-calcul {
+        width: 100%;
+    }
+
+    .table-section {
+        margin-bottom: 20px;
+    }
 }
 
 @media print {
     .facture-detail {
         margin: 0;
-        padding: 0;
+        padding: 10px;
         box-shadow: none;
         background-color: white;
         width: 100%;
     }
-    
-    .table-facture {
-        padding: 0;
+
+    .table-section,
+    .simple-section {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
     }
-    
+
+    .section-header,
+    .simple-header {
+        background-color: #f5f5f5 !important;
+        color: #000 !important;
+        padding: 6px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .section-header h3,
+    .simple-header h4 {
+        color: #333 !important;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    .table-facture,
+    .table-supplements {
+        padding: 0;
+        width: 100%;
+    }
+
     .table-calcul {
         padding: 0;
+        width: 40%;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    /* Ensure table rows print properly */
+    .table-row-light,
+    .table-row-dark {
+        background-color: white !important;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .total-row {
+        background-color: #f9f9f9 !important;
+    }
+
+    .total-row td {
+        border-top: 2px solid #820300 !important;
+        color: #820300 !important;
+        font-weight: bold;
+    }
+
+    /* Simplified recap section for print */
+    .recap-section {
+        margin: 15px 0;
+    }
+
+    .recap-header h4 {
+        text-align: right;
+        font-size: 12px;
+        color: #000 !important;
+    }
+
+    .recap-row td,
+    .total-row-simple td {
+        color: #000 !important;
+        font-size: 12px;
+    }
+
+    .total-row-simple td {
+        border-top: 1px solid #000 !important;
+        font-weight: bold;
+    }
+
+    /* Tarification styling for print */
+    .tarification-container {
+        display: block;
+    }
+
+    .tarif-item {
+        margin-bottom: 5px;
+        padding: 3px;
+        border-left: 2px solid #820300;
+        background-color: white !important;
+    }
+
+    .tarif-label {
+        display: inline-block;
+        width: 100px;
+        font-weight: bold;
+    }
+
+    .tarif-value {
+        display: inline-block;
+        color: #000 !important;
+    }
+
+    .tarif-description {
+        margin-left: 100px;
+        font-style: italic;
+    }
+
+    /* Add borders to make the table more readable when printed */
+    table {
+        border-collapse: collapse;
+        width: 100% !important;
+    }
+
+    th, td {
+        border: 1px solid #ddd !important;
+        padding: 5px !important;
+    }
+
+    /* Ensure page breaks don't occur in the middle of tables */
+    table { page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+
+    /* Hide buttons when printing */
+    .facture-buttons {
+        display: none !important;
     }
 }

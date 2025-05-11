@@ -58,10 +58,10 @@ const Login = () => {
             src="/image/logo-light.png"
             onClick={() => navigate('/')}
             style={{ cursor: "pointer" }}
-            alt="Landino"
+            alt="Eromax"
             className="login-logo"
           />
-          <h2>Login</h2>
+          <h2>Bienvenue</h2>
         </div>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="login-role-container">
@@ -77,7 +77,7 @@ const Login = () => {
                 Livreur
               </Radio.Button>
               <Radio.Button value="staf" className="login-role-button">
-                Staf
+                Staff
               </Radio.Button>
             </Radio.Group>
           </div>
@@ -88,38 +88,45 @@ const Login = () => {
             className="login-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
           />
           <Input.Password
             size="large"
-            placeholder="Password"
+            placeholder="Mot de passe"
             prefix={<LockOutlined className="login-input-icon" />}
             className="login-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
           />
-          <Button type="primary" htmlType="submit" className="login-button">
-            Log in
+          <Button
+            type="primary"
+            htmlType="submit"
+            className="login-button"
+            loading={useSelector(state => state.auth.loading)}
+          >
+            Connexion
           </Button>
         </form>
         <div className="login-footer">
-          <span>No account yet?</span>
+          <span>Pas encore de compte?</span>
           <Button
             onClick={handleRegisterNavigation}
             className="login-footer-link"
-            style={{ border: 'none', padding: 0, background: 'transparent', color: '#1890ff' }}
+            style={{ border: 'none', padding: 0, background: 'transparent' }}
           >
-            Register
+            S'inscrire
           </Button>
         </div>
         <div className="social_media_link">
-          <Link to={"#"}>
-            <FaWhatsapp size={20} color='green'/>
+          <Link to={"#"} aria-label="WhatsApp">
+            <FaWhatsapp size={22} color='green'/>
           </Link>
-          <Link to={"#"}>
-            <FaInstagram size={20} color='pink'/>
+          <Link to={"#"} aria-label="Instagram">
+            <FaInstagram size={22} color='#e1306c'/>
           </Link>
-          <Link to={"#"}>
-            <FaFacebook size={20} color='blue'/>
+          <Link to={"#"} aria-label="Facebook">
+            <FaFacebook size={22} color='#1877f2'/>
           </Link>
         </div>
       </div>

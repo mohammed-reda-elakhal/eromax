@@ -2071,7 +2071,7 @@ try {
     })
     .populate({
         path: 'colis',
-        select: 'code_suivi prix statut crbt statu_final date_livraisant',
+        select: 'code_suivi prix statut crbt statu_final date_livraisant tarif_ajouter',
         populate: {
         path: 'ville',
         select: 'nom key ref tarif tarif_refus'

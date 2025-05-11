@@ -1004,6 +1004,29 @@ const handleConfirmAssignLivreur = async () => {
     {
       title:
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MdOutlinePayment /> Wallet
+          </div>,
+      dataIndex: 'wallet_prosseced',
+      key: 'wallet_prosseced',
+      render: (wallet_prosseced) => (
+        <div style={{ textAlign: 'center' }}>
+          {wallet_prosseced ? (
+            <Badge
+              status="success"
+              text={<span style={{ color: '#52c41a', fontWeight: 'bold' }}>Processed</span>}
+            />
+          ) : (
+            <Badge
+              status="error"
+              text={<span style={{ color: '#f5222d', fontWeight: 'bold' }}>Pending</span>}
+            />
+          )}
+        </div>
+      ),
+    },
+    {
+      title:
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <IoMdOptions /> Options
           </div>,
       render: (text, record) => (
@@ -1290,6 +1313,16 @@ const handleConfirmAssignLivreur = async () => {
       "Commentaire": colis.commentaire || 'N/A',
       "État": colis.etat ? "Payée" : "Non Payée",
       "Prés payant": colis.pret_payant ? "Payée" : "Non Payée",
+      "Wallet Processed": colis.wallet_prosseced ? "Oui" : "Non",
+      "Tarif Ajouter Valeur": colis.tarif_ajouter?.value || 0,
+      "Tarif Ajouter Description": colis.tarif_ajouter?.description || 'N/A',
+      "CRBT Prix Colis": colis.crbt?.prix_colis || 0,
+      "CRBT Tarif Livraison": colis.crbt?.tarif_livraison || 0,
+      "CRBT Tarif Refus": colis.crbt?.tarif_refuse || 0,
+      "CRBT Tarif Fragile": colis.crbt?.tarif_fragile || 0,
+      "CRBT Tarif Supplementaire": colis.crbt?.tarif_supplementaire || 0,
+      "CRBT Prix à Payer": colis.crbt?.prix_a_payant || 0,
+      "CRBT Total Tarif": colis.crbt?.total_tarif || 0,
       "Ouvrir": colis.ouvrir ? "Oui" : "Non",
       "Is Simple": colis.is_simple ? "Oui" : "Non",
       "Is Remplace": colis.is_remplace ? "Oui" : "Non",

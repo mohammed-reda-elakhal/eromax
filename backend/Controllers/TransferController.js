@@ -31,17 +31,29 @@ const createTransfer = async (req, res) => {
 // Get all transfers
 const getAllTransfers = async (req, res) => {
     try {
-        const { 
-            storeName, 
-            transferStatus, 
-            colisStatus, 
+        const {
+            storeName,
+            transferStatus,
+            colisStatus,
             walletKey,
             startDate,
-            endDate
+            endDate,
+            transferType,
+            manualOnly
         } = req.query;
 
         let query = {};
         let transfers;
+
+        // Filter by transfer type if provided
+        if (transferType) {
+            query.type = transferType;
+        }
+
+        // Filter for manual transfers only if requested
+        if (manualOnly === 'true') {
+            query.type = { $in: ['Manuel Depot', 'Manuel Withdrawal'] };
+        }
 
         // If user is admin, get all transfers with filters
         if (req.user.role === 'admin') {
@@ -59,6 +71,7 @@ const getAllTransfers = async (req, res) => {
                         select: 'storeName'
                     }
                 })
+                .populate('admin', 'nom username email')
                 .sort({ createdAt: -1 });
 
             // Apply additional filters after population
@@ -95,7 +108,7 @@ const getAllTransfers = async (req, res) => {
 
                 return match;
             });
-        } 
+        }
         // If user is client, get only their transfers with filters
         else if (req.user.role === 'client') {
             if (transferStatus) {
@@ -281,9 +294,9 @@ const cancelTransfer = async (req, res) => {
 
     } catch (error) {
         console.error('Error cancelling transfer:', error);
-        res.status(500).json({ 
-            message: "Error cancelling transfer", 
-            error: error.message 
+        res.status(500).json({
+            message: "Error cancelling transfer",
+            error: error.message
         });
     }
 };
@@ -365,9 +378,9 @@ const validateTransferStatus = async (req, res) => {
 
     } catch (error) {
         console.error('Error validating transfer:', error);
-        res.status(500).json({ 
-            message: "Error validating transfer", 
-            error: error.message 
+        res.status(500).json({
+            message: "Error validating transfer",
+            error: error.message
         });
     }
 };
@@ -378,14 +391,14 @@ const correctTransfer = async (req, res) => {
         const { newMontant, description } = req.body;
 
         if (!newMontant || typeof newMontant !== 'number') {
-            return res.status(400).json({ 
-                message: "newMontant is required and must be a number" 
+            return res.status(400).json({
+                message: "newMontant is required and must be a number"
             });
         }
 
         if (!description) {
-            return res.status(400).json({ 
-                message: "Description is required for correction transfers" 
+            return res.status(400).json({
+                message: "Description is required for correction transfers"
             });
         }
 
@@ -397,14 +410,14 @@ const correctTransfer = async (req, res) => {
 
         // Check if transfer can be corrected
         if (transfer.type === 'Correction') {
-            return res.status(400).json({ 
-                message: "Cannot correct a correction transfer" 
+            return res.status(400).json({
+                message: "Cannot correct a correction transfer"
             });
         }
 
         if (transfer.status !== 'validé') {
-            return res.status(400).json({ 
-                message: "Only validated transfers can be corrected" 
+            return res.status(400).json({
+                message: "Only validated transfers can be corrected"
             });
         }
 
@@ -420,8 +433,8 @@ const correctTransfer = async (req, res) => {
 
         // Check if wallet has sufficient balance for deduction
         if (difference < 0 && wallet.solde + difference < 0) {
-            return res.status(400).json({ 
-                message: "Insufficient wallet balance for this correction" 
+            return res.status(400).json({
+                message: "Insufficient wallet balance for this correction"
             });
         }
 
@@ -474,10 +487,145 @@ const correctTransfer = async (req, res) => {
 
     } catch (error) {
         console.error('Error correcting transfer:', error);
-        res.status(500).json({ 
-            message: "Error correcting transfer", 
-            error: error.message 
+        res.status(500).json({
+            message: "Error correcting transfer",
+            error: error.message
         });
+    }
+};
+
+// Create manual deposit
+const createManualDeposit = async (req, res) => {
+    try {
+        const { wallet, montant, commentaire } = req.body;
+
+        // Validate admin permissions
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Only admins can create manual deposits" });
+        }
+
+        // Validate amount
+        if (!montant || montant <= 0) {
+            return res.status(400).json({ message: "Amount must be positive for deposits" });
+        }
+
+        // Create transfer object
+        const transferData = {
+            wallet,
+            type: 'Manuel Depot',
+            montant,
+            commentaire,
+            admin: req.user.id,
+            status: 'validé'
+        };
+
+        // Validate request body
+        const { error } = validateTransfer(transferData);
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        // Find the wallet
+        const walletDoc = await Wallet.findById(wallet);
+        if (!walletDoc) {
+            return res.status(404).json({ message: "Wallet not found" });
+        }
+
+        if (!walletDoc.active) {
+            return res.status(400).json({ message: "Wallet is not active" });
+        }
+
+        // Create new transfer
+        const transfer = new Transfer(transferData);
+
+        // Update wallet balance
+        walletDoc.solde += montant;
+
+        // Save both documents
+        await Promise.all([
+            transfer.save(),
+            walletDoc.save()
+        ]);
+
+        // Return created transfer
+        res.status(201).json({
+            message: "Manual deposit created successfully",
+            transfer: await Transfer.findById(transfer._id)
+                .populate('wallet')
+                .populate('admin', 'Nom Prenom email')
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Create manual withdrawal
+const createManualWithdrawal = async (req, res) => {
+    try {
+        const { wallet, montant, commentaire } = req.body;
+
+        // Validate admin permissions
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Only admins can create manual withdrawals" });
+        }
+
+        // Validate amount
+        if (!montant || montant <= 0) {
+            return res.status(400).json({ message: "Amount must be positive for withdrawals" });
+        }
+
+        // Create transfer object
+        const transferData = {
+            wallet,
+            type: 'Manuel Withdrawal',
+            montant,
+            commentaire,
+            admin: req.user.id,
+            status: 'validé'
+        };
+
+        // Validate request body
+        const { error } = validateTransfer(transferData);
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        // Find the wallet
+        const walletDoc = await Wallet.findById(wallet);
+        if (!walletDoc) {
+            return res.status(404).json({ message: "Wallet not found" });
+        }
+
+        if (!walletDoc.active) {
+            return res.status(400).json({ message: "Wallet is not active" });
+        }
+
+        // Check if wallet has sufficient balance
+        if (walletDoc.solde < montant) {
+            return res.status(400).json({ message: "Insufficient wallet balance for withdrawal" });
+        }
+
+        // Create new transfer
+        const transfer = new Transfer(transferData);
+
+        // Update wallet balance (subtract for withdrawal)
+        walletDoc.solde -= montant;
+
+        // Save both documents
+        await Promise.all([
+            transfer.save(),
+            walletDoc.save()
+        ]);
+
+        // Return created transfer
+        res.status(201).json({
+            message: "Manual withdrawal created successfully",
+            transfer: await Transfer.findById(transfer._id)
+                .populate('wallet')
+                .populate('admin', 'Nom Prenom email')
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -490,5 +638,7 @@ module.exports = {
     deleteTransfer,
     cancelTransfer,
     validateTransferStatus,
-    correctTransfer
-}; 
+    correctTransfer,
+    createManualDeposit,
+    createManualWithdrawal
+};

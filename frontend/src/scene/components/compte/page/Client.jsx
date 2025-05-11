@@ -18,11 +18,13 @@ import {
     Tooltip,
     Tag,
     Descriptions,
-    Switch ,
+    Switch,
     Image,
     Form,
-    message ,
+    message,
     Input,
+    InputNumber,
+    Radio,
     Empty
 } from 'antd';
 import {
@@ -60,7 +62,8 @@ import { FaB } from 'react-icons/fa6';
 import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls';
 import { TbLockPassword } from 'react-icons/tb';
 import { getWalletByStore, toggleWalletActivation } from '../../../../redux/apiCalls/walletApiCalls';
-import { Table } from 'antd';
+import { createManualDeposit, createManualWithdrawal, getTransfersByWallet } from '../../../../redux/apiCalls/transferApiCalls';
+import { Table, Tabs } from 'antd';
 import styled from 'styled-components';
 
 const StyledTable = styled(Table)`
@@ -159,6 +162,9 @@ function Client({ search }) {
 
     const [isWalletModalVisible, setIsWalletModalVisible] = useState(false);
     const [loadingWallet, setLoadingWallet] = useState(false);
+    const [manualTransferForm] = Form.useForm();
+    const [transferType, setTransferType] = useState('depot');
+    const [walletTransfers, setWalletTransfers] = useState([]);
 
     const showPasswordModal = (user) => {
         setSelectedUser(user); // Set the selected user
@@ -302,24 +308,89 @@ function Client({ search }) {
 
     const showWalletModal = async (storeId) => {
         try {
-            dispatch(getWalletByStore(storeId)); // Dispatch action to fetch wallet info
+            setLoadingWallet(true);
+            // Dispatch action to fetch wallet info
+            await dispatch(getWalletByStore(storeId));
             setIsWalletModalVisible(true);
+
+            // Reset the form when opening the modal
+            manualTransferForm.resetFields();
+            setTransferType('depot');
         } catch (error) {
             message.error("Failed to fetch wallet information");
+        } finally {
+            setLoadingWallet(false);
         }
     };
 
-    const handleToggleWallet = async (walletId, currentStatus) => {
+    // Function to fetch wallet transfers when wallet is selected
+    useEffect(() => {
+        if (selectedWallet && isWalletModalVisible) {
+            dispatch(getTransfersByWallet(selectedWallet._id))
+                .then(response => {
+                    if (response && response.payload) {
+                        setWalletTransfers(response.payload);
+                    }
+                })
+                .catch(error => {
+                    console.error("Failed to fetch wallet transfers:", error);
+                });
+        }
+    }, [selectedWallet, isWalletModalVisible, dispatch]);
+
+    const handleToggleWallet = async (walletId) => {
         try {
             setLoadingWallet(true);
 
             // Call the API to toggle the wallet status
-            const success = await dispatch(toggleWalletActivation(walletId));
+            const success = dispatch(toggleWalletActivation(walletId));
 
             // Only refresh if the toggle was successful
             if (success && selectedWallet?.store) {
-                await dispatch(getWalletByStore(selectedWallet.store));
+                dispatch(getWalletByStore(selectedWallet.store));
             }
+        } finally {
+            setLoadingWallet(false);
+        }
+    };
+
+    // Handle manual transfer submission
+    const handleManualTransfer = async (values) => {
+        try {
+            setLoadingWallet(true);
+
+            const transferData = {
+                wallet: selectedWallet._id,
+                montant: parseFloat(values.montant),
+                commentaire: values.commentaire
+            };
+
+            if (transferType === 'depot') {
+                await dispatch(createManualDeposit(transferData));
+                message.success('Dépôt manuel effectué avec succès');
+            } else {
+                await dispatch(createManualWithdrawal(transferData));
+                message.success('Retrait manuel effectué avec succès');
+            }
+
+            // Refresh wallet data
+            if (selectedWallet?.store) {
+                dispatch(getWalletByStore(selectedWallet.store));
+
+                // Refresh transfers
+                dispatch(getTransfersByWallet(selectedWallet._id))
+                    .then(response => {
+                        if (response && response.payload) {
+                            setWalletTransfers(response.payload);
+                        }
+                    });
+            }
+
+            // Reset form
+            manualTransferForm.resetFields();
+
+        } catch (error) {
+            message.error(error.message || 'Échec de l\'opération');
         } finally {
             setLoadingWallet(false);
         }
@@ -935,6 +1006,7 @@ function Client({ search }) {
                         Close
                     </Button>
                 ]}
+                width={800}
             >
                 {loadingWallet ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>
@@ -943,40 +1015,180 @@ function Client({ search }) {
                 ) : (
                     <div>
                         {selectedWallet ? (
-                            <Descriptions bordered column={1}>
-                                <Descriptions.Item label="Wallet Key">
-                                    <Tag color="green">
-                                        <Typography.Text copyable style={{ color: 'inherit' }}>
-                                            {selectedWallet.key}
-                                        </Typography.Text>
-                                    </Tag>
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Balance">
-                                    <Tag color="blue" style={{ fontSize: '16px' }}>
-                                        {selectedWallet.solde} DH
-                                    </Tag>
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Status">
-                                    <Space>
-                                        <Tag color={selectedWallet.active ? "green" : "red"}>
-                                            {selectedWallet.active ? "Active" : "Inactive"}
-                                        </Tag>
-                                        <Switch
-                                            checked={selectedWallet.active}
-                                            onChange={() => handleToggleWallet(selectedWallet._id, selectedWallet.active)}
-                                            loading={walletLoading}
-                                            checkedChildren="Active"
-                                            unCheckedChildren="Inactive"
-                                            style={{
-                                                backgroundColor: selectedWallet.active ? '#52c41a' : '#ff4d4f',
-                                            }}
-                                        />
-                                    </Space>
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Created At">
-                                    {new Date(selectedWallet.createdAt).toLocaleString()}
-                                </Descriptions.Item>
-                            </Descriptions>
+                            <Tabs defaultActiveKey="info">
+                                <Tabs.TabPane tab="Information" key="info">
+                                    <Descriptions bordered column={1}>
+                                        <Descriptions.Item label="Wallet Key">
+                                            <Tag color="green">
+                                                <Typography.Text copyable style={{ color: 'inherit' }}>
+                                                    {selectedWallet.key}
+                                                </Typography.Text>
+                                            </Tag>
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Balance">
+                                            <Tag color="blue" style={{ fontSize: '16px' }}>
+                                                {selectedWallet.solde} DH
+                                            </Tag>
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Status">
+                                            <Space>
+                                                <Tag color={selectedWallet.active ? "green" : "red"}>
+                                                    {selectedWallet.active ? "Active" : "Inactive"}
+                                                </Tag>
+                                                <Switch
+                                                    checked={selectedWallet.active}
+                                                    onChange={() => handleToggleWallet(selectedWallet._id)}
+                                                    loading={walletLoading}
+                                                    checkedChildren="Active"
+                                                    unCheckedChildren="Inactive"
+                                                    style={{
+                                                        backgroundColor: selectedWallet.active ? '#52c41a' : '#ff4d4f',
+                                                    }}
+                                                />
+                                            </Space>
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Created At">
+                                            {new Date(selectedWallet.createdAt).toLocaleString()}
+                                        </Descriptions.Item>
+                                    </Descriptions>
+                                </Tabs.TabPane>
+
+                                <Tabs.TabPane tab="Manuel Transfer" key="manual">
+                                    <Card
+                                        title={
+                                            <Radio.Group
+                                                value={transferType}
+                                                onChange={(e) => setTransferType(e.target.value)}
+                                                buttonStyle="solid"
+                                            >
+                                                <Radio.Button value="depot">Dépôt Manuel</Radio.Button>
+                                                <Radio.Button value="withdrawal">Retrait Manuel</Radio.Button>
+                                            </Radio.Group>
+                                        }
+                                    >
+                                        <Form
+                                            form={manualTransferForm}
+                                            layout="vertical"
+                                            onFinish={handleManualTransfer}
+                                        >
+                                            <Form.Item
+                                                name="montant"
+                                                label="Montant (DH)"
+                                                rules={[
+                                                    { required: true, message: 'Veuillez entrer le montant' },
+                                                    {
+                                                        validator: (_, value) => {
+                                                            if (!value || isNaN(value) || parseFloat(value) <= 0) {
+                                                                return Promise.reject('Le montant doit être un nombre positif');
+                                                            }
+
+                                                            if (transferType === 'withdrawal' && selectedWallet && parseFloat(value) > selectedWallet.solde) {
+                                                                return Promise.reject('Solde insuffisant pour ce retrait');
+                                                            }
+
+                                                            return Promise.resolve();
+                                                        }
+                                                    }
+                                                ]}
+                                            >
+                                                <InputNumber
+                                                    style={{ width: '100%' }}
+                                                    min={0.01}
+                                                    step={0.01}
+                                                    precision={2}
+                                                    placeholder="Entrez le montant"
+                                                />
+                                            </Form.Item>
+
+                                            <Form.Item
+                                                name="commentaire"
+                                                label="Commentaire"
+                                                rules={[
+                                                    { required: true, message: 'Veuillez entrer un commentaire' },
+                                                    { min: 5, message: 'Le commentaire doit contenir au moins 5 caractères' }
+                                                ]}
+                                            >
+                                                <Input.TextArea
+                                                    rows={4}
+                                                    placeholder="Raison de ce transfert manuel"
+                                                />
+                                            </Form.Item>
+
+                                            <Form.Item>
+                                                <Button
+                                                    type="primary"
+                                                    htmlType="submit"
+                                                    loading={loadingWallet}
+                                                    block
+                                                >
+                                                    {transferType === 'depot' ? 'Effectuer le dépôt' : 'Effectuer le retrait'}
+                                                </Button>
+                                            </Form.Item>
+                                        </Form>
+                                    </Card>
+                                </Tabs.TabPane>
+
+                                <Tabs.TabPane tab="Historique des Transfers" key="history">
+                                    <Table
+                                        dataSource={walletTransfers}
+                                        rowKey="_id"
+                                        pagination={{ pageSize: 5 }}
+                                        size="small"
+                                        columns={[
+                                            {
+                                                title: 'Date',
+                                                dataIndex: 'createdAt',
+                                                render: (text) => formatDate(text)
+                                            },
+                                            {
+                                                title: 'Type',
+                                                dataIndex: 'type',
+                                                render: (type) => (
+                                                    <Tag color={
+                                                        type === 'Deposit' ? 'green' :
+                                                        type === 'Manuel Depot' ? 'blue' :
+                                                        type === 'Manuel Withdrawal' ? 'orange' :
+                                                        'red'
+                                                    }>
+                                                        {type}
+                                                    </Tag>
+                                                )
+                                            },
+                                            {
+                                                title: 'Montant',
+                                                dataIndex: 'montant',
+                                                render: (montant, record) => (
+                                                    <span style={{
+                                                        color: record.type === 'Manuel Withdrawal' ? 'red' : 'green',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        {record.type === 'Manuel Withdrawal' ? '-' : '+'}{montant} DH
+                                                    </span>
+                                                )
+                                            },
+                                            {
+                                                title: 'Status',
+                                                dataIndex: 'status',
+                                                render: (status) => (
+                                                    <Tag color={
+                                                        status === 'validé' ? 'green' :
+                                                        status === 'corrigé' ? 'blue' :
+                                                        status === 'annuler' ? 'red' :
+                                                        'orange'
+                                                    }>
+                                                        {status}
+                                                    </Tag>
+                                                )
+                                            },
+                                            {
+                                                title: 'Commentaire',
+                                                dataIndex: 'commentaire',
+                                                ellipsis: true
+                                            }
+                                        ]}
+                                    />
+                                </Tabs.TabPane>
+                            </Tabs>
                         ) : (
                             <Empty description="No wallet information available" />
                         )}

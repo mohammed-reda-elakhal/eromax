@@ -4,7 +4,7 @@ import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { getFactureClientByCode } from '../../../../redux/apiCalls/factureApiCalls';
-import { Table, Tag } from 'antd';
+import { Table } from 'antd';
 import { useLocation } from 'react-router-dom';
 
 
@@ -77,7 +77,7 @@ const FactureDetail = () => {
     render: (text, record, index) => <span>{index + 1}</span>,
   };
 
-  // Updated columns for Colis Details Table
+  // Updated columns for Colis Details Table with enhanced styling
   const colisColumns = [
     rowNumberColumn,
     {
@@ -88,9 +88,9 @@ const FactureDetail = () => {
       fixed: 'left',
       render: (text, record) => (
         <div style={{
-          backgroundColor: record._id === highlightedColisId ? '#ffd591' : 'transparent',
-          padding: '8px',
-          borderRadius: '4px'
+          backgroundColor: record._id === highlightedColisId ? '#f5f5f5' : 'transparent',
+          padding: '4px',
+          fontWeight: 'bold'
         }}>
           {text}
         </div>
@@ -101,32 +101,38 @@ const FactureDetail = () => {
       dataIndex: 'date_livraisant',
       key: 'date_livraisant',
       width: 160,
-      render: (text) =>
-        text
-          ? new Date(text).toLocaleDateString('fr-FR', {
+      render: (text) => (
+        <div>
+          {text ? (
+            new Date(text).toLocaleDateString('fr-FR', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
             })
-          : 'N/A',
+          ) : (
+            'N/A'
+          )}
+        </div>
+      ),
     },
     {
       title: 'Destinataire & Contact',
       dataIndex: 'destinataire',
       key: 'destinataire',
       width: 200,
-      render: (text, record) => (
+      render: (_, record) => (
         <div>
-          <div style={{ fontWeight: 'bold' }}>{record.destinataire}</div>
-          <div>{record.telephone}</div>
-          {/* Render only the city name from the ville object */}
+          <div style={{ fontWeight: 'bold' }}>
+            {record.destinataire}
+          </div>
+          <div>
+            {record.telephone}
+          </div>
           <div style={{ fontStyle: 'italic' }}>
             {record.ville ? record.ville.nom : 'N/A'}
           </div>
           <div>
-            <strong>Prix :</strong> {record.prix} DH
+            Prix: {record.prix} DH
           </div>
         </div>
       ),
@@ -136,55 +142,37 @@ const FactureDetail = () => {
       dataIndex: 'statu_final',
       key: 'statu_final',
       width: 120,
-      render: (statu_final) =>
-        statu_final === 'Livrée' ? (
-          <Tag color="green">{statu_final}</Tag>
-        ) : (
-          <Tag color="red">{statu_final}</Tag>
-        ),
+      align: 'center',
+      render: (statu_final) => statu_final,
     },
     {
       title: 'Tarification',
       key: 'tarification',
       width: 220,
-      render: (text, record) => (
+      render: (_, record) => (
         <div>
           {
-            record.statu_final === "Livrée" 
+            record.statu_final === "Livrée"
             ?
-            <>
+            <div>
+              <div>Livraison: {record.crbt?.tarif_livraison} DH</div>
+             
+              <div>Fragile: {record.crbt?.tarif_fragile} DH</div>
+            </div>
+            :
+            <div>
+              <div>Tarif refuse: {record.crbt?.tarif_refuse} DH</div>
               <div>
-                <strong>Livraison:</strong> {record.crbt?.tarif_livraison} DH{' '}
-                {promotion && record.ville && record.crbt && (
-                  <span
-                    className="old-price"
-                    style={{ textDecoration: 'line-through', color: '#888' }}
-                  >
-                    ({record.ville.tarif} DH)
+                Supplémentaire: {record.crbt?.tarif_supplementaire} DH
+                {record.tarif_ajouter?.value > 0 && record.tarif_ajouter?.description && (
+                  <span style={{ display: 'block', fontSize: '12px', fontStyle: 'italic' }}>
+                    ({record.tarif_ajouter.description})
                   </span>
                 )}
               </div>
-              <div>
-                <strong>Supplémentaire:</strong> {record.crbt?.tarif_supplementaire} DH
-              </div>
-              <div>
-                <strong>Fragile:</strong> {record.crbt?.tarif_fragile} DH
-              </div>
-            </>
-            :
-            <>
-              <div>
-                <strong>Tarif refuse:</strong> {record.crbt?.tarif_refuse} DH
-              </div>
-              <div>
-                <strong>Supplémentaire:</strong> {record.crbt?.tarif_supplementaire} DH
-              </div>
-              <div>
-                <strong>Fragile:</strong> {record.crbt?.tarif_fragile} DH
-              </div>
-            </>
+              <div>Fragile: {record.crbt?.tarif_fragile} DH</div>
+            </div>
           }
-          
         </div>
       ),
     },
@@ -193,34 +181,48 @@ const FactureDetail = () => {
       dataIndex: 'total_tarif',
       key: 'tarif_total',
       width: 120,
-      render: (text,record) => `${record?.crbt?.total_tarif} DH`,
+      align: 'center',
+      render: (_, record) => `${record?.crbt?.total_tarif} DH`,
     },
     {
       title: 'Montant à Payer',
       dataIndex: 'crbt.prix_a_payant',
       key: 'montant_a_payant',
       width: 150,
-      render: (text, record) => `${record?.crbt?.prix_a_payant} DH`,
+      align: 'center',
+      render: (_, record) => `${record?.crbt?.prix_a_payant} DH`,
     },
   ];
 
-  // Updated columns for the Calculation Table
+  // Simplified columns for the Calculation Table
   const calcColumns = [
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      width: 250,
-      render: (text) => <span style={{ fontWeight: 'bold' }}>{text}</span>,
+      width: 180,
+      render: (text, record) => (
+        <span style={{
+          fontWeight: record.isTotal ? 'bold' : 'normal',
+          fontSize: '13px',
+          color: '#333'
+        }}>
+          {text}
+        </span>
+      ),
     },
     {
       title: 'Montant (DH)',
       dataIndex: 'total',
       key: 'total',
       align: 'right',
-      width: 150,
-      render: (text) => (
-        <span style={{ fontSize: '16px', color: '#333' }}>
+      width: 100,
+      render: (text, record) => (
+        <span style={{
+          fontWeight: record.isTotal ? 'bold' : 'normal',
+          fontSize: '13px',
+          color: '#333'
+        }}>
           {text ? text.toFixed(2) : '0.00'} DH
         </span>
       ),
@@ -246,31 +248,37 @@ const FactureDetail = () => {
             key: '1',
             description: 'Total Prix',
             total: totalPrix,
+            isTotal: false,
           },
           {
             key: '2',
             description: 'Total Tarif',
             total: totalTarif,
-          },
-          {
-            key: '2',
-            description: 'Total Fragil',
-            total: totalTarifFragil,
+            isTotal: false,
           },
           {
             key: '3',
-            description: 'Total Supplémentaire',
-            total: totalTarifAjouter,
+            description: 'Total Fragil',
+            total: totalTarifFragil,
+            isTotal: false,
           },
           {
             key: '4',
-            description: 'Frais Refus',
-            total: totalFraisRefus,
+            description: 'Total Supplémentaire',
+            total: totalTarifAjouter,
+            isTotal: false,
           },
           {
             key: '5',
+            description: 'Frais Refus',
+            total: totalFraisRefus,
+            isTotal: false,
+          },
+          {
+            key: '6',
             description: 'Net à Payer',
             total: netAPayer,
+            isTotal: true,
           },
         ]
       : [];
@@ -338,41 +346,90 @@ const FactureDetail = () => {
           </div>
         )}
 
-        {/* Table to display the colis details */}
-        <div className="table-facture">
-          <Table
-            size="small"
-            className="table-data"
-            columns={colisColumns}
-            dataSource={facture?.colis}
-            pagination={false}
-            rowKey="code_suivi"
-          />
+        {/* Table to display the colis details - simplified */}
+        <div className="simple-section">
+          <div className="simple-header">
+            <h4>Détails des Colis</h4>
+          </div>
+          <div className="table-facture">
+            <Table
+              size="small"
+              className="table-simple"
+              columns={colisColumns}
+              dataSource={facture?.colis}
+              pagination={false}
+              rowKey="code_suivi"
+              bordered
+            />
+          </div>
         </div>
 
-        {/* Calculation Table Header */}
-        <div
-          style={{
-            marginTop: '20px',
-            marginBottom: '10px',
-            textAlign: 'right',
-            fontSize: '16px',
-            fontWeight: 'bold',
-          }}
-        >
-          Récapitulatif
-        </div>
+        {/* Additional table for tarif_ajouter details - simplified */}
+        {facture && facture.colis && facture.colis.some(colis => colis.tarif_ajouter?.value > 0) && (
+          <div className="simple-section">
+            <div className="simple-header">
+              <h4>Détails des Tarifs Supplémentaires</h4>
+            </div>
+            <div className="table-supplements">
+              <Table
+                size="small"
+                className="table-simple"
+                columns={[
+                  {
+                    title: 'Code Suivi',
+                    dataIndex: 'code_suivi',
+                    key: 'code_suivi',
+                    width: 120
+                  },
+                  {
+                    title: 'Montant',
+                    dataIndex: 'value',
+                    key: 'value',
+                    width: 100,
+                    render: value => `${value} DH`,
+                  },
+                  {
+                    title: 'Description',
+                    dataIndex: 'description',
+                    key: 'description',
+                    width: 250
+                  }
+                ]}
+                dataSource={facture.colis
+                  .filter(colis => colis.tarif_ajouter?.value > 0)
+                  .map((colis, index) => ({
+                    key: index,
+                    code_suivi: colis.code_suivi,
+                    value: colis.tarif_ajouter.value,
+                    description: colis.tarif_ajouter.description || 'Pas de description'
+                  }))}
+                pagination={false}
+                bordered
+              />
+            </div>
+          </div>
+        )}
 
-        {/* Table to display the calculation of totals */}
-        <div className="table-calcul">
-          <Table
-            size="small"
-            className="table-calc-data"
-            columns={calcColumns}
-            dataSource={calcData}
-            pagination={false}
-            showHeader={false}
-          />
+        {/* Calculation Table - Simplified */}
+        <div className="recap-section">
+          <div className="recap-header">
+            <h4>Récapitulatif Financier</h4>
+          </div>
+          <div className="table-calcul">
+            <Table
+              size="small"
+              className="table-calc-data"
+              columns={calcColumns}
+              dataSource={calcData}
+              pagination={false}
+              showHeader={false}
+              bordered={false}
+              rowClassName={(_, index) => {
+                if (index === calcData.length - 1) return 'total-row-simple';
+                return 'recap-row';
+              }}
+            />
+          </div>
         </div>
 
         {/* Signatures Section */}

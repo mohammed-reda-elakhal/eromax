@@ -10,9 +10,11 @@ const {
     updateTransfer,
     cancelTransfer,
     validateTransferStatus,
-    correctTransfer
+    correctTransfer,
+    createManualDeposit,
+    createManualWithdrawal
 } = require('../Controllers/TransferController');
-const { verifyToken } = require('../Middlewares/VerifyToken');
+const { verifyToken, verifyTokenAndAdmin } = require('../Middlewares/VerifyToken');
 
 // Create new transfer
 router.post('/', createTransfer);
@@ -41,4 +43,8 @@ router.put('/validate/:transferId', validateTransferStatus);
 // Route to correct a transfer
 router.put('/correct/:transferId', correctTransfer);
 
-module.exports = router; 
+// Routes for manual transfers (admin only)
+router.post('/manuel-depot', verifyTokenAndAdmin, createManualDeposit);
+router.post('/manuel-withdrawal', verifyTokenAndAdmin, createManualWithdrawal);
+
+module.exports = router;

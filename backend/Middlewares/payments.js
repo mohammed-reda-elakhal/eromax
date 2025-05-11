@@ -6,7 +6,7 @@ const { Store } = require('../Models/Store');
 const Payement = require('../Models/Payement');
 
 // Create transfer function
-const createTransferOperation = async (id_colis, id_wallet, type, montant) => {
+const createTransferOperation = async (id_wallet, type, montant, id_colis = null) => {
     try {
         // Verify wallet exists and is active
         const wallet = await Wallet.findById(id_wallet);
@@ -17,13 +17,25 @@ const createTransferOperation = async (id_colis, id_wallet, type, montant) => {
             throw new Error("Wallet is not active");
         }
 
-        // Create and save transfer
-        const transfer = new Transfer({
-            colis: id_colis,
+        // Create transfer object
+        const transferData = {
             wallet: id_wallet,
             type,
             montant
-        });
+        };
+
+        // Add colis if provided and type is not withdrawal
+        if (id_colis && type !== 'withdrawal') {
+            transferData.colis = id_colis;
+        }
+
+        // Add default commentaire for withdrawal type
+        if (type === 'withdrawal') {
+            transferData.commentaire = 'retrait par client';
+        }
+
+        // Create and save transfer
+        const transfer = new Transfer(transferData);
         await transfer.save();
         return transfer;
     } catch (error) {
@@ -72,9 +84,9 @@ const withdrawalWallet = async (walletId, montant, paymentId) => {
         }
 
         // Check for 24-hour cooldown
-        const lastWithdrawal = await Withdrawal.findOne({ 
+        const lastWithdrawal = await Withdrawal.findOne({
             wallet: walletId,
-            createdAt: { 
+            createdAt: {
                 $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24 hours ago
             }
         });
@@ -83,7 +95,14 @@ const withdrawalWallet = async (walletId, montant, paymentId) => {
             const timeLeft = Math.ceil((24 * 60 * 60 * 1000 - (Date.now() - lastWithdrawal.createdAt)) / (1000 * 60 * 60));
             throw new Error(`You can only make one withdrawal every 24 hours. Please wait ${timeLeft} hours before trying again.`);
         }
-    
+
+
+        // Create a transfer record for this withdrawal
+        const transfer = await createTransferOperation(
+            walletId,
+            'withdrawal',
+            montant
+        );
 
         // Update wallet balance
         wallet.solde -= montant;
@@ -91,6 +110,7 @@ const withdrawalWallet = async (walletId, montant, paymentId) => {
 
         return {
             wallet,
+            transfer,
             pureMontant: montant - frais, // This is the amount user requested
             frais
         };
@@ -124,10 +144,10 @@ const depositToWallet = async (storeId, montant, colisId) => {
 
         // Create transfer record first
         const transfer = await createTransferOperation(
-            colisId,
             wallet._id,
             'Deposit',
-            montant
+            montant,
+            colisId
         );
 
         // If transfer is created successfully, update wallet and colis
@@ -152,4 +172,4 @@ module.exports = {
     createTransferOperation,
     depositToWallet,
     withdrawalWallet
-}; 
+};

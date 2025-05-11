@@ -13,7 +13,7 @@ const { RangePicker } = DatePicker;
 function Transfer() {
     const { theme } = useContext(ThemeContext);
     const dispatch = useDispatch();
-    
+
     const { transfers, loading } = useSelector((state) => ({
         transfers: state.transfer.transfers,
         loading: state.transfer.loading
@@ -30,7 +30,9 @@ function Transfer() {
         walletKey: '',
         codeSuivi: '',
         startDate: '',
-        endDate: ''
+        endDate: '',
+        transferType: '',
+        manualOnly: ''
     });
 
     const [correctionModal, setCorrectionModal] = useState({
@@ -56,7 +58,9 @@ function Transfer() {
             walletKey: '',
             codeSuivi: '',
             startDate: '',
-            endDate: ''
+            endDate: '',
+            transferType: '',
+            manualOnly: ''
         });
         dispatch(getAllTransfers());
     };
@@ -135,6 +139,30 @@ function Transfer() {
                         <Select.Option value="Refusée">❌ Refusée - Refused packages</Select.Option>
                     </Select.OptGroup>
                 </Select>
+                <Select
+                    placeholder="🔄 Select transfer type..."
+                    value={searchParams.transferType}
+                    onChange={(value) => setSearchParams({ ...searchParams, transferType: value })}
+                    style={{ width: 200 }}
+                    allowClear
+                >
+                    <Select.OptGroup label="Transfer Type">
+                        <Select.Option value="Deposit">💰 Deposit - Regular transfers</Select.Option>
+                        <Select.Option value="Correction">🔄 Correction - Corrected transfers</Select.Option>
+                        <Select.Option value="Manuel Depot">⬆️ Manuel Depot - Manual deposits</Select.Option>
+                        <Select.Option value="Manuel Withdrawal">⬇️ Manuel Withdrawal - Manual withdrawals</Select.Option>
+                        <Select.Option value="withdrawal">💸 Withdrawal - Client withdrawals</Select.Option>
+                    </Select.OptGroup>
+                </Select>
+                <Select
+                    placeholder="👋 Manual transfers only..."
+                    value={searchParams.manualOnly}
+                    onChange={(value) => setSearchParams({ ...searchParams, manualOnly: value })}
+                    style={{ width: 200 }}
+                    allowClear
+                >
+                    <Select.Option value="true">✅ Show manual transfers only</Select.Option>
+                </Select>
                 <RangePicker
                     placeholder={['📅 Start date', '📅 End date']}
                     value={[
@@ -160,8 +188,8 @@ function Transfer() {
                     showTime={{ format: 'HH:mm' }}
                     style={{ width: 300 }}
                 />
-                <Button 
-                    type="primary" 
+                <Button
+                    type="primary"
                     onClick={handleSearch}
                     icon={<SearchOutlined />}
                 >
@@ -203,12 +231,12 @@ function Transfer() {
                 message.error('No transfer selected for correction');
                 return;
             }
-            
+
             await dispatch(correctTransfer(correctionModal.transfer._id, {
                 newMontant: values.newAmount,
                 description: values.description
             }));
-            
+
             setCorrectionModal({ visible: false, transfer: null });
             form.resetFields();
             dispatch(getAllTransfers(searchParams));
@@ -265,40 +293,105 @@ function Transfer() {
             ),
         },
         {
-            title: 'Code Colis',
+            title: 'Colis / Manuel Info',
             dataIndex: 'colis',
             key: 'colis',
-            render: (colis) => (
-                <Space direction="vertical" size={4} style={{ marginBottom: 4 }}>
-                    <Typography.Text copyable={{ text: colis?.code_suivi }}>
-                        <Tag color="blue">
-                            {colis?.code_suivi || 'N/A'}
-                        </Tag>
-                    </Typography.Text>
-                    <small style={{ color: 'gray' }}>
-                        Status: <Tag color={getColisStatusColor(colis?.statu_final)}>
-                            {colis?.statu_final || 'N/A'}
-                        </Tag>
-                    </small>
-                </Space>
-            ),
+            render: (colis, record) => {
+                // Check if it's a manual transfer or withdrawal
+                const isManualTransfer = record.type === 'Manuel Depot' || record.type === 'Manuel Withdrawal';
+                const isWithdrawal = record.type === 'withdrawal';
+
+                if (isManualTransfer) {
+                    return (
+                        <Space direction="vertical" size={4} style={{ marginBottom: 4, width: '100%' }}>
+                            <div>
+                                <Tag color="purple" style={{ marginBottom: 4 }}>
+                                    👤 {record.admin?.nom || 'Admin'}
+                                </Tag>
+                            </div>
+                            <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                                <Typography.Text
+                                    style={{
+                                        fontSize: '13px',
+                                        color: 'rgba(0, 0, 0, 0.65)',
+                                        display: 'block'
+                                    }}
+                                    ellipsis={{ tooltip: record.commentaire }}
+                                >
+                                    💬 {record.commentaire || 'No comment'}
+                                </Typography.Text>
+                            </div>
+                        </Space>
+                    );
+                }
+
+                if (isWithdrawal) {
+                    return (
+                        <Space direction="vertical" size={4} style={{ marginBottom: 4, width: '100%' }}>
+                            <div>
+                                <Tag color="orange" style={{ marginBottom: 4 }}>
+                                    💰 {record.wallet?.store?.storeName || 'Store'}
+                                </Tag>
+                            </div>
+                            <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                                <Typography.Text
+                                    style={{
+                                        fontSize: '13px',
+                                        color: 'rgba(0, 0, 0, 0.65)',
+                                        display: 'block'
+                                    }}
+                                    ellipsis={{ tooltip: record.commentaire }}
+                                >
+                                    💬 {record.commentaire || 'No comment'}
+                                </Typography.Text>
+                            </div>
+                        </Space>
+                    );
+                }
+
+                // Regular colis display for non-manual transfers
+                return (
+                    <Space direction="vertical" size={4} style={{ marginBottom: 4 }}>
+                        <Typography.Text copyable={{ text: colis?.code_suivi }}>
+                            <Tag color="blue">
+                                {colis?.code_suivi || 'N/A'}
+                            </Tag>
+                        </Typography.Text>
+                        <small style={{ color: 'gray' }}>
+                            Status: <Tag color={getColisStatusColor(colis?.statu_final)}>
+                                {colis?.statu_final || 'N/A'}
+                            </Tag>
+                        </small>
+                    </Space>
+                );
+            },
         },
         {
             title: 'Amount',
             dataIndex: 'montant',
             key: 'montant',
-            render: (montant, record) => (
-                <Space direction="vertical" size={4} style={{ marginBottom: 4 }}>
-                    <Tag color={montant >= 0 ? "green" : "red"}>
-                        {montant} DH
-                    </Tag>
-                    {record.type === 'Correction' && record.originalMontant !== null && (
-                        <small style={{ color: 'gray' }}>
-                            Original: <Tag color="orange">{record.originalMontant} DH</Tag>
-                        </small>
-                    )}
-                </Space>
-            ),
+            render: (montant, record) => {
+                // Determine color based on transfer type
+                let tagColor = montant >= 0 ? "green" : "red";
+
+                // For withdrawal types, always use red
+                if (record.type === 'withdrawal' || record.type === 'Manuel Withdrawal') {
+                    tagColor = "red";
+                }
+
+                return (
+                    <Space direction="vertical" size={4} style={{ marginBottom: 4 }}>
+                        <Tag color={tagColor}>
+                            {montant} DH
+                        </Tag>
+                        {record.type === 'Correction' && record.originalMontant !== null && (
+                            <small style={{ color: 'gray' }}>
+                                Original: <Tag color="orange">{record.originalMontant} DH</Tag>
+                            </small>
+                        )}
+                    </Space>
+                );
+            },
         },
         {
             title: 'Status',
@@ -317,11 +410,30 @@ function Transfer() {
             title: 'Type',
             dataIndex: 'type',
             key: 'type',
-            render: (type) => (
-                <Tag color={type === 'Correction' ? "purple" : "blue"} style={{ marginBottom: 4 }}>
-                    {type === 'Correction' ? '🔄' : '💰'} {type?.toUpperCase() || 'N/A'}
-                </Tag>
-            ),
+            render: (type) => {
+                let color = 'blue';
+                let icon = '💰';
+
+                if (type === 'Correction') {
+                    color = 'purple';
+                    icon = '🔄';
+                } else if (type === 'Manuel Depot') {
+                    color = 'green';
+                    icon = '⬆️';
+                } else if (type === 'Manuel Withdrawal') {
+                    color = 'orange';
+                    icon = '⬇️';
+                } else if (type === 'withdrawal') {
+                    color = 'red';
+                    icon = '💸';
+                }
+
+                return (
+                    <Tag color={color} style={{ marginBottom: 4 }}>
+                        {icon} {type?.toUpperCase() || 'N/A'}
+                    </Tag>
+                );
+            },
         },
         {
             title: 'Created At',
@@ -338,21 +450,62 @@ function Transfer() {
             dataIndex: 'description',
             key: 'description',
             render: (description, record) => {
-                if (!description && record.type !== 'Correction') return '-';
-                return (
-                    <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
-                        <div style={{ marginBottom: 4 }}>
-                            {description || 'No description provided'}
-                        </div>
-                        {record.correctionDate && (
+                // For manual transfers, we already show the commentaire in the Colis column
+                if (record.type === 'Manuel Depot' || record.type === 'Manuel Withdrawal') {
+                    return (
+                        <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                            <Tag color={record.type === 'Manuel Depot' ? 'green' : 'orange'}>
+                                {record.type === 'Manuel Depot' ? 'Dépôt Manuel' : 'Retrait Manuel'}
+                            </Tag>
                             <div>
                                 <small style={{ color: 'gray' }}>
-                                    Corrected on: {new Date(record.correctionDate).toLocaleString()}
+                                    Par: {record.admin?.nom || 'Admin'}
                                 </small>
                             </div>
-                        )}
+                        </div>
+                    );
+                }
+
+                // For withdrawal transfers
+                if (record.type === 'withdrawal') {
+                    return (
+                        <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                            <Tag color="red">
+                                Retrait Client
+                            </Tag>
+                            <div>
+                                <small style={{ color: 'gray' }}>
+                                    Store: {record.wallet?.store?.storeName || 'N/A'}
+                                </small>
+                            </div>
+                        </div>
+                    );
+                }
+
+                // For correction transfers
+                if (record.type === 'Correction') {
+                    return (
+                        <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                            <div style={{ marginBottom: 4 }}>
+                                {description || 'No description provided'}
+                            </div>
+                            {record.correctionDate && (
+                                <div>
+                                    <small style={{ color: 'gray' }}>
+                                        Corrected on: {new Date(record.correctionDate).toLocaleString()}
+                                    </small>
+                                </div>
+                            )}
+                        </div>
+                    );
+                }
+
+                // For regular transfers
+                return description ? (
+                    <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                        {description}
                     </div>
-                );
+                ) : '-';
             },
         },
         {
@@ -363,7 +516,7 @@ function Transfer() {
                 const isCorrected = record.type === 'Correction';
                 const isValidated = record.status === 'validé';
                 const isCancelled = record.status === 'annuler';
-                
+
                 return isAdmin && (
                     <Space size="small">
                         {!isCorrected && !isValidated && (
@@ -584,4 +737,4 @@ function Transfer() {
     );
 }
 
-export default Transfer; 
+export default Transfer;

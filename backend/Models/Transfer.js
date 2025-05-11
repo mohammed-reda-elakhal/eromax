@@ -6,7 +6,9 @@ const TransferSchema = new mongoose.Schema({
     colis: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Colis',
-        required: true
+        required: function() {
+            return this.type !== 'Manuel Depot' && this.type !== 'Manuel Withdrawal' && this.type !== 'withdrawal';
+        }
     },
     wallet: {
         type: mongoose.Schema.Types.ObjectId,
@@ -15,9 +17,9 @@ const TransferSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['Deposit', 'Correction'],
+        enum: ['Deposit', 'Correction', 'Manuel Depot', 'Manuel Withdrawal', 'withdrawal'],
         default: 'Deposit',
-        required: false
+        required: true
     },
     status: {
         type: String,
@@ -29,6 +31,19 @@ const TransferSchema = new mongoose.Schema({
         type: String,
         required: function() {
             return this.type === 'Correction';
+        }
+    },
+    commentaire: {
+        type: String,
+        required: function() {
+            return this.type === 'Manuel Depot' || this.type === 'Manuel Withdrawal' || this.type === 'withdrawal';
+        }
+    },
+    admin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin',
+        required: function() {
+            return this.type === 'Manuel Depot' || this.type === 'Manuel Withdrawal';
         }
     },
     montant: {
@@ -53,12 +68,26 @@ const Transfer = mongoose.model("Transfer", TransferSchema);
 // Joi Validation for Transfer
 function validateTransfer(obj) {
     const schema = Joi.object({
-        colis: Joi.string().required(),
+        colis: Joi.string().when('type', {
+            is: Joi.string().valid('Manuel Depot', 'Manuel Withdrawal', 'withdrawal'),
+            then: Joi.optional(),
+            otherwise: Joi.required()
+        }),
         wallet: Joi.string().required(),
-        type: Joi.string().valid('Deposit', 'Correction'),
+        type: Joi.string().valid('Deposit', 'Correction', 'Manuel Depot', 'Manuel Withdrawal', 'withdrawal'),
         status: Joi.string().valid('validé', 'corrigé', 'annuler', 'pending').default('validé'),
         description: Joi.string().when('type', {
             is: 'Correction',
+            then: Joi.required(),
+            otherwise: Joi.optional()
+        }),
+        commentaire: Joi.string().when('type', {
+            is: Joi.string().valid('Manuel Depot', 'Manuel Withdrawal', 'withdrawal'),
+            then: Joi.required(),
+            otherwise: Joi.optional()
+        }),
+        admin: Joi.string().when('type', {
+            is: Joi.string().valid('Manuel Depot', 'Manuel Withdrawal'),
             then: Joi.required(),
             otherwise: Joi.optional()
         }),
@@ -72,4 +101,4 @@ function validateTransfer(obj) {
 module.exports = {
     Transfer,
     validateTransfer
-}; 
+};

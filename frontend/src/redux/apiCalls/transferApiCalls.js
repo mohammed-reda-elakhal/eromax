@@ -11,8 +11,8 @@ export function createTransfer(transferData) {
       dispatch(transferActions.createTransferSuccess(data.transfer));
       toast.success(data.message);
     } catch (error) {
-      dispatch(transferActions.fetchTransfersFailure(error.message || "Failed to create transfer"));
-      toast.error(error.message || "Failed to create transfer");
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to create transfer"));
+      toast.error(error.response?.data?.message || "Failed to create transfer");
     }
   };
 }
@@ -39,10 +39,18 @@ export function getAllTransfers(searchParams = {}) {
       const { data } = await request.get(`/api/transfer`, config);
       dispatch(transferActions.fetchTransfersSuccess(data));
     } catch (error) {
-      dispatch(transferActions.fetchTransfersFailure(error.message || "Failed to fetch transfers"));
-      toast.error(error.message || "Failed to fetch transfers");
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to fetch transfers"));
+      toast.error(error.response?.data?.message || "Failed to fetch transfers");
     }
   };
+}
+
+// Get manual transfers only
+export function getManualTransfers(additionalParams = {}) {
+  return getAllTransfers({
+    manualOnly: 'true',
+    ...additionalParams
+  });
 }
 
 // Get transfer by ID
@@ -53,8 +61,8 @@ export function getTransferById(id) {
       const { data } = await request.get(`/api/transfer/${id}`);
       dispatch(transferActions.fetchTransferByIdSuccess(data));
     } catch (error) {
-      dispatch(transferActions.fetchTransfersFailure(error.message || "Failed to fetch transfer"));
-      toast.error(error.message || "Failed to fetch transfer");
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to fetch transfer"));
+      toast.error(error.response?.data?.message || "Failed to fetch transfer");
     }
   };
 }
@@ -67,8 +75,8 @@ export function getTransfersByWallet(walletId) {
       const { data } = await request.get(`/api/transfer/wallet/${walletId}`);
       dispatch(transferActions.fetchTransfersSuccess(data));
     } catch (error) {
-      dispatch(transferActions.fetchTransfersFailure(error.message || "Failed to fetch wallet transfers"));
-      toast.error(error.message || "Failed to fetch wallet transfers");
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to fetch wallet transfers"));
+      toast.error(error.response?.data?.message || "Failed to fetch wallet transfers");
     }
   };
 }
@@ -81,8 +89,8 @@ export function getTransfersByColis(colisId) {
       const { data } = await request.get(`/api/transfer/colis/${colisId}`);
       dispatch(transferActions.fetchTransfersSuccess(data));
     } catch (error) {
-      dispatch(transferActions.fetchTransfersFailure(error.message || "Failed to fetch colis transfers"));
-      toast.error(error.message || "Failed to fetch colis transfers");
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to fetch colis transfers"));
+      toast.error(error.response?.data?.message || "Failed to fetch colis transfers");
     }
   };
 }
@@ -96,8 +104,8 @@ export function deleteTransfer(id) {
       dispatch(transferActions.deleteTransferSuccess(id));
       toast.success(data.message);
     } catch (error) {
-      dispatch(transferActions.fetchTransfersFailure(error.message || "Failed to delete transfer"));
-      toast.error(error.message || "Failed to delete transfer");
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to delete transfer"));
+      toast.error(error.response?.data?.message || "Failed to delete transfer");
     }
   };
 }
@@ -180,9 +188,61 @@ export function correctTransfer(transferId, correctionData) {
   };
 }
 
+// Create manual deposit
+export function createManualDeposit(depositData) {
+  return async (dispatch) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Authentication token is missing");
+      return;
+    }
+
+    dispatch(transferActions.fetchTransfersStart());
+    try {
+      const { data } = await request.post(`/api/transfer/manuel-depot`, depositData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      dispatch(transferActions.createTransferSuccess(data.transfer));
+      toast.success(data.message);
+    } catch (error) {
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to create manual deposit"));
+      toast.error(error.response?.data?.message || "Failed to create manual deposit");
+    }
+  };
+}
+
+// Create manual withdrawal
+export function createManualWithdrawal(withdrawalData) {
+  return async (dispatch) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Authentication token is missing");
+      return;
+    }
+
+    dispatch(transferActions.fetchTransfersStart());
+    try {
+      const { data } = await request.post(`/api/transfer/manuel-withdrawal`, withdrawalData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      dispatch(transferActions.createTransferSuccess(data.transfer));
+      toast.success(data.message);
+    } catch (error) {
+      dispatch(transferActions.fetchTransfersFailure(error.response?.data?.message || "Failed to create manual withdrawal"));
+      toast.error(error.response?.data?.message || "Failed to create manual withdrawal");
+    }
+  };
+}
+
 // Reset transfer state
 export function resetTransferState() {
   return (dispatch) => {
     dispatch(transferActions.resetTransferState());
   };
-} 
+}

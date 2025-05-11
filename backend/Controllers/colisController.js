@@ -2356,17 +2356,20 @@ exports.updateTarifAjouter = async (req, res) => {
       return res.status(400).json({ message: "Value must be a number" });
     }
 
-    // Find the colis either by ID or code_suivi and populate ville
+    // Find the colis either by ID or code_suivi and populate ville and store
     let colis;
     if (mongoose.Types.ObjectId.isValid(identifier)) {
-      colis = await Colis.findById(identifier).populate('ville');
+      colis = await Colis.findById(identifier).populate('ville').populate('store');
     } else {
-      colis = await Colis.findOne({ code_suivi: identifier }).populate('ville');
+      colis = await Colis.findOne({ code_suivi: identifier }).populate('ville').populate('store');
     }
 
     if (!colis) {
       return res.status(404).json({ message: "Colis not found" });
     }
+
+    // Store the old tarif_ajouter value for comparison
+    const oldTarifAjouter = colis.tarif_ajouter ? colis.tarif_ajouter.value || 0 : 0;
 
     // Update the tarif_ajouter field
     colis.tarif_ajouter = {
@@ -2431,14 +2434,78 @@ exports.updateTarifAjouter = async (req, res) => {
       };
     }
 
+    // Check if the colis has been processed for wallet and handle wallet update
+    let transferCreated = null;
+    if (colis.wallet_prosseced && colis.store) {
+      // Import required models
+      const { Wallet } = require('../Models/Wallet');
+      const { Transfer } = require('../Models/Transfer');
+
+      // Find the wallet associated with the store
+      const wallet = await Wallet.findOne({ store: colis.store._id });
+
+      if (!wallet) {
+        return res.status(404).json({ message: "Wallet not found for this store" });
+      }
+
+      if (!wallet.active) {
+        return res.status(400).json({ message: "Wallet is not active" });
+      }
+
+      // Calculate the difference between new and old tarif_ajouter values
+      const tarifDifference = value - oldTarifAjouter;
+
+      // Only update wallet and create transfer if there's a change in value
+      if (tarifDifference !== 0) {
+        // Check if wallet has sufficient balance
+        if (wallet.solde < tarifDifference) {
+          return res.status(400).json({ message: "Insufficient wallet balance for tarif adjustment" });
+        }
+
+        // Create transfer object
+        const transferData = {
+          wallet: wallet._id,
+          type: 'Manuel Withdrawal',
+          montant: tarifDifference,
+          commentaire: description || 'Ajustement de tarif supplémentaire',
+          admin: req.user.id,
+          status: 'validé'
+        };
+
+        // Create new transfer
+        const transfer = new Transfer(transferData);
+
+        // Update wallet balance (subtract for withdrawal)
+        wallet.solde -= tarifDifference;
+
+        // Save both documents
+        await Promise.all([
+          transfer.save(),
+          wallet.save()
+        ]);
+
+        // Store the created transfer for response
+        transferCreated = await Transfer.findById(transfer._id)
+          .populate('wallet')
+          .populate('admin', 'Nom Prenom email');
+      }
+    }
+
     // Save the updated colis
     await colis.save();
 
-    // Return the updated colis
-    res.status(200).json({
+    // Return the updated colis and transfer if created
+    const response = {
       message: "Tarif ajouter updated successfully",
       data: colis
-    });
+    };
+
+    if (transferCreated) {
+      response.transfer = transferCreated;
+      response.message += " and wallet balance adjusted";
+    }
+
+    res.status(200).json(response);
 
   } catch (error) {
     console.error("Error updating tarif_ajouter:", error);
