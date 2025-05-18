@@ -41,8 +41,9 @@ function Menubar() {
   const {user} = useSelector(state => state.auth );
 
 
-    const { demandeRetrait, colis, reclamations , colisExp , colisPret , client , colisR } = useSelector((state) => ({
+    const { demandeRetrait , openReclamationsCount, colis, reclamations , colisExp , colisPret , client , colisR } = useSelector((state) => ({
           demandeRetrait: state.mission.demandeRetrait,
+          openReclamationsCount: state.mission.openReclamationsCount,
           colis: state.mission.colis,
           colisR: state.mission.colisR,
           colisExp: state.mission.colisExp,
@@ -180,6 +181,24 @@ function Menubar() {
             </Menu.Item>
           )
         }
+
+        {
+          (userData.role === "admin" || userData.role === "client") && (
+            <Menu.Item icon={<CgDanger />} className="reclamation-item-with-badge">
+              <Link to="/dashboard/reclamation">
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    Reclamation
+                  </span>
+                  {openReclamationsCount > 0 ? (
+                    <Badge count={openReclamationsCount} color={colorBadge} style={{ marginLeft: '8px' }} />
+                  ) : ""}
+                </span>
+              </Link>
+            </Menu.Item>
+          )
+        }
+
         {
           userData.role === "admin" &&(
             <Menu.Item icon={<FaTools />}>
@@ -365,22 +384,6 @@ function Menubar() {
         }
 
         {
-          (userData.role === "admin" || userData.role === "client") && (
-            <Menu.Item icon={<CgDanger />} className="reclamation-item-with-badge">
-              <Link to="/dashboard/reclamation">
-                <span style={{ display: 'flex', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                    Reclamation
-                    {showNewBadge && <span className="new-badge">new</span>}
-                  </span>
-                  {totalReclamation > 0 ? <Badge count={totalReclamation} color={colorBadge} style={{ marginLeft: '8px' }} /> : ""}
-                </span>
-              </Link>
-            </Menu.Item>
-          )
-        }
-
-{
           userData.role === "admin" &&(
             <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
                   <Menu.Item icon={<BiNote />}>

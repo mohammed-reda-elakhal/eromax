@@ -37,7 +37,7 @@ const ColisSchema = new mongoose.Schema({
     },
     adresse: {
         type: String,
-        required: true,
+        required: false,
     },
     commentaire: {
         type: String,
@@ -120,9 +120,9 @@ const ColisSchema = new mongoose.Schema({
         default: false,
     },
     produits: [{
-        produit: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Produit' 
+        produit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Produit'
         },
         variants: [{
             type: mongoose.Schema.Types.ObjectId,
@@ -152,11 +152,11 @@ const ColisSchema = new mongoose.Schema({
     },
     code_suivi_ameex: {
         type: String,
-        required: false 
+        required: false
     },
     code_suivi_gdil:{
         type: String,
-        required: false 
+        required: false
 
     },
     expedation_type: {
@@ -237,7 +237,7 @@ const Colis = mongoose.model("Colis", ColisSchema);
 // Joi Validation for Colis
 function validateRegisterColis(obj) {
     const schema = Joi.object({
-        adresse: Joi.string().required(),
+        adresse: Joi.string().allow('', null),
         nom: Joi.string().required(),
         ville: Joi.string().required(),
         tele: Joi.string().required(),
@@ -245,7 +245,7 @@ function validateRegisterColis(obj) {
         commentaire: Joi.string(),
         etat: Joi.boolean(),
         wallet_prosseced: Joi.boolean(),
-        nature_produit: Joi.string(),
+        nature_produit: Joi.string().allow('', null),
         statut: Joi.string().valid(...[
             "Nouveau Colis",
             "attente de ramassage",

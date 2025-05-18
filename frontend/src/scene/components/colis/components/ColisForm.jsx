@@ -129,6 +129,12 @@ function ColisForm({ type }) {
       is_fragile,
     } = formData;
 
+    // Validate required fields
+    if (!nom) {
+      toast.error('Veuillez entrer un nom.');
+      return;
+    }
+
     const phoneRegex = /^0\d{9}$/;
     if (!phoneRegex.test(tele)) {
       setPhoneError('Le numéro de téléphone doit commencer par 0 et contenir exactement 10 chiffres.');
@@ -138,6 +144,11 @@ function ColisForm({ type }) {
 
     if (!ville) {
       toast.error('Veuillez sélectionner une ville.');
+      return;
+    }
+
+    if (!prix || isNaN(parseFloat(prix)) || parseFloat(prix) < 0) {
+      toast.error('Veuillez entrer un prix valide.');
       return;
     }
 
@@ -336,10 +347,9 @@ function ColisForm({ type }) {
 
             <div className="colis-form-input">
               <label htmlFor="produit">
-                Nature de produit <span style={{ color: 'red' }}>*</span>
+                Nature de produit
               </label>
               <Input
-                required
                 placeholder="Nature de produit"
                 size="large"
                 value={formData.produit}
@@ -355,7 +365,7 @@ function ColisForm({ type }) {
 
             <div className="colis-form-input">
               <label htmlFor="adress">
-                Adresse <span style={{ color: 'red' }}>*</span>
+                Adresse
               </label>
               <Input
                 size="large"
@@ -365,7 +375,6 @@ function ColisForm({ type }) {
                 onChange={(e) => handleInputChange('adress', e.target.value)}
                 placeholder="Adresse de client"
                 prefix={<FaMapLocation style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
-                required
               />
             </div>
           </div>

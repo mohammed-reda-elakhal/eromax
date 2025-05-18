@@ -61,6 +61,7 @@ function FactureClientTable({ theme, id }) {
   // State for the modal table row selection (selected colis)
   const [selectedModalRowKeys, setSelectedModalRowKeys] = useState([]);
   const [selectedModalRows, setSelectedModalRows] = useState([]);
+  // We don't need a separate state for duplicates as we calculate them on-the-fly
 
   // State for destination facture search in second modal
   const [destinationSearchText, setDestinationSearchText] = useState("");
@@ -399,6 +400,19 @@ function FactureClientTable({ theme, id }) {
     },
   ];
 
+  // Function to check for duplicate colis by code_suivi
+  const checkDuplicateColis = (destinationFacture, selectedColis) => {
+    if (!destinationFacture || !destinationFacture.colis || !selectedColis) return [];
+
+    // Extract code_suivi values from destination facture colis
+    const destinationColisCodes = destinationFacture.colis.map(colis => colis.code_suivi);
+
+    // Find duplicates by comparing selected colis with destination facture colis
+    return selectedColis.filter(colis =>
+      destinationColisCodes.includes(colis.code_suivi)
+    ).map(colis => colis.code_suivi);
+  };
+
   // First modal's Transfer button handler:
   // If at least one colis is selected, open the destination selection modal.
   const handleTransferModal = () => {
@@ -415,14 +429,60 @@ function FactureClientTable({ theme, id }) {
       toast.error("Veuillez sélectionner au moins un colis.");
       return;
     }
+
+    // For new facture, we don't need to check for duplicates since it's a new facture
+    // But we should check for duplicate code_suivi within the selected colis
     const selectedCodes = selectedModalRows.map(row => row.code_suivi);
-    dispatch(transferColisClient({
-      code_facture_source: selectedFacture.code_facture,
-      code_facture_distinataire: "", // No destination facture code; API will create a new one.
-      colisCodeSuivi: selectedCodes,
-      type: 'client',
-    }));
-    setIsModalVisible(false);
+
+    // Check for duplicates within the selected colis
+    const uniqueCodes = new Set(selectedCodes);
+    if (uniqueCodes.size < selectedCodes.length) {
+      // Find the duplicates
+      const codeCount = {};
+      selectedCodes.forEach(code => {
+        codeCount[code] = (codeCount[code] || 0) + 1;
+      });
+
+      const duplicates = Object.entries(codeCount)
+        .filter(([_, count]) => count > 1)
+        .map(([code]) => code);
+
+      Modal.confirm({
+        title: 'Colis Duplicates Détectés',
+        content: (
+          <div>
+            <p>Les colis suivants ont des codes de suivi en double:</p>
+            <ul>
+              {duplicates.map(code => (
+                <li key={code}><Tag color="red">{code}</Tag></li>
+              ))}
+            </ul>
+            <p>Voulez-vous continuer avec seulement une instance de chaque code?</p>
+          </div>
+        ),
+        okText: 'Continuer avec uniques',
+        cancelText: 'Annuler',
+        onOk: () => {
+          // Use only unique codes
+          dispatch(transferColisClient({
+            code_facture_source: selectedFacture.code_facture,
+            code_facture_distinataire: "", // No destination facture code; API will create a new one.
+            colisCodeSuivi: [...uniqueCodes],
+            type: 'client',
+          }));
+          setIsModalVisible(false);
+        }
+      });
+    } else {
+      // No duplicates, proceed normally
+      dispatch(transferColisClient({
+        code_facture_source: selectedFacture.code_facture,
+        code_facture_distinataire: "", // No destination facture code; API will create a new one.
+        colisCodeSuivi: selectedCodes,
+        type: 'client',
+      }));
+      setIsModalVisible(false);
+    }
   };
 
   // Content for the first modal (colis details)
@@ -519,29 +579,83 @@ function FactureClientTable({ theme, id }) {
           style={{ marginBottom: 16 }}
         />
         <Row gutter={[16, 16]}>
-          {filteredDestinationCandidates.map((dest) => (
-            <Col key={dest._id} xs={24} sm={12} md={8} lg={6} xl={4}>
-              <Card
-                hoverable
-                onClick={() => {
-                  const selectedCodes = selectedModalRows.map(row => row.code_suivi);
-                  dispatch(transferColisClient({
-                    code_facture_source: selectedFacture.code_facture,
-                    code_facture_distinataire: dest.code_facture,
-                    colisCodeSuivi: selectedCodes,
-                    type: 'client',
-                  }));
-                  setIsDestinationModalVisible(false);
-                  setIsModalVisible(false);
-                }}
-              >
-                <Card.Meta
-                  title={dest.code_facture}
-                  description={`Créé le: ${moment(dest.createdAt).format('DD/MM/YYYY HH:mm')}`}
-                />
-              </Card>
-            </Col>
-          ))}
+          {filteredDestinationCandidates.map((dest) => {
+            // Check for duplicate colis in this destination facture
+            const duplicates = checkDuplicateColis(dest, selectedModalRows);
+            const hasDuplicates = duplicates.length > 0;
+
+            return (
+              <Col key={dest._id} xs={24} sm={12} md={8} lg={6} xl={4}>
+                <Card
+                  hoverable
+                  onClick={() => {
+                    const selectedCodes = selectedModalRows.map(row => row.code_suivi);
+
+                    // If duplicates exist, show a confirmation dialog
+                    if (hasDuplicates) {
+                      Modal.confirm({
+                        title: 'Colis Duplicates Détectés',
+                        content: (
+                          <div>
+                            <p>Les colis suivants existent déjà dans cette facture:</p>
+                            <ul>
+                              {duplicates.map(code => (
+                                <li key={code}><Tag color="red">{code}</Tag></li>
+                              ))}
+                            </ul>
+                            <p>Voulez-vous continuer sans ces colis?</p>
+                          </div>
+                        ),
+                        okText: 'Continuer sans duplicates',
+                        cancelText: 'Annuler',
+                        onOk: () => {
+                          // Filter out duplicate colis
+                          const nonDuplicateCodes = selectedCodes.filter(code => !duplicates.includes(code));
+
+                          if (nonDuplicateCodes.length === 0) {
+                            toast.error("Tous les colis sélectionnés sont des duplicates.");
+                            return;
+                          }
+
+                          // Proceed with transfer of non-duplicate colis
+                          dispatch(transferColisClient({
+                            code_facture_source: selectedFacture.code_facture,
+                            code_facture_distinataire: dest.code_facture,
+                            colisCodeSuivi: nonDuplicateCodes,
+                            type: 'client',
+                          }));
+                          setIsDestinationModalVisible(false);
+                          setIsModalVisible(false);
+                        }
+                      });
+                    } else {
+                      // No duplicates, proceed normally
+                      dispatch(transferColisClient({
+                        code_facture_source: selectedFacture.code_facture,
+                        code_facture_distinataire: dest.code_facture,
+                        colisCodeSuivi: selectedCodes,
+                        type: 'client',
+                      }));
+                      setIsDestinationModalVisible(false);
+                      setIsModalVisible(false);
+                    }
+                  }}
+                >
+                  <Card.Meta
+                    title={
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{dest.code_facture}</span>
+                        {hasDuplicates && (
+                          <Tag color="red">{duplicates.length} duplicates</Tag>
+                        )}
+                      </div>
+                    }
+                    description={`Créé le: ${moment(dest.createdAt).format('DD/MM/YYYY HH:mm')}`}
+                  />
+                </Card>
+              </Col>
+            );
+          })}
         </Row>
       </div>
     );
@@ -639,17 +753,17 @@ function FactureClientTable({ theme, id }) {
       />
       <Modal
         title={`Facture: ${selectedFacture?.code_facture}`}
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         width="80%"
-        bodyStyle={{ height: '80vh', overflowY: 'auto' }}
+        styles={{ body: { height: '80vh', overflowY: 'auto' } }}
       >
         <ModalContent />
       </Modal>
       <Modal
         title="Sélectionnez la Facture Distinataire"
-        visible={isDestinationModalVisible}
+        open={isDestinationModalVisible}
         onCancel={() => setIsDestinationModalVisible(false)}
         footer={null}
         width="80%"

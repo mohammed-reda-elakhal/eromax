@@ -129,6 +129,12 @@ function ColisFormAdmin({ type }) {
       store, // Store ID
     } = formData;
 
+    // Validate required fields
+    if (!nom) {
+      toast.error('Veuillez entrer un nom.');
+      return;
+    }
+
     // Validate store selection
     if (!store) {
       toast.error('Veuillez sélectionner un magasin.');
@@ -150,6 +156,11 @@ function ColisFormAdmin({ type }) {
     // Ensure that selectedVille is available
     if (!selectedVille || !selectedVille.nom) {
       toast.error('Ville sélectionnée invalide.');
+      return;
+    }
+
+    if (!prix || isNaN(parseFloat(prix)) || parseFloat(prix) < 0) {
+      toast.error('Veuillez entrer un prix valide.');
       return;
     }
 
@@ -389,10 +400,9 @@ function ColisFormAdmin({ type }) {
             {/* Product Nature Input */}
             <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
               <label htmlFor="produit">
-                Nature de produit <span style={{ color: 'red' }}>*</span>
+                Nature de produit
               </label>
               <Input
-                required
                 placeholder="Nature de produit"
                 size="large"
                 value={formData.produit}
@@ -409,7 +419,7 @@ function ColisFormAdmin({ type }) {
             {/* Address Input */}
             <div className="colis-form-input" style={{ flex: '1 1 100%' }}>
               <label htmlFor="adress">
-                Adresse <span style={{ color: 'red' }}>*</span>
+                Adresse
               </label>
               <Input
                 size="large"
@@ -419,7 +429,6 @@ function ColisFormAdmin({ type }) {
                 onChange={(e) => handleInputChange('adress', e.target.value)}
                 placeholder="Adresse de client"
                 prefix={<FaMapLocation style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
-                required
               />
             </div>
           </div>
