@@ -41,6 +41,9 @@ import { Popconfirm } from 'antd';
 // Ensure removeColisFromFacture is imported from apiCalls:
 import { removeColisFromFacture } from '../../../../redux/apiCalls/factureApiCalls';
 
+// Add CSS for duplicate row highlighting
+import './factureStyles.css';
+
 
 const { Paragraph, Text } = Typography;
 const { Option } = Select;
@@ -400,7 +403,7 @@ function FactureClientTable({ theme, id }) {
     },
   ];
 
-  // Function to check for duplicate colis by code_suivi
+  // Function to check for duplicate colis by code_suivi between two collections
   const checkDuplicateColis = (destinationFacture, selectedColis) => {
     if (!destinationFacture || !destinationFacture.colis || !selectedColis) return [];
 
@@ -411,6 +414,24 @@ function FactureClientTable({ theme, id }) {
     return selectedColis.filter(colis =>
       destinationColisCodes.includes(colis.code_suivi)
     ).map(colis => colis.code_suivi);
+  };
+
+  // Function to detect duplicate colis within a single facture
+  const findDuplicatesInFacture = (facture) => {
+    if (!facture || !facture.colis || facture.colis.length === 0) return [];
+
+    // Create a map to count occurrences of each code_suivi
+    const codeCount = {};
+    facture.colis.forEach(colis => {
+      codeCount[colis.code_suivi] = (codeCount[colis.code_suivi] || 0) + 1;
+    });
+
+    // Filter for codes that appear more than once
+    const duplicateCodes = Object.entries(codeCount)
+      .filter(([_, count]) => count > 1)
+      .map(([code]) => code);
+
+    return duplicateCodes;
   };
 
   // First modal's Transfer button handler:
@@ -487,8 +508,42 @@ function FactureClientTable({ theme, id }) {
 
   // Content for the first modal (colis details)
   const ModalContent = () => {
+    // Get duplicate colis information from the API response or calculate it locally if not available
+    const duplicateCodes = selectedFacture && selectedFacture.duplicateCodes ? selectedFacture.duplicateCodes :
+                           findDuplicatesInFacture(selectedFacture);
+    const hasDuplicates = selectedFacture && selectedFacture.hasDuplicates !== undefined ? selectedFacture.hasDuplicates :
+                          duplicateCodes.length > 0;
+
+    // Create a set of duplicate codes for faster lookup
+    const duplicateCodesSet = new Set(duplicateCodes);
+
     return (
       <div>
+        {/* Alert message for duplicates */}
+        {hasDuplicates && (
+          <div
+            style={{
+              backgroundColor: '#fff2f0',
+              border: '1px solid #ffccc7',
+              padding: '12px 16px',
+              borderRadius: '4px',
+              marginBottom: '16px'
+            }}
+          >
+            <h4 style={{ color: '#cf1322', margin: '0 0 8px 0' }}>
+              Attention: Des colis dupliqués ont été détectés dans cette facture
+            </h4>
+            <div>
+              <p>Codes dupliqués:</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {duplicateCodes.map(code => (
+                  <Tag key={code} color="red">{code}</Tag>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <Descriptions
           title="Calcule Detail :"
           bordered
@@ -552,6 +607,10 @@ function FactureClientTable({ theme, id }) {
               setSelectedModalRowKeys(selectedRowKeys);
               setSelectedModalRows(selectedRows);
             },
+          }}
+          rowClassName={(record) => {
+            // Add a class to highlight duplicate rows
+            return duplicateCodesSet.has(record.code_suivi) ? 'duplicate-row' : '';
           }}
         />
       </div>

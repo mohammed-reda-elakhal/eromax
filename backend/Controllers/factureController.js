@@ -2084,6 +2084,27 @@ try {
     throw new Error('Facture not found');
     }
 
+    // Check for duplicate colis by comparing code_suivi values
+    let hasDuplicates = false;
+    let duplicateCodes = [];
+
+    if (Array.isArray(facture.colis) && facture.colis.length > 0) {
+        // Create a map to count occurrences of each code_suivi
+        const codeCount = {};
+        facture.colis.forEach(colis => {
+            if (colis.code_suivi) {
+                codeCount[colis.code_suivi] = (codeCount[colis.code_suivi] || 0) + 1;
+            }
+        });
+
+        // Filter for codes that appear more than once
+        duplicateCodes = Object.entries(codeCount)
+            .filter(([_, count]) => count > 1)
+            .map(([code]) => code);
+
+        hasDuplicates = duplicateCodes.length > 0;
+    }
+
     // Initialize dynamic totals
     let totalPrix = 0; // Sum of prix for delivered colis only
     let totalTarifLivraison = 0; // Sum of delivery tariffs (from crbt.tarif_livraison) for delivered colis
@@ -2131,6 +2152,8 @@ try {
     totalTarifAjouter,
     totalTarif,
     netAPayer,
+    hasDuplicates,
+    duplicateCodes
     };
 
     res.status(200).json({

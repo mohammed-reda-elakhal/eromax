@@ -1,0 +1,35 @@
+/* Styling for duplicate rows in facture tables */
+.duplicate-row {
+  background-color: #fff1f0 !important; /* Light red background */
+}
+
+.duplicate-row:hover {
+  background-color: #ffccc7 !important; /* Slightly darker red on hover */
+}
+
+/* Ensure the background color is applied to both odd and even rows */
+.duplicate-row.ant-table-row-odd,
+.duplicate-row.ant-table-row-even {
+  background-color: #fff1f0 !important;
+}
+
+.duplicate-row.ant-table-row-odd:hover,
+.duplicate-row.ant-table-row-even:hover {
+  background-color: #ffccc7 !important;
+}
+
+/* PDF-specific styles */
+@media print {
+  .duplicate-row,
+  .duplicate-row.ant-table-row-odd,
+  .duplicate-row.ant-table-row-even {
+    background-color: #fff1f0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide the duplicate alert in PDF */
+  .duplicate-alert-container {
+    display: none !important;
+  }
+}

@@ -1,11 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import html2pdf from 'html2pdf.js';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { getFactureClientByCode } from '../../../../redux/apiCalls/factureApiCalls';
-import { Table } from 'antd';
+import { Table, Alert, Tag } from 'antd';
 import { useLocation } from 'react-router-dom';
+import '../components/factureStyles.css';
 
 
 const FactureDetail = () => {
@@ -17,6 +18,33 @@ const FactureDetail = () => {
 
   const location = useLocation();
   const highlightedColisId = location.state?.colisId;
+
+  // Function to detect duplicate colis within a facture
+  const findDuplicatesInFacture = (facture) => {
+    if (!facture || !facture.colis || facture.colis.length === 0) return [];
+
+    // Create a map to count occurrences of each code_suivi
+    const codeCount = {};
+    facture.colis.forEach(colis => {
+      codeCount[colis.code_suivi] = (codeCount[colis.code_suivi] || 0) + 1;
+    });
+
+    // Filter for codes that appear more than once
+    const duplicateCodes = Object.entries(codeCount)
+      .filter(([_, count]) => count > 1)
+      .map(([code]) => code);
+
+    return duplicateCodes;
+  };
+
+  // Get duplicate colis information from the API response or calculate it locally if not available
+  const duplicateCodes = facture && facture.duplicateCodes ? facture.duplicateCodes :
+                         (facture ? findDuplicatesInFacture(facture) : []);
+  const hasDuplicates = facture && facture.hasDuplicates !== undefined ? facture.hasDuplicates :
+                        (duplicateCodes.length > 0);
+
+  // Create a set of duplicate codes for faster lookup
+  const duplicateCodesSet = new Set(duplicateCodes);
 
 
   useEffect(() => {
@@ -86,15 +114,30 @@ const FactureDetail = () => {
       key: 'code_suivi',
       width: 120,
       fixed: 'left',
-      render: (text, record) => (
-        <div style={{
-          backgroundColor: record._id === highlightedColisId ? '#f5f5f5' : 'transparent',
-          padding: '4px',
-          fontWeight: 'bold'
-        }}>
-          {text}
-        </div>
-      )
+      render: (text, record) => {
+        const isDuplicate = duplicateCodesSet.has(text);
+        const isHighlighted = record._id === highlightedColisId;
+
+        return (
+          <div style={{
+            backgroundColor: isHighlighted ? '#f5f5f5' : 'transparent',
+            padding: '4px',
+            fontWeight: 'bold',
+            color: isDuplicate ? '#cf1322' : 'inherit'
+          }}>
+            {text}
+            {isDuplicate && (
+              <span style={{
+                marginLeft: '5px',
+                color: '#cf1322',
+                fontSize: '12px'
+              }}>
+                (Dupliqué)
+              </span>
+            )}
+          </div>
+        );
+      }
     },
     {
       title: 'Date Livraison',
@@ -156,7 +199,7 @@ const FactureDetail = () => {
             ?
             <div>
               <div>Livraison: {record.crbt?.tarif_livraison} DH</div>
-             
+
               <div>Fragile: {record.crbt?.tarif_fragile} DH</div>
             </div>
             :
@@ -351,6 +394,33 @@ const FactureDetail = () => {
           <div className="simple-header">
             <h4>Détails des Colis</h4>
           </div>
+
+          {/* Alert message for duplicates */}
+          {hasDuplicates && (
+            <div
+              className="duplicate-alert-container"
+              style={{
+                backgroundColor: '#fff2f0',
+                border: '1px solid #ffccc7',
+                padding: '12px 16px',
+                borderRadius: '4px',
+                marginBottom: '16px'
+              }}
+            >
+              <h4 style={{ color: '#cf1322', margin: '0 0 8px 0' }}>
+                Attention: Des colis dupliqués ont été détectés dans cette facture
+              </h4>
+              <div>
+                <p>Codes dupliqués:</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {duplicateCodes.map(code => (
+                    <Tag key={code} color="red">{code}</Tag>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="table-facture">
             <Table
               size="small"
@@ -360,6 +430,10 @@ const FactureDetail = () => {
               pagination={false}
               rowKey="code_suivi"
               bordered
+              rowClassName={(record) => {
+                // Add a class to highlight duplicate rows
+                return duplicateCodesSet.has(record.code_suivi) ? 'duplicate-row' : '';
+              }}
             />
           </div>
         </div>
