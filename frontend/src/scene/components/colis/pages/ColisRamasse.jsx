@@ -6,7 +6,6 @@ import Title from '../../../global/Title';
 import { Button, Modal, Form, message, Card, Divider, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
-import { MdDeliveryDining } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { affectationColisAmeex, getColis, getColisForClient } from '../../../../redux/apiCalls/colisApiCalls';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
@@ -17,13 +16,13 @@ import { FaBoxesStacked } from 'react-icons/fa6';
 import { IoQrCodeSharp } from 'react-icons/io5';
 import request from '../../../../utils/request';
 import { IoMdRefresh } from 'react-icons/io';
-import { 
-  PhoneOutlined, 
-  EnvironmentOutlined, 
+import { BsUpcScan } from "react-icons/bs";
+import {
+  PhoneOutlined,
+  EnvironmentOutlined,
   ShopOutlined,
   CalendarOutlined,
   EditOutlined,
-  DollarOutlined,
   TagOutlined,
   CopyOutlined,
   CheckOutlined
@@ -32,56 +31,75 @@ import { Typography } from 'antd';
 
 const getTableCellStyles = (theme) => ({
   codeCell: {
-    background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+    background: theme === 'dark' ? '#1e293b' : '#f8fafc',
     padding: '12px',
-    borderRadius: '8px',
-    border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+    borderRadius: '6px',
+    border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
   },
   dateCell: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '6px',
   },
   dateItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
-    fontSize: '13px',
-    color: theme === 'dark' ? '#b3b3b3' : '#666',
+    gap: '6px',
+    fontSize: '12px',
+    color: theme === 'dark' ? '#94a3b8' : '#64748b',
+    fontWeight: '500',
   },
   destinataireCard: {
-    background: theme === 'dark' ? '#1f1f1f' : '#fff',
+    background: 'transparent',
     padding: '12px',
-    borderRadius: '8px',
-    boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+    gap: '8px',
   },
   priceTag: {
-    background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
-    color: 'white',
-    padding: '8px 16px',
-    borderRadius: '20px',
+    background: 'transparent',
+    color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+    padding: '0',
+    borderRadius: '0',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
-    boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+    fontSize: '13px',
+    fontWeight: '600',
   },
   businessBadge: {
-    background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
-    border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+    background: theme === 'dark' ? '#1e293b' : '#f1f5f9',
+    border: `1px solid ${theme === 'dark' ? '#334155' : '#cbd5e1'}`,
     borderRadius: '6px',
     padding: '8px 12px',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+    color: theme === 'dark' ? '#e2e8f0' : '#475569',
+    fontSize: '13px',
+    fontWeight: '500',
   },
   statusBadge: {
     padding: '6px 12px',
     borderRadius: '6px',
-    fontSize: '13px',
+    fontSize: '12px',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
+    fontWeight: '500',
+  },
+  phoneTag: {
+    background: theme === 'dark' ? '#1e40af' : '#3b82f6',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontWeight: '500',
+  },
+  productTag: {
+    background: theme === 'dark' ? '#0f766e' : '#14b8a6',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
     fontWeight: '500',
   }
 });
@@ -106,7 +124,7 @@ function ColisRamasse({ search }) {
     user: state.auth.user,
     store: state.auth.store,
   }));
-  
+
 
   const getDataColis = () => {
     if (user?.role) {
@@ -197,18 +215,29 @@ function ColisRamasse({ search }) {
 
   const columns = [
     {
-      title: 'Code Suivi',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <BsUpcScan style={{ fontSize: '14px' }} />
+          Code Suivi
+        </span>
+      ),
       dataIndex: 'code_suivi',
       key: 'code_suivi',
       width: 200,
       render: (text) => (
-        <div style={tableCellStyles.codeCell}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <Typography.Text
             copyable={{
               tooltips: ['Copier', 'Copié!'],
               icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
             }}
-            style={{ fontWeight: '600', fontSize: '14px', color: '#1677ff' }}
+            style={{
+              fontWeight: '600',
+              fontSize: '13px',
+              color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+              fontFamily: 'monospace',
+              letterSpacing: '0.5px'
+            }}
           >
             {text}
           </Typography.Text>
@@ -216,77 +245,159 @@ function ColisRamasse({ search }) {
       ),
     },
     {
-       title: 'Date',
-            dataIndex: 'date',
-            key: 'date',
-            width: 200,
-            render: (text, record) => (
-              <div style={tableCellStyles.dateCell}>
-                <div style={tableCellStyles.dateItem}>
-                  <CalendarOutlined style={{ color: '#1677ff' }} />
-                  <span>Créé: {formatDate(record?.createdAt)}</span>
-                </div>
-                <div style={tableCellStyles.dateItem}>
-                  <EditOutlined style={{ color: '#52c41a' }} />
-                  <span>Modifié: {formatDate(record?.updatedAt)}</span>
-                </div>
-              </div>
-            ),
-    },
-    {
-      title: 'Destinataire',
-      dataIndex: 'nom',
-      key: 'nom',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <CalendarOutlined style={{ fontSize: '14px' }} />
+          Date
+        </span>
+      ),
+      dataIndex: 'date',
+      key: 'date',
+      width: 200,
       render: (text, record) => (
-        <div style={tableCellStyles.destinataireCard}>
-          <Typography.Text strong style={{ fontSize: '15px', marginBottom: '8px' }}>
-            {record.nom}
-          </Typography.Text>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Tag icon={<PhoneOutlined />} color="blue">{record.tele}</Tag>
-            <Tag icon={<EnvironmentOutlined />} color="orange">{record.ville.nom}</Tag>
+        <div style={tableCellStyles.dateCell}>
+          <div style={tableCellStyles.dateItem}>
+            <CalendarOutlined style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />
+            <span>Créé: {formatDate(record?.createdAt)}</span>
+          </div>
+          <div style={tableCellStyles.dateItem}>
+            <EditOutlined style={{ color: '#52c41a' }} />
+            <span>Modifié: {formatDate(record?.updatedAt)}</span>
           </div>
         </div>
       ),
     },
     {
-      title: 'Prix',
-      dataIndex: 'prix',
-      key: 'prix',
-      width: 140,
-      render: (text) => (
-        <div style={tableCellStyles.priceTag}>
-          <DollarOutlined />
-          <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
-            {text || 'N/A'} DH
-          </span>
-        </div>
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <PhoneOutlined style={{ fontSize: '14px' }} />
+          Destinataire
+        </span>
+      ),
+      dataIndex: 'nom',
+      key: 'nom',
+      render: (text, record) => {
+        const professionalCardStyle = {
+          background: 'transparent',
+          padding: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        };
+
+        const nameStyle = {
+          color: theme === 'dark' ? '#e2e8f0' : '#475569',
+          fontSize: '13px',
+          fontWeight: '600',
+          textAlign: 'left',
+          lineHeight: '1.3',
+          marginBottom: '4px'
+        };
+
+        const priceStyle = {
+          color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+          fontSize: '16px',
+          fontWeight: '700',
+          textAlign: 'left',
+          lineHeight: '1.2'
+        };
+
+        return (
+          <div style={professionalCardStyle}>
+            <div>
+              <Typography.Text style={nameStyle}>
+                {record.nom?.length > 18 ? record.nom.substring(0, 18) + '...' : record.nom}
+              </Typography.Text>
+            </div>
+            <div>
+              <Tag style={tableCellStyles.phoneTag}>
+                <PhoneOutlined style={{ marginRight: '4px' }} />
+                {record.tele}
+              </Tag>
+            </div>
+            <div>
+              <Typography.Text style={priceStyle}>
+                {record.prix || 'N/A'} DH
+              </Typography.Text>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <EnvironmentOutlined style={{ fontSize: '14px' }} />
+          Ville
+        </span>
+      ),
+      dataIndex: 'ville',
+      key: 'ville',
+      width: 120,
+      render: (text, record) => (
+        <Tag
+          icon={<EnvironmentOutlined />}
+          style={{
+            background: theme === 'dark' ? '#0f766e' : '#14b8a6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontWeight: '500',
+            padding: '4px 8px'
+          }}
+        >
+          {record.ville?.nom || 'N/A'}
+        </Tag>
       ),
     },
     {
-      title: 'Nature',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <TagOutlined style={{ fontSize: '14px' }} />
+          Nature
+        </span>
+      ),
       dataIndex: 'nature_produit',
       key: 'nature_produit',
       width: 150,
       render: (text) => (
-        <Tag icon={<TagOutlined />} color="cyan" style={{ padding: '6px 12px', borderRadius: '4px' }}>
+        <Tag
+          icon={<TagOutlined />}
+          style={tableCellStyles.productTag}
+        >
           {text || 'N/A'}
         </Tag>
       ),
     },
     {
-      title: 'Business',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ShopOutlined style={{ fontSize: '14px' }} />
+          Business
+        </span>
+      ),
       dataIndex: 'store',
       key: 'store',
       render: (text, record) => (
         <div style={tableCellStyles.businessBadge}>
-          <ShopOutlined />
-          <Typography.Text strong>{record.store?.storeName}</Typography.Text>
+          <ShopOutlined style={{ fontSize: '12px' }} />
+          <Typography.Text style={{ fontSize: '13px', fontWeight: '500' }}>
+            {record.store?.storeName?.length > 15
+              ? record.store.storeName.substring(0, 15) + '...'
+              : record.store?.storeName || 'N/A'
+            }
+          </Typography.Text>
         </div>
       ),
     },
     {
-      title: 'Statut',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <CheckCircleOutlined style={{ fontSize: '14px' }} />
+          Statut
+        </span>
+      ),
       dataIndex: 'statut',
       key: 'statut',
       render: (text, record) => {
@@ -352,23 +463,88 @@ function ColisRamasse({ search }) {
       <main className="page-main">
         <Topbar />
         <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
+          <style>
+            {`
+              /* Global Input Styling Fix */
+              .page-content .ant-input,
+              .page-content .ant-input-affix-wrapper,
+              .page-content .ant-select-selector,
+              .page-content .ant-textarea {
+                background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                border-color: ${theme === 'dark' ? '#334155' : '#d9d9d9'} !important;
+                color: ${theme === 'dark' ? '#e2e8f0' : '#000'} !important;
+              }
+
+              .page-content .ant-input::placeholder,
+              .page-content .ant-input-affix-wrapper::placeholder,
+              .page-content .ant-select-selection-placeholder,
+              .page-content .ant-textarea::placeholder {
+                color: ${theme === 'dark' ? '#94a3b8' : '#8c8c8c'} !important;
+              }
+
+              .page-content .ant-input:focus,
+              .page-content .ant-input-affix-wrapper:focus,
+              .page-content .ant-input-affix-wrapper-focused {
+                border-color: ${theme === 'dark' ? '#60a5fa' : '#1890ff'} !important;
+                box-shadow: 0 0 0 2px ${theme === 'dark' ? 'rgba(96, 165, 250, 0.2)' : 'rgba(24, 144, 255, 0.2)'} !important;
+              }
+
+              .page-content .ant-input-clear-icon {
+                color: ${theme === 'dark' ? '#94a3b8' : '#8c8c8c'} !important;
+              }
+
+              /* Filter dropdown styling */
+              .page-content .ant-table-filter-dropdown {
+                background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+              }
+
+              .page-content .ant-table-filter-dropdown .ant-input {
+                background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                border-color: ${theme === 'dark' ? '#334155' : '#d9d9d9'} !important;
+                color: ${theme === 'dark' ? '#e2e8f0' : '#000'} !important;
+              }
+
+              .page-content .ant-table-filter-dropdown .ant-input::placeholder {
+                color: ${theme === 'dark' ? '#94a3b8' : '#8c8c8c'} !important;
+              }
+
+              /* Select dropdown styling */
+              .page-content .ant-select-dropdown {
+                background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+              }
+
+              .page-content .ant-select-item {
+                background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                color: ${theme === 'dark' ? '#e2e8f0' : '#000'} !important;
+              }
+
+              .page-content .ant-select-item:hover {
+                background-color: ${theme === 'dark' ? '#334155' : '#f5f5f5'} !important;
+              }
+
+              .page-content .ant-select-item-option-selected {
+                background-color: ${theme === 'dark' ? '#60a5fa' : '#1890ff'} !important;
+                color: #fff !important;
+              }
+            `}
+          </style>
           <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff' }}>
             <div className="bar-action-data">
               <Button icon={<IoMdRefresh />} type="primary" onClick={() => getDataColis()} >Rafraîchir</Button>
               <Button icon={<FaBoxesStacked />} type="primary" onClick={() => showModal()} loading={loading}>Expédier</Button>
               <Button icon={<IoQrCodeSharp />} type="primary" onClick={() => navigate("/dashboard/scan/statu/Expediée")} loading={loading}>Scanner</Button>
             </div>
-            <TableDashboard 
-              column={columns} 
-              data={data} 
-              id="code_suivi" 
-              theme={theme}  
+            <TableDashboard
+              column={columns}
+              data={data}
+              id="code_suivi"
+              theme={theme}
               rowSelection={{
                 selectedRowKeys: selectedRowKeys,
                 onChange: setSelectedRowKeys,
-              }} 
+              }}
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.08)' :'#fff',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',

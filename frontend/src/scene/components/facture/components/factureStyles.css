@@ -1,35 +1,644 @@
-/* Styling for duplicate rows in facture tables */
-.duplicate-row {
-  background-color: #fff1f0 !important; /* Light red background */
+/* ===== FACTURE CLIENT TABLE PROFESSIONAL STYLING ===== */
+
+/* ===== LIGHT MODE STYLING ===== */
+
+/* Main Container */
+.facture-client-container-light {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 24px;
 }
 
-.duplicate-row:hover {
-  background-color: #ffccc7 !important; /* Slightly darker red on hover */
+/* Search and Filter Section */
+.facture-filters-light {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
 }
 
-/* Ensure the background color is applied to both odd and even rows */
-.duplicate-row.ant-table-row-odd,
-.duplicate-row.ant-table-row-even {
-  background-color: #fff1f0 !important;
+.facture-filters-light .ant-input,
+.facture-filters-light .ant-select-selector {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #374151;
+  font-size: 14px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
 }
 
-.duplicate-row.ant-table-row-odd:hover,
-.duplicate-row.ant-table-row-even:hover {
-  background-color: #ffccc7 !important;
+.facture-filters-light .ant-input:focus,
+.facture-filters-light .ant-select-focused .ant-select-selector {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.facture-filters-light .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  height: 40px;
+  padding: 0 16px;
+  transition: all 0.2s ease;
+}
+
+.facture-filters-light .ant-btn-primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.facture-filters-light .ant-btn-primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.facture-filters-light .ant-btn-default {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.facture-filters-light .ant-btn-default:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+/* Table Content Styling */
+.facture-table-light {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.facture-table-light .ant-table-thead > tr > th {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 16px 12px;
+  text-align: left;
+}
+
+.facture-table-light .ant-table-tbody > tr > td {
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  padding: 16px 12px;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.facture-table-light .ant-table-tbody > tr:hover > td {
+  background: #f8fafc;
+}
+
+.facture-table-light .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: #eff6ff;
+}
+
+/* Professional Code Display */
+.facture-code-light {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e40af;
+  background: #eff6ff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #bfdbfe;
+  display: inline-block;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* Store Name Styling */
+.facture-store-light {
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Price Display */
+.facture-price-light {
+  font-size: 16px;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #a7f3d0;
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Count Display */
+.facture-count-light {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 14px;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Status Tags */
+.facture-status-light .ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: none;
+}
+
+/* Action Buttons */
+.facture-actions-light {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.facture-actions-light .ant-btn {
+  border-radius: 6px;
+  height: 32px;
+  width: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.facture-actions-light .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal Styling */
+.facture-modal-light .ant-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.facture-modal-light .ant-modal-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 12px 12px 0 0;
+  padding: 20px 24px;
+}
+
+.facture-modal-light .ant-modal-title {
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.facture-modal-light .ant-modal-body {
+  padding: 24px;
+  background: #ffffff;
+}
+
+.facture-modal-light .ant-descriptions {
+  background: #ffffff;
+}
+
+.facture-modal-light .ant-descriptions-header {
+  background: #f8fafc;
+  border-radius: 8px 8px 0 0;
+}
+
+.facture-modal-light .ant-descriptions-title {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.facture-modal-light .ant-descriptions-item-label {
+  background: #f8fafc;
+  color: #374151;
+  font-weight: 500;
+}
+
+.facture-modal-light .ant-descriptions-item-content {
+  background: #ffffff;
+  color: #1e293b;
+}
+
+/* Card Styling */
+.facture-card-light {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.facture-card-light:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Duplicate Row Styling */
+.duplicate-row-light {
+  background-color: #fef2f2 !important;
+}
+
+.duplicate-row-light:hover {
+  background-color: #fecaca !important;
+}
+
+.duplicate-row-light.ant-table-row-odd,
+.duplicate-row-light.ant-table-row-even {
+  background-color: #fef2f2 !important;
+}
+
+.duplicate-row-light.ant-table-row-odd:hover,
+.duplicate-row-light.ant-table-row-even:hover {
+  background-color: #fecaca !important;
+}
+
+/* ===== DARK MODE STYLING ===== */
+
+/* Main Container */
+.facture-client-container-dark {
+  background: #0f172a;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* Search and Filter Section */
+.facture-filters-dark {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
+}
+
+.facture-filters-dark .ant-input,
+.facture-filters-dark .ant-select-selector {
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.facture-filters-dark .ant-input::placeholder,
+.facture-filters-dark .ant-select-selection-placeholder {
+  color: #94a3b8;
+}
+
+.facture-filters-dark .ant-input:focus,
+.facture-filters-dark .ant-select-focused .ant-select-selector {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  background: #475569;
+}
+
+.facture-filters-dark .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  height: 40px;
+  padding: 0 16px;
+  transition: all 0.2s ease;
+}
+
+.facture-filters-dark .ant-btn-primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.facture-filters-dark .ant-btn-primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.facture-filters-dark .ant-btn-default {
+  background: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.facture-filters-dark .ant-btn-default:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #475569;
+}
+
+/* Table Content Styling */
+.facture-table-dark {
+  background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
+}
+
+.facture-table-dark .ant-table-thead > tr > th {
+  background: #0f172a;
+  border-bottom: 2px solid #334155;
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 16px 12px;
+  text-align: left;
+}
+
+.facture-table-dark .ant-table-tbody > tr > td {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  color: #cbd5e1;
+  padding: 16px 12px;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.facture-table-dark .ant-table-tbody > tr:hover > td {
+  background: #334155;
+}
+
+.facture-table-dark .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: #1e40af;
+}
+
+/* Professional Code Display */
+.facture-code-dark {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: #60a5fa;
+  background: #1e3a8a;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #3b82f6;
+  display: inline-block;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* Store Name Styling */
+.facture-store-dark {
+  color: #e2e8f0;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Price Display */
+.facture-price-dark {
+  font-size: 16px;
+  font-weight: 600;
+  color: #34d399;
+  background: #064e3b;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #059669;
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Count Display */
+.facture-count-dark {
+  color: #94a3b8;
+  font-weight: 500;
+  font-size: 14px;
+  background: #334155;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Status Tags */
+.facture-status-dark .ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: none;
+}
+
+/* Action Buttons */
+.facture-actions-dark {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.facture-actions-dark .ant-btn {
+  border-radius: 6px;
+  height: 32px;
+  width: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.facture-actions-dark .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal Styling */
+.facture-modal-dark .ant-modal-content {
+  background: #1e293b;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  border: 1px solid #334155;
+}
+
+.facture-modal-dark .ant-modal-header {
+  background: #0f172a;
+  border-bottom: 1px solid #334155;
+  border-radius: 12px 12px 0 0;
+  padding: 20px 24px;
+}
+
+.facture-modal-dark .ant-modal-title {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.facture-modal-dark .ant-modal-body {
+  padding: 24px;
+  background: #1e293b;
+}
+
+.facture-modal-dark .ant-descriptions {
+  background: #1e293b;
+}
+
+.facture-modal-dark .ant-descriptions-header {
+  background: #0f172a;
+  border-radius: 8px 8px 0 0;
+}
+
+.facture-modal-dark .ant-descriptions-title {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.facture-modal-dark .ant-descriptions-item-label {
+  background: #0f172a;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.facture-modal-dark .ant-descriptions-item-content {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+/* Card Styling */
+.facture-card-dark {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.facture-card-dark:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.facture-card-dark .ant-card-meta-title {
+  color: #e2e8f0;
+}
+
+.facture-card-dark .ant-card-meta-description {
+  color: #94a3b8;
+}
+
+/* Duplicate Row Styling */
+.duplicate-row-dark {
+  background-color: #450a0a !important;
+}
+
+.duplicate-row-dark:hover {
+  background-color: #7f1d1d !important;
+}
+
+.duplicate-row-dark.ant-table-row-odd,
+.duplicate-row-dark.ant-table-row-even {
+  background-color: #450a0a !important;
+}
+
+.duplicate-row-dark.ant-table-row-odd:hover,
+.duplicate-row-dark.ant-table-row-even:hover {
+  background-color: #7f1d1d !important;
+}
+
+/* Alert Styling */
+.facture-alert-light {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.facture-alert-light h4 {
+  color: #dc2626;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.facture-alert-dark {
+  background: #450a0a;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.facture-alert-dark h4 {
+  color: #f87171;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+/* Divider Styling */
+.facture-divider-light {
+  border-color: #e2e8f0;
+  margin: 24px 0;
+}
+
+.facture-divider-dark {
+  border-color: #334155;
+  margin: 24px 0;
 }
 
 /* PDF-specific styles */
 @media print {
-  .duplicate-row,
-  .duplicate-row.ant-table-row-odd,
-  .duplicate-row.ant-table-row-even {
-    background-color: #fff1f0 !important;
+  .duplicate-row-light,
+  .duplicate-row-light.ant-table-row-odd,
+  .duplicate-row-light.ant-table-row-even,
+  .duplicate-row-dark,
+  .duplicate-row-dark.ant-table-row-odd,
+  .duplicate-row-dark.ant-table-row-even {
+    background-color: #fef2f2 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Hide the duplicate alert in PDF */
   .duplicate-alert-container {
     display: none !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .facture-client-container-light,
+  .facture-client-container-dark {
+    padding: 16px;
+  }
+
+  .facture-filters-light,
+  .facture-filters-dark {
+    padding: 16px;
+  }
+
+  .facture-actions-light .ant-btn,
+  .facture-actions-dark .ant-btn {
+    height: 28px;
+    width: 28px;
+  }
+
+  .facture-code-light,
+  .facture-code-dark {
+    font-size: 12px;
+    padding: 4px 8px;
+    min-width: 100px;
+  }
+
+  .facture-price-light,
+  .facture-price-dark {
+    font-size: 14px;
+    padding: 4px 8px;
+    min-width: 70px;
   }
 }

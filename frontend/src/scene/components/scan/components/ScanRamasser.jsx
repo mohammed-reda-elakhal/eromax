@@ -1,9 +1,11 @@
 // src/scene/components/scan/components/ScanRamasser.jsx
 
 import React, { useEffect, useState, useRef, useContext } from 'react';
-import { Input, Button, Select, Table, Typography, Space, notification, Modal, Card, Form, Tag, message } from 'antd';
+import { ThemeContext } from '../../../ThemeContext';
+import './ScanRamasser.css';
+import { Input, Button, Select, Table, Typography, Space, notification, Modal, Card, message } from 'antd';
 import { CiBarcode } from "react-icons/ci";
-import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import BarcodeReader from 'react-barcode-reader';
 import Webcam from 'react-webcam'; // Utilisation de react-webcam
@@ -16,6 +18,7 @@ const { Option } = Select;
 const { Title } = Typography;
 
 function ScanRamasser() {
+  const { theme } = useContext(ThemeContext); // Get theme context
   const { statu } = useParams(); // Récupère le paramètre 'statu' depuis l'URL
 
   // États locaux
@@ -25,8 +28,7 @@ function ScanRamasser() {
   const [scannerEnabled, setScannerEnabled] = useState(true); // Contrôle la visibilité du scanner
   const [isModalVisible, setIsModalVisible] = useState(false); // Contrôle la visibilité de la modal
   const [selectedLivreur, setSelectedLivreur] = useState(null); // Livreur sélectionné
-  const [loading, setLoading] = useState(false); // État de chargement pour les opérations
-  const [form] = Form.useForm(); // Formulaire Ant Design
+  const [loading] = useState(false); // État de chargement pour les opérations
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -233,7 +235,7 @@ function ScanRamasser() {
   const handleChangeStatu = async (codesuiviList) => {
     try {
       // Envoyer une requête PUT pour mettre à jour le statut des colis sélectionnés
-      const response = await request.put('/api/colis/statu/update', {
+      await request.put('/api/colis/statu/update', {
         colisCodes: codesuiviList, // Liste des codes scannés
         new_status: statu, // Nouvelle valeur de statut
       });
@@ -325,14 +327,33 @@ function ScanRamasser() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <Title level={3}>Scanner Colis</Title>
+    <div className={theme === 'dark' ? 'dark-theme' : ''} style={{
+      padding: '20px',
+      backgroundColor: theme === 'dark' ? '#001529' : '#fff',
+      color: theme === 'dark' ? '#fff' : '#000',
+      minHeight: '100vh'
+    }}>
+      <Title level={3} style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Scanner Colis</Title>
 
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         {/* Sélection de la méthode de scan */}
         <div>
-          <label>Méthode de scan: </label>
-          <Select defaultValue="barcode" style={{ width: 200 }} onChange={handleScanMethodChange}>
+          <label style={{ color: theme === 'dark' ? '#fff' : '#000', marginRight: '10px' }}>Méthode de scan: </label>
+          <Select
+            defaultValue="barcode"
+            style={{
+              width: 200,
+              backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+              borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+              color: theme === 'dark' ? '#fff' : '#000',
+            }}
+            onChange={handleScanMethodChange}
+            dropdownStyle={{
+              backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+              color: theme === 'dark' ? '#fff' : '#000',
+            }}
+            popupClassName={theme === 'dark' ? 'dark-select-dropdown' : ''}
+          >
             <Option value="barcode">Scanner Code Barre</Option>
             <Option value="qrcode">Scanner QR Code</Option>
           </Select>
@@ -350,8 +371,23 @@ function ScanRamasser() {
               value={currentBarcode}
               onChange={(e) => setCurrentBarcode(e.target.value)}
               onKeyDown={handleBarcodeScan}
-              style={{ width: '100%' }}
-              addonBefore={<CiBarcode />}
+              style={{
+                width: '100%',
+                backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                color: theme === 'dark' ? '#fff' : '#000',
+                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+              }}
+              className={theme === 'dark' ? 'dark-input' : ''}
+              size="large"
+              addonBefore={
+                <div style={{
+                  backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fafafa',
+                  color: theme === 'dark' ? '#fff' : '#000',
+                  border: 'none'
+                }}>
+                  <CiBarcode style={{ color: theme === 'dark' ? '#fff' : '#000' }} />
+                </div>
+              }
             />
           </>
         )}
@@ -369,10 +405,15 @@ function ScanRamasser() {
               style={{ width: '100%', maxWidth: '500px', margin: '20px auto', borderRadius: '8px', border: '2px solid #1890ff' }}
             />
             <canvas ref={canvasRef} style={{ display: 'none' }} />
-            <Button 
-              onClick={toggleCamera} 
-              className="switch-camera-button" 
+            <Button
+              onClick={toggleCamera}
+              className="switch-camera-button"
               disabled={false} // Vous pouvez ajouter une logique pour vérifier le nombre de caméras disponibles
+              style={{
+                backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                borderColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                color: '#fff',
+              }}
             >
               Switch to {facingMode === 'environment' ? 'Front' : 'Rear'} Camera
             </Button>
@@ -381,7 +422,15 @@ function ScanRamasser() {
 
         {/* Bouton pour rescanner */}
         {!scannerEnabled && (
-          <Button type="primary" onClick={handleRescan}>
+          <Button
+            type="primary"
+            onClick={handleRescan}
+            style={{
+              backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+              borderColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+              color: '#fff',
+            }}
+          >
             Scanner un autre colis
           </Button>
         )}
@@ -393,26 +442,48 @@ function ScanRamasser() {
           rowKey="barcode"
           pagination={{ pageSize: 5 }}
           bordered
-          title={() => 'Colis Scannés'}
+          title={() => <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Colis Scannés</span>}
+          style={{
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+          }}
+          className={theme === 'dark' ? 'dark-table' : ''}
         />
 
         {/* Bouton pour effectuer l'action d'affectation */}
-        <Button type="primary" onClick={handleAction} style={{ marginTop: '20px' }}>
+        <Button
+          type="primary"
+          onClick={handleAction}
+          style={{
+            marginTop: '20px',
+            backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+            borderColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+            color: '#fff',
+          }}
+        >
           {statu} Tous
         </Button>
       </Space>
 
       {/* Modal pour sélectionner un livreur */}
       <Modal
-        title="Sélectionner Livreur"
-        visible={isModalVisible}
+        title={<span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Sélectionner Livreur</span>}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         confirmLoading={loading}
         width={"90vw"}
+        style={{
+          backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+        }}
+        styles={{
+          body: {
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+            color: theme === 'dark' ? '#fff' : '#000',
+          }
+        }}
       >
         <div className='livreur_list_modal'>
-          <h3>Liste des Livreurs</h3>
+          <h3 style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Liste des Livreurs</h3>
           <div className="livreur_list_modal_card" style={{ display: 'flex', flexWrap: 'wrap' }}>
             {livreurList && livreurList.length > 0 ? (
               livreurList.map(livreur => (
@@ -422,18 +493,21 @@ function ScanRamasser() {
                   style={{
                     width: 240,
                     margin: '10px',
+                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                    color: theme === 'dark' ? '#fff' : '#000',
                     border:
                       selectedLivreur && selectedLivreur._id === livreur._id
                         ? '2px solid #1890ff'
-                        : '1px solid #f0f0f0',
+                        : theme === 'dark' ? '1px solid #434343' : '1px solid #f0f0f0',
+                    transition: 'all 0.3s ease',
                   }}
                   onClick={() => selectLivreur(livreur)}
                 >
                   <Card.Meta
-                    title={<div>{livreur.username}</div>}
+                    title={<div style={{ color: theme === 'dark' ? '#fff' : '#000' }}>{livreur.username}</div>}
                     description={
                       <>
-                        {livreur.tele}
+                        <span style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{livreur.tele}</span>
                         <Button
                           icon={<CheckCircleOutlined />}
                           onClick={(e) => {
@@ -441,7 +515,11 @@ function ScanRamasser() {
                             toast.info(`Villes: ${livreur.villes.join(', ')}`);
                           }}
                           type='primary'
-                          style={{ float: 'right' }}
+                          style={{
+                            float: 'right',
+                            backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                            borderColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                          }}
                         />
                       </>
                     }
@@ -449,7 +527,7 @@ function ScanRamasser() {
                 </Card>
               ))
             ) : (
-              <p>Aucun livreur disponible</p>
+              <p style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Aucun livreur disponible</p>
             )}
           </div>
         </div>

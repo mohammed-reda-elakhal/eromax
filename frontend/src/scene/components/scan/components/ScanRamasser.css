@@ -1,0 +1,247 @@
+/* Dark theme styles for ScanRamasser component */
+
+/* Dark Select dropdown styling */
+.dark-select-dropdown .ant-select-item {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+}
+
+.dark-select-dropdown .ant-select-item:hover {
+  background-color: #434343 !important;
+  color: #fff !important;
+}
+
+.dark-select-dropdown .ant-select-item-option-selected {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* Dark input styling */
+.dark-input input {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-color: #434343 !important;
+}
+
+.dark-input input::placeholder {
+  color: #888 !important;
+}
+
+.dark-input input:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+  background-color: #1f1f1f !important;
+}
+
+.dark-input input:hover {
+  border-color: #1890ff !important;
+  background-color: #1f1f1f !important;
+}
+
+/* Dark input addon styling */
+.dark-input .ant-input-group-addon {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-color: #434343 !important;
+}
+
+/* Dark Select component styling */
+.dark-theme .ant-select.ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+  background-color: #1f1f1f !important;
+  border-color: #434343 !important;
+  color: #fff !important;
+}
+
+.dark-theme .ant-select-arrow {
+  color: #fff !important;
+}
+
+.dark-theme .ant-select-selection-placeholder {
+  color: #888 !important;
+}
+
+.dark-theme .ant-select:hover .ant-select-selector {
+  border-color: #1890ff !important;
+}
+
+.dark-theme .ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Dark theme for disabled inputs */
+.dark-input input:disabled {
+  background-color: #2a2a2a !important;
+  color: #666 !important;
+  border-color: #434343 !important;
+}
+
+.dark-input input:disabled::placeholder {
+  color: #555 !important;
+}
+
+/* Dark theme for form labels */
+.dark-theme .ant-form-item-label > label {
+  color: #fff !important;
+}
+
+/* Dark theme for table */
+.dark-table .ant-table {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+}
+
+.dark-table .ant-table-thead > tr > th {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-bottom: 1px solid #434343 !important;
+}
+
+.dark-table .ant-table-tbody > tr > td {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-bottom: 1px solid #434343 !important;
+}
+
+.dark-table .ant-table-tbody > tr:hover > td {
+  background-color: #434343 !important;
+}
+
+.dark-table .ant-table-title {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+}
+
+/* Dark theme for pagination */
+.dark-table .ant-pagination .ant-pagination-item {
+  background-color: #1f1f1f !important;
+  border-color: #434343 !important;
+}
+
+.dark-table .ant-pagination .ant-pagination-item a {
+  color: #fff !important;
+}
+
+.dark-table .ant-pagination .ant-pagination-item:hover {
+  border-color: #1890ff !important;
+}
+
+.dark-table .ant-pagination .ant-pagination-item:hover a {
+  color: #1890ff !important;
+}
+
+.dark-table .ant-pagination .ant-pagination-prev,
+.dark-table .ant-pagination .ant-pagination-next {
+  color: #fff !important;
+}
+
+.dark-table .ant-pagination .ant-pagination-prev:hover,
+.dark-table .ant-pagination .ant-pagination-next:hover {
+  color: #1890ff !important;
+}
+
+/* Dark theme for modal */
+.dark-theme .ant-modal-content {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+}
+
+.dark-theme .ant-modal-header {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #434343 !important;
+}
+
+.dark-theme .ant-modal-title {
+  color: #fff !important;
+}
+
+.dark-theme .ant-modal-footer {
+  background-color: #1f1f1f !important;
+  border-top: 1px solid #434343 !important;
+}
+
+.dark-theme .ant-modal-close-x {
+  color: #fff !important;
+}
+
+/* Dark theme for cards */
+.dark-theme .ant-card {
+  background-color: #1f1f1f !important;
+  border-color: #434343 !important;
+  color: #fff !important;
+}
+
+.dark-theme .ant-card-head {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #434343 !important;
+  color: #fff !important;
+}
+
+.dark-theme .ant-card-head-title {
+  color: #fff !important;
+}
+
+.dark-theme .ant-card-body {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+}
+
+.dark-theme .ant-card:hover {
+  border-color: #1890ff !important;
+}
+
+/* Dark theme for buttons */
+.dark-theme .ant-btn-default {
+  background-color: #1f1f1f !important;
+  border-color: #434343 !important;
+  color: #fff !important;
+}
+
+.dark-theme .ant-btn-default:hover {
+  background-color: #434343 !important;
+  border-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* Dark theme for typography */
+.dark-theme .ant-typography {
+  color: #fff !important;
+}
+
+.dark-theme h1, .dark-theme h2, .dark-theme h3, .dark-theme h4, .dark-theme h5, .dark-theme h6 {
+  color: #fff !important;
+}
+
+/* Dark theme for space component */
+.dark-theme .ant-space-item {
+  color: #fff !important;
+}
+
+/* Improved focus and hover states */
+.dark-input input:focus,
+.dark-input input:hover {
+  transition: all 0.3s ease !important;
+}
+
+.dark-theme .ant-select:hover .ant-select-selector,
+.dark-theme .ant-select-focused .ant-select-selector {
+  transition: all 0.3s ease !important;
+}
+
+/* Enhanced placeholder visibility */
+.dark-input input::placeholder {
+  opacity: 0.8 !important;
+  font-style: italic !important;
+}
+
+/* Better contrast for disabled states */
+.dark-input input:disabled {
+  opacity: 0.6 !important;
+}
+
+/* Improved card hover effects */
+.dark-theme .ant-card:hover {
+  transform: translateY(-2px) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15) !important;
+}

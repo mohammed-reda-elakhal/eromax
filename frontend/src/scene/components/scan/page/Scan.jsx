@@ -4,15 +4,13 @@ import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
-import { Button, Row, Col, Card, message , Select } from 'antd';
-import { CarOutlined, CheckCircleOutlined, DeliveredProcedureOutlined, SearchOutlined, DeploymentUnitOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import { useDispatch, useSelector } from 'react-redux';
+import { Button, Row, Col, Card } from 'antd';
+import { CarOutlined, CheckCircleOutlined, DeliveredProcedureOutlined, SearchOutlined, DeploymentUnitOutlined } from '@ant-design/icons';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { MdDeliveryDining, MdFeedback, MdOutlineQrCodeScanner } from "react-icons/md";
+import { MdDeliveryDining, MdFeedback } from "react-icons/md";
 import { IoLockClosed } from 'react-icons/io5';
 import { toast } from 'react-toastify';
-
-const { Option } = Select;
 
 const Scan = () => {
     const { theme } = useContext(ThemeContext);
@@ -81,7 +79,12 @@ const Scan = () => {
                             padding: '20px',
                         }}
                     >
-                        <h4>Scan</h4>
+                        <h4 style={{
+                            color: theme === 'dark' ? '#fff' : '#002242',
+                            marginBottom: '16px',
+                            fontSize: '18px',
+                            fontWeight: '600'
+                        }}>Scan</h4>
                         <div style={{ padding: '20px', position: 'relative' }}>
                             <Row gutter={[16, 16]} justify="center">
                                 {cardData.map((card) => (
@@ -90,15 +93,27 @@ const Scan = () => {
                                             hoverable
                                             onClick={() => handleSelect(card.name)}
                                             style={{
-                                                borderColor: selectedCard === card.name ? '#1890ff' : '#f0f0f0',
+                                                borderColor: selectedCard === card.name ? '#1890ff' : (theme === 'dark' ? '#434343' : '#f0f0f0'),
                                                 borderWidth: selectedCard === card.name ? 2 : 1,
+                                                backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                color: theme === 'dark' ? '#fff' : '#000',
+                                                transition: 'all 0.3s ease',
                                             }}
                                         >
                                             <div style={{ textAlign: 'center' }}>
-                                                <div style={{ fontSize: 30, color: selectedCard === card.name ? '#1890ff' : '#000' }}>
+                                                <div style={{
+                                                    fontSize: 30,
+                                                    color: selectedCard === card.name ? '#1890ff' : (theme === 'dark' ? '#fff' : '#000'),
+                                                    transition: 'color 0.3s ease'
+                                                }}>
                                                     {card.icon}
                                                 </div>
-                                                <p>{card.name}</p>
+                                                <p style={{
+                                                    color: theme === 'dark' ? '#fff' : '#000',
+                                                    margin: '8px 0 0 0',
+                                                    fontSize: '14px',
+                                                    fontWeight: '500'
+                                                }}>{card.name}</p>
                                             </div>
                                         </Card>
                                     </Col>
@@ -109,6 +124,9 @@ const Scan = () => {
                                 onClick={handleNextStep}
                                 style={{
                                     marginTop: '20px',
+                                    backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                    borderColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                    color: '#fff',
                                 }}
                             >
                                 Étape Suivante

@@ -1,0 +1,111 @@
+/* Dark theme styles for ScanRecherche component */
+
+/* Dark Select dropdown styling */
+.dark-select-dropdown .ant-select-item {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+}
+
+.dark-select-dropdown .ant-select-item:hover {
+  background-color: #434343 !important;
+  color: #fff !important;
+}
+
+.dark-select-dropdown .ant-select-item-option-selected {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* Dark input styling */
+.dark-input input {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-color: #434343 !important;
+}
+
+.dark-input input::placeholder {
+  color: #888 !important;
+}
+
+.dark-input input:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.dark-input input:hover {
+  border-color: #1890ff !important;
+}
+
+/* Dark input addon styling */
+.dark-input .ant-input-group-addon {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-color: #434343 !important;
+}
+
+/* Dark Select component styling */
+.ant-select.ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+  background-color: #1f1f1f;
+  border-color: #434343;
+  color: #fff;
+}
+
+.ant-select-arrow {
+  color: #fff;
+}
+
+.ant-select-selection-placeholder {
+  color: #888 !important;
+}
+
+/* Dark theme for disabled inputs */
+.dark-input input:disabled {
+  background-color: #2a2a2a !important;
+  color: #666 !important;
+  border-color: #434343 !important;
+}
+
+/* Dark theme for form labels */
+.dark-theme .ant-form-item-label > label {
+  color: #fff !important;
+}
+
+/* Dark theme for table */
+.dark-table .ant-table {
+  background-color: #1f1f1f;
+  color: #fff;
+}
+
+.dark-table .ant-table-thead > tr > th {
+  background-color: #1f1f1f;
+  color: #fff;
+  border-bottom: 1px solid #434343;
+}
+
+.dark-table .ant-table-tbody > tr > td {
+  background-color: #1f1f1f;
+  color: #fff;
+  border-bottom: 1px solid #434343;
+}
+
+.dark-table .ant-table-tbody > tr:hover > td {
+  background-color: #434343;
+}
+
+/* Dark theme for pagination */
+.dark-table .ant-pagination .ant-pagination-item {
+  background-color: #1f1f1f;
+  border-color: #434343;
+}
+
+.dark-table .ant-pagination .ant-pagination-item a {
+  color: #fff;
+}
+
+.dark-table .ant-pagination .ant-pagination-item:hover {
+  border-color: #1890ff;
+}
+
+.dark-table .ant-pagination .ant-pagination-item:hover a {
+  color: #1890ff;
+}

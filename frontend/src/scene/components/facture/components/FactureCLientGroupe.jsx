@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { SettingOutlined } from '@ant-design/icons';
-import { Avatar, Card, Row, Col, Spin, Alert, Input } from 'antd';
+import React, { useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import { Card, Row, Col, Spin, Alert, Input } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFactureGroupeByUser } from '../../../../redux/apiCalls/factureApiCalls';
 import { useNavigate } from 'react-router-dom';
@@ -9,11 +8,13 @@ import { GrDocumentText } from "react-icons/gr";
 import { ImFolderOpen } from "react-icons/im";
 import debounce from 'lodash.debounce';
 import { MdOutlineCancel } from 'react-icons/md';
+import { ThemeContext } from '../../../ThemeContext';
 
 const { Meta } = Card;
 const { Search } = Input;
 
 function FactureClientGroupe() {
+    const { theme } = useContext(ThemeContext);
     const { facture, user, store } = useSelector((state) => ({
         facture: state.facture.factureGroupe,
         user: state.auth.user,
@@ -61,7 +62,7 @@ function FactureClientGroupe() {
     const filteredFactures = useMemo(() => {
         if (!searchTerm) return facture;
         const lowerSearch = searchTerm.toLowerCase();
-        return facture.filter(f => 
+        return facture.filter(f =>
             f.storeName.toLowerCase().includes(lowerSearch) ||
             f.tele.includes(searchTerm)
         );
@@ -69,7 +70,12 @@ function FactureClientGroupe() {
 
     if (loading) {
         return (
-            <div style={{ textAlign: 'center', padding: '50px' }}>
+            <div style={{
+                textAlign: 'center',
+                padding: '50px',
+                backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                color: theme === 'dark' ? '#fff' : '#262626'
+            }}>
                 <Spin size="large" />
             </div>
         );
@@ -77,18 +83,32 @@ function FactureClientGroupe() {
 
     if (!facture || facture.length === 0) {
         return (
-            <Alert
-                message="No Factures Found"
-                description="There are no factures to display."
-                type="info"
-                showIcon
-                style={{ margin: '20px' }}
-            />
+            <div style={{
+                backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                padding: '20px',
+                minHeight: '100vh'
+            }}>
+                <Alert
+                    message="No Factures Found"
+                    description="There are no factures to display."
+                    type="info"
+                    showIcon
+                    style={{
+                        margin: '20px',
+                        backgroundColor: theme === 'dark' ? '#262626' : '#e6f7ff',
+                        borderColor: theme === 'dark' ? '#434343' : '#91d5ff',
+                        color: theme === 'dark' ? '#fff' : '#262626'
+                    }}
+                />
+            </div>
         );
     }
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div style={{
+            padding: '20px',
+            minHeight: '100vh'
+        }}>
             {/* Search Input */}
             <Search
                 placeholder="Search by store name or phone number"
@@ -96,7 +116,18 @@ function FactureClientGroupe() {
                 enterButton="Search"
                 size="large"
                 onChange={(e) => handleSearch(e.target.value)}
-                style={{ marginBottom: '20px', maxWidth: '400px' }}
+                style={{
+                    marginBottom: '20px',
+                    maxWidth: '400px',
+                    backgroundColor: theme === 'dark' ? '#262626' : '#fff'
+                }}
+                styles={{
+                    input: {
+                        backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                        borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                        color: theme === 'dark' ? '#fff' : '#262626'
+                    }
+                }}
             />
 
             {/* Display filtered factures */}
@@ -106,29 +137,143 @@ function FactureClientGroupe() {
                         <Col xs={24} sm={12} md={8} lg={6} key={storeFacture.storeName}>
                             <Card
                                 hoverable
+                                style={{
+                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                    border: `1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'}`,
+                                    borderRadius: '12px',
+                                    boxShadow: theme === 'dark'
+                                        ? '0 2px 8px rgba(0,0,0,0.3)'
+                                        : '0 2px 8px rgba(0,0,0,0.1)',
+                                    transition: 'all 0.3s ease',
+                                    cursor: 'pointer'
+                                }}
+                                styles={{
+                                    body: {
+                                        backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                        color: theme === 'dark' ? '#fff' : '#262626'
+                                    },
+                                    actions: {
+                                        backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fafafa',
+                                        borderTop: `1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'}`
+                                    }
+                                }}
                                 cover={
-                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '16px' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        padding: '16px',
+                                        backgroundColor: theme === 'dark' ? '#262626' : '#fff'
+                                    }}>
                                         <img
                                             alt={storeFacture.storeName}
                                             src={storeFacture.image?.url}
-                                            style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '50%' }}
+                                            style={{
+                                                width: '80px',
+                                                height: '80px',
+                                                objectFit: 'cover',
+                                                borderRadius: '50%',
+                                                border: `3px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'}`
+                                            }}
                                         />
                                     </div>
                                 }
                                 actions={[
-                                    <ImFolderOpen key="setting" />,
+                                    <ImFolderOpen
+                                        key="setting"
+                                        style={{
+                                            color: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                            fontSize: '18px'
+                                        }}
+                                    />,
                                 ]}
-                                onClick={()=>navigate(`/dashboard/facture/client/${storeFacture?._id}`)} 
+                                onClick={()=>navigate(`/dashboard/facture/client/${storeFacture?._id}`)}
                             >
                                 <Meta
-                                    title={storeFacture.storeName}
+                                    title={
+                                        <div style={{
+                                            color: theme === 'dark' ? '#fff' : '#262626',
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            marginBottom: '8px'
+                                        }}>
+                                            {storeFacture.storeName}
+                                        </div>
+                                    }
                                     description={
-                                        <>
-                                            <p><FaPhoneAlt color='black' /> {storeFacture.tele}</p>
-                                            <p><GrDocumentText color='yellow' /> {storeFacture.factureCount} Factures</p>
-                                            <p><FaBoxes color='blue' /> {storeFacture.totalColis} Colis</p>
-                                            <p><MdOutlineCancel color='red' /> {storeFacture.nonPayerCount}  --  <FaCheck color='green' /> {storeFacture.factureCount-storeFacture.nonPayerCount}</p>
-                                        </>
+                                        <div style={{ color: theme === 'dark' ? '#8c8c8c' : '#666' }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                marginBottom: '6px',
+                                                fontSize: '13px'
+                                            }}>
+                                                <FaPhoneAlt
+                                                    style={{
+                                                        color: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                                        marginRight: '8px',
+                                                        fontSize: '12px'
+                                                    }}
+                                                />
+                                                {storeFacture.tele}
+                                            </div>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                marginBottom: '6px',
+                                                fontSize: '13px'
+                                            }}>
+                                                <GrDocumentText
+                                                    style={{
+                                                        color: theme === 'dark' ? '#faad14' : '#faad14',
+                                                        marginRight: '8px',
+                                                        fontSize: '12px'
+                                                    }}
+                                                />
+                                                {storeFacture.factureCount} Factures
+                                            </div>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                marginBottom: '6px',
+                                                fontSize: '13px'
+                                            }}>
+                                                <FaBoxes
+                                                    style={{
+                                                        color: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                                        marginRight: '8px',
+                                                        fontSize: '12px'
+                                                    }}
+                                                />
+                                                {storeFacture.totalColis} Colis
+                                            </div>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                fontSize: '13px'
+                                            }}>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <MdOutlineCancel
+                                                        style={{
+                                                            color: '#ff4d4f',
+                                                            marginRight: '4px',
+                                                            fontSize: '12px'
+                                                        }}
+                                                    />
+                                                    {storeFacture.nonPayerCount}
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <FaCheck
+                                                        style={{
+                                                            color: '#52c41a',
+                                                            marginRight: '4px',
+                                                            fontSize: '12px'
+                                                        }}
+                                                    />
+                                                    {storeFacture.factureCount-storeFacture.nonPayerCount}
+                                                </div>
+                                            </div>
+                                        </div>
                                     }
                                 />
                             </Card>
@@ -141,10 +286,64 @@ function FactureClientGroupe() {
                             description="No stores match your search criteria."
                             type="warning"
                             showIcon
+                            style={{
+                                backgroundColor: theme === 'dark' ? '#2a2a2a' : '#fffbe6',
+                                borderColor: theme === 'dark' ? '#434343' : '#ffe58f',
+                                color: theme === 'dark' ? '#fff' : '#262626'
+                            }}
                         />
                     </Col>
                 )}
             </Row>
+
+            {/* Theme-aware styling */}
+            <style jsx>{`
+                .ant-card:hover {
+                    transform: translateY(-4px) !important;
+                    box-shadow: ${theme === 'dark'
+                        ? '0 8px 24px rgba(0,0,0,0.4)'
+                        : '0 8px 24px rgba(0,0,0,0.15)'} !important;
+                }
+
+                .ant-input-search .ant-input-group .ant-input-affix-wrapper {
+                    background-color: ${theme === 'dark' ? '#262626' : '#fff'} !important;
+                    border-color: ${theme === 'dark' ? '#434343' : '#d9d9d9'} !important;
+                    color: ${theme === 'dark' ? '#fff' : '#262626'} !important;
+                }
+
+                .ant-input-search .ant-input-group .ant-input-affix-wrapper input {
+                    background-color: ${theme === 'dark' ? '#262626' : '#fff'} !important;
+                    color: ${theme === 'dark' ? '#fff' : '#262626'} !important;
+                }
+
+                .ant-input-search .ant-input-group .ant-input-affix-wrapper input::placeholder {
+                    color: ${theme === 'dark' ? '#8c8c8c' : '#bfbfbf'} !important;
+                }
+
+                .ant-input-search .ant-btn {
+                    background-color: #1890ff !important;
+                    border-color: #1890ff !important;
+                    color: #fff !important;
+                }
+
+                .ant-input-search .ant-btn:hover {
+                    background-color: #40a9ff !important;
+                    border-color: #40a9ff !important;
+                }
+
+                .ant-card-actions {
+                    background-color: ${theme === 'dark' ? '#1f1f1f' : '#fafafa'} !important;
+                    border-top: 1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'} !important;
+                }
+
+                .ant-card-actions > li {
+                    color: ${theme === 'dark' ? '#1890ff' : '#1890ff'} !important;
+                }
+
+                .ant-card-actions > li:hover {
+                    background-color: ${theme === 'dark' ? '#262626' : '#f0f0f0'} !important;
+                }
+            `}</style>
         </div>
     );
 }

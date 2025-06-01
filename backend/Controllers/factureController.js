@@ -2207,16 +2207,27 @@ try {
                 startDateDynamic = new Date();
                 startDateDynamic.setMonth(now.getMonth() - 2);
                 break;
+            case 'last_6_months':
+                startDateDynamic = new Date();
+                startDateDynamic.setMonth(now.getMonth() - 6);
+                break;
+            case 'all_time':
+                // For all time, we don't set any date filter
+                startDateDynamic = null;
+                break;
             default:
                 // Default to last week if dateRange is invalid
                 startDateDynamic = new Date();
                 startDateDynamic.setDate(now.getDate() - 7);
         }
 
-        filter.createdAt = {
-            $gte: startDateDynamic,
-            $lte: now,
-        };
+        // Only add date filter if startDateDynamic is not null (for all_time option)
+        if (startDateDynamic !== null) {
+            filter.createdAt = {
+                $gte: startDateDynamic,
+                $lte: now,
+            };
+        }
     } else {
         // If no date range is provided, default to last 1 week
         const oneWeekAgo = new Date();
@@ -2366,16 +2377,27 @@ const getFactureLivreur = async (req, res) => {
                     startDateDynamic = new Date();
                     startDateDynamic.setMonth(now.getMonth() - 2);
                     break;
+                case 'last_6_months':
+                    startDateDynamic = new Date();
+                    startDateDynamic.setMonth(now.getMonth() - 6);
+                    break;
+                case 'all_time':
+                    // For all time, we don't set any date filter
+                    startDateDynamic = null;
+                    break;
                 default:
                     // Default to last week if dateRange is invalid
                     startDateDynamic = new Date();
                     startDateDynamic.setDate(now.getDate() - 7);
             }
 
-            filter.createdAt = {
-                $gte: startDateDynamic,
-                $lte: now,
-            };
+            // Only add date filter if startDateDynamic is not null (for all_time option)
+            if (startDateDynamic !== null) {
+                filter.createdAt = {
+                    $gte: startDateDynamic,
+                    $lte: now,
+                };
+            }
         } else {
             // If no date range is provided, default to last 1 week
             const oneWeekAgo = new Date();

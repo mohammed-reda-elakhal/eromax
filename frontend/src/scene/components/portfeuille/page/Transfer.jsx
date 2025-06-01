@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import { Table, Tag, Typography, Button, Space, Spin, message, Input, Select, DatePicker, Popconfirm, Tooltip, Modal, Form, InputNumber } from 'antd';
+import { Table, Typography, Button, Space, Spin, message, Input, Select, DatePicker, Popconfirm, Tooltip, Modal, Form, InputNumber } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllTransfers, validateTransfer, cancelTransfer, correctTransfer } from '../../../../redux/apiCalls/transferApiCalls';
 import { ReloadOutlined, SearchOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from '@ant-design/icons';
@@ -83,128 +83,199 @@ function Transfer() {
 
     // Search form component
     const SearchForm = () => (
-        <Space direction="vertical" size="middle" style={{ width: '100%', marginBottom: 16 }}>
-            <Space wrap>
-                {isAdmin && (
-                    <>
-                        <Input
-                            placeholder="🏪 Enter store name..."
-                            value={searchParams.storeName}
-                            onChange={(e) => setSearchParams({ ...searchParams, storeName: e.target.value })}
-                            style={{ width: 200 }}
-                            prefix={<SearchOutlined />}
-                            allowClear
-                        />
-                        <Input
-                            placeholder="🔑 Enter wallet key..."
-                            value={searchParams.walletKey}
-                            onChange={(e) => setSearchParams({ ...searchParams, walletKey: e.target.value })}
-                            style={{ width: 200 }}
-                            prefix={<SearchOutlined />}
-                            allowClear
-                        />
-                    </>
+        <div
+            style={{
+                backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fafafa',
+                border: `1px solid ${theme === 'dark' ? '#303030' : '#d9d9d9'}`,
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '16px'
+            }}
+        >
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Space wrap size="middle">
+                    {isAdmin && (
+                        <>
+                            <Input
+                                placeholder="Enter store name..."
+                                value={searchParams.storeName}
+                                onChange={(e) => setSearchParams({ ...searchParams, storeName: e.target.value })}
+                                style={{
+                                    width: 200,
+                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                    color: theme === 'dark' ? '#fff' : '#000'
+                                }}
+                                prefix={<SearchOutlined style={{ color: theme === 'dark' ? '#8c8c8c' : '#bfbfbf' }} />}
+                                allowClear
+                            />
+                            <Input
+                                placeholder="Enter wallet key..."
+                                value={searchParams.walletKey}
+                                onChange={(e) => setSearchParams({ ...searchParams, walletKey: e.target.value })}
+                                style={{
+                                    width: 200,
+                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                    color: theme === 'dark' ? '#fff' : '#000'
+                                }}
+                                prefix={<SearchOutlined style={{ color: theme === 'dark' ? '#8c8c8c' : '#bfbfbf' }} />}
+                                allowClear
+                            />
+                        </>
+                    )}
+                    <Input
+                        placeholder="Enter tracking code..."
+                        value={searchParams.codeSuivi}
+                        onChange={(e) => setSearchParams({ ...searchParams, codeSuivi: e.target.value })}
+                        style={{
+                            width: 200,
+                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                            borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                            color: theme === 'dark' ? '#fff' : '#000'
+                        }}
+                        prefix={<SearchOutlined style={{ color: theme === 'dark' ? '#8c8c8c' : '#bfbfbf' }} />}
+                        allowClear
+                    />
+                    <Select
+                        placeholder="Select transfer status..."
+                        value={searchParams.transferStatus}
+                        onChange={(value) => setSearchParams({ ...searchParams, transferStatus: value })}
+                        style={{
+                            width: 200
+                        }}
+                        dropdownStyle={{
+                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
+                        }}
+                        allowClear
+                    >
+                        <Select.OptGroup label="Transfer Status">
+                            <Select.Option value="validé">Validé</Select.Option>
+                            <Select.Option value="corrigé">Corrigé</Select.Option>
+                            <Select.Option value="annuler">Annulé</Select.Option>
+                            <Select.Option value="pending">En attente</Select.Option>
+                        </Select.OptGroup>
+                    </Select>
+                    <Select
+                        placeholder="Select delivery status..."
+                        value={searchParams.colisStatus}
+                        onChange={(value) => setSearchParams({ ...searchParams, colisStatus: value })}
+                        style={{
+                            width: 200
+                        }}
+                        dropdownStyle={{
+                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
+                        }}
+                        allowClear
+                    >
+                        <Select.OptGroup label="Delivery Status">
+                            <Select.Option value="Livrée">Livrée</Select.Option>
+                            <Select.Option value="Refusée">Refusée</Select.Option>
+                        </Select.OptGroup>
+                    </Select>
+                    <Select
+                        placeholder="Select transfer type..."
+                        value={searchParams.transferType}
+                        onChange={(value) => setSearchParams({ ...searchParams, transferType: value })}
+                        style={{
+                            width: 200
+                        }}
+                        dropdownStyle={{
+                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
+                        }}
+                        allowClear
+                    >
+                        <Select.OptGroup label="Transfer Type">
+                            <Select.Option value="Deposit">Deposit</Select.Option>
+                            <Select.Option value="Correction">Correction</Select.Option>
+                            <Select.Option value="Manuel Depot">Manuel Depot</Select.Option>
+                            <Select.Option value="Manuel Withdrawal">Manuel Withdrawal</Select.Option>
+                            <Select.Option value="withdrawal">Withdrawal</Select.Option>
+                        </Select.OptGroup>
+                    </Select>
+                    <Select
+                        placeholder="Manual transfers only..."
+                        value={searchParams.manualOnly}
+                        onChange={(value) => setSearchParams({ ...searchParams, manualOnly: value })}
+                        style={{
+                            width: 200
+                        }}
+                        dropdownStyle={{
+                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
+                        }}
+                        allowClear
+                    >
+                        <Select.Option value="true">Show manual transfers only</Select.Option>
+                    </Select>
+                    <RangePicker
+                        placeholder={['Start date', 'End date']}
+                        value={[
+                            searchParams.startDate ? moment(searchParams.startDate) : null,
+                            searchParams.endDate ? moment(searchParams.endDate) : null
+                        ]}
+                        onChange={(dates) => {
+                            if (dates) {
+                                setSearchParams({
+                                    ...searchParams,
+                                    startDate: dates[0].toISOString(),
+                                    endDate: dates[1].toISOString()
+                                });
+                            } else {
+                                setSearchParams({
+                                    ...searchParams,
+                                    startDate: '',
+                                    endDate: ''
+                                });
+                            }
+                        }}
+                        format="DD/MM/YYYY HH:mm"
+                        showTime={{ format: 'HH:mm' }}
+                        style={{
+                            width: 300,
+                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                            borderColor: theme === 'dark' ? '#434343' : '#d9d9d9'
+                        }}
+                    />
+                    <Button
+                        type="primary"
+                        onClick={handleSearch}
+                        icon={<SearchOutlined />}
+                        style={{
+                            backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                            borderColor: theme === 'dark' ? '#1890ff' : '#1890ff'
+                        }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={handleReset}
+                        style={{
+                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                            borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                            color: theme === 'dark' ? '#fff' : '#000'
+                        }}
+                    >
+                        Reset
+                    </Button>
+                </Space>
+                {(searchParams.startDate || searchParams.endDate) && (
+                    <div style={{
+                        fontSize: '12px',
+                        color: theme === 'dark' ? '#8c8c8c' : '#666',
+                        padding: '8px 0',
+                        borderTop: `1px solid ${theme === 'dark' ? '#303030' : '#f0f0f0'}`,
+                        marginTop: '8px',
+                        paddingTop: '8px'
+                    }}>
+                        Selected period: {formatDate(searchParams.startDate)} - {formatDate(searchParams.endDate)}
+                    </div>
                 )}
-                <Input
-                    placeholder="📦 Enter tracking code..."
-                    value={searchParams.codeSuivi}
-                    onChange={(e) => setSearchParams({ ...searchParams, codeSuivi: e.target.value })}
-                    style={{ width: 200 }}
-                    prefix={<SearchOutlined />}
-                    allowClear
-                />
-                <Select
-                    placeholder="📊 Select transfer status..."
-                    value={searchParams.transferStatus}
-                    onChange={(value) => setSearchParams({ ...searchParams, transferStatus: value })}
-                    style={{ width: 200 }}
-                    allowClear
-                >
-                    <Select.OptGroup label="Transfer Status">
-                        <Select.Option value="validé">✅ Validé - Confirmed transfers</Select.Option>
-                        <Select.Option value="corrigé">🔄 Corrigé - Corrected transfers</Select.Option>
-                        <Select.Option value="annuler">❌ Annulé - Cancelled transfers</Select.Option>
-                        <Select.Option value="pending">⏳ En attente - Pending transfers</Select.Option>
-                    </Select.OptGroup>
-                </Select>
-                <Select
-                    placeholder="📦 Select delivery status..."
-                    value={searchParams.colisStatus}
-                    onChange={(value) => setSearchParams({ ...searchParams, colisStatus: value })}
-                    style={{ width: 200 }}
-                    allowClear
-                >
-                    <Select.OptGroup label="Delivery Status">
-                        <Select.Option value="Livrée">✅ Livrée - Delivered packages</Select.Option>
-                        <Select.Option value="Refusée">❌ Refusée - Refused packages</Select.Option>
-                    </Select.OptGroup>
-                </Select>
-                <Select
-                    placeholder="🔄 Select transfer type..."
-                    value={searchParams.transferType}
-                    onChange={(value) => setSearchParams({ ...searchParams, transferType: value })}
-                    style={{ width: 200 }}
-                    allowClear
-                >
-                    <Select.OptGroup label="Transfer Type">
-                        <Select.Option value="Deposit">💰 Deposit - Regular transfers</Select.Option>
-                        <Select.Option value="Correction">🔄 Correction - Corrected transfers</Select.Option>
-                        <Select.Option value="Manuel Depot">⬆️ Manuel Depot - Manual deposits</Select.Option>
-                        <Select.Option value="Manuel Withdrawal">⬇️ Manuel Withdrawal - Manual withdrawals</Select.Option>
-                        <Select.Option value="withdrawal">💸 Withdrawal - Client withdrawals</Select.Option>
-                    </Select.OptGroup>
-                </Select>
-                <Select
-                    placeholder="👋 Manual transfers only..."
-                    value={searchParams.manualOnly}
-                    onChange={(value) => setSearchParams({ ...searchParams, manualOnly: value })}
-                    style={{ width: 200 }}
-                    allowClear
-                >
-                    <Select.Option value="true">✅ Show manual transfers only</Select.Option>
-                </Select>
-                <RangePicker
-                    placeholder={['📅 Start date', '📅 End date']}
-                    value={[
-                        searchParams.startDate ? moment(searchParams.startDate) : null,
-                        searchParams.endDate ? moment(searchParams.endDate) : null
-                    ]}
-                    onChange={(dates) => {
-                        if (dates) {
-                            setSearchParams({
-                                ...searchParams,
-                                startDate: dates[0].toISOString(),
-                                endDate: dates[1].toISOString()
-                            });
-                        } else {
-                            setSearchParams({
-                                ...searchParams,
-                                startDate: '',
-                                endDate: ''
-                            });
-                        }
-                    }}
-                    format="DD/MM/YYYY HH:mm"
-                    showTime={{ format: 'HH:mm' }}
-                    style={{ width: 300 }}
-                />
-                <Button
-                    type="primary"
-                    onClick={handleSearch}
-                    icon={<SearchOutlined />}
-                >
-                    Search
-                </Button>
-                <Button onClick={handleReset}>
-                    Reset
-                </Button>
             </Space>
-            {(searchParams.startDate || searchParams.endDate) && (
-                <div style={{ fontSize: '12px', color: 'gray' }}>
-                    📅 Selected period: {formatDate(searchParams.startDate)} - {formatDate(searchParams.endDate)}
-                </div>
-            )}
-        </Space>
+        </div>
     );
 
     const handleValidateTransfer = async (transferId) => {
@@ -267,35 +338,43 @@ function Transfer() {
             title: 'Store',
             dataIndex: 'wallet',
             key: 'store',
+            width: 180,
             render: (wallet) => (
-                <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                    <Tag color="cyan">
+                <div style={{ padding: '4px 0' }}>
+                    <div style={{
+                        fontWeight: '500',
+                        fontSize: '13px',
+                        color: theme === 'dark' ? '#fff' : '#262626',
+                        marginBottom: '4px'
+                    }}>
                         {wallet?.store?.storeName || 'N/A'}
-                    </Tag>
+                    </div>
                     {isAdmin && (
                         <Typography.Text
                             copyable={{ text: wallet?.key }}
                             style={{
-                                fontSize: '12px',
-                                color: 'gray',
-                                width: '100%',
-                                display: 'inline-block',
+                                fontSize: '11px',
+                                color: theme === 'dark' ? '#8c8c8c' : '#666',
+                                fontFamily: 'monospace',
+                                display: 'block',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
-                                textOverflow: 'ellipsis'
+                                textOverflow: 'ellipsis',
+                                maxWidth: '150px'
                             }}
                             title={wallet?.key}
                         >
                             {wallet?.key}
                         </Typography.Text>
                     )}
-                </Space>
+                </div>
             ),
         },
         {
-            title: 'Colis / Manuel Info',
+            title: 'Code / Info',
             dataIndex: 'colis',
             key: 'colis',
+            width: 200,
             render: (colis, record) => {
                 // Check if it's a manual transfer or withdrawal
                 const isManualTransfer = record.type === 'Manuel Depot' || record.type === 'Manuel Withdrawal';
@@ -303,66 +382,83 @@ function Transfer() {
 
                 if (isManualTransfer) {
                     return (
-                        <Space direction="vertical" size={4} style={{ marginBottom: 4, width: '100%' }}>
-                            <div>
-                                <Tag color="purple" style={{ marginBottom: 4 }}>
-                                    👤 {record.admin?.nom || 'Admin'}
-                                </Tag>
+                        <div style={{ padding: '4px 0' }}>
+                            <div style={{
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                color: theme === 'dark' ? '#d4b106' : '#722ed1',
+                                marginBottom: '4px'
+                            }}>
+                                Admin: {record.admin?.nom || 'Admin'}
                             </div>
-                            <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
-                                <Typography.Text
-                                    style={{
-                                        fontSize: '13px',
-                                        color: 'rgba(0, 0, 0, 0.65)',
-                                        display: 'block'
-                                    }}
-                                    ellipsis={{ tooltip: record.commentaire }}
-                                >
-                                    💬 {record.commentaire || 'No comment'}
-                                </Typography.Text>
+                            <div style={{
+                                fontSize: '11px',
+                                color: theme === 'dark' ? '#8c8c8c' : '#666',
+                                lineHeight: '1.4',
+                                maxWidth: '180px',
+                                whiteSpace: 'normal'
+                            }}>
+                                {record.commentaire || 'No comment'}
                             </div>
-                        </Space>
+                        </div>
                     );
                 }
 
                 if (isWithdrawal) {
                     return (
-                        <Space direction="vertical" size={4} style={{ marginBottom: 4, width: '100%' }}>
-                            <div>
-                                <Tag color="orange" style={{ marginBottom: 4 }}>
-                                    💰 {record.wallet?.store?.storeName || 'Store'}
-                                </Tag>
+                        <div style={{ padding: '4px 0' }}>
+                            <div style={{
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                color: theme === 'dark' ? '#fa8c16' : '#fa8c16',
+                                marginBottom: '4px'
+                            }}>
+                                Store: {record.wallet?.store?.storeName || 'Store'}
                             </div>
-                            <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
-                                <Typography.Text
-                                    style={{
-                                        fontSize: '13px',
-                                        color: 'rgba(0, 0, 0, 0.65)',
-                                        display: 'block'
-                                    }}
-                                    ellipsis={{ tooltip: record.commentaire }}
-                                >
-                                    💬 {record.commentaire || 'No comment'}
-                                </Typography.Text>
+                            <div style={{
+                                fontSize: '11px',
+                                color: theme === 'dark' ? '#8c8c8c' : '#666',
+                                lineHeight: '1.4',
+                                maxWidth: '180px',
+                                whiteSpace: 'normal'
+                            }}>
+                                {record.commentaire || 'No comment'}
                             </div>
-                        </Space>
+                        </div>
                     );
                 }
 
                 // Regular colis display for non-manual transfers
                 return (
-                    <Space direction="vertical" size={4} style={{ marginBottom: 4 }}>
-                        <Typography.Text copyable={{ text: colis?.code_suivi }}>
-                            <Tag color="blue">
-                                {colis?.code_suivi || 'N/A'}
-                            </Tag>
+                    <div style={{ padding: '4px 0' }}>
+                        <Typography.Text
+                            copyable={{ text: colis?.code_suivi }}
+                            style={{
+                                fontSize: '12px',
+                                fontFamily: 'monospace',
+                                fontWeight: '500',
+                                color: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                display: 'block',
+                                marginBottom: '4px'
+                            }}
+                        >
+                            {colis?.code_suivi || 'N/A'}
                         </Typography.Text>
-                        <small style={{ color: 'gray' }}>
-                            Status: <Tag color={getColisStatusColor(colis?.statu_final)}>
+                        <div style={{
+                            fontSize: '11px',
+                            color: theme === 'dark' ? '#8c8c8c' : '#666'
+                        }}>
+                            Status: <span style={{
+                                color: getColisStatusColor(colis?.statu_final) === 'success' ? '#52c41a' :
+                                       getColisStatusColor(colis?.statu_final) === 'error' ? '#ff4d4f' :
+                                       getColisStatusColor(colis?.statu_final) === 'warning' ? '#faad14' :
+                                       theme === 'dark' ? '#8c8c8c' : '#666',
+                                fontWeight: '500'
+                            }}>
                                 {colis?.statu_final || 'N/A'}
-                            </Tag>
-                        </small>
-                    </Space>
+                            </span>
+                        </div>
+                    </div>
                 );
             },
         },
@@ -370,26 +466,35 @@ function Transfer() {
             title: 'Amount',
             dataIndex: 'montant',
             key: 'montant',
+            width: 120,
             render: (montant, record) => {
                 // Determine color based on transfer type
-                let tagColor = montant >= 0 ? "green" : "red";
+                let amountColor = montant >= 0 ? '#52c41a' : '#ff4d4f';
 
                 // For withdrawal types, always use red
                 if (record.type === 'withdrawal' || record.type === 'Manuel Withdrawal') {
-                    tagColor = "red";
+                    amountColor = '#ff4d4f';
                 }
 
                 return (
-                    <Space direction="vertical" size={4} style={{ marginBottom: 4 }}>
-                        <Tag color={tagColor}>
+                    <div style={{ padding: '4px 0' }}>
+                        <div style={{
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: amountColor,
+                            marginBottom: record.type === 'Correction' && record.originalMontant !== null ? '4px' : '0'
+                        }}>
                             {montant} DH
-                        </Tag>
+                        </div>
                         {record.type === 'Correction' && record.originalMontant !== null && (
-                            <small style={{ color: 'gray' }}>
-                                Original: <Tag color="orange">{record.originalMontant} DH</Tag>
-                            </small>
+                            <div style={{
+                                fontSize: '11px',
+                                color: theme === 'dark' ? '#8c8c8c' : '#666'
+                            }}>
+                                Original: <span style={{ color: '#fa8c16', fontWeight: '500' }}>{record.originalMontant} DH</span>
+                            </div>
                         )}
-                    </Space>
+                    </div>
                 );
             },
         },
@@ -397,12 +502,30 @@ function Transfer() {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            width: 100,
             render: (status) => {
                 const statusInfo = getTransferStatusInfo(status);
+                const statusColors = {
+                    'success': '#52c41a',
+                    'processing': '#1890ff',
+                    'error': '#ff4d4f',
+                    'warning': '#faad14',
+                    'default': theme === 'dark' ? '#8c8c8c' : '#666'
+                };
+
                 return (
-                    <Tag color={statusInfo.color} style={{ marginBottom: 4 }}>
-                        {statusInfo.icon} {status?.toUpperCase() || 'N/A'}
-                    </Tag>
+                    <div style={{
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        color: statusColors[statusInfo.color] || statusColors.default,
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+                        border: `1px solid ${statusColors[statusInfo.color] || statusColors.default}20`,
+                        textAlign: 'center'
+                    }}>
+                        {status?.toUpperCase() || 'N/A'}
+                    </div>
                 );
             },
         },
@@ -410,28 +533,33 @@ function Transfer() {
             title: 'Type',
             dataIndex: 'type',
             key: 'type',
+            width: 120,
             render: (type) => {
-                let color = 'blue';
-                let icon = '💰';
+                let color = '#1890ff';
 
                 if (type === 'Correction') {
-                    color = 'purple';
-                    icon = '🔄';
+                    color = '#722ed1';
                 } else if (type === 'Manuel Depot') {
-                    color = 'green';
-                    icon = '⬆️';
+                    color = '#52c41a';
                 } else if (type === 'Manuel Withdrawal') {
-                    color = 'orange';
-                    icon = '⬇️';
+                    color = '#fa8c16';
                 } else if (type === 'withdrawal') {
-                    color = 'red';
-                    icon = '💸';
+                    color = '#ff4d4f';
                 }
 
                 return (
-                    <Tag color={color} style={{ marginBottom: 4 }}>
-                        {icon} {type?.toUpperCase() || 'N/A'}
-                    </Tag>
+                    <div style={{
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        color: color,
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+                        border: `1px solid ${color}20`,
+                        textAlign: 'center'
+                    }}>
+                        {type?.toUpperCase() || 'N/A'}
+                    </div>
                 );
             },
         },
@@ -439,28 +567,49 @@ function Transfer() {
             title: 'Created At',
             dataIndex: 'createdAt',
             key: 'createdAt',
+            width: 140,
             render: (date) => (
-                <span style={{ marginBottom: 4, display: 'inline-block' }}>
-                    {new Date(date).toLocaleString()}
-                </span>
+                <div style={{
+                    fontSize: '11px',
+                    color: theme === 'dark' ? '#8c8c8c' : '#666',
+                    lineHeight: '1.4'
+                }}>
+                    {new Date(date).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    })}
+                    <br />
+                    {new Date(date).toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
+                </div>
             ),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            width: 200,
             render: (description, record) => {
                 // For manual transfers, we already show the commentaire in the Colis column
                 if (record.type === 'Manuel Depot' || record.type === 'Manuel Withdrawal') {
                     return (
-                        <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
-                            <Tag color={record.type === 'Manuel Depot' ? 'green' : 'orange'}>
+                        <div style={{ padding: '4px 0' }}>
+                            <div style={{
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                color: record.type === 'Manuel Depot' ? '#52c41a' : '#fa8c16',
+                                marginBottom: '4px'
+                            }}>
                                 {record.type === 'Manuel Depot' ? 'Dépôt Manuel' : 'Retrait Manuel'}
-                            </Tag>
-                            <div>
-                                <small style={{ color: 'gray' }}>
-                                    Par: {record.admin?.nom || 'Admin'}
-                                </small>
+                            </div>
+                            <div style={{
+                                fontSize: '11px',
+                                color: theme === 'dark' ? '#8c8c8c' : '#666'
+                            }}>
+                                Par: {record.admin?.nom || 'Admin'}
                             </div>
                         </div>
                     );
@@ -469,14 +618,20 @@ function Transfer() {
                 // For withdrawal transfers
                 if (record.type === 'withdrawal') {
                     return (
-                        <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
-                            <Tag color="red">
+                        <div style={{ padding: '4px 0' }}>
+                            <div style={{
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                color: '#ff4d4f',
+                                marginBottom: '4px'
+                            }}>
                                 Retrait Client
-                            </Tag>
-                            <div>
-                                <small style={{ color: 'gray' }}>
-                                    Store: {record.wallet?.store?.storeName || 'N/A'}
-                                </small>
+                            </div>
+                            <div style={{
+                                fontSize: '11px',
+                                color: theme === 'dark' ? '#8c8c8c' : '#666'
+                            }}>
+                                Store: {record.wallet?.store?.storeName || 'N/A'}
                             </div>
                         </div>
                     );
@@ -485,15 +640,22 @@ function Transfer() {
                 // For correction transfers
                 if (record.type === 'Correction') {
                     return (
-                        <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
-                            <div style={{ marginBottom: 4 }}>
+                        <div style={{ padding: '4px 0', maxWidth: '180px' }}>
+                            <div style={{
+                                fontSize: '12px',
+                                color: theme === 'dark' ? '#fff' : '#262626',
+                                lineHeight: '1.4',
+                                marginBottom: '4px',
+                                whiteSpace: 'normal'
+                            }}>
                                 {description || 'No description provided'}
                             </div>
                             {record.correctionDate && (
-                                <div>
-                                    <small style={{ color: 'gray' }}>
-                                        Corrected on: {new Date(record.correctionDate).toLocaleString()}
-                                    </small>
+                                <div style={{
+                                    fontSize: '11px',
+                                    color: theme === 'dark' ? '#8c8c8c' : '#666'
+                                }}>
+                                    Corrected: {new Date(record.correctionDate).toLocaleDateString('fr-FR')}
                                 </div>
                             )}
                         </div>
@@ -502,15 +664,30 @@ function Transfer() {
 
                 // For regular transfers
                 return description ? (
-                    <div style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                    <div style={{
+                        padding: '4px 0',
+                        maxWidth: '180px',
+                        fontSize: '12px',
+                        color: theme === 'dark' ? '#fff' : '#262626',
+                        lineHeight: '1.4',
+                        whiteSpace: 'normal'
+                    }}>
                         {description}
                     </div>
-                ) : '-';
+                ) : (
+                    <div style={{
+                        fontSize: '12px',
+                        color: theme === 'dark' ? '#8c8c8c' : '#666'
+                    }}>
+                        -
+                    </div>
+                );
             },
         },
         {
             title: 'Actions',
             key: 'actions',
+            width: isAdmin ? 280 : 0,
             render: (_, record) => {
                 // Check transfer conditions
                 const isCorrected = record.type === 'Correction';
@@ -518,7 +695,7 @@ function Transfer() {
                 const isCancelled = record.status === 'annuler';
 
                 return isAdmin && (
-                    <Space size="small">
+                    <Space size="small" wrap>
                         {!isCorrected && !isValidated && (
                             <Tooltip title="Validate Transfer">
                                 <Popconfirm
@@ -532,7 +709,11 @@ function Transfer() {
                                         type="primary"
                                         icon={<CheckCircleOutlined />}
                                         size="small"
-                                        style={{ backgroundColor: '#52c41a' }}
+                                        style={{
+                                            backgroundColor: '#52c41a',
+                                            borderColor: '#52c41a',
+                                            fontSize: '11px'
+                                        }}
                                     >
                                         Validate
                                     </Button>
@@ -552,6 +733,7 @@ function Transfer() {
                                         danger
                                         icon={<CloseCircleOutlined />}
                                         size="small"
+                                        style={{ fontSize: '11px' }}
                                     >
                                         Cancel
                                     </Button>
@@ -565,6 +747,11 @@ function Transfer() {
                                     icon={<EditOutlined />}
                                     size="small"
                                     onClick={() => showCorrectionModal(record)}
+                                    style={{
+                                        backgroundColor: '#1890ff',
+                                        borderColor: '#1890ff',
+                                        fontSize: '11px'
+                                    }}
                                 >
                                     Correct
                                 </Button>
@@ -573,7 +760,6 @@ function Transfer() {
                     </Space>
                 );
             },
-            width: isAdmin ? 300 : 0,
             className: !isAdmin ? 'hidden-column' : ''
         }
     ];
@@ -648,17 +834,82 @@ function Transfer() {
                                 <Spin size="large" />
                             </div>
                         ) : (
-                            <Table
-                                columns={columns}
-                                dataSource={transfers}
-                                rowKey="_id"
-                                pagination={{
-                                    defaultPageSize: 10,
-                                    showSizeChanger: true,
-                                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} transfers`
-                                }}
-                                scroll={{ x: true }}
-                            />
+                            <div>
+                                <Table
+                                    columns={columns}
+                                    dataSource={transfers}
+                                    rowKey="_id"
+                                    pagination={{
+                                        defaultPageSize: 10,
+                                        showSizeChanger: true,
+                                        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} transfers`
+                                    }}
+                                    scroll={{ x: true }}
+                                    style={{
+                                        backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden'
+                                    }}
+                                />
+
+                                <style jsx>{`
+                                    .ant-table {
+                                        background-color: ${theme === 'dark' ? '#1f1f1f' : '#fff'} !important;
+                                    }
+
+                                    .ant-table-thead > tr > th {
+                                        background-color: ${theme === 'dark' ? '#262626' : '#fafafa'} !important;
+                                        color: ${theme === 'dark' ? '#fff' : '#262626'} !important;
+                                        border-bottom: 1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'} !important;
+                                        font-weight: 600 !important;
+                                        font-size: 13px !important;
+                                        padding: 12px 16px !important;
+                                    }
+
+                                    .ant-table-tbody > tr > td {
+                                        background-color: ${theme === 'dark' ? '#1f1f1f' : '#fff'} !important;
+                                        color: ${theme === 'dark' ? '#fff' : '#262626'} !important;
+                                        border-bottom: 1px solid ${theme === 'dark' ? '#303030' : '#f0f0f0'} !important;
+                                        padding: 12px 16px !important;
+                                        font-size: 12px !important;
+                                    }
+
+                                    .ant-table-tbody > tr:hover > td {
+                                        background-color: ${theme === 'dark' ? '#262626' : '#f5f5f5'} !important;
+                                    }
+
+                                    .ant-table-tbody > tr:nth-child(even) > td {
+                                        background-color: ${theme === 'dark' ? '#1a1a1a' : '#fafafa'} !important;
+                                    }
+
+                                    .ant-table-tbody > tr:nth-child(odd) > td {
+                                        background-color: ${theme === 'dark' ? '#1f1f1f' : '#fff'} !important;
+                                    }
+
+                                    .ant-pagination {
+                                        background-color: ${theme === 'dark' ? '#1f1f1f' : '#fff'} !important;
+                                        margin-top: 16px !important;
+                                    }
+
+                                    .ant-pagination .ant-pagination-item {
+                                        background-color: ${theme === 'dark' ? '#262626' : '#fff'} !important;
+                                        border-color: ${theme === 'dark' ? '#434343' : '#d9d9d9'} !important;
+                                    }
+
+                                    .ant-pagination .ant-pagination-item a {
+                                        color: ${theme === 'dark' ? '#fff' : '#262626'} !important;
+                                    }
+
+                                    .ant-pagination .ant-pagination-item-active {
+                                        background-color: #1890ff !important;
+                                        border-color: #1890ff !important;
+                                    }
+
+                                    .ant-pagination .ant-pagination-item-active a {
+                                        color: #fff !important;
+                                    }
+                                `}</style>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -666,7 +917,15 @@ function Transfer() {
 
             {/* Correction Modal */}
             <Modal
-                title="Correct Transfer"
+                title={
+                    <div style={{
+                        color: theme === 'dark' ? '#fff' : '#262626',
+                        fontSize: '16px',
+                        fontWeight: '600'
+                    }}>
+                        Correct Transfer
+                    </div>
+                }
                 open={correctionModal.visible}
                 onCancel={() => {
                     setCorrectionModal({ visible: false, transfer: null });
@@ -674,6 +933,19 @@ function Transfer() {
                 }}
                 maskClosable={false}
                 footer={null}
+                style={{
+                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff'
+                }}
+                styles={{
+                    content: {
+                        backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                        color: theme === 'dark' ? '#fff' : '#262626'
+                    },
+                    header: {
+                        backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                        borderBottom: `1px solid ${theme === 'dark' ? '#303030' : '#f0f0f0'}`
+                    }
+                }}
             >
                 <Form
                     form={form}
@@ -685,48 +957,92 @@ function Transfer() {
                     }}
                 >
                     <Form.Item
-                        label="Current Amount"
+                        label={
+                            <span style={{ color: theme === 'dark' ? '#fff' : '#262626', fontWeight: '500' }}>
+                                Current Amount
+                            </span>
+                        }
                         name="currentAmount"
                     >
                         <InputNumber
                             disabled
-                            style={{ width: '100%' }}
+                            style={{
+                                width: '100%',
+                                backgroundColor: theme === 'dark' ? '#262626' : '#f5f5f5',
+                                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                color: theme === 'dark' ? '#8c8c8c' : '#666'
+                            }}
                             formatter={value => `${value} DH`}
                             parser={value => value.replace(' DH', '')}
                         />
                     </Form.Item>
                     <Form.Item
-                        label="New Amount"
+                        label={
+                            <span style={{ color: theme === 'dark' ? '#fff' : '#262626', fontWeight: '500' }}>
+                                New Amount
+                            </span>
+                        }
                         name="newAmount"
                         rules={[
                             { required: true, message: 'Please enter the new amount' },
                         ]}
                     >
                         <InputNumber
-                            style={{ width: '100%' }}
+                            style={{
+                                width: '100%',
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                color: theme === 'dark' ? '#fff' : '#262626'
+                            }}
                             formatter={value => `${value} DH`}
                             parser={value => value.replace(' DH', '')}
                         />
                     </Form.Item>
                     <Form.Item
-                        label="Correction Reason"
+                        label={
+                            <span style={{ color: theme === 'dark' ? '#fff' : '#262626', fontWeight: '500' }}>
+                                Correction Reason
+                            </span>
+                        }
                         name="description"
                         rules={[
                             { required: true, message: 'Please provide a reason for the correction' },
                             { min: 10, message: 'Description must be at least 10 characters' }
                         ]}
                     >
-                        <Input.TextArea rows={4} />
+                        <Input.TextArea
+                            rows={4}
+                            style={{
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                color: theme === 'dark' ? '#fff' : '#262626'
+                            }}
+                            placeholder="Enter the reason for this correction..."
+                        />
                     </Form.Item>
                     <Form.Item>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <Button onClick={() => {
-                                setCorrectionModal({ visible: false, transfer: null });
-                                form.resetFields();
-                            }}>
+                            <Button
+                                onClick={() => {
+                                    setCorrectionModal({ visible: false, transfer: null });
+                                    form.resetFields();
+                                }}
+                                style={{
+                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                    color: theme === 'dark' ? '#fff' : '#262626'
+                                }}
+                            >
                                 Cancel
                             </Button>
-                            <Button type="primary" htmlType="submit">
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                style={{
+                                    backgroundColor: '#1890ff',
+                                    borderColor: '#1890ff'
+                                }}
+                            >
                                 Submit Correction
                             </Button>
                         </div>

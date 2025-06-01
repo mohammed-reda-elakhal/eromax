@@ -2558,3 +2558,95 @@ exports.getTarifAjouter = async (req, res) => {
     });
   }
 };
+
+
+
+
+/**
+ * Réinitialise un colis et son suivi à l'état initial
+ * @route PUT /api/colis/reset-all/:identifier
+ */
+exports.resetColisAndSuivi = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+
+    // Trouver le colis par id ou code_suivi
+    let colis;
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+      colis = await Colis.findById(identifier);
+    }
+    if (!colis) {
+      colis = await Colis.findOne({ code_suivi: identifier });
+    }
+    if (!colis) {
+      return res.status(404).json({ message: "Colis non trouvé." });
+    }
+
+    // Réinitialisation des champs du colis
+    colis.statut = "attente de ramassage";
+    colis.livreur = null;
+    colis.commentaire = null;
+    colis.note = null;
+    colis.comment_annule = null;
+    colis.comment_refuse = null;
+    colis.prix_payer = 0;
+    colis.etat = false;
+    colis.date_programme = null;
+    colis.date_reporte = null;
+    colis.date_livraisant = null;
+    colis.code_suivi_ameex = null;
+    colis.code_suivi_gdil = null;
+    colis.expedation_type = 'eromax';
+    colis.pret_payant = false;
+    colis.tarif_ajouter = { value: 0, description: '' };
+    colis.crbt = {
+      prix_colis: 0,
+      tarif_livraison: 0,
+      tarif_refuse: 0,
+      tarif_fragile: 0,
+      tarif_supplementaire: 0,
+      prix_a_payant: 0,
+      total_tarif: 0
+    };
+    colis.statu_final = null;
+    colis.produits = [];
+    colis.wallet_prosseced = false;
+    colis.replacedColis = null;
+    colis.is_simple = true;
+
+    await colis.save();
+
+    // Réinitialisation du suivi colis
+    let suiviColis = await Suivi_Colis.findOne({ id_colis: colis._id });
+    if (suiviColis) {
+      suiviColis.status_updates = [
+        {
+          status: "attente de ramassage",
+          date: new Date()
+        }
+      ];
+      await suiviColis.save();
+    } else {
+      suiviColis = new Suivi_Colis({
+        id_colis: colis._id,
+        code_suivi: colis.code_suivi,
+        status_updates: [
+          {
+            status: "attente de ramassage",
+            date: new Date()
+          }
+        ]
+      });
+      await suiviColis.save();
+    }
+
+    res.status(200).json({
+      message: "Colis et suivi réinitialisés avec succès.",
+      colis,
+      suiviColis
+    });
+  } catch (error) {
+    console.error("Erreur lors de la réinitialisation :", error);
+    res.status(500).json({ message: "Erreur serveur lors de la réinitialisation." });
+  }
+};

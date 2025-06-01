@@ -421,7 +421,7 @@ const FactureDetail = () => {
             </div>
           )}
 
-          <div className="table-facture">
+          <div className="table-facture" style={{ maxHeight: '400px', overflow: 'auto' }}>
             <Table
               size="small"
               className="table-simple"
@@ -430,6 +430,8 @@ const FactureDetail = () => {
               pagination={false}
               rowKey="code_suivi"
               bordered
+              scroll={{ y: 'calc(100vh - 500px)', x: 'max-content' }}
+              sticky={true}
               rowClassName={(record) => {
                 // Add a class to highlight duplicate rows
                 return duplicateCodesSet.has(record.code_suivi) ? 'duplicate-row' : '';
@@ -448,6 +450,8 @@ const FactureDetail = () => {
               <Table
                 size="small"
                 className="table-simple"
+                scroll={{ y: '300px', x: 'max-content' }}
+                sticky={true}
                 columns={[
                   {
                     title: 'Code Suivi',
@@ -498,6 +502,8 @@ const FactureDetail = () => {
               pagination={false}
               showHeader={false}
               bordered={false}
+              scroll={{ y: '200px', x: 'max-content' }}
+              sticky={true}
               rowClassName={(_, index) => {
                 if (index === calcData.length - 1) return 'total-row-simple';
                 return 'recap-row';

@@ -1,0 +1,155 @@
+/* Global Input Theme Fix for Colis Components */
+
+/* Light Mode Input Styling */
+.page-content .ant-input,
+.page-content .ant-input-affix-wrapper,
+.page-content .ant-select-selector,
+.page-content .ant-textarea {
+  background-color: #fff !important;
+  border-color: #d9d9d9 !important;
+  color: #000 !important;
+}
+
+.page-content .ant-input::placeholder,
+.page-content .ant-input-affix-wrapper::placeholder,
+.page-content .ant-select-selection-placeholder,
+.page-content .ant-textarea::placeholder {
+  color: #8c8c8c !important;
+}
+
+.page-content .ant-input:focus,
+.page-content .ant-input-affix-wrapper:focus,
+.page-content .ant-input-affix-wrapper-focused {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.page-content .ant-input-clear-icon {
+  color: #8c8c8c !important;
+}
+
+/* Filter dropdown styling */
+.page-content .ant-table-filter-dropdown {
+  background-color: #fff !important;
+}
+
+.page-content .ant-table-filter-dropdown .ant-input {
+  background-color: #fff !important;
+  border-color: #d9d9d9 !important;
+  color: #000 !important;
+}
+
+.page-content .ant-table-filter-dropdown .ant-input::placeholder {
+  color: #8c8c8c !important;
+}
+
+/* Select dropdown styling */
+.page-content .ant-select-dropdown {
+  background-color: #fff !important;
+}
+
+.page-content .ant-select-item {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+.page-content .ant-select-item:hover {
+  background-color: #f5f5f5 !important;
+}
+
+.page-content .ant-select-item-option-selected {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* Dark Mode Input Styling - Applied when body has dark-theme class */
+body.dark-theme .page-content .ant-input,
+body.dark-theme .page-content .ant-input-affix-wrapper,
+body.dark-theme .page-content .ant-select-selector,
+body.dark-theme .page-content .ant-textarea {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-theme .page-content .ant-input::placeholder,
+body.dark-theme .page-content .ant-input-affix-wrapper::placeholder,
+body.dark-theme .page-content .ant-select-selection-placeholder,
+body.dark-theme .page-content .ant-textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+body.dark-theme .page-content .ant-input:focus,
+body.dark-theme .page-content .ant-input-affix-wrapper:focus,
+body.dark-theme .page-content .ant-input-affix-wrapper-focused {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
+}
+
+body.dark-theme .page-content .ant-input-clear-icon {
+  color: #94a3b8 !important;
+}
+
+/* Dark Mode Filter dropdown styling */
+body.dark-theme .page-content .ant-table-filter-dropdown {
+  background-color: #1e293b !important;
+}
+
+body.dark-theme .page-content .ant-table-filter-dropdown .ant-input {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-theme .page-content .ant-table-filter-dropdown .ant-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Dark Mode Select dropdown styling */
+body.dark-theme .page-content .ant-select-dropdown {
+  background-color: #1e293b !important;
+}
+
+body.dark-theme .page-content .ant-select-item {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-theme .page-content .ant-select-item:hover {
+  background-color: #334155 !important;
+}
+
+body.dark-theme .page-content .ant-select-item-option-selected {
+  background-color: #60a5fa !important;
+  color: #fff !important;
+}
+
+/* Additional fixes for specific input types */
+.page-content .ant-input-number,
+.page-content .ant-input-number-input {
+  background-color: inherit !important;
+  border-color: inherit !important;
+  color: inherit !important;
+}
+
+body.dark-theme .page-content .ant-input-number,
+body.dark-theme .page-content .ant-input-number-input {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Fix for date picker inputs */
+.page-content .ant-picker,
+.page-content .ant-picker-input > input {
+  background-color: inherit !important;
+  border-color: inherit !important;
+  color: inherit !important;
+}
+
+body.dark-theme .page-content .ant-picker,
+body.dark-theme .page-content .ant-picker-input > input {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}

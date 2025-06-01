@@ -16,6 +16,13 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* Dark theme message container */
+.dark-theme .messages-container {
+    border: 1px solid #434343;
+    background-color: #1f1f1f;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
 /* Message bubble styles */
 .message-bubble {
     margin-bottom: 10px;
@@ -35,6 +42,17 @@
     background-color: #f6ffed;
     margin-left: 0;
     margin-right: 20px;
+}
+
+/* Dark theme message bubbles */
+.dark-theme .message-bubble.admin {
+    background-color: #001f3d;
+    border: 1px solid #1890ff;
+}
+
+.dark-theme .message-bubble.store {
+    background-color: #002b17;
+    border: 1px solid #52c41a;
 }
 
 .message-bubble.temp {
@@ -67,9 +85,421 @@
     color: #888;
 }
 
+/* Dark theme message time */
+.dark-theme .message-time {
+    color: #ccc;
+}
+
 /* Message content styles */
 .message-content {
     margin: 0;
     word-break: break-word;
     line-height: 1.5;
+}
+
+/* Dark theme message content */
+.dark-theme .message-content {
+    color: #fff;
+}
+
+/* Dark theme for date separators */
+.dark-theme .date-separator {
+    background-color: #2a2a2a !important;
+    color: #ccc !important;
+    border: 1px solid #434343 !important;
+}
+
+/* Dark theme for cards */
+.dark-theme .ant-card {
+    background-color: #1f1f1f !important;
+    border-color: #434343 !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-card-head {
+    background-color: #1f1f1f !important;
+    border-bottom: 1px solid #434343 !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-card-head-title {
+    color: #fff !important;
+}
+
+.dark-theme .ant-card-body {
+    background-color: #1f1f1f !important;
+    color: #fff !important;
+}
+
+/* Dark theme for tables */
+.dark-theme .ant-table {
+    background-color: #1f1f1f !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-table-thead > tr > th {
+    background-color: #1f1f1f !important;
+    color: #fff !important;
+    border-bottom: 1px solid #434343 !important;
+}
+
+.dark-theme .ant-table-tbody > tr > td {
+    background-color: #1f1f1f !important;
+    color: #fff !important;
+    border-bottom: 1px solid #434343 !important;
+}
+
+.dark-theme .ant-table-tbody > tr:hover > td {
+    background-color: #434343 !important;
+}
+
+.dark-theme .ant-table-title {
+    background-color: #1f1f1f !important;
+    color: #fff !important;
+}
+
+/* Dark theme for tabs */
+.dark-theme .ant-tabs {
+    color: #fff !important;
+}
+
+.dark-theme .ant-tabs-tab {
+    color: #fff !important;
+}
+
+.dark-theme .ant-tabs-tab:hover {
+    color: #1890ff !important;
+}
+
+.dark-theme .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #1890ff !important;
+}
+
+.dark-theme .ant-tabs-ink-bar {
+    background: #1890ff !important;
+}
+
+.dark-theme .ant-tabs-content-holder {
+    background-color: transparent !important;
+}
+
+/* Dark theme for modals */
+.dark-theme .ant-modal-content {
+    background-color: #1f1f1f !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-modal-header {
+    background-color: #1f1f1f !important;
+    border-bottom: 1px solid #434343 !important;
+}
+
+.dark-theme .ant-modal-title {
+    color: #fff !important;
+}
+
+.dark-theme .ant-modal-footer {
+    background-color: #1f1f1f !important;
+    border-top: 1px solid #434343 !important;
+}
+
+.dark-theme .ant-modal-close-x {
+    color: #fff !important;
+}
+
+/* Dark theme for forms */
+.dark-theme .ant-form-item-label > label {
+    color: #fff !important;
+}
+
+.dark-theme .ant-input {
+    background-color: #1f1f1f !important;
+    border-color: #434343 !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-input::placeholder {
+    color: #888 !important;
+}
+
+.dark-theme .ant-input:hover {
+    border-color: #1890ff !important;
+}
+
+.dark-theme .ant-input:focus {
+    border-color: #1890ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Dark theme for select */
+.dark-theme .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    background-color: #1f1f1f !important;
+    border-color: #434343 !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-select-arrow {
+    color: #fff !important;
+}
+
+.dark-theme .ant-select:hover .ant-select-selector {
+    border-color: #1890ff !important;
+}
+
+.dark-theme .ant-select-focused .ant-select-selector {
+    border-color: #1890ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Dark theme for select dropdown */
+.dark-theme .ant-select-dropdown {
+    background-color: #1f1f1f !important;
+    border: 1px solid #434343 !important;
+}
+
+.dark-theme .ant-select-item {
+    color: #fff !important;
+}
+
+.dark-theme .ant-select-item:hover {
+    background-color: #434343 !important;
+}
+
+.dark-theme .ant-select-item-option-selected {
+    background-color: #1890ff !important;
+    color: #fff !important;
+}
+
+/* Dark theme for buttons */
+.dark-theme .ant-btn-default {
+    background-color: #1f1f1f !important;
+    border-color: #434343 !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-btn-default:hover {
+    background-color: #434343 !important;
+    border-color: #1890ff !important;
+    color: #fff !important;
+}
+
+/* Dark theme for typography */
+.dark-theme .ant-typography {
+    color: #fff !important;
+}
+
+.dark-theme h1, .dark-theme h2, .dark-theme h3, .dark-theme h4, .dark-theme h5, .dark-theme h6 {
+    color: #fff !important;
+}
+
+/* Dark theme for alerts */
+.dark-theme .ant-alert {
+    background-color: #2a2a2a !important;
+    border-color: #434343 !important;
+    color: #fff !important;
+}
+
+/* Dark theme for pagination */
+.dark-theme .ant-pagination .ant-pagination-item {
+    background-color: #1f1f1f !important;
+    border-color: #434343 !important;
+}
+
+.dark-theme .ant-pagination .ant-pagination-item a {
+    color: #fff !important;
+}
+
+.dark-theme .ant-pagination .ant-pagination-item:hover {
+    border-color: #1890ff !important;
+}
+
+.dark-theme .ant-pagination .ant-pagination-item:hover a {
+    color: #1890ff !important;
+}
+
+.dark-theme .ant-pagination .ant-pagination-prev,
+.dark-theme .ant-pagination .ant-pagination-next {
+    color: #fff !important;
+}
+
+.dark-theme .ant-pagination .ant-pagination-prev:hover,
+.dark-theme .ant-pagination .ant-pagination-next:hover {
+    color: #1890ff !important;
+}
+
+/* Dark theme for tags */
+.dark-theme .ant-tag {
+    background-color: #2a2a2a !important;
+    border-color: #434343 !important;
+    color: #fff !important;
+}
+
+/* Dark theme for tooltips */
+.dark-theme .ant-tooltip-inner {
+    background-color: #1f1f1f !important;
+    color: #fff !important;
+}
+
+.dark-theme .ant-tooltip-arrow::before {
+    background-color: #1f1f1f !important;
+}
+
+/* Dark theme for space component */
+.dark-theme .ant-space-item {
+    color: #fff !important;
+}
+
+/* Smooth transitions */
+.dark-theme .ant-input,
+.dark-theme .ant-select-selector,
+.dark-theme .ant-btn,
+.dark-theme .ant-card {
+    transition: all 0.3s ease !important;
+}
+
+/* Enhanced hover effects */
+.dark-theme .ant-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Better focus indicators */
+.dark-theme .ant-input:focus,
+.dark-theme .ant-select-focused .ant-select-selector {
+    border-color: #1890ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Enhanced input styling for dark theme */
+.dark-theme .ant-input {
+    transition: all 0.3s ease !important;
+}
+
+.dark-theme .ant-input:hover {
+    border-color: #40a9ff !important;
+    box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.1) !important;
+}
+
+.dark-theme .ant-input::placeholder {
+    color: #888 !important;
+    opacity: 1 !important;
+}
+
+/* Date input specific styling */
+.dark-theme input[type="date"] {
+    background-color: #1f1f1f !important;
+    border-color: #434343 !important;
+    color: #fff !important;
+}
+
+.dark-theme input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) !important;
+    opacity: 0.8 !important;
+}
+
+.dark-theme input[type="date"]:hover {
+    border-color: #1890ff !important;
+}
+
+.dark-theme input[type="date"]:focus {
+    border-color: #1890ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Button hover effects for dark theme */
+.dark-theme .ant-btn-primary {
+    background-color: #1890ff !important;
+    border-color: #1890ff !important;
+    transition: all 0.3s ease !important;
+}
+
+.dark-theme .ant-btn-primary:hover {
+    background-color: #40a9ff !important;
+    border-color: #40a9ff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4) !important;
+}
+
+.dark-theme .ant-btn-primary:disabled {
+    background-color: #434343 !important;
+    border-color: #434343 !important;
+    color: #888 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Typography text styling for dark theme */
+.dark-theme .ant-typography {
+    transition: all 0.3s ease !important;
+}
+
+/* Copy button styling in dark theme */
+.dark-theme .ant-typography-copy {
+    color: #1890ff !important;
+}
+
+.dark-theme .ant-typography-copy:hover {
+    color: #40a9ff !important;
+    background-color: rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Search form input prefix icons */
+.dark-theme .ant-input-prefix {
+    color: #888 !important;
+}
+
+/* Clear button styling */
+.dark-theme .ant-input-clear-icon {
+    color: #888 !important;
+}
+
+.dark-theme .ant-input-clear-icon:hover {
+    color: #fff !important;
+}
+
+/* Enhanced textarea styling for dark theme */
+.dark-theme .ant-input {
+    transition: all 0.3s ease !important;
+}
+
+.dark-theme .ant-input:hover {
+    border-color: #40a9ff !important;
+    box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Button hover effects for dark theme */
+.dark-theme .ant-btn-primary {
+    background-color: #1890ff !important;
+    border-color: #1890ff !important;
+    transition: all 0.3s ease !important;
+}
+
+.dark-theme .ant-btn-primary:hover {
+    background-color: #40a9ff !important;
+    border-color: #40a9ff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4) !important;
+}
+
+.dark-theme .ant-btn-primary:disabled {
+    background-color: #434343 !important;
+    border-color: #434343 !important;
+    color: #888 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Typography text styling for dark theme */
+.dark-theme .ant-typography {
+    transition: all 0.3s ease !important;
+}
+
+/* Copy button styling in dark theme */
+.dark-theme .ant-typography-copy {
+    color: #1890ff !important;
+}
+
+.dark-theme .ant-typography-copy:hover {
+    color: #40a9ff !important;
+    background-color: rgba(24, 144, 255, 0.1) !important;
 }

@@ -3,13 +3,12 @@ import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
-import { PlusCircleFilled, DownOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input, Tooltip } from 'antd';
+import { PlusCircleFilled, CopyOutlined, CheckOutlined } from '@ant-design/icons';
+import { Button, message, Modal, Form, Input, Tooltip } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import TableDashboard from '../../../global/TableDashboard';
-import { MdDeliveryDining } from "react-icons/md";
 import { BsUpcScan } from "react-icons/bs";
-import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { getColis } from '../../../../redux/apiCalls/colisApiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   CheckCircleOutlined,
@@ -35,9 +34,9 @@ import { FaPrint, FaTicketAlt } from 'react-icons/fa';
 import TicketColis from '../../tickets/TicketColis';
 
 // Add these imports at the top
-import { 
-  PhoneOutlined, 
-  EnvironmentOutlined, 
+import {
+  PhoneOutlined,
+  EnvironmentOutlined,
   ShopOutlined,
   CalendarOutlined,
   EditOutlined,
@@ -47,56 +46,75 @@ import {
 
 const getTableCellStyles = (theme) => ({
   codeCell: {
-    background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+    background: theme === 'dark' ? '#1e293b' : '#f8fafc',
     padding: '12px',
-    borderRadius: '8px',
-    border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+    borderRadius: '6px',
+    border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
   },
   dateCell: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '6px',
   },
   dateItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
-    fontSize: '13px',
-    color: theme === 'dark' ? '#b3b3b3' : '#666',
+    gap: '6px',
+    fontSize: '12px',
+    color: theme === 'dark' ? '#94a3b8' : '#64748b',
+    fontWeight: '500',
   },
   destinataireCard: {
-    background: theme === 'dark' ? '#1f1f1f' : '#fff',
+    background: 'transparent',
     padding: '12px',
-    borderRadius: '8px',
-    boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+    gap: '8px',
   },
   priceTag: {
-    background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
-    color: 'white',
-    padding: '8px 16px',
-    borderRadius: '20px',
+    background: 'transparent',
+    color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+    padding: '0',
+    borderRadius: '0',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
-    boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+    fontSize: '13px',
+    fontWeight: '600',
   },
   businessBadge: {
-    background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
-    border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+    background: theme === 'dark' ? '#1e293b' : '#f1f5f9',
+    border: `1px solid ${theme === 'dark' ? '#334155' : '#cbd5e1'}`,
     borderRadius: '6px',
     padding: '8px 12px',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+    color: theme === 'dark' ? '#e2e8f0' : '#475569',
+    fontSize: '13px',
+    fontWeight: '500',
   },
   statusBadge: {
     padding: '6px 12px',
     borderRadius: '6px',
-    fontSize: '13px',
+    fontSize: '12px',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
+    fontWeight: '500',
+  },
+  phoneTag: {
+    background: theme === 'dark' ? '#1e40af' : '#3b82f6',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontWeight: '500',
+  },
+  productTag: {
+    background: theme === 'dark' ? '#0f766e' : '#14b8a6',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
     fontWeight: '500',
   }
 });
@@ -115,8 +133,8 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
   const [loading, setLoading] = useState(false);
   const [openTicket , setOpenTicket] = useState(false);
   const [colis , setColis] = useState(null);
-  
-  
+
+
   // **Add search state**
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -279,20 +297,6 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
     setIsModalVisible(false);
   };
 
-  const menu = (
-    <Menu>
-      <Menu.Item key="ramasse" onClick={() => handleRamasse()}>
-        Ramasse
-      </Menu.Item>
-      <Menu.Item key="modifier" onClick={handleModifier}>
-        Modifier
-      </Menu.Item>
-      <Menu.Item key="suppremer" onClick={handleSuppremer}>
-        Suppremer
-      </Menu.Item>
-    </Menu>
-  );
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -357,14 +361,19 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
 
   const columns = [
     {
-      title: 'Code Suivi',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <BsUpcScan style={{ fontSize: '14px' }} />
+          Code Suivi
+        </span>
+      ),
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 180,
+      width: 200,
       render: (text, record) => (
-        <div style={tableCellStyles.codeCell}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {record.replacedColis && (
-            <Tag icon={<FiRefreshCcw />} color="geekblue" style={{ marginBottom: '8px' }}>
+            <Tag icon={<FiRefreshCcw />} color="geekblue" style={{ fontSize: '11px' }}>
               Remplacée
             </Tag>
           )}
@@ -373,30 +382,36 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
               tooltips: ['Copier', 'Copié!'],
               icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
             }}
-            style={{ 
+            style={{
               fontWeight: '600',
-              fontSize: '14px',
-              color: '#1677ff',
-              display: 'block'
+              fontSize: '13px',
+              color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+              fontFamily: 'monospace',
+              letterSpacing: '0.5px'
             }}
           >
             {text}
           </Typography.Text>
           {record.expedation_type === "ameex" && (
-            <Tag color="purple" style={{ marginTop: '4px' }}>AMEEX: {record.code_suivi_ameex}</Tag>
+            <Tag color="purple" style={{ fontSize: '11px' }}>AMEEX: {record.code_suivi_ameex}</Tag>
           )}
         </div>
       ),
     },
     {
-      title: 'Date',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <CalendarOutlined style={{ fontSize: '14px' }} />
+          Date
+        </span>
+      ),
       dataIndex: 'date',
       key: 'date',
       width: 200,
       render: (text, record) => (
         <div style={tableCellStyles.dateCell}>
           <div style={tableCellStyles.dateItem}>
-            <CalendarOutlined style={{ color: '#1677ff' }} />
+            <CalendarOutlined style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />
             <span>Créé: {formatDate(record?.createdAt)}</span>
           </div>
           <div style={tableCellStyles.dateItem}>
@@ -407,73 +422,144 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
       ),
     },
     {
-      title: 'Destinataire',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <PhoneOutlined style={{ fontSize: '14px' }} />
+          Destinataire
+        </span>
+      ),
       dataIndex: 'nom',
       key: 'nom',
-      render: (text, record) => (
-        <div style={tableCellStyles.destinataireCard}>
-          <Typography.Text strong style={{ fontSize: '15px', display: 'block', marginBottom: '8px' }}>
-            {record.nom}
-          </Typography.Text>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Tag icon={<PhoneOutlined />} color="blue">
-              {record.tele}
-            </Tag>
-            <Tag icon={<EnvironmentOutlined />} color="orange">
-              {record.ville.nom}
-            </Tag>
+      render: (text, record) => {
+        const professionalCardStyle = {
+          background: 'transparent',
+          padding: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        };
+
+        const nameStyle = {
+          color: theme === 'dark' ? '#e2e8f0' : '#475569',
+          fontSize: '13px',
+          fontWeight: '600',
+          textAlign: 'left',
+          lineHeight: '1.3',
+          marginBottom: '4px'
+        };
+
+        const phoneStyle = {
+          color: theme === 'dark' ? '#94a3b8' : '#64748b',
+          fontSize: '12px',
+          fontWeight: '500',
+          textAlign: 'left',
+          lineHeight: '1.2'
+        };
+
+        const priceStyle = {
+          color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+          fontSize: '16px',
+          fontWeight: '700',
+          textAlign: 'left',
+          lineHeight: '1.2'
+        };
+
+        return (
+          <div style={professionalCardStyle}>
+            <div>
+              <Typography.Text style={nameStyle}>
+                {record.nom?.length > 18 ? record.nom.substring(0, 18) + '...' : record.nom}
+              </Typography.Text>
+            </div>
+            <div>
+              <Tag style={tableCellStyles.phoneTag}>
+                <PhoneOutlined style={{ marginRight: '4px' }} />
+                {record.tele}
+              </Tag>
+            </div>
+            <div>
+              <Typography.Text style={priceStyle}>
+                {record.prix || 'N/A'} DH
+              </Typography.Text>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
-      title: 'Prix',
-      dataIndex: 'prix',
-      key: 'prix',
-      width: 140,
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <EnvironmentOutlined style={{ fontSize: '14px' }} />
+          Ville
+        </span>
+      ),
+      dataIndex: 'ville',
+      key: 'ville',
+      width: 120,
       render: (text, record) => (
-        <div style={tableCellStyles.priceTag}>
-          <DollarOutlined />
-          <span style={{ fontSize: '16px', fontWeight: '600' }}>
-            {record.prix || 'N/A'} DH
-          </span>
-        </div>
+        <Tag
+          icon={<EnvironmentOutlined />}
+          style={{
+            background: theme === 'dark' ? '#0f766e' : '#14b8a6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontWeight: '500',
+            padding: '4px 8px'
+          }}
+        >
+          {record.ville?.nom || 'N/A'}
+        </Tag>
       ),
     },
     {
-      title: 'Nature',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <TagOutlined style={{ fontSize: '14px' }} />
+          Nature
+        </span>
+      ),
       dataIndex: 'nature_produit',
       key: 'nature_produit',
       width: 150,
       render: (text) => (
-        <Tag 
+        <Tag
           icon={<TagOutlined />}
-          color="cyan"
-          style={{ 
-            padding: '6px 12px',
-            borderRadius: '4px',
-            fontSize: '13px'
-          }}
+          style={tableCellStyles.productTag}
         >
           {text || 'N/A'}
         </Tag>
       ),
     },
     {
-      title: 'Business',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ShopOutlined style={{ fontSize: '14px' }} />
+          Business
+        </span>
+      ),
       dataIndex: 'store',
       key: 'store',
       render: (text, record) => (
         <div style={tableCellStyles.businessBadge}>
-          <ShopOutlined />
-          <Typography.Text strong>
-            {record.store?.storeName}
+          <ShopOutlined style={{ fontSize: '12px' }} />
+          <Typography.Text style={{ fontSize: '13px', fontWeight: '500' }}>
+            {record.store?.storeName?.length > 15
+              ? record.store.storeName.substring(0, 15) + '...'
+              : record.store?.storeName || 'N/A'
+            }
           </Typography.Text>
         </div>
       ),
     },
     {
-      title: 'Statut',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <CheckCircleOutlined style={{ fontSize: '14px' }} />
+          Statut
+        </span>
+      ),
       dataIndex: 'statut',
       key: 'statut',
       width: 140,
@@ -504,14 +590,19 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
       },
     },
     {
-      title: 'Action',
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <FaPrint style={{ fontSize: '14px' }} />
+          Action
+        </span>
+      ),
       key: 'action',
       render: (text, record) => (
         <div className="table-action">
            <Tooltip title="Ticket colis">
-            <Button 
-              type="primary" 
-              icon={<FaPrint />} 
+            <Button
+              type="primary"
+              icon={<FaPrint />}
               onClick={() => handleTicket(record)}
               style={{
                 backgroundColor: '#0d6efd',
@@ -523,7 +614,7 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
         </div>
       ),
     }
-    
+
   ];
 
   return (
@@ -556,49 +647,49 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
           >
             <h4>Colis attend de ramassage</h4>
             {
-              user?.role === "admin" 
+              user?.role === "admin"
               ?
               <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <Button 
-                  icon={<IoMdRefresh />} 
-                  type="primary" 
-                  onClick={getDataColis} 
+                <Button
+                  icon={<IoMdRefresh />}
+                  type="primary"
+                  onClick={getDataColis}
                   style={{ marginRight: '8px' }}
                 >
                   Refresh
                 </Button>
-                <Button 
-                  icon={<FaBoxesStacked />} 
-                  type="primary" 
-                  onClick={handleRamasse} 
+                <Button
+                  icon={<FaBoxesStacked />}
+                  type="primary"
+                  onClick={handleRamasse}
                   loading={loading}
                   style={{ marginRight: '8px' }}
                 >
                   Ramasser
                 </Button>
-                <Button 
-                  icon={<IoQrCodeSharp />} 
-                  type="primary" 
-                  onClick={() => navigate("/dashboard/scan/statu/Ramassée")} 
+                <Button
+                  icon={<IoQrCodeSharp />}
+                  type="primary"
+                  onClick={() => navigate("/dashboard/scan/statu/Ramassée")}
                   loading={loading}
                   style={{ marginRight: '8px' }}
                 >
                   Scan
                 </Button>
-                <Button 
-                  icon={<FaDownload />} 
-                  type="default" 
+                <Button
+                  icon={<FaDownload />}
+                  type="default"
                   onClick={exportToExcel}
                   disabled={selectedRowKeys.length === 0}
                 >
                   Export to Excel
                 </Button>
-                <Button 
-                  icon={<FaTicketAlt />} 
-                  type="primary" 
+                <Button
+                  icon={<FaTicketAlt />}
+                  type="primary"
                   onClick={handleBatchTickets}
                   disabled={selectedRowKeys.length === 0}
-                  style={{ 
+                  style={{
                     marginRight: '8px',
                     backgroundColor: '#1890ff',
                     borderColor: '#1890ff'
@@ -608,17 +699,84 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
                 </Button>
               </div>
               :
-              "" 
+              ""
             }
 
             {/* **Add Search Input Here** */}
             <div style={{ marginBottom: '16px' }}>
+              <style>
+                {`
+                  /* Global Input Styling Fix */
+                  .page-content .ant-input,
+                  .page-content .ant-input-affix-wrapper,
+                  .page-content .ant-select-selector,
+                  .page-content .ant-textarea {
+                    background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                    border-color: ${theme === 'dark' ? '#334155' : '#d9d9d9'} !important;
+                    color: ${theme === 'dark' ? '#e2e8f0' : '#000'} !important;
+                  }
+
+                  .page-content .ant-input::placeholder,
+                  .page-content .ant-input-affix-wrapper::placeholder,
+                  .page-content .ant-select-selection-placeholder,
+                  .page-content .ant-textarea::placeholder {
+                    color: ${theme === 'dark' ? '#94a3b8' : '#8c8c8c'} !important;
+                  }
+
+                  .page-content .ant-input:focus,
+                  .page-content .ant-input-affix-wrapper:focus,
+                  .page-content .ant-input-affix-wrapper-focused {
+                    border-color: ${theme === 'dark' ? '#60a5fa' : '#1890ff'} !important;
+                    box-shadow: 0 0 0 2px ${theme === 'dark' ? 'rgba(96, 165, 250, 0.2)' : 'rgba(24, 144, 255, 0.2)'} !important;
+                  }
+
+                  .page-content .ant-input-clear-icon {
+                    color: ${theme === 'dark' ? '#94a3b8' : '#8c8c8c'} !important;
+                  }
+
+                  /* Filter dropdown styling */
+                  .page-content .ant-table-filter-dropdown {
+                    background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                  }
+
+                  .page-content .ant-table-filter-dropdown .ant-input {
+                    background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                    border-color: ${theme === 'dark' ? '#334155' : '#d9d9d9'} !important;
+                    color: ${theme === 'dark' ? '#e2e8f0' : '#000'} !important;
+                  }
+
+                  .page-content .ant-table-filter-dropdown .ant-input::placeholder {
+                    color: ${theme === 'dark' ? '#94a3b8' : '#8c8c8c'} !important;
+                  }
+
+                  /* Select dropdown styling */
+                  .page-content .ant-select-dropdown {
+                    background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                  }
+
+                  .page-content .ant-select-item {
+                    background-color: ${theme === 'dark' ? '#1e293b' : '#fff'} !important;
+                    color: ${theme === 'dark' ? '#e2e8f0' : '#000'} !important;
+                  }
+
+                  .page-content .ant-select-item:hover {
+                    background-color: ${theme === 'dark' ? '#334155' : '#f5f5f5'} !important;
+                  }
+
+                  .page-content .ant-select-item-option-selected {
+                    background-color: ${theme === 'dark' ? '#60a5fa' : '#1890ff'} !important;
+                    color: #fff !important;
+                  }
+                `}
+              </style>
               <Input
                 placeholder="Rechercher des colis..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 allowClear
-                style={{ width: '300px' }}
+                style={{
+                  width: '300px',
+                }}
               />
             </div>
 
@@ -632,7 +790,7 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
                 onChange: setSelectedRowKeys,
               }}
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.08)' :'#fff',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
@@ -642,11 +800,11 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
               width={600}
               open={openTicket}
               onCancel={() => {
-                setOpenTicket(false) 
+                setOpenTicket(false)
                 setColis(null)
               }}
               onOk={() => {
-                setOpenTicket(false) 
+                setOpenTicket(false)
                 setColis(null)
               }}
             >

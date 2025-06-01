@@ -2,24 +2,25 @@
 
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
+import './ScanRecherche.css';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
 import { HiOutlineStatusOnline } from "react-icons/hi";
-import { 
-  Button, 
-  Input, 
-  Card, 
-  Spin, 
-  Alert, 
-  Select, 
-  Space, 
-  Table, 
-  notification, 
-  Modal, 
-  Form, 
-  Tag, 
-  message, 
+import {
+  Button,
+  Input,
+  Card,
+  Spin,
+  Alert,
+  Select,
+  Space,
+  Table,
+  notification,
+  Modal,
+  Form,
+  Tag,
+  message,
   Drawer,
   Row,
   Col,
@@ -38,7 +39,7 @@ import moment from 'moment';
 
 const { Meta } = Card;
 const { Option } = Select;
-const { Text, Title: AntTitle } = Typography;
+const { Text } = Typography;
 
 function ScanRecherche() {
   const { theme } = useContext(ThemeContext);
@@ -114,11 +115,11 @@ function ScanRecherche() {
     dispatch(getColisByCodeSuivi(scannedCode));  // Récupérer les informations du colis
     setScannerEnabled(false);  // Désactiver le scanner après un scan réussi
     setScannedItems(prev => [
-      ...prev, 
-      { 
-        barcode: scannedCode, 
-        status: selectedColis?.statut, 
-        ville: selectedColis?.ville?.nom 
+      ...prev,
+      {
+        barcode: scannedCode,
+        status: selectedColis?.statut,
+        ville: selectedColis?.ville?.nom
       }
     ]);
 
@@ -153,30 +154,30 @@ function ScanRecherche() {
   const handleStatusOk = () => {
     form.validateFields().then(values => {
       const { status, comment, selectedDate } = values;
-  
+
       // Check if status is "Programmée" or "Reporté" and ensure a date is provided
       if ((status === "Programmée" || status === "Reporté") && !selectedDate) {
         message.error("Veuillez sélectionner une date pour ce statut.");
         return;
       }
-  
+
       // Dispatch updateStatut with the selected date if applicable
       const formattedDate = selectedDate ? selectedDate.format('YYYY-MM-DD') : undefined;
-  
+
       dispatch(updateStatut(selectedColis._id, status, comment, formattedDate));
-  
+
       // Reset form and close modal
       form.resetFields();
       setStatusType(null);
       setIsStatusModalVisible(false);
-  
+
       // Refresh the colis data
       dispatch(getColisByCodeSuivi(selectedColis.code_suivi));
     }).catch(info => {
       console.log('Validation Failed:', info);
     });
   };
-  
+
 
   // Fonction pour annuler le changement de statut
   const handleStatusCancel = () => {
@@ -204,7 +205,7 @@ function ScanRecherche() {
   const captureAndScan = () => {
     const webcam = webcamRef.current;
     const canvas = canvasRef.current;
-    
+
     if (webcam && canvas) {
       const video = webcam.video;
 
@@ -219,11 +220,11 @@ function ScanRecherche() {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(video, 0, 0, width, height);
-          
+
           try {
             const imageData = ctx.getImageData(0, 0, width, height);
             const code = jsQR(imageData.data, width, height);
-            
+
             if (code) {
               handleScan(code.data);
             }
@@ -240,11 +241,11 @@ function ScanRecherche() {
   // Utilisation de useEffect pour scanner régulièrement
   useEffect(() => {
     let intervalId;
-    
+
     if (scanMethod === 'qrcode' && scannerEnabled) {
       intervalId = setInterval(captureAndScan, 1000); // Scanner toutes les 1 seconde
     }
-    
+
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
@@ -259,7 +260,7 @@ function ScanRecherche() {
       <main className="page-main">
         <Topbar />
         <div
-          className="page-content"
+          className={`page-content ${theme === 'dark' ? 'dark-theme' : ''}`}
           style={{
             backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
             color: theme === 'dark' ? '#fff' : '#002242',
@@ -275,18 +276,37 @@ function ScanRecherche() {
               padding: '20px',
               borderRadius: '8px',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Ombre pour la profondeur
-            }} 
+            }}
           >
-            <h4>Recherche Colis :</h4>
+            <h4 style={{
+              color: theme === 'dark' ? '#fff' : '#002242',
+              marginBottom: '20px',
+              fontSize: '18px',
+              fontWeight: '600'
+            }}>Recherche Colis :</h4>
 
             {/* Sélection de la méthode de scan */}
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <div>
-                <label>Méthode de Scan: </label>
-                <Select 
-                  defaultValue="barcode" 
-                  style={{ width: 200 }} 
+                <label style={{
+                  color: theme === 'dark' ? '#fff' : '#000',
+                  marginRight: '10px',
+                  fontWeight: '500'
+                }}>Méthode de Scan: </label>
+                <Select
+                  defaultValue="barcode"
+                  style={{
+                    width: 200,
+                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                    color: theme === 'dark' ? '#fff' : '#000',
+                  }}
                   onChange={handleScanMethodChange}
+                  dropdownStyle={{
+                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                    color: theme === 'dark' ? '#fff' : '#000',
+                  }}
+                  popupClassName={theme === 'dark' ? 'dark-select-dropdown' : ''}
                 >
                   <Option value="barcode">Scanner Code-barres</Option>
                   <Option value="qrcode">Scanner QR Code</Option>
@@ -304,14 +324,33 @@ function ScanRecherche() {
                     value={codeSuivi}
                     onChange={(e) => setCodeSuivi(e.target.value)}
                     placeholder="Entrez ou scannez le code suivi"
-                    style={{ marginBottom: '20px' }}
+                    style={{
+                      marginBottom: '20px',
+                      backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                      color: theme === 'dark' ? '#fff' : '#000',
+                      borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                    }}
+                    className={theme === 'dark' ? 'dark-input' : ''}
                     size="large"
-                    addonBefore={<CiBarcode />}
+                    addonBefore={
+                      <div style={{
+                        backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fafafa',
+                        color: theme === 'dark' ? '#fff' : '#000',
+                        border: 'none'
+                      }}>
+                        <CiBarcode style={{ color: theme === 'dark' ? '#fff' : '#000' }} />
+                      </div>
+                    }
                   />
-                  <Button 
-                    type="primary" 
-                    onClick={() => handleScan(codeSuivi)} 
+                  <Button
+                    type="primary"
+                    onClick={() => handleScan(codeSuivi)}
                     loading={loading}
+                    style={{
+                      backgroundColor: '#1890ff',
+                      borderColor: '#1890ff',
+                      color: '#fff',
+                    }}
                   >
                     Rechercher Colis
                   </Button>
@@ -331,10 +370,15 @@ function ScanRecherche() {
                     style={{ width: '100%', maxWidth: '500px', margin: '20px auto', borderRadius: '8px', border: '2px solid #1890ff' }}
                   />
                   <canvas ref={canvasRef} style={{ display: 'none' }} />
-                  <Button 
-                    onClick={toggleCamera} 
-                    className="switch-camera-button" 
+                  <Button
+                    onClick={toggleCamera}
+                    className="switch-camera-button"
                     disabled={false} // Vous pouvez ajouter une logique pour vérifier le nombre de caméras disponibles
+                    style={{
+                      backgroundColor: '#1890ff',
+                      borderColor: '#1890ff',
+                      color: '#fff',
+                    }}
                   >
                     Switch to {facingMode === 'environment' ? 'Front' : 'Rear'} Camera
                   </Button>
@@ -343,9 +387,14 @@ function ScanRecherche() {
 
               {/* Bouton de Rescan */}
               {scanMethod === 'qrcode' && !scannerEnabled && (
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   onClick={handleRescan}
+                  style={{
+                    backgroundColor: '#1890ff',
+                    borderColor: '#1890ff',
+                    color: '#fff',
+                  }}
                 >
                   Rescanner le QR Code
                 </Button>
@@ -357,7 +406,13 @@ function ScanRecherche() {
                   value={codeSuivi}
                   onChange={(e) => setCodeSuivi(e.target.value)}
                   placeholder="Le QR Code scanné apparaîtra ici..."
-                  style={{ width: '100%' }}
+                  style={{
+                    width: '100%',
+                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                    color: theme === 'dark' ? '#fff' : '#000',
+                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                  }}
+                  className={theme === 'dark' ? 'dark-input' : ''}
                   disabled={scannerEnabled}  // Désactiver l'entrée lorsque le scanner est actif
                 />
               )}
@@ -367,96 +422,105 @@ function ScanRecherche() {
 
               {/* Afficher une alerte en cas d'erreur */}
               {error && (
-                <Alert 
-                  message="Erreur" 
-                  description={error} 
-                  type="error" 
-                  showIcon 
-                  style={{ marginTop: '20px' }} 
+                <Alert
+                  message="Erreur"
+                  description={error}
+                  type="error"
+                  showIcon
+                  style={{ marginTop: '20px' }}
                 />
               )}
 
               {/* Afficher les informations du colis scanné */}
               {selectedColis && (
-                <Card style={{ marginTop: '20px' }}>
-                  <Meta title={`Colis: ${selectedColis.code_suivi}`} />
-                  
+                <Card style={{
+                  marginTop: '20px',
+                  backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                  borderColor: theme === 'dark' ? '#434343' : '#f0f0f0',
+                  color: theme === 'dark' ? '#fff' : '#000',
+                }}>
+                  <Meta title={
+                    <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
+                      {`Colis: ${selectedColis.code_suivi}`}
+                    </span>
+                  } />
+
                   {/* Nouvelle Mise en Page pour la Description */}
                   <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Nom:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Nom:</Text>
                       <br />
-                      <Text>{selectedColis.nom}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.nom}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Téléphone:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Téléphone:</Text>
                       <br />
-                      <Text>{selectedColis.tele}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.tele}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Ville:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Ville:</Text>
                       <br />
-                      <Text>{selectedColis.ville.nom}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.ville.nom}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Adresse:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Adresse:</Text>
                       <br />
-                      <Text>{selectedColis.adresse}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.adresse}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Prix:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Prix:</Text>
                       <br />
-                      <Text>{selectedColis.prix} DH</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.prix} DH</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Nature Produit:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Nature Produit:</Text>
                       <br />
-                      <Text>{selectedColis.nature_produit}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.nature_produit}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Statut:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Statut:</Text>
                       <br />
-                      <Text>{selectedColis.statut}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.statut}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Commentaire:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Commentaire:</Text>
                       <br />
-                      <Text>{selectedColis.commentaire || 'Aucun commentaire'}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.commentaire || 'Aucun commentaire'}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>État:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>État:</Text>
                       <br />
-                      <Text>{selectedColis.etat ? "Payée" : "Non Payée"}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.etat ? "Payée" : "Non Payée"}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Ouvrir:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Ouvrir:</Text>
                       <br />
-                      <Text>{selectedColis.ouvrir ? "Oui" : "Non"}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.ouvrir ? "Oui" : "Non"}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Fragile:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Fragile:</Text>
                       <br />
-                      <Text>{selectedColis.is_fragile ? "Oui" : "Non"}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.is_fragile ? "Oui" : "Non"}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Remplacer:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Remplacer:</Text>
                       <br />
-                      <Text>{selectedColis.is_remplace ? "Oui" : "Non"}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.is_remplace ? "Oui" : "Non"}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Store:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Store:</Text>
                       <br />
-                      <Text>{selectedColis.store?.storeName || 'N/A'}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{selectedColis.store?.storeName || 'N/A'}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Créé le:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Créé le:</Text>
                       <br />
-                      <Text>{new Date(selectedColis.createdAt).toLocaleString()}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{new Date(selectedColis.createdAt).toLocaleString()}</Text>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                      <Text strong>Mis à jour le:</Text>
+                      <Text strong style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Mis à jour le:</Text>
                       <br />
-                      <Text>{new Date(selectedColis.updatedAt).toLocaleString()}</Text>
+                      <Text style={{ color: theme === 'dark' ? '#ccc' : '#666' }}>{new Date(selectedColis.updatedAt).toLocaleString()}</Text>
                     </Col>
                   </Row>
 
@@ -468,16 +532,26 @@ function ScanRecherche() {
                         icon={<HiOutlineStatusOnline />}
                         type="primary"
                         onClick={() => setIsStatusModalVisible(true)}
+                        style={{
+                          backgroundColor: '#1890ff',
+                          borderColor: '#1890ff',
+                          color: '#fff',
+                        }}
                       >
                         Changer le Statut
                       </Button>
                     )}
-                    
+
                     {/* Bouton pour ouvrir le Drawer de suivi */}
                     <Button
                         icon={<Si1001Tracklists />}
                         type="primary"
                         onClick={showTrackingDrawer}
+                        style={{
+                          backgroundColor: '#1890ff',
+                          borderColor: '#1890ff',
+                          color: '#fff',
+                        }}
                     >
                       Voir le Suivi
                     </Button>
@@ -493,8 +567,12 @@ function ScanRecherche() {
                   rowKey="barcode"
                   pagination={false}
                   bordered
-                  title={() => 'Scanned Items'}
-                  style={{ marginTop: '20px' }}
+                  title={() => <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Scanned Items</span>}
+                  style={{
+                    marginTop: '20px',
+                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                  }}
+                  className={theme === 'dark' ? 'dark-table' : ''}
                 />
               )}
             </Space>
@@ -504,17 +582,41 @@ function ScanRecherche() {
 
       {/* Modal pour changer le statut */}
       <Modal
-        title={`Changer le Statut de ${selectedColis ? selectedColis.code_suivi : ''}`}
-        visible={isStatusModalVisible}
+        title={
+          <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
+            {`Changer le Statut de ${selectedColis ? selectedColis.code_suivi : ''}`}
+          </span>
+        }
+        open={isStatusModalVisible}
         onOk={handleStatusOk}
         onCancel={handleStatusCancel}
         okText="Confirmer"
         cancelText="Annuler"
+        styles={{
+          header: {
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+            borderBottom: theme === 'dark' ? '1px solid #434343' : '1px solid #f0f0f0',
+          },
+          body: {
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+            color: theme === 'dark' ? '#fff' : '#000',
+          },
+          footer: {
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+            borderTop: theme === 'dark' ? '1px solid #434343' : '1px solid #f0f0f0',
+          },
+          content: {
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+          },
+          mask: {
+            backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',
+          }
+        }}
       >
         <Form form={form} layout="vertical" name="form_status">
           <Form.Item
             name="status"
-            label="Nouveau Statut"
+            label={<span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Nouveau Statut</span>}
             rules={[{ required: true, message: 'Veuillez sélectionner un statut!' }]}
           >
             {/* Afficher les statuts sous forme de Tags cliquables */}
@@ -538,21 +640,33 @@ function ScanRecherche() {
           {/* Champ conditionnel pour les commentaires */}
           <Form.Item
             name="comment"
-            label="Commentaire"
+            label={<span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Commentaire</span>}
             rules={[{ required: false, message: 'Ajouter un commentaire (facultatif)' }]}
           >
-            <Input.TextArea placeholder="Ajouter un commentaire" rows={3} />
+            <Input.TextArea
+              placeholder="Ajouter un commentaire"
+              rows={3}
+              style={{
+                backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                color: theme === 'dark' ? '#fff' : '#000',
+                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+              }}
+            />
           </Form.Item>
 
           {/* Champ conditionnel pour le temps de livraison si le statut est 'Programmée' */}
           {statusType === "Programmée" || statusType === "Reporté" ? (
             <Form.Item
               name="selectedDate"
-              label="Date"
+              label={<span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Date</span>}
               rules={[{ required: true, message: 'Veuillez sélectionner une date!' }]}
             >
-              <DatePicker 
-                style={{ width: '100%' }} 
+              <DatePicker
+                style={{
+                  width: '100%',
+                  backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                  borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                }}
                 disabledDate={(current) => current && current < moment().startOf('day')} // Disable past dates
                 format="YYYY-MM-DD"
               />
@@ -564,11 +678,28 @@ function ScanRecherche() {
 
       {/* Drawer pour le suivi du colis */}
       <Drawer
-        title={`Suivi du Colis: ${selectedColis ? selectedColis.code_suivi : ''}`}
+        title={
+          <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
+            {`Suivi du Colis: ${selectedColis ? selectedColis.code_suivi : ''}`}
+          </span>
+        }
         placement="right"
         onClose={closeTrackingDrawer}
-        visible={isTrackingDrawerVisible}
+        open={isTrackingDrawerVisible}
         width={500}
+        styles={{
+          header: {
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+            borderBottom: theme === 'dark' ? '1px solid #434343' : '1px solid #f0f0f0',
+          },
+          body: {
+            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+            color: theme === 'dark' ? '#fff' : '#000',
+          },
+          mask: {
+            backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',
+          }
+        }}
       >
         {selectedColis ? (
           <TrackingColis codeSuivi={selectedColis.code_suivi} />

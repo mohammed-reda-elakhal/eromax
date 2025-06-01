@@ -35,6 +35,7 @@ import { FaPhoneAlt } from 'react-icons/fa';
 import { AiFillProduct } from "react-icons/ai";
 import { FaMapLocation } from "react-icons/fa6";
 import { ThemeContext } from '../../../ThemeContext'; // Ensure ThemeContext is imported
+import './ColisForm.css'; // Import the same CSS file
 
 const { TextArea } = Input;
 const { Option } = Select; // Destructure Option from Select
@@ -206,51 +207,22 @@ function ColisFormAdmin({ type }) {
   const uniqueVilles = getUniqueVilles(villes);
 
   return (
-    <div className={`colis-form-container ${theme === 'dark' ? 'dark-mode' : ''}`}>
-      <form onSubmit={handleSubmit}>
+    <div className={`colis-form-container-${theme}`}>
+      <form onSubmit={handleSubmit} className={`colis-form-${theme}`}>
         {/* Display selected ville details if available */}
         {selectedVille && (
-          <div
-            className="selected-ville-info"
-            style={{
-              padding: '16px 0',
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: '16px',
-            }}
-          >
-            <div style={{ flex: 2 }} className='selected-ville-info-content'>
-              <h3 style={{ marginBottom: '8px' }}>
-                {selectedVille.nom} - {selectedVille.tarif} DH
+          <div className={`selected-ville-info-${theme}`}>
+            <div className='selected-ville-info-content'>
+              <h3>
+                📍 {selectedVille.nom} - {selectedVille.tarif} DH
               </h3>
-              <div
-                className="days-checkbox-list"
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  padding: '8px',
-                  backgroundColor: theme === 'dark' ? '#001529' : '#f0f2f5',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-              >
+              <div className={`days-checkbox-list-${theme}`}>
                 {daysOfWeek.map((day) => (
                   <Checkbox
                     key={day}
                     checked={selectedVille.disponibility.includes(day)}
                     disabled
-                    style={{
-                      fontSize: '14px',
-                      padding: '4px 8px',
-                      border: '1px solid #d9d9d9',
-                      borderRadius: '4px',
-                      backgroundColor: selectedVille.disponibility.includes(day)
-                        ? (theme === 'dark' ? '#1890ff' : '#e6f7ff')
-                        : '#fff',
-                      color: theme === 'dark' && selectedVille.disponibility.includes(day) ? '#fff' : '#000',
-                    }}
+                    className={selectedVille.disponibility.includes(day) ? 'checked' : ''}
                   >
                     {day}
                   </Checkbox>
@@ -260,28 +232,31 @@ function ColisFormAdmin({ type }) {
           </div>
         )}
 
-        <div className="colis-form-inputs" style={{ marginTop: '24px' }}>
-
+        <div className={`colis-form-inputs-${theme}`}>
           {/* Container for simple inputs in multiple columns */}
-          <div className="colis-form-line" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+          <div className={`colis-form-line-${theme}`}>
             {/* Store Selection Dropdown */}
-            <div className="colis-form-input" style={{ flex: '1 1 100%' }}>
+            <div className={`colis-form-input-${theme}`} style={{ gridColumn: '1 / -1' }}>
               <label htmlFor="store">
-                Magasin <span style={{ color: 'red' }}>*</span>
+                Magasin <span className="required-star">*</span>
               </label>
               <Select
                 showSearch
                 placeholder="Sélectionner un magasin"
                 value={formData.store}
                 onChange={(value) => handleInputChange('store', value)}
-                className={`colis-select-store ${theme === 'dark' ? 'dark-mode' : ''}`}
+                className={`colis-select-ville-${theme}`}
                 required
-                style={{ width: '100%' }}
+
                 optionFilterProp="label" // Use 'label' for filtering
                 filterOption={(input, option) =>
                   option.label.toLowerCase().includes(input.toLowerCase())
                 }
                 loading={stores.length === 0} // Show loading if stores are not yet loaded
+                dropdownStyle={{
+                  background: theme === 'dark' ? '#1e293b' : '#ffffff',
+                  border: theme === 'dark' ? '1px solid #475569' : '1px solid #e5e7eb'
+                }}
               >
                 {stores.map((store) => (
                   <Option key={store._id} value={store._id} label={store.storeName}>
@@ -293,19 +268,19 @@ function ColisFormAdmin({ type }) {
             </div>
 
             {/* Name Input */}
-            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
+            <div className={`colis-form-input-${theme}`}>
               <label htmlFor="nom">
-                Nom <span style={{ color: 'red' }}>*</span>
+                Nom <span className="required-star">*</span>
               </label>
               <Input
-                placeholder="Nom"
+                placeholder="Entrez le nom du destinataire"
                 size="large"
                 value={formData.nom}
                 onChange={(e) => handleInputChange('nom', e.target.value)}
-                prefix={<UserOutlined style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
+                prefix={<UserOutlined style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />}
                 suffix={
                   <Tooltip title="Entrer nom de destinataire">
-                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280' }} />
                   </Tooltip>
                 }
                 required
@@ -313,12 +288,12 @@ function ColisFormAdmin({ type }) {
             </div>
 
             {/* Phone Input */}
-            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
+            <div className={`colis-form-input-${theme}`}>
               <label htmlFor="tele">
-                Téléphone <span style={{ color: 'red' }}>*</span>
+                Téléphone <span className="required-star">*</span>
               </label>
               <Input
-                placeholder="Numéro de téléphone"
+                placeholder="Ex: 0612345678"
                 size="large"
                 value={formData.tele}
                 onChange={(e) => {
@@ -337,26 +312,26 @@ function ColisFormAdmin({ type }) {
                     setPhoneError('');
                   }
                 }}
-                prefix={<FaPhoneAlt style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
+                prefix={<FaPhoneAlt style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />}
                 suffix={
                   <Tooltip title="Entrer Numéro de téléphone de destinataire">
-                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280' }} />
                   </Tooltip>
                 }
                 maxLength={10}
                 required
               />
               {phoneError && (
-                <div style={{ color: 'red', marginTop: '5px' }}>
+                <div className={`phone-error-${theme}`}>
                   {phoneError}
                 </div>
               )}
             </div>
 
             {/* City Selection */}
-            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
+            <div className={`colis-form-input-${theme}`}>
               <label htmlFor="ville">
-                Ville <span style={{ color: 'red' }}>*</span>
+                Ville <span className="required-star">*</span>
               </label>
               <Select
                 showSearch
@@ -367,57 +342,62 @@ function ColisFormAdmin({ type }) {
                 }))}
                 value={formData.ville}
                 onChange={handleVilleChange}
-                className={`colis-select-ville ${theme === 'dark' ? 'dark-mode' : ''}`}
+                className={`colis-select-ville-${theme}`}
                 filterOption={(input, option) =>
                   option.label.toLowerCase().includes(input.toLowerCase())
                 }
                 required
-                style={{ width: '100%' }}
+                dropdownStyle={{
+                  background: theme === 'dark' ? '#1e293b' : '#ffffff',
+                  border: theme === 'dark' ? '1px solid #475569' : '1px solid #e5e7eb'
+                }}
               />
             </div>
 
             {/* Price Input */}
-            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
+            <div className={`colis-form-input-${theme}`}>
               <label htmlFor="prix">
-                Prix <span style={{ color: 'red' }}>*</span>
+                Prix <span className="required-star">*</span>
               </label>
               <Input
-                placeholder="Prix"
+                placeholder="Ex: 250.00"
                 size="large"
+                type="number"
                 value={formData.prix}
                 onChange={(e) => handleInputChange('prix', e.target.value)}
-                prefix={<TfiMoney style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
+                prefix={<TfiMoney style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />}
                 suffix={
-                  <Tooltip title="Entrer le prix du produit">
-                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
+                  <Tooltip title="Entrer le prix du produit en DH">
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280' }} />
                   </Tooltip>
                 }
                 required
                 min={0}
+                step="0.01"
               />
             </div>
 
             {/* Product Nature Input */}
-            <div className="colis-form-input" style={{ flex: '1 1 48%' }}>
+            <div className={`colis-form-input-${theme}`}>
               <label htmlFor="produit">
                 Nature de produit
               </label>
               <Input
-                placeholder="Nature de produit"
+                placeholder="Ex: Vêtements, Électronique..."
                 size="large"
                 value={formData.produit}
                 onChange={(e) => handleInputChange('produit', e.target.value)}
-                prefix={<AiFillProduct style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
+                prefix={<AiFillProduct style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />}
                 suffix={
                   <Tooltip title="Entrer la nature de produit">
-                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#cccccc' : 'rgba(0,0,0,.45)' }} />
+                    <InfoCircleOutlined style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280' }} />
                   </Tooltip>
                 }
               />
             </div>
 
             {/* Address Input */}
-            <div className="colis-form-input" style={{ flex: '1 1 100%' }}>
+            <div className={`colis-form-input-${theme}`}>
               <label htmlFor="adress">
                 Adresse
               </label>
@@ -427,14 +407,14 @@ function ColisFormAdmin({ type }) {
                 maxLength={300}
                 value={formData.adress}
                 onChange={(e) => handleInputChange('adress', e.target.value)}
-                placeholder="Adresse de client"
-                prefix={<FaMapLocation style={{ color: theme === 'dark' ? '#ffffff' : 'rgba(0,0,0,.25)' }} />}
+                placeholder="Ex: Rue 123, Quartier..."
+                prefix={<FaMapLocation style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />}
               />
             </div>
           </div>
 
-          {/* TextAreas are separate (full width) */}
-          <div className="colis-form-input" style={{ width: '100%', marginTop: '16px' }}>
+          {/* TextArea for Commentaire */}
+          <div className={`colis-form-input-${theme}`} style={{ width: '100%' }}>
             <label htmlFor="commentaire">
               Commentaire
             </label>
@@ -445,55 +425,54 @@ function ColisFormAdmin({ type }) {
               value={formData.commentaire}
               onChange={(e) => handleInputChange('commentaire', e.target.value)}
               placeholder="Commentaire (Autre numéro, date de livraison...)"
+              rows={4}
             />
           </div>
 
-          {
-            openOption
-              ?
-              <div className="option_colis_form">
-                <Checkbox
-                  checked={formData.ouvrirColis}
-                  onChange={(e) => handleInputChange('ouvrirColis', e.target.checked)}
-                  className={`colis-checkbox ${theme === 'dark' ? 'dark-mode' : ''}`}
-                  style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
-                >
-                  Ouvrir Colis
-                </Checkbox>
+          {openOption && (
+            <div className={`option_colis_form-${theme}`}>
+              <Checkbox
+                checked={formData.ouvrirColis}
+                onChange={(e) => handleInputChange('ouvrirColis', e.target.checked)}
+              >
+                📦 Ouvrir Colis
+              </Checkbox>
 
-                <Checkbox
-                  onChange={(e) => handleInputChange('is_fragile', e.target.checked)}
-                  checked={formData.is_fragile}
-                  style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
-                >
-                  Colis fragile
-                </Checkbox>
-                <br />
-                <Checkbox
+              <Checkbox
+                onChange={(e) => handleInputChange('is_fragile', e.target.checked)}
+                checked={formData.is_fragile}
+              >
+                📎 Colis fragile
+              </Checkbox>
+
+              <Checkbox
                 onChange={(e) => handleInputChange('is_remplace', e.target.checked)}
                 checked={formData.is_remplace}
-                style={{ marginBottom: '16px', color: theme === 'dark' ? '#ffffff' : '#000000' }}
               >
-                Colis à remplacer
+                🔄 Colis à remplacer
               </Checkbox>
-              </div>
-              : ""
-          }
+            </div>
+          )}
 
           {/* Footer Buttons */}
-          <div className="colis-form-footer" style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
-            <Button type="primary" onClick={() => setOpenOption(prev => !prev)} icon={<TfiMenuAlt />}>
-              Options Avancées
+          <div className={`colis-form-footer-${theme}`}>
+            <Button
+              type="default"
+              onClick={() => setOpenOption(prev => !prev)}
+              icon={<TfiMenuAlt />}
+              size="large"
+            >
+              {openOption ? 'Masquer Options' : 'Options Avancées'}
             </Button>
             <Button
               type="primary"
               htmlType="submit"
-              className="btn-dashboard"
               loading={loading}
+              size="large"
             >
               {type === 'simple'
-                ? 'Confirmer & Demande Ramassage'
-                : 'Confirmer & Choisir Produit'}
+                ? '✓ Confirmer & Demande Ramassage'
+                : '✓ Confirmer & Choisir Produit'}
             </Button>
           </div>
         </div>

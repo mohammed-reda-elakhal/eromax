@@ -56,7 +56,7 @@ import {
   ShopOutlined,
   TagOutlined
 } from '@ant-design/icons';
-import { MdDelete, MdOutlinePayment, MdDeliveryDining } from 'react-icons/md';
+import { MdDelete, MdOutlinePayment, MdDeliveryDining, MdOutlinePublishedWithChanges } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -134,34 +134,134 @@ const statusComments = {
   ],
 };
 
-// Define statusBadgeConfig mapping each statut to color and icon
-const statusBadgeConfig = {
-  "Nouveau Colis": { color: 'red', icon: <FaHeart /> },
-  "attente de ramassage": { color: 'red', icon: <TbTruckDelivery /> },
-  "Ramassée": { color: 'blue', icon: <TbTruckDelivery /> },
-  "Mise en Distribution": { color: 'geekblue', icon: <FaTruck /> },
-  "Reçu": { color: 'cyan', icon: <CheckCircleOutlined /> },
-  "Livrée": { color: 'green', icon: <CheckCircleOutlined /> },
-  "Annulée": { color: 'volcano', icon: <CloseCircleOutlined /> },
-  "Programmée": { color: 'geekblue', icon: <ClockCircleOutlined /> },
-  "Refusée": { color: 'red', icon: <CloseCircleOutlined /> },
-  "Boite vocale": { color: 'purple', icon: <FaInfoCircle /> },
-  "Pas de reponse jour 1": { color: 'gold', icon: <FaQuestionCircle /> },
-  "Pas de reponse jour 2": { color: 'gold', icon: <FaQuestionCircle /> },
-  "Pas de reponse jour 3": { color: 'gold', icon: <FaQuestionCircle /> },
-  "Pas reponse + sms / + whatsap": { color: 'gold', icon: <FaSms /> },
-  "En voyage": { color: 'cyan', icon: <FaPlane /> },
-  "Injoignable": { color: 'magenta', icon: <FaPhoneSlash /> },
-  "Hors-zone": { color: 'red', icon: <FaMapMarkerAlt /> },
-  "Intéressé": { color: 'blue', icon: <FaHeart /> },
-  "Numéro Incorrect": { color: 'orange', icon: <FaHeart /> },
-  "Reporté": { color: 'geekblue', icon: <FaClock /> },
-  "Confirmé Par Livreur": { color: 'blue', icon: <FaCheck /> },
-  "Préparer pour Roteur": { color: 'green', icon: <FaCheck /> },
-  "En Retou": { color: 'yellow', icon: <FaCheck /> },
-  "Endomagé": { color: 'red', icon: <FaHeart /> },
-  "Fermée": { color: 'red', icon: <FaHeart /> },
-};
+// Define statusBadgeConfig mapping each statut to color and icon with professional colors
+const getStatusBadgeConfig = (theme) => ({
+  "Nouveau Colis": {
+    color: theme === 'dark' ? '#dc2626' : '#ef4444',
+    icon: <FaHeart />,
+    textColor: 'white'
+  },
+  "attente de ramassage": {
+    color: theme === 'dark' ? '#ea580c' : '#f97316',
+    icon: <TbTruckDelivery />,
+    textColor: 'white'
+  },
+  "Ramassée": {
+    color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+    icon: <TbTruckDelivery />,
+    textColor: 'white'
+  },
+  "Mise en Distribution": {
+    color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+    icon: <FaTruck />,
+    textColor: 'white'
+  },
+  "Reçu": {
+    color: theme === 'dark' ? '#0891b2' : '#06b6d4',
+    icon: <CheckCircleOutlined />,
+    textColor: 'white'
+  },
+  "Livrée": {
+    color: theme === 'dark' ? '#059669' : '#10b981',
+    icon: <CheckCircleOutlined />,
+    textColor: 'white'
+  },
+  "Annulée": {
+    color: theme === 'dark' ? '#dc2626' : '#ef4444',
+    icon: <CloseCircleOutlined />,
+    textColor: 'white'
+  },
+  "Programmée": {
+    color: theme === 'dark' ? '#7c3aed' : '#8b5cf6',
+    icon: <ClockCircleOutlined />,
+    textColor: 'white'
+  },
+  "Refusée": {
+    color: theme === 'dark' ? '#dc2626' : '#ef4444',
+    icon: <CloseCircleOutlined />,
+    textColor: 'white'
+  },
+  "Boite vocale": {
+    color: theme === 'dark' ? '#7c3aed' : '#8b5cf6',
+    icon: <FaInfoCircle />,
+    textColor: 'white'
+  },
+  "Pas de reponse jour 1": {
+    color: theme === 'dark' ? '#d97706' : '#f59e0b',
+    icon: <FaQuestionCircle />,
+    textColor: 'white'
+  },
+  "Pas de reponse jour 2": {
+    color: theme === 'dark' ? '#d97706' : '#f59e0b',
+    icon: <FaQuestionCircle />,
+    textColor: 'white'
+  },
+  "Pas de reponse jour 3": {
+    color: theme === 'dark' ? '#d97706' : '#f59e0b',
+    icon: <FaQuestionCircle />,
+    textColor: 'white'
+  },
+  "Pas reponse + sms / + whatsap": {
+    color: theme === 'dark' ? '#d97706' : '#f59e0b',
+    icon: <FaSms />,
+    textColor: 'white'
+  },
+  "En voyage": {
+    color: theme === 'dark' ? '#0891b2' : '#06b6d4',
+    icon: <FaPlane />,
+    textColor: 'white'
+  },
+  "Injoignable": {
+    color: theme === 'dark' ? '#be185d' : '#ec4899',
+    icon: <FaPhoneSlash />,
+    textColor: 'white'
+  },
+  "Hors-zone": {
+    color: theme === 'dark' ? '#dc2626' : '#ef4444',
+    icon: <FaMapMarkerAlt />,
+    textColor: 'white'
+  },
+  "Intéressé": {
+    color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+    icon: <FaHeart />,
+    textColor: 'white'
+  },
+  "Numéro Incorrect": {
+    color: theme === 'dark' ? '#ea580c' : '#f97316',
+    icon: <FaHeart />,
+    textColor: 'white'
+  },
+  "Reporté": {
+    color: theme === 'dark' ? '#7c3aed' : '#8b5cf6',
+    icon: <FaClock />,
+    textColor: 'white'
+  },
+  "Confirmé Par Livreur": {
+    color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+    icon: <FaCheck />,
+    textColor: 'white'
+  },
+  "Préparer pour Roteur": {
+    color: theme === 'dark' ? '#059669' : '#10b981',
+    icon: <FaCheck />,
+    textColor: 'white'
+  },
+  "En Retou": {
+    color: theme === 'dark' ? '#d97706' : '#f59e0b',
+    icon: <FaCheck />,
+    textColor: 'white'
+  },
+  "Endomagé": {
+    color: theme === 'dark' ? '#dc2626' : '#ef4444',
+    icon: <FaHeart />,
+    textColor: 'white'
+  },
+  "Fermée": {
+    color: theme === 'dark' ? '#dc2626' : '#ef4444',
+    icon: <FaHeart />,
+    textColor: 'white'
+  },
+});
 
 const ColisTable = ({ theme }) => {
   const [state, setState] = useState({
@@ -189,6 +289,18 @@ const [editingAdmin, setEditingAdmin] = useState(false);
 
 
   const [selectColisNote , setSelectColisNote ] = useState("")
+
+  // Mobile detection hook
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const openNoteColisModal = (colisId) => {
     // Dispatch your Redux function to get NoteColis by colisId.
@@ -621,9 +733,28 @@ const handleConfirmAssignLivreur = async () => {
       key: 'store',
       width: 200,
       render: (text, record) => (
-        <div style={tableCellStyles.businessBadge}>
-          <ShopOutlined />
-          <Typography.Text strong>{record.store?.storeName}</Typography.Text>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '8px 0'
+        }}>
+          <ShopOutlined
+            style={{
+              fontSize: '12px',
+              color: theme === 'dark' ? '#94a3b8' : '#64748b'
+            }}
+          />
+          <Typography.Text
+            style={{
+              color: '#3b82f6',
+              fontSize: '13px',
+              fontWeight: '500',
+              lineHeight: '1.2'
+            }}
+          >
+            {record.store?.storeName || 'N/A'}
+          </Typography.Text>
         </div>
       ),
     },
@@ -637,74 +768,127 @@ const handleConfirmAssignLivreur = async () => {
       width: 200,
 
       render: (text, record) => (
-              <div style={tableCellStyles.businessBadge}>
-                <MdDeliveryDining style={{ fontSize: '16px' }} />
-                {record.livreur ? (
-                  <Typography.Text strong>{record.livreur.nom} </Typography.Text>
-                ) : (
-                  <Tag icon={<ClockCircleOutlined />} color="default">
-                    Operation de Ramassage
-                  </Tag>
-                )}
-              </div>
-            ),
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '8px 0'
+        }}>
+          <MdDeliveryDining
+            style={{
+              fontSize: '12px',
+              color: theme === 'dark' ? '#94a3b8' : '#64748b'
+            }}
+          />
+          {record.livreur ? (
+            <Typography.Text
+              style={{
+                color: '#3b82f6',
+                fontSize: '13px',
+                fontWeight: '500',
+                lineHeight: '1.2'
+              }}
+            >
+              {record.livreur.nom}
+            </Typography.Text>
+          ) : (
+            <Typography.Text
+              style={{
+                color: theme === 'dark' ? '#94a3b8' : '#64748b',
+                fontSize: '12px',
+                fontWeight: '400',
+                fontStyle: 'italic',
+                lineHeight: '1.2'
+              }}
+            >
+              En attente
+            </Typography.Text>
+          )}
+        </div>
+      ),
     },
   ], []);
 
 
   const getTableCellStyles = (theme) => ({
     codeCell: {
-      background: theme === 'dark' ? '#1a1a1a' : '#f6f8ff',
+      background: theme === 'dark' ? '#1e293b' : '#f8fafc',
       padding: '12px',
-      borderRadius: '8px',
-      border: `1px solid ${theme === 'dark' ? '#333' : '#e6e8f0'}`,
+      borderRadius: '6px',
+      border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
     },
     dateCell: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '8px',
+      gap: '6px',
     },
     dateItem: {
       display: 'flex',
       alignItems: 'center',
-      gap: '4px',
-      fontSize: '13px',
-      color: theme === 'dark' ? '#b3b3b3' : '#666',
+      gap: '6px',
+      fontSize: '12px',
+      color: theme === 'dark' ? '#94a3b8' : '#64748b',
+      fontWeight: '500',
     },
     destinataireCard: {
-      background: theme === 'dark' ? '#1f1f1f' : '#fff',
+      background: 'transparent',
       padding: '12px',
-      borderRadius: '8px',
-      boxShadow: theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
-      gap:'8px',
+      gap: '8px',
     },
     priceTag: {
-      background: 'linear-gradient(135deg, #00b96b 0%, #008148 100%)',
-      color: 'white',
-      padding: '8px 16px',
-      borderRadius: '20px',
+      background: 'transparent',
+      color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+      padding: '0',
+      borderRadius: '0',
       display: 'inline-flex',
       alignItems: 'center',
       gap: '4px',
-      boxShadow: '0 2px 4px rgba(0,153,85,0.2)',
+      fontSize: '13px',
+      fontWeight: '600',
     },
     businessBadge: {
-      background: theme === 'dark' ? '#1a2733' : '#f0f7ff',
-      border: `1px solid ${theme === 'dark' ? '#234' : '#bae0ff'}`,
+      background: theme === 'dark' ? '#1e293b' : '#f1f5f9',
+      border: `1px solid ${theme === 'dark' ? '#334155' : '#cbd5e1'}`,
       borderRadius: '6px',
       padding: '8px 12px',
       display: 'inline-flex',
       alignItems: 'center',
       gap: '6px',
-      color: theme === 'dark' ? '#4c9eff' : '#0958d9',
+      color: theme === 'dark' ? '#e2e8f0' : '#475569',
+      fontSize: '13px',
+      fontWeight: '500',
     },
     statusBadge: {
       padding: '6px 12px',
       borderRadius: '6px',
-      fontSize: '13px',
+      fontSize: '12px',
       display: 'inline-flex',
       alignItems: 'center',
       gap: '6px',
+      fontWeight: '500',
+    },
+    phoneTag: {
+      background: theme === 'dark' ? '#1e40af' : '#3b82f6',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontWeight: '500',
+    },
+    phoneTagError: {
+      background: theme === 'dark' ? '#dc2626' : '#ef4444',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontWeight: '500',
+    },
+    productTag: {
+      background: theme === 'dark' ? '#0f766e' : '#14b8a6',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      fontSize: '12px',
       fontWeight: '500',
     }
   });
@@ -720,72 +904,122 @@ const handleConfirmAssignLivreur = async () => {
           </div>,
       dataIndex: 'code_suivi',
       key: 'code_suivi',
-      width: 300,
+      width: 180,
+      minWidth: 160,
       render: (text, record) => (
-        <>
-          {record.replacedColis ?
-            <Badge color="default" dot style={{ marginRight: '5px' }}>
-              <FaClone /> {/* Changed icon to FaClone for better representation */}
-            </Badge>
-            : ""
-          }
-          <div style={tableCellStyles.codeCell}>
-          <Typography.Text
-            copyable={{
-              tooltips: ['Copier', 'Copié!'],
-              icon: [<CopyOutlined key="copy" />, <CheckOutlined key="copied" />],
-            }}
-            style={{
-              fontWeight: '600',
-              fontSize: '14px',
-              color: '#1677ff',
-              display: 'block'
-            }}
-          >
-            {text}
-          </Typography.Text>
-        </div>
-          {record.expedation_type === "ameex" && (
-            <p style={{color:"gray", fontSize:"10px", margin: 0}}>{record.code_suivi_ameex}</p>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          padding: '12px 8px',
+          background: 'transparent',
+          minHeight: '80px',
+          justifyContent: 'space-between'
+        }}>
+          {/* Code suivi - displayed first and prominently */}
+          <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+            <Typography.Text
+              copyable={{
+                tooltips: ['Copier', 'Copié!'],
+                icon: [<CopyOutlined key="copy" style={{ fontSize: '11px' }} />, <CheckOutlined key="copied" style={{ fontSize: '11px' }} />],
+              }}
+              style={{
+                fontWeight: '700',
+                fontSize: '13px',
+                color: '#3b82f6',
+                margin: 0,
+                textAlign: 'center',
+                display: 'block',
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'clip'
+              }}
+            >
+              {text}
+            </Typography.Text>
+          </div>
+
+          {/* Divider */}
+          <div style={{
+            width: '100%',
+            height: '1px',
+            background: theme === 'dark' ? '#374151' : '#e5e7eb',
+            margin: '4px 0'
+          }} />
+
+          {/* Ameex code if exists */}
+          {record.expedation_type === "ameex" && record.code_suivi_ameex && (
+            <div style={{ textAlign: 'center' }}>
+              <Typography.Text
+                style={{
+                  fontSize: '11px',
+                  color: '#64748b',
+                  margin: 0,
+                  fontWeight: '500'
+                }}
+              >
+                AMEEX: {record.code_suivi_ameex}
+              </Typography.Text>
+            </div>
           )}
-          <Divider />
-          <div style={{display:'flex' , width:"100%" , justifyContent:"space-around"}}>
-            <Tooltip title="Contact via WhatsApp">
+
+          {/* Status badges row */}
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center', minHeight: '16px' }}>
+            {record.replacedColis && (
+              <Tag size="small" color="default" style={{ margin: 0, fontSize: '9px', padding: '1px 4px' }}>
+                <FaClone style={{ fontSize: '8px' }} />
+              </Tag>
+            )}
+            {record.is_remplace && (
+              <Tag size="small" color="orange" style={{ margin: 0, fontSize: '9px', padding: '1px 4px' }}>
+                <MdOutlinePublishedWithChanges style={{ fontSize: '8px' }} /> Remplacé
+              </Tag>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: 'auto' }}>
+            <Tooltip title="WhatsApp">
               <Button
                 type="primary"
                 icon={<FaWhatsapp />}
+                size="small"
                 onClick={() => {
-                  // Constructing the message
                   const messageText = `Bonjour, je suis ${user.nom} ${user.prenom}, j'ai besoin de discuter pour le colis de code ${record.code_suivi}.`;
-
-                  // Ensure the message is properly URL-encoded
                   const encodedMessage = encodeURIComponent(messageText);
-
-                  // Open WhatsApp with the encoded message
                   const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber)}&text=${encodedMessage}`;
                   window.open(whatsappUrl, '_blank');
                 }}
                 style={{
-                  backgroundColor: '#25D366',
-                  borderColor: '#25D366',
-                  color: '#fff'
+                  backgroundColor: '#10b981',
+                  borderColor: '#10b981',
+                  color: '#fff',
+                  fontSize: '10px',
+                  height: '22px',
+                  width: '26px',
+                  padding: 0
                 }}
               />
             </Tooltip>
-            <Tooltip title="Call Support">
+            <Tooltip title="Appeler">
               <Button
                 type="primary"
                 icon={<TbPhoneCall />}
+                size="small"
                 onClick={() => window.location.href = `tel:${phoneNumber}`}
                 style={{
-                  backgroundColor: '#007bff',
-                  borderColor: '#007bff',
-                  color: '#fff'
+                  backgroundColor: '#3b82f6',
+                  borderColor: '#3b82f6',
+                  color: '#fff',
+                  fontSize: '10px',
+                  height: '22px',
+                  width: '26px',
+                  padding: 0
                 }}
               />
             </Tooltip>
           </div>
-        </>
+        </div>
       ),
     },
     {
@@ -795,7 +1029,8 @@ const handleConfirmAssignLivreur = async () => {
           </div>,
       dataIndex: 'tele',
       key: 'tele',
-      width:250,
+      width: 200,
+      minWidth: 180,
       render: (text , record) => {
         // Validate phone number
         const phoneRegex = /^0[67]\d{8}$/;
@@ -812,36 +1047,87 @@ const handleConfirmAssignLivreur = async () => {
           }
         }
 
+        const professionalCardStyle = {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          padding: '12px',
+          background: 'transparent',
+          minHeight: '80px',
+          justifyContent: 'space-between'
+        };
+
+        const nameStyle = {
+          color: '#475569',
+          fontSize: '13px',
+          fontWeight: '600',
+          textAlign: 'left',
+          lineHeight: '1.3',
+          marginBottom: '4px'
+        };
+
+        const phoneStyle = {
+          color: theme === 'dark' ? '#94a3b8' : '#64748b',
+          fontSize: '12px',
+          fontWeight: '500',
+          textAlign: 'left',
+          lineHeight: '1.2'
+        };
+
+        const priceStyle = {
+          color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+          fontSize: '16px',
+          fontWeight: '700',
+          textAlign: 'left',
+          lineHeight: '1.2'
+        };
+
+        const errorPhoneStyle = {
+          color: theme === 'dark' ? '#fca5a5' : '#dc2626',
+          fontSize: '12px',
+          fontWeight: '500',
+          textAlign: 'left',
+          lineHeight: '1.2'
+        };
+
         if (!isValidPhoneNumber && errorMessage) {
           return (
-            <div title={errorMessage} placement="topLeft"             style={{display:'flex', gap: '10px', alignItems: 'start' , flexDirection:'column'}}>
-                <span>{record.nom}</span>
-                <br />
-                <Tag icon={<PhoneOutlined />} color="red">{record.tele}</Tag>
-                <br />
-                <div style={tableCellStyles.priceTag}>
-                  <DollarOutlined />
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
-                    {record.prix || 'N/A'} DH
-                  </span>
-                </div>
+            <div style={professionalCardStyle}>
+              <div>
+                <Typography.Text style={nameStyle}>
+                  {record.nom?.length > 18 ? record.nom.substring(0, 18) + '...' : record.nom}
+                </Typography.Text>
+              </div>
+              <div>
+                <Typography.Text style={errorPhoneStyle}>
+                  {record.tele}
+                </Typography.Text>
+              </div>
+              <div>
+                <Typography.Text style={priceStyle}>
+                  {record.prix || 'N/A'} DH
+                </Typography.Text>
+              </div>
             </div>
           );
         }
         return (
-          <div
-            style={{display:'flex', gap: '10px', alignItems: 'start' , flexDirection:'column'}}
-          >
-            <span>{record.nom}</span>
-            <br />
-            <Tag icon={<PhoneOutlined />} color="blue">{record.tele}</Tag>
-            <br />
-            <div style={tableCellStyles.priceTag}>
-                <DollarOutlined />
-                <span style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}>
-                  {record.prix || 'N/A'} DH
-                </span>
-              </div>
+          <div style={professionalCardStyle}>
+            <div>
+              <Typography.Text style={nameStyle}>
+                {record.nom?.length > 18 ? record.nom.substring(0, 18) + '...' : record.nom}
+              </Typography.Text>
+            </div>
+            <div>
+              <Typography.Text style={phoneStyle}>
+                {record.tele}
+              </Typography.Text>
+            </div>
+            <div>
+              <Typography.Text style={priceStyle}>
+                {record.prix || 'N/A'} DH
+              </Typography.Text>
+            </div>
           </div>
         );
       },
@@ -853,7 +1139,8 @@ const handleConfirmAssignLivreur = async () => {
           </div>,
       dataIndex: 'adresse',
       key: 'adresse',
-      width: 300,
+      width: 250,
+      minWidth: 200,
       render : (text , record) =>{
         return(
           <>
@@ -881,7 +1168,16 @@ const handleConfirmAssignLivreur = async () => {
       key: 'nature_produit',
       width: 180,
       render: (text) => {
-        if (!text) return <Tag color="cyan">N/A</Tag>;
+        if (!text) {
+          return (
+            <Tag style={{
+              ...tableCellStyles.productTag,
+              background: theme === 'dark' ? '#374151' : '#9ca3af',
+            }}>
+              N/A
+            </Tag>
+          );
+        }
 
         // Limit to first 2-3 words (max 20 characters)
         const words = text.split(' ');
@@ -890,17 +1186,24 @@ const handleConfirmAssignLivreur = async () => {
         const hasMore = text.length > displayText.length;
 
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Tag icon={<TagOutlined />} color="cyan" style={{ padding: '6px 12px', borderRadius: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Tag
+              icon={<TagOutlined />}
+              style={tableCellStyles.productTag}
+            >
               {displayText}
             </Tag>
             {hasMore && (
-              <Tooltip title={text} >
+              <Tooltip title={text}>
                 <Button
                   type="text"
                   size="small"
                   icon={<InfoCircleOutlined />}
-                  style={{ padding: '0 4px', color: '#1890ff' }}
+                  style={{
+                    padding: '0 4px',
+                    color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+                    minWidth: 'auto'
+                  }}
                 />
               </Tooltip>
             )}
@@ -917,14 +1220,25 @@ const handleConfirmAssignLivreur = async () => {
           </div>,
       dataIndex: 'statut',
       key: 'statut',
-      width:250,
+      width: 200,
+      minWidth: 180,
       render: (status, record) => {
-        const { color, icon } = statusBadgeConfig[status] || { color: 'default', icon: <InfoCircleOutlined /> };
+        const statusBadgeConfig = getStatusBadgeConfig(theme);
+        const { color, icon, textColor } = statusBadgeConfig[status] || {
+          color: theme === 'dark' ? '#374151' : '#9ca3af',
+          icon: <InfoCircleOutlined />,
+          textColor: 'white'
+        };
 
         const content = (
-          <span style={{ display: 'flex', alignItems: 'center' }}>
+          <span style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: textColor
+          }}>
             {icon}
-            <span style={{ marginLeft: 8 }}>{status}</span>
+            <span>{status}</span>
           </span>
         );
 
@@ -932,36 +1246,79 @@ const handleConfirmAssignLivreur = async () => {
         const isProgrammée = status === "Programmée";
         const isReporté = status === "Reporté";
 
+        // Determine if the status is "livrée", "refusée", or "annule" to display date_livraisant
+        // Check for different case variations and normalize status
+        const normalizedStatus = status?.toLowerCase();
+        const isLivrée = normalizedStatus === "livrée" || normalizedStatus === "livree";
+        const isRefusée = normalizedStatus === "refusée" || normalizedStatus === "refusee" || normalizedStatus === "refusé";
+        const isAnnule = normalizedStatus === "annule" || normalizedStatus === "annulé" || normalizedStatus === "annulee";
+        const shouldShowDateLivraisant = isLivrée || isRefusée || isAnnule;
+
+        // Debug logging
+        if (shouldShowDateLivraisant) {
+          console.log('Status:', status, 'normalizedStatus:', normalizedStatus, 'shouldShowDateLivraisant:', shouldShowDateLivraisant, 'date_livraisant:', record.date_livraisant);
+        }
+
         // Retrieve the corresponding date from the record
         const dateToDisplay = isProgrammée
           ? record.date_programme
           : isReporté
           ? record.date_reporte
+          : shouldShowDateLivraisant
+          ? record.date_livraisant
           : null;
 
         // Format the date if it exists
-        const formattedDate = dateToDisplay
-          ? moment(dateToDisplay).format('DD-MM-YYYY')
-          : null;
+        let formattedDate = null;
+        if (dateToDisplay) {
+          try {
+            formattedDate = moment(dateToDisplay).format('DD-MM-YYYY');
+          } catch (error) {
+            console.error('Date formatting error:', error);
+            // Fallback: try to display the raw date
+            formattedDate = dateToDisplay.toString().substring(0, 10);
+          }
+        }
+
+        // Additional debugging for date issues
+        if (shouldShowDateLivraisant) {
+          console.log('dateToDisplay:', dateToDisplay, 'formattedDate:', formattedDate);
+        }
 
         return (
           <div>
-            {(user?.role === 'admin' || user?.role === 'livreur')  ? (
-              <Tag dot color={color} style={{ cursor: 'pointer' }}>
-                <span onClick={() => handleStatusClick(record)} style={{ cursor: "pointer" }}>
-                  {content}
-                </span>
-              </Tag>
-            ) : (
-              <Tag color={color}>
+            {(user?.role === 'admin' || user?.role === 'livreur') ? (
+              <div
+                style={{
+                  ...tableCellStyles.statusBadge,
+                  background: color,
+                  cursor: 'pointer',
+                  border: 'none'
+                }}
+                onClick={() => handleStatusClick(record)}
+              >
                 {content}
-              </Tag>
+              </div>
+            ) : (
+              <div style={{
+                ...tableCellStyles.statusBadge,
+                background: color,
+                border: 'none'
+              }}>
+                {content}
+              </div>
             )}
 
             {/* Conditionally render the date below the status */}
             {formattedDate && (
-              <div style={{ marginTop: '4px', marginLeft: '28px' }}>
-                <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+              <div style={{ marginTop: '6px' }}>
+                <Typography.Text
+                  type="secondary"
+                  style={{
+                    fontSize: '11px',
+                    color: theme === 'dark' ? '#94a3b8' : '#64748b'
+                  }}
+                >
                   {formattedDate}
                 </Typography.Text>
               </div>
@@ -969,8 +1326,14 @@ const handleConfirmAssignLivreur = async () => {
 
             {/* If status is 'Livrée' and record.etat is true, show 'Facturée' */}
             {status === "Livrée" && record.etat && (
-              <div style={{ marginTop: '4px', marginLeft: '28px' }}>
-                <Typography.Text type="secondary" style={{ fontSize: '12px', color: 'blue' }}>
+              <div style={{ marginTop: '6px' }}>
+                <Typography.Text
+                  style={{
+                    fontSize: '11px',
+                    color: theme === 'dark' ? '#60a5fa' : '#3b82f6',
+                    fontWeight: '500'
+                  }}
+                >
                   Facturée
                 </Typography.Text>
               </div>
@@ -990,11 +1353,11 @@ const handleConfirmAssignLivreur = async () => {
       render: (text, record) => (
         <div style={tableCellStyles.dateCell}>
           <div style={tableCellStyles.dateItem}>
-            <CalendarOutlined style={{ color: '#1677ff' }} />
+            <CalendarOutlined style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }} />
             <span>Créé: {formatDate(record?.createdAt)}</span>
           </div>
           <div style={tableCellStyles.dateItem}>
-            <EditOutlined style={{ color: '#52c41a' }} />
+            <EditOutlined style={{ color: theme === 'dark' ? '#10b981' : '#059669' }} />
             <span>Modifié: {formatDate(record?.updatedAt)}</span>
           </div>
         </div>
@@ -1011,15 +1374,23 @@ const handleConfirmAssignLivreur = async () => {
       render: (wallet_prosseced) => (
         <div style={{ textAlign: 'center' }}>
           {wallet_prosseced ? (
-            <Badge
-              status="success"
-              text={<span style={{ color: '#52c41a', fontWeight: 'bold' }}>Processed</span>}
-            />
+            <div style={{
+              ...tableCellStyles.statusBadge,
+              background: theme === 'dark' ? '#059669' : '#10b981',
+              color: 'white'
+            }}>
+              <CheckCircleOutlined />
+              <span>Processed</span>
+            </div>
           ) : (
-            <Badge
-              status="error"
-              text={<span style={{ color: '#f5222d', fontWeight: 'bold' }}>Pending</span>}
-            />
+            <div style={{
+              ...tableCellStyles.statusBadge,
+              background: theme === 'dark' ? '#dc2626' : '#ef4444',
+              color: 'white'
+            }}>
+              <ClockCircleOutlined />
+              <span>Pending</span>
+            </div>
           )}
         </div>
       ),
@@ -1029,8 +1400,21 @@ const handleConfirmAssignLivreur = async () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <IoMdOptions /> Options
           </div>,
+      width: 220,
+      minWidth: 200,
+      ...(isMobile ? {} : { fixed: 'right' }),
       render: (text, record) => (
-        <div className="options-actions" style={{ display: 'flex', gap: '10px' }}>
+        <div
+          className="options-actions"
+          style={{
+            display: 'flex',
+            gap: '6px',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            maxWidth: '220px'
+          }}
+        >
           <Tooltip title="Plus d'information">
             <Button
               type="primary"
@@ -1224,7 +1608,7 @@ const handleConfirmAssignLivreur = async () => {
         </div>
       ),
     }
-  ], [user, dispatch, navigate, handleInfo, handleTicket, openReclamationModal, handleStatusClick, handleAssignLivreur, state.selectedRowKeys, detailFacture]);
+  ], [user, dispatch, navigate, handleInfo, handleTicket, openReclamationModal, handleStatusClick, handleAssignLivreur, state.selectedRowKeys, detailFacture, isMobile]);
 
   const columns = useMemo(() => columnsColis, [columnsColis]);
 
@@ -1512,7 +1896,7 @@ const handleConfirmAssignLivreur = async () => {
           visible={state.infoModalVisible}
           onClose={closeInfoModal}
           selectedColis={state.selectedColis}
-          statusBadgeConfig={statusBadgeConfig}
+          statusBadgeConfig={getStatusBadgeConfig(theme)}
           theme={theme}
           formatDate={formatDate}
         />
@@ -1538,11 +1922,48 @@ const handleConfirmAssignLivreur = async () => {
 
         {/* Tracking Drawer */}
         <Drawer
-          title="Suivi du Colis"
+          title={
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: theme === 'dark' ? '#fff' : '#262626'
+            }}>
+              <TbTruckDelivery style={{ fontSize: '18px', color: '#1890ff' }} />
+              <span>Suivi du Colis</span>
+              {state.selectedColis?.code_suivi && (
+                <span style={{
+                  fontSize: '14px',
+                  color: theme === 'dark' ? '#8c8c8c' : '#8c8c8c',
+                  fontWeight: 'normal'
+                }}>
+                  - {state.selectedColis.code_suivi}
+                </span>
+              )}
+            </div>
+          }
           placement="right"
           onClose={() => setState(prevState => ({ ...prevState, drawerOpen: false }))}
           open={state.drawerOpen}
-          width={600}
+          width={650}
+          styles={{
+            header: {
+              backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+              borderBottom: `1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'}`,
+              padding: '16px 24px'
+            },
+            body: {
+              backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fafafa',
+              padding: '0'
+            },
+            mask: {
+              backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)'
+            },
+            content: {
+              backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fafafa'
+            }
+          }}
+          className={theme === 'dark' ? 'dark-mode-drawer' : 'light-mode-drawer'}
         >
           <TrackingColis
             theme={theme}
@@ -1558,7 +1979,7 @@ const handleConfirmAssignLivreur = async () => {
           form={form}
           selectedColis={state.selectedColis}
           allowedStatuses={allowedStatuses}
-          statusBadgeConfig={statusBadgeConfig}
+          statusBadgeConfig={getStatusBadgeConfig(theme)}
           statusComments={statusComments}
           statusType={statusType}
           setStatusType={setStatusType}

@@ -8,12 +8,10 @@ import {
   setFactureEtat,
   transferColisClient, // Import the transfer action here
 } from '../../../../redux/apiCalls/factureApiCalls';
-import { IoMdRemoveCircle } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
-import { IoSend, IoSettingsSharp } from "react-icons/io5";
+import { IoSend } from "react-icons/io5";
 import {
   Input,
-  DatePicker,
   Row,
   Col,
   Switch,
@@ -32,7 +30,7 @@ import {
 import { PlusOutlined } from '@ant-design/icons';
 import { FaRegFolderOpen, FaSyncAlt } from 'react-icons/fa';
 import moment from 'moment';
-import { useNavigate } from 'react-router-dom';
+
 import { toast } from 'react-toastify';
 import { CiSettings } from 'react-icons/ci';
 // Import Popconfirm from antd (if not already imported)
@@ -45,12 +43,11 @@ import { removeColisFromFacture } from '../../../../redux/apiCalls/factureApiCal
 import './factureStyles.css';
 
 
-const { Paragraph, Text } = Typography;
+const { Paragraph } = Typography;
 const { Option } = Select;
 
 
 function FactureClientTable({ theme, id }) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { facture, user, store } = useSelector((state) => ({
@@ -201,58 +198,110 @@ function FactureClientTable({ theme, id }) {
       title: 'Date',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (text, record) => <span>{formatDate(record.createdAt)}</span>,
+      width: 180,
+      render: (_, record) => (
+        <span style={{
+          color: theme === 'dark' ? '#cbd5e1' : '#374151',
+          fontSize: '13px',
+          fontWeight: '500'
+        }}>
+          {formatDate(record.createdAt)}
+        </span>
+      ),
     },
     {
       title: 'Code Facture',
       dataIndex: 'code_facture',
       key: 'code_facture',
-      render: (text) => <Paragraph copyable>{text}</Paragraph>, // You can also add copyable Typography here if desired
+      width: 200,
+      render: (text) => (
+        <div className={`facture-code-${theme}`}>
+          <Paragraph copyable style={{ margin: 0, color: 'inherit' }}>
+            {text}
+          </Paragraph>
+        </div>
+      ),
     },
     {
       title: 'Store',
       key: 'name',
-      render: (text, record) => record?.store?.storeName,
+      width: 150,
+      render: (_, record) => (
+        <span className={`facture-store-${theme}`}>
+          {record?.store?.storeName || 'N/A'}
+        </span>
+      ),
     },
     {
       title: 'Total Prix',
       dataIndex: 'totalPrixAPayant',
       key: 'totalPrixAPayant',
-      render: (text) => <Tag color="blue">{text} DH</Tag>,
+      width: 140,
+      render: (text) => (
+        <div className={`facture-price-${theme}`}>
+          {text} DH
+        </div>
+      ),
     },
     {
       title: 'Nombre de Colis',
       key: 'countColis',
-      render: (text, record) => record.colis.length,
+      width: 120,
+      render: (_, record) => (
+        <div className={`facture-count-${theme}`}>
+          {record.colis.length}
+        </div>
+      ),
     },
     {
       title: 'État',
       dataIndex: 'etat',
       key: 'etat',
+      width: 150,
       render: (etat, record) => {
+        const statusClass = `facture-status-${theme}`;
         if (record.type === 'client') {
           if (user?.role === 'admin') {
             return (
-              <Switch
-                checked={etat}
-                checkedChildren="Payé"
-                unCheckedChildren="Non Payé"
-                onChange={() => toggleFacturePay(record._id)}
-              />
+              <div className={statusClass}>
+                <Switch
+                  checked={etat}
+                  checkedChildren="Payé"
+                  unCheckedChildren="Non Payé"
+                  onChange={() => toggleFacturePay(record._id)}
+                  style={{
+                    background: etat ? '#059669' : '#6b7280'
+                  }}
+                />
+              </div>
             );
           } else {
-            return etat ? <Tag color="green">Payé</Tag> : <Tag color="red">Non Payé</Tag>;
+            return (
+              <div className={statusClass}>
+                <Tag color={etat ? "green" : "red"}>
+                  {etat ? 'Payé' : 'Non Payé'}
+                </Tag>
+              </div>
+            );
           }
         } else {
-          return etat ? <Tag color="green">Payé</Tag> : <Tag color="red">Non Payé</Tag>;
+          return (
+            <div className={statusClass}>
+              <Tag color={etat ? "green" : "red"}>
+                {etat ? 'Payé' : 'Non Payé'}
+              </Tag>
+            </div>
+          );
         }
       },
     },
     {
       title: 'Options',
       key: 'options',
-      render: (text, record) => (
-        <div style={{ display: 'flex', gap: '10px' }}>
+      width: 150,
+      fixed: 'right',
+      render: (_, record) => (
+        <div className={`facture-actions-${theme}`}>
           <Button
             icon={<FaRegFolderOpen />}
             onClick={() => {
@@ -260,49 +309,56 @@ function FactureClientTable({ theme, id }) {
               window.open(url, '_blank');
             }}
             type="primary"
-          />
-          {
-            user?.role === 'admin' && (
-              <Button
-                type="default"
-                onClick={() => {
-                  // Set the selected facture from local state and open the first modal
-                  const foundFacture = facture.find(
-                    (f) => f.code_facture === record.code_facture
-                  );
-                  setSelectedFacture(foundFacture);
-                  // Reset modal selection states when opening the modal
-                  setSelectedModalRowKeys([]);
-                  setSelectedModalRows([]);
-                  setDestinationSearchText("");
-                  setIsModalVisible(true);
-                }}
-                icon={<CiSettings />}
-              />
-            )
-          }
-
-          {user?.role === 'admin' && (
-        <>
-          <Button
-            type="default"
-            onClick={() => {
-              // Open modal or action for editing/setting up, etc.
-              // For deletion, you can simply call the API after a confirmation.
-              Modal.confirm({
-                title: 'Delete Facture',
-                content: `Are you sure you want to delete facture ${record.code_facture}?`,
-                okText: 'Yes',
-                cancelText: 'No',
-                onOk: () => dispatch(deleteFacture(record.code_facture))
-              });
+            size="small"
+            style={{
+              background: '#3b82f6',
+              borderColor: '#3b82f6'
             }}
-            icon={<MdDelete />}
-            danger
           />
-        </>
-      )}
-
+          {user?.role === 'admin' && (
+            <Button
+              type="default"
+              size="small"
+              onClick={() => {
+                const foundFacture = facture.find(
+                  (f) => f.code_facture === record.code_facture
+                );
+                setSelectedFacture(foundFacture);
+                setSelectedModalRowKeys([]);
+                setSelectedModalRows([]);
+                setDestinationSearchText("");
+                setIsModalVisible(true);
+              }}
+              icon={<CiSettings />}
+              style={{
+                background: theme === 'dark' ? '#334155' : '#ffffff',
+                borderColor: theme === 'dark' ? '#475569' : '#d1d5db',
+                color: theme === 'dark' ? '#e2e8f0' : '#374151'
+              }}
+            />
+          )}
+          {user?.role === 'admin' && (
+            <Button
+              type="default"
+              size="small"
+              onClick={() => {
+                Modal.confirm({
+                  title: 'Delete Facture',
+                  content: `Are you sure you want to delete facture ${record.code_facture}?`,
+                  okText: 'Yes',
+                  cancelText: 'No',
+                  onOk: () => dispatch(deleteFacture(record.code_facture))
+                });
+              }}
+              icon={<MdDelete />}
+              danger
+              style={{
+                background: '#dc2626',
+                borderColor: '#dc2626',
+                color: '#ffffff'
+              }}
+            />
+          )}
         </div>
       ),
     },
@@ -328,8 +384,8 @@ function FactureClientTable({ theme, id }) {
             selectedRowKeys.includes(f._id)
           );
           const factureCodes = selectedFactures.map((f) => f.code_facture);
-          await dispatch(mergeFactures(factureCodes));
-          await fetchData();
+          dispatch(mergeFactures(factureCodes));
+          fetchData();
           setSelectedRowKeys([]);
         } catch (error) {
           // Error handling is done in API call.
@@ -344,7 +400,7 @@ function FactureClientTable({ theme, id }) {
       key: 'index',
       width: 40,
       fixed: 'left',
-      render: (text, record, index) => <span>{index + 1}</span>,
+      render: (_, __, index) => <span>{index + 1}</span>,
     },
     {
       title: 'Code Suivi',
@@ -374,7 +430,7 @@ function FactureClientTable({ theme, id }) {
       dataIndex: 'ville',
       key: 'ville',
       width: 100,
-      render: (text, record) => (record.ville ? record.ville.nom : 'N/A'),
+      render: (_, record) => (record.ville ? record.ville.nom : 'N/A'),
     },
     {
       title: 'Prix',
@@ -388,7 +444,7 @@ function FactureClientTable({ theme, id }) {
       title: 'Action',
       key: 'action',
       width: 100,
-      render: (text, record) => (
+      render: (_, record) => (
         user?.role === 'admin' && (
           <Popconfirm
             title="Are you sure you want to remove this colis?"
@@ -521,20 +577,12 @@ function FactureClientTable({ theme, id }) {
       <div>
         {/* Alert message for duplicates */}
         {hasDuplicates && (
-          <div
-            style={{
-              backgroundColor: '#fff2f0',
-              border: '1px solid #ffccc7',
-              padding: '12px 16px',
-              borderRadius: '4px',
-              marginBottom: '16px'
-            }}
-          >
-            <h4 style={{ color: '#cf1322', margin: '0 0 8px 0' }}>
+          <div className={`facture-alert-${theme}`}>
+            <h4>
               Attention: Des colis dupliqués ont été détectés dans cette facture
             </h4>
             <div>
-              <p>Codes dupliqués:</p>
+              <p style={{ color: theme === 'dark' ? '#cbd5e1' : '#374151', margin: '8px 0' }}>Codes dupliqués:</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {duplicateCodes.map(code => (
                   <Tag key={code} color="red">{code}</Tag>
@@ -547,6 +595,11 @@ function FactureClientTable({ theme, id }) {
         <Descriptions
           title="Calcule Detail :"
           bordered
+          className={`facture-modal-${theme}`}
+          style={{
+            background: theme === 'dark' ? '#1e293b' : '#ffffff',
+            borderRadius: '8px'
+          }}
         >
           <Descriptions.Item label="Total Prix">
             <Tag color="green">{selectedFacture?.totalPrix} DH</Tag>
@@ -581,7 +634,7 @@ function FactureClientTable({ theme, id }) {
           </Descriptions.Item>
         </Descriptions>
 
-        <Divider />
+        <Divider className={`facture-divider-${theme}`} />
 
         {/* Container for Transfer and New Facture Buttons */}
         <div style={{ marginBottom: '10px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -610,7 +663,7 @@ function FactureClientTable({ theme, id }) {
           }}
           rowClassName={(record) => {
             // Add a class to highlight duplicate rows
-            return duplicateCodesSet.has(record.code_suivi) ? 'duplicate-row' : '';
+            return duplicateCodesSet.has(record.code_suivi) ? `duplicate-row-${theme}` : '';
           }}
         />
       </div>
@@ -635,7 +688,12 @@ function FactureClientTable({ theme, id }) {
           placeholder="Tapez le code facture ou recherchez..."
           value={destinationSearchText}
           onChange={(e) => setDestinationSearchText(e.target.value)}
-          style={{ marginBottom: 16 }}
+          style={{
+            marginBottom: 16,
+            background: theme === 'dark' ? '#334155' : '#ffffff',
+            borderColor: theme === 'dark' ? '#475569' : '#d1d5db',
+            color: theme === 'dark' ? '#e2e8f0' : '#374151'
+          }}
         />
         <Row gutter={[16, 16]}>
           {filteredDestinationCandidates.map((dest) => {
@@ -647,6 +705,7 @@ function FactureClientTable({ theme, id }) {
               <Col key={dest._id} xs={24} sm={12} md={8} lg={6} xl={4}>
                 <Card
                   hoverable
+                  className={`facture-card-${theme}`}
                   onClick={() => {
                     const selectedCodes = selectedModalRows.map(row => row.code_suivi);
 
@@ -703,13 +762,19 @@ function FactureClientTable({ theme, id }) {
                   <Card.Meta
                     title={
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{dest.code_facture}</span>
+                        <span style={{ color: theme === 'dark' ? '#e2e8f0' : '#1e293b' }}>
+                          {dest.code_facture}
+                        </span>
                         {hasDuplicates && (
                           <Tag color="red">{duplicates.length} duplicates</Tag>
                         )}
                       </div>
                     }
-                    description={`Créé le: ${moment(dest.createdAt).format('DD/MM/YYYY HH:mm')}`}
+                    description={
+                      <span style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280' }}>
+                        {`Créé le: ${moment(dest.createdAt).format('DD/MM/YYYY HH:mm')}`}
+                      </span>
+                    }
                   />
                 </Card>
               </Col>
@@ -721,102 +786,146 @@ function FactureClientTable({ theme, id }) {
   };
 
   return (
-    <div>
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px', alignItems: 'center' }}>
-  <Col xs={24} sm={24} md={6}>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-      <Input
-        placeholder="Rechercher ..."
-        value={searchText}
-        onChange={handleSearchChange}
-        allowClear
-      />
-    </div>
-  </Col>
-  <Col xs={24} sm={24} md={6} >
-    <Select
-      value={selectedDateRange}
-      onChange={handleDateRangeSelectChange}
-      style={{ width: '100%' }}
-      disabled={loading}
-    >
-      <Option value="last_week">Dernière semaine</Option>
-      <Option value="last_2_weeks">2 dernières semaines</Option>
-      <Option value="last_month">Dernier mois</Option>
-      <Option value="last_2_months">2 derniers mois</Option>
-      <Option value="custom">Personnalisé</Option>
-    </Select>
-  </Col>
-  <Col xs={24} sm={24} md={6} >
-    <Row gutter={8}>
-      <Col span={12}>
-        <Input
-          type="date"
-          placeholder="Date début"
-          disabled={selectedDateRange !== 'custom' || loading}
-          onChange={handleStartDateChange}
-          value={startDate ? moment(startDate).format('YYYY-MM-DD') : ''}
-          style={{ width: '100%' }}
-        />
-      </Col>
-      <Col span={12}>
-        <Input
-          type="date"
-          placeholder="Date fin"
-          disabled={selectedDateRange !== 'custom' || loading}
-          onChange={handleEndDateChange}
-          value={endDate ? moment(endDate).format('YYYY-MM-DD') : ''}
-          style={{ width: '100%' }}
-        />
-      </Col>
-    </Row>
-  </Col>
-  <Col xs={24} sm={24} md={6} style={{ textAlign: 'right' }}>
-    <Space>
-      <Button
-        type="default"
-        icon={<FaSyncAlt />}
-        onClick={() => {
-          setLoading(true);
-          fetchData(selectedDateRange);
-        }}
-        loading={loading}
-      >
-        Refresh
-      </Button>
-      {user?.role === 'admin' && (
-        <Button
-          type="primary"
-          icon={<FaRegFolderOpen />}
-          disabled={selectedRowKeys.length < 2}
-          onClick={handleMerge}
-        >
-          Fusionner
-        </Button>
-      )}
-    </Space>
-  </Col>
-</Row>
+    <div className={`facture-client-container-${theme}`}>
+      <div className={`facture-filters-${theme}`}>
+        <Row gutter={[16, 16]} style={{ alignItems: 'center' }}>
+          <Col xs={24} sm={24} md={6}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <Input
+                placeholder="Rechercher ..."
+                value={searchText}
+                onChange={handleSearchChange}
+                allowClear
+                style={{
+                  background: theme === 'dark' ? '#334155' : '#ffffff',
+                  borderColor: theme === 'dark' ? '#475569' : '#d1d5db',
+                  color: theme === 'dark' ? '#e2e8f0' : '#374151'
+                }}
+              />
+            </div>
+          </Col>
+          <Col xs={24} sm={24} md={6}>
+            <Select
+              value={selectedDateRange}
+              onChange={handleDateRangeSelectChange}
+              style={{
+                width: '100%',
+                background: theme === 'dark' ? '#334155' : '#ffffff'
+              }}
+              disabled={loading}
+              dropdownStyle={{
+                background: theme === 'dark' ? '#1e293b' : '#ffffff',
+                border: theme === 'dark' ? '1px solid #334155' : '1px solid #d1d5db'
+              }}
+            >
+              <Option value="last_week">Dernière semaine</Option>
+              <Option value="last_2_weeks">2 dernières semaines</Option>
+              <Option value="last_month">Dernier mois</Option>
+              <Option value="last_2_months">2 derniers mois</Option>
+              <Option value="last_6_months">6 mois</Option>
+              <Option value="all_time">Depuis lancement</Option>
+              <Option value="custom">Personnalisé</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={24} md={6}>
+            <Row gutter={8}>
+              <Col span={12}>
+                <Input
+                  type="date"
+                  placeholder="Date début"
+                  disabled={selectedDateRange !== 'custom' || loading}
+                  onChange={handleStartDateChange}
+                  value={startDate ? moment(startDate).format('YYYY-MM-DD') : ''}
+                  style={{
+                    width: '100%',
+                    background: theme === 'dark' ? '#334155' : '#ffffff',
+                    borderColor: theme === 'dark' ? '#475569' : '#d1d5db',
+                    color: theme === 'dark' ? '#e2e8f0' : '#374151'
+                  }}
+                />
+              </Col>
+              <Col span={12}>
+                <Input
+                  type="date"
+                  placeholder="Date fin"
+                  disabled={selectedDateRange !== 'custom' || loading}
+                  onChange={handleEndDateChange}
+                  value={endDate ? moment(endDate).format('YYYY-MM-DD') : ''}
+                  style={{
+                    width: '100%',
+                    background: theme === 'dark' ? '#334155' : '#ffffff',
+                    borderColor: theme === 'dark' ? '#475569' : '#d1d5db',
+                    color: theme === 'dark' ? '#e2e8f0' : '#374151'
+                  }}
+                />
+              </Col>
+            </Row>
+          </Col>
+          <Col xs={24} sm={24} md={6} style={{ textAlign: 'right' }}>
+            <Space>
+              <Button
+                type="default"
+                icon={<FaSyncAlt />}
+                onClick={() => {
+                  setLoading(true);
+                  fetchData(selectedDateRange);
+                }}
+                loading={loading}
+                style={{
+                  background: theme === 'dark' ? '#334155' : '#ffffff',
+                  borderColor: theme === 'dark' ? '#475569' : '#d1d5db',
+                  color: theme === 'dark' ? '#e2e8f0' : '#374151'
+                }}
+              >
+                Refresh
+              </Button>
+              {user?.role === 'admin' && (
+                <Button
+                  type="primary"
+                  icon={<FaRegFolderOpen />}
+                  disabled={selectedRowKeys.length < 2}
+                  onClick={handleMerge}
+                  style={{
+                    background: '#3b82f6',
+                    borderColor: '#3b82f6'
+                  }}
+                >
+                  Fusionner
+                </Button>
+              )}
+            </Space>
+          </Col>
+        </Row>
+      </div>
 
-      <TableDashboard
-        id="_id"
-        column={columns}
-        data={filteredData}
-        theme={theme}
-        loading={loading}
-        onSelectChange={onSelectChange}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: onSelectChange,
-        }}
-      />
+      <div className={`facture-table-${theme}`}>
+        <TableDashboard
+          id="_id"
+          column={columns}
+          data={filteredData}
+          theme={theme}
+          loading={loading}
+          onSelectChange={onSelectChange}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: onSelectChange,
+          }}
+        />
+      </div>
       <Modal
         title={`Facture: ${selectedFacture?.code_facture}`}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         width="80%"
-        styles={{ body: { height: '80vh', overflowY: 'auto' } }}
+        className={`facture-modal-${theme}`}
+        styles={{
+          body: {
+            height: '80vh',
+            overflowY: 'auto',
+            background: theme === 'dark' ? '#1e293b' : '#ffffff'
+          }
+        }}
       >
         <ModalContent />
       </Modal>
@@ -826,6 +935,12 @@ function FactureClientTable({ theme, id }) {
         onCancel={() => setIsDestinationModalVisible(false)}
         footer={null}
         width="80%"
+        className={`facture-modal-${theme}`}
+        styles={{
+          body: {
+            background: theme === 'dark' ? '#1e293b' : '#ffffff'
+          }
+        }}
       >
         <DestinationModalContent />
       </Modal>

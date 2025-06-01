@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../../../ThemeContext';
@@ -6,7 +6,7 @@ import '../reclamation.css';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import Title from '../../../global/Title';
-import { Button, Table, Tabs, Tag, Space, Tooltip, Modal, Input, Form, Card, Typography, Alert, Select, DatePicker } from 'antd';
+import { Button, Table, Tabs, Tag, Space, Tooltip, Modal, Input, Form, Card, Typography, Alert, Select } from 'antd';
 import { FaInfoCircle, FaEnvelope, FaCheck, FaUser, FaSearch } from "react-icons/fa";
 import { MdOutlineDomainVerification, MdOutlineMessage, MdOutlineClear } from "react-icons/md";
 import { MdOutlineDangerous } from "react-icons/md";
@@ -20,8 +20,10 @@ import { toast } from 'react-toastify';
 
 
 
+
+
 // Messages container component with auto-scroll
-const MessagesContainer = ({ messages, formatDate }) => {
+const MessagesContainer = ({ messages, formatDate, theme }) => {
     const messagesEndRef = React.useRef(null);
 
     // Scroll to bottom whenever messages change
@@ -48,13 +50,13 @@ const MessagesContainer = ({ messages, formatDate }) => {
                                     position: 'relative',
                                     zIndex: 1
                                 }}>
-                                    <span style={{
-                                        backgroundColor: '#f5f5f5',
+                                    <span className={theme === 'dark' ? 'date-separator' : ''} style={{
+                                        backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f5f5f5',
                                         padding: '2px 8px',
                                         borderRadius: '10px',
                                         fontSize: '11px',
-                                        color: '#888',
-                                        border: '1px solid #e8e8e8'
+                                        color: theme === 'dark' ? '#ccc' : '#888',
+                                        border: theme === 'dark' ? '1px solid #434343' : '1px solid #e8e8e8'
                                     }}>
                                         {new Date(message.createdAt).toLocaleDateString()}
                                     </span>
@@ -72,10 +74,15 @@ const MessagesContainer = ({ messages, formatDate }) => {
                                     marginRight: isSenderAdmin ? '5px' : 'auto',
                                     marginBottom: '8px',
                                     position: 'relative',
-                                    backgroundColor: isSenderAdmin ? '#e6f7ff' : '#f6ffed',
+                                    backgroundColor: theme === 'dark'
+                                        ? (isSenderAdmin ? '#001f3d' : '#002b17')
+                                        : (isSenderAdmin ? '#e6f7ff' : '#f6ffed'),
                                     borderRadius: '8px',
-                                    border: `1px solid ${isSenderAdmin ? '#91d5ff' : '#b7eb8f'}`,
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                    border: theme === 'dark'
+                                        ? `1px solid ${isSenderAdmin ? '#1890ff' : '#52c41a'}`
+                                        : `1px solid ${isSenderAdmin ? '#91d5ff' : '#b7eb8f'}`,
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                    color: theme === 'dark' ? '#fff' : '#000'
                                 }}
                             >
                                 <div style={{
@@ -94,7 +101,10 @@ const MessagesContainer = ({ messages, formatDate }) => {
                                             ? message.sender.storeName
                                             : `${message.sender.nom}`}
                                     </span>
-                                    <span style={{ fontSize: '10px', color: '#999' }}>
+                                    <span style={{
+                                        fontSize: '10px',
+                                        color: theme === 'dark' ? '#ccc' : '#999'
+                                    }}>
                                         {formatDate(message.createdAt).split(' ')[1]} {/* Show only time */}
                                     </span>
                                 </div>
@@ -129,6 +139,7 @@ function Reclamation() {
     const [selectedReclamation, setSelectedReclamation] = useState(null);
     const [messageText, setMessageText] = useState('');
     const [form] = Form.useForm();
+
 
     // State for create reclamation modal
     const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -176,6 +187,32 @@ function Reclamation() {
         }
     }, [location, navigate]);
 
+
+    /* -------------------------------------------
+   helper (keeps code DRY – use it for both modals)
+-------------------------------------------- */
+const getModalStyles = (theme) => ({
+    header: {
+      backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+      borderBottom: theme === 'dark' ? '1px solid #434343' : '1px solid #f0f0f0',
+    },
+    body: {
+      backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+      color:          theme === 'dark' ? '#fff'    : '#000',
+      padding: 20,
+      maxHeight: '80vh',
+      overflowY: 'auto',
+    },
+    content: {
+      backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+    },
+    mask: {
+      backgroundColor: theme === 'dark'
+        ? 'rgba(0,0,0,0.70)'
+        : 'rgba(0,0,0,0.45)',
+    },
+  });
+  
     // Check if user is admin
     const isAdmin = user?.role === 'admin' || user?.role === 'team';
     // Check if user is super admin
@@ -717,7 +754,7 @@ function Reclamation() {
             <main className="page-main">
                 <Topbar />
                 <div
-                    className="page-content"
+                    className={`page-content ${theme === 'dark' ? 'dark-theme' : ''}`}
                     style={{
                         backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)',
                         color: theme === 'dark' ? '#fff' : '#002242',
@@ -822,7 +859,12 @@ function Reclamation() {
                                                 value={searchParams.codeSuivi}
                                                 onChange={(e) => setSearchParams({ ...searchParams, codeSuivi: e.target.value })}
                                                 allowClear
-                                                prefix={<LuBox style={{ color: '#bfbfbf' }} />}
+                                                prefix={<LuBox style={{ color: theme === 'dark' ? '#888' : '#bfbfbf' }} />}
+                                                style={{
+                                                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}
                                             />
                                         </Form.Item>
 
@@ -834,7 +876,12 @@ function Reclamation() {
                                                     value={searchParams.store}
                                                     onChange={(e) => setSearchParams({ ...searchParams, store: e.target.value })}
                                                     allowClear
-                                                    prefix={<FaUser style={{ color: '#bfbfbf' }} />}
+                                                    prefix={<FaUser style={{ color: theme === 'dark' ? '#888' : '#bfbfbf' }} />}
+                                                    style={{
+                                                        backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                        borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                                        color: theme === 'dark' ? '#fff' : '#000'
+                                                    }}
                                                 />
                                             </Form.Item>
                                         )}
@@ -914,7 +961,12 @@ function Reclamation() {
                                                 type="date"
                                                 value={searchParams.startDate || ''}
                                                 onChange={(e) => setSearchParams({ ...searchParams, startDate: e.target.value })}
-                                                style={{ width: '100%' }}
+                                                style={{
+                                                    width: '100%',
+                                                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}
                                             />
                                         </Form.Item>
 
@@ -924,7 +976,12 @@ function Reclamation() {
                                                 type="date"
                                                 value={searchParams.endDate || ''}
                                                 onChange={(e) => setSearchParams({ ...searchParams, endDate: e.target.value })}
-                                                style={{ width: '100%' }}
+                                                style={{
+                                                    width: '100%',
+                                                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}
                                             />
                                         </Form.Item>
                                     </div>
@@ -957,7 +1014,11 @@ function Reclamation() {
 
                         {/* Reclamation Detail Modal */}
                         <Modal
-                            title={<div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                            title={<div style={{
+                                fontSize: '18px',
+                                fontWeight: 'bold',
+                                color: theme === 'dark' ? '#fff' : '#000'
+                            }}>
                                 <MdOutlineMessage size={20} style={{ marginRight: '10px', verticalAlign: 'middle' }} />
                                 Reclamation Details
                             </div>}
@@ -965,7 +1026,25 @@ function Reclamation() {
                             onCancel={() => setDetailModalVisible(false)}
                             footer={null}
                             width={900}
-                            bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: '20px' }}
+                            styles={{
+                                header: {
+                                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                    borderBottom: theme === 'dark' ? '1px solid #434343' : '1px solid #f0f0f0',
+                                },
+                                body: {
+                                    maxHeight: '80vh',
+                                    overflowY: 'auto',
+                                    padding: '20px',
+                                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                    color: theme === 'dark' ? '#fff' : '#000',
+                                },
+                                content: {
+                                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                },
+                                mask: {
+                                    backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',
+                                }
+                            }}
                             style={{ top: 20 }}
                         >
                             {selectedReclamation && (
@@ -980,33 +1059,72 @@ function Reclamation() {
                                             borderRadius: '10px',
                                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                             backgroundColor: theme === 'dark' ? '#001f3d' : '#f0f7ff',
-                                            border: '1px solid #d9e8ff'
+                                            border: theme === 'dark' ? '1px solid #1890ff' : '1px solid #d9e8ff',
+                                            color: theme === 'dark' ? '#fff' : '#000'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                                                 <LuBox size={24} style={{ marginRight: '10px', color: '#1890ff' }} />
-                                                <h3 style={{ margin: 0, fontSize: '18px' }}>Colis Information</h3>
+                                                <h3 style={{
+                                                    margin: 0,
+                                                    fontSize: '18px',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Colis Information</h3>
                                             </div>
                                             <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                                <div style={{ width: '120px', fontWeight: 'bold' }}>Code Suivi:</div>
+                                                <div style={{
+                                                    width: '120px',
+                                                    fontWeight: 'bold',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Code Suivi:</div>
                                                 <div style={{ flex: 1 }}>
                                                     <Typography.Text
-                                                        copyable={{ text: selectedReclamation.colis?.code_suivi, tooltips: ['Copier', 'Copié!'] }}
+                                                        copyable={{
+                                                            text: selectedReclamation.colis?.code_suivi,
+                                                            tooltips: ['Copier', 'Copié!']
+                                                        }}
+                                                        style={{
+                                                            color: theme === 'dark' ? '#ccc' : '#666',
+                                                            backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '4px',
+                                                            fontFamily: 'monospace',
+                                                            fontSize: '13px',
+                                                            border: theme === 'dark' ? '1px solid #434343' : '1px solid #e8e8e8'
+                                                        }}
                                                     >
                                                         {selectedReclamation.colis?.code_suivi}
                                                     </Typography.Text>
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                                <div style={{ width: '120px', fontWeight: 'bold' }}>Ville:</div>
-                                                <div style={{ flex: 1 }}>{selectedReclamation.colis?.ville?.nom || 'N/A'}</div>
+                                                <div style={{
+                                                    width: '120px',
+                                                    fontWeight: 'bold',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Ville:</div>
+                                                <div style={{
+                                                    flex: 1,
+                                                    color: theme === 'dark' ? '#ccc' : '#666'
+                                                }}>{selectedReclamation.colis?.ville?.nom || 'N/A'}</div>
                                             </div>
                                             <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                                <div style={{ width: '120px', fontWeight: 'bold' }}>Prix:</div>
-                                                <div style={{ flex: 1 }}>{selectedReclamation.colis?.prix} DH</div>
+                                                <div style={{
+                                                    width: '120px',
+                                                    fontWeight: 'bold',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Prix:</div>
+                                                <div style={{
+                                                    flex: 1,
+                                                    color: theme === 'dark' ? '#ccc' : '#666'
+                                                }}>{selectedReclamation.colis?.prix} DH</div>
                                             </div>
                                             {selectedReclamation.colis?.statut && (
                                                 <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                                    <div style={{ width: '120px', fontWeight: 'bold' }}>Statut:</div>
+                                                    <div style={{
+                                                        width: '120px',
+                                                        fontWeight: 'bold',
+                                                        color: theme === 'dark' ? '#fff' : '#000'
+                                                    }}>Statut:</div>
                                                     <div style={{ flex: 1 }}>
                                                         <Tag color={selectedReclamation.colis.statut === 'livrée' ? 'green' : 'orange'}>
                                                             {selectedReclamation.colis.statut.toUpperCase()}
@@ -1024,24 +1142,50 @@ function Reclamation() {
                                             borderRadius: '10px',
                                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                             backgroundColor: theme === 'dark' ? '#002b17' : '#f6ffed',
-                                            border: '1px solid #d9f7be'
+                                            border: theme === 'dark' ? '1px solid #52c41a' : '1px solid #d9f7be',
+                                            color: theme === 'dark' ? '#fff' : '#000'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                                                 <FaUser size={22} style={{ marginRight: '10px', color: '#52c41a' }} />
-                                                <h3 style={{ margin: 0, fontSize: '18px' }}>Store Information</h3>
+                                                <h3 style={{
+                                                    margin: 0,
+                                                    fontSize: '18px',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Store Information</h3>
                                             </div>
                                             <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                                <div style={{ width: '120px', fontWeight: 'bold' }}>Store Name:</div>
-                                                <div style={{ flex: 1 }}>{selectedReclamation.store?.storeName}</div>
+                                                <div style={{
+                                                    width: '120px',
+                                                    fontWeight: 'bold',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Store Name:</div>
+                                                <div style={{
+                                                    flex: 1,
+                                                    color: theme === 'dark' ? '#ccc' : '#666'
+                                                }}>{selectedReclamation.store?.storeName}</div>
                                             </div>
                                             <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                                <div style={{ width: '120px', fontWeight: 'bold' }}>Phone:</div>
-                                                <div style={{ flex: 1 }}>{selectedReclamation.store?.tele}</div>
+                                                <div style={{
+                                                    width: '120px',
+                                                    fontWeight: 'bold',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Phone:</div>
+                                                <div style={{
+                                                    flex: 1,
+                                                    color: theme === 'dark' ? '#ccc' : '#666'
+                                                }}>{selectedReclamation.store?.tele}</div>
                                             </div>
                                             {selectedReclamation.store?.id_client?.nom && (
                                                 <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                                    <div style={{ width: '120px', fontWeight: 'bold' }}>Client:</div>
-                                                    <div style={{ flex: 1 }}>{selectedReclamation.store.id_client.nom}</div>
+                                                    <div style={{
+                                                        width: '120px',
+                                                        fontWeight: 'bold',
+                                                        color: theme === 'dark' ? '#fff' : '#000'
+                                                    }}>Client:</div>
+                                                    <div style={{
+                                                        flex: 1,
+                                                        color: theme === 'dark' ? '#ccc' : '#666'
+                                                    }}>{selectedReclamation.store.id_client.nom}</div>
                                                 </div>
                                             )}
                                         </div>
@@ -1052,11 +1196,16 @@ function Reclamation() {
                                         padding: '15px',
                                         borderRadius: '10px',
                                         backgroundColor: theme === 'dark' ? '#141d2b' : '#fafafa',
-                                        border: '1px solid #d9d9d9'
+                                        border: theme === 'dark' ? '1px solid #434343' : '1px solid #d9d9d9',
+                                        color: theme === 'dark' ? '#fff' : '#000'
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                                             <MdOutlineDomainVerification size={20} style={{ marginRight: '10px', color: '#722ed1' }} />
-                                            <h3 style={{ margin: 0, fontSize: '18px' }}>Status</h3>
+                                            <h3 style={{
+                                                margin: 0,
+                                                fontSize: '18px',
+                                                color: theme === 'dark' ? '#fff' : '#000'
+                                            }}>Status</h3>
                                             <Tag
                                                 color={getStatusColor(selectedReclamation.status)}
                                                 style={{ marginLeft: '10px', fontSize: '14px', padding: '0 10px' }}
@@ -1066,7 +1215,11 @@ function Reclamation() {
                                         </div>
 
                                         {/* Show status message based on current status */}
-                                        <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+                                        <div style={{
+                                            marginBottom: '15px',
+                                            fontSize: '14px',
+                                            color: theme === 'dark' ? '#ccc' : '#666'
+                                        }}>
                                             {selectedReclamation.status === 'open' && (
                                                 <p>This reclamation is waiting for review.</p>
                                             )}
@@ -1159,7 +1312,11 @@ function Reclamation() {
                                     <div style={{ marginBottom: '25px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                                             <MdOutlineMessage size={24} style={{ marginRight: '10px', color: '#722ed1' }} />
-                                            <h3 style={{ margin: 0, fontSize: '18px' }}>Messages</h3>
+                                            <h3 style={{
+                                                margin: 0,
+                                                fontSize: '18px',
+                                                color: theme === 'dark' ? '#fff' : '#000'
+                                            }}>Messages</h3>
                                             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
                                                 <Tooltip title="Refresh Messages">
                                                     <Button
@@ -1187,10 +1344,15 @@ function Reclamation() {
                                                     <MessagesContainer
                                                         messages={selectedReclamation.messages}
                                                         formatDate={formatDate}
+                                                        theme={theme}
                                                     />
                                                 </div>
                                             ) : (
-                                                <div style={{ padding: '40px 20px', textAlign: 'center', color: '#999' }}>
+                                                <div style={{
+                                                    padding: '40px 20px',
+                                                    textAlign: 'center',
+                                                    color: theme === 'dark' ? '#ccc' : '#999'
+                                                }}>
                                                     <MdOutlineMessage size={40} style={{ marginBottom: '10px', opacity: 0.5 }} />
                                                     <p>No messages yet. Start the conversation!</p>
                                                 </div>
@@ -1204,11 +1366,16 @@ function Reclamation() {
                                             borderRadius: '10px',
                                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                             backgroundColor: theme === 'dark' ? '#141d2b' : '#fafafa',
-                                            border: '1px solid #d9d9d9'
+                                            border: theme === 'dark' ? '1px solid #434343' : '1px solid #d9d9d9',
+                                            color: theme === 'dark' ? '#fff' : '#000'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                                                 <FaEnvelope size={20} style={{ marginRight: '10px', color: '#1890ff' }} />
-                                                <h3 style={{ margin: 0, fontSize: '18px' }}>Add Message</h3>
+                                                <h3 style={{
+                                                    margin: 0,
+                                                    fontSize: '18px',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}>Add Message</h3>
                                             </div>
 
                                             <Form
@@ -1229,7 +1396,12 @@ function Reclamation() {
                                                             resize: 'none',
                                                             padding: '12px',
                                                             fontSize: '14px',
-                                                            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)'
+                                                            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                            borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                                            color: theme === 'dark' ? '#fff' : '#000',
+                                                            boxShadow: theme === 'dark'
+                                                                ? 'inset 0 1px 3px rgba(255,255,255,0.05)'
+                                                                : 'inset 0 1px 3px rgba(0,0,0,0.1)'
                                                         }}
                                                         autoSize={{ minRows: 3, maxRows: 6 }}
                                                         onPressEnter={(e) => {
@@ -1244,7 +1416,10 @@ function Reclamation() {
                                                     />
                                                 </Form.Item>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <div style={{ fontSize: '12px', color: '#888' }}>
+                                                    <div style={{
+                                                        fontSize: '12px',
+                                                        color: theme === 'dark' ? '#ccc' : '#888'
+                                                    }}>
                                                         Press Enter to send, Shift+Enter for new line
                                                     </div>
                                                     <Button
@@ -1256,7 +1431,30 @@ function Reclamation() {
                                                             borderRadius: '6px',
                                                             padding: '0 20px',
                                                             height: '36px',
-                                                            boxShadow: '0 2px 4px rgba(24, 144, 255, 0.3)'
+                                                            backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                                            borderColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+                                                            color: '#fff',
+                                                            boxShadow: theme === 'dark'
+                                                                ? '0 2px 8px rgba(24, 144, 255, 0.4)'
+                                                                : '0 2px 4px rgba(24, 144, 255, 0.3)',
+                                                            transition: 'all 0.3s ease',
+                                                            fontWeight: '500'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (!messageText.trim()) return;
+                                                            e.target.style.backgroundColor = theme === 'dark' ? '#40a9ff' : '#40a9ff';
+                                                            e.target.style.transform = 'translateY(-1px)';
+                                                            e.target.style.boxShadow = theme === 'dark'
+                                                                ? '0 4px 12px rgba(24, 144, 255, 0.5)'
+                                                                : '0 4px 8px rgba(24, 144, 255, 0.4)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            if (!messageText.trim()) return;
+                                                            e.target.style.backgroundColor = '#1890ff';
+                                                            e.target.style.transform = 'translateY(0)';
+                                                            e.target.style.boxShadow = theme === 'dark'
+                                                                ? '0 2px 8px rgba(24, 144, 255, 0.4)'
+                                                                : '0 2px 4px rgba(24, 144, 255, 0.3)';
                                                         }}
                                                     >
                                                         Send Message
@@ -1268,10 +1466,10 @@ function Reclamation() {
                                         <div style={{
                                             padding: '15px',
                                             borderRadius: '10px',
-                                            backgroundColor: '#fff7e6',
-                                            border: '1px solid #ffe7ba',
+                                            backgroundColor: theme === 'dark' ? '#2a1f0d' : '#fff7e6',
+                                            border: theme === 'dark' ? '1px solid #d46b08' : '1px solid #ffe7ba',
                                             textAlign: 'center',
-                                            color: '#d46b08'
+                                            color: theme === 'dark' ? '#ffb84d' : '#d46b08'
                                         }}>
                                             <MdOutlineDangerous size={24} style={{ marginBottom: '10px' }} />
                                             <p style={{ margin: 0, fontSize: '14px' }}>
@@ -1286,7 +1484,12 @@ function Reclamation() {
                         {/* Create Reclamation Modal */}
                         <Modal
                             title={
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{
+                                    fontSize: '18px',
+                                    fontWeight: 'bold',
+                                    color: theme === 'dark' ? '#fff' : '#000',
+                                    padding : '10px'
+                                }}>
                                     <MdOutlineMessage style={{ marginRight: '8px', color: '#1890ff' }} />
                                     <span>Créer une réclamation</span>
                                 </div>
@@ -1322,6 +1525,7 @@ function Reclamation() {
                                 </Button>
                             ]}
                             width={700}
+                            styles={getModalStyles(theme)}
                         >
                             <div>
                                 {modalError ? (
@@ -1332,7 +1536,12 @@ function Reclamation() {
                                         description="Veuillez décrire votre problème concernant ce colis. Notre équipe traitera votre réclamation dans les plus brefs délais."
                                         type="info"
                                         showIcon
-                                        style={{ marginBottom: '16px' }}
+                                        style={{
+                                            marginBottom: 16,
+                                            background:  theme === 'dark' ? '#002242' : undefined,
+                                            color:        theme === 'dark' ? 'white'    : 'black',
+                                            border:       theme === 'dark' ? '1px solid #434343' : undefined,
+                                          }}
                                     />
                                 )}
 
@@ -1353,12 +1562,19 @@ function Reclamation() {
                                             label="Code Suivi du Colis"
                                             required
                                             rules={[{ required: true, message: 'Veuillez entrer le code suivi du colis' }]}
+                                            style={{
+                                                color: theme === 'dark' ? '#fff' : '#000'
+                                            }}
                                         >
                                             <Input
                                                 placeholder="Entrez le code suivi du colis"
                                                 value={manualCodeSuivi}
                                                 onChange={(e) => setManualCodeSuivi(e.target.value)}
-                                                style={{ width: '100%' }}
+                                                style={{
+                                                    backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                                    color: theme === 'dark' ? '#fff' : '#000'
+                                                }}
                                             />
                                         </Form.Item>
                                     </Form>
@@ -1375,7 +1591,11 @@ function Reclamation() {
                                             onChange={(e) => setInitialMessage(e.target.value)}
                                             placeholder="Décrivez votre problème ici..."
                                             rows={6}
-                                            style={{ resize: 'none' }}
+                                            style={{
+                                                backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
+                                                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                                color: theme === 'dark' ? '#fff' : '#000'
+                                            }}
                                         />
                                     </Form.Item>
                                 </Form>
