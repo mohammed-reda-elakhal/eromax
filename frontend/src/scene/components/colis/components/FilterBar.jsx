@@ -158,6 +158,7 @@ const FilterBar = React.memo(({
           <Option value="last_2_weeks">2 dernières semaines</Option>
           <Option value="last_month">Dernier mois</Option>
           <Option value="last_2_months">2 derniers mois</Option>
+          <Option value="last_3_months">3 derniers mois</Option>
           <Option value="last_6_months">6 derniers mois</Option>
           <Option value="custom">Personnalisé</Option>
         </Select>

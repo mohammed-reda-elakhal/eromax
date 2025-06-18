@@ -822,6 +822,7 @@ function FactureClientTable({ theme, id }) {
               <Option value="last_2_weeks">2 dernières semaines</Option>
               <Option value="last_month">Dernier mois</Option>
               <Option value="last_2_months">2 derniers mois</Option>
+              <Option value="last_3_months">3 derniers mois</Option>
               <Option value="last_6_months">6 mois</Option>
               <Option value="all_time">Depuis lancement</Option>
               <Option value="custom">Personnalisé</Option>

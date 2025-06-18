@@ -596,6 +596,10 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
           startDateDynamic = new Date();
           startDateDynamic.setMonth(now.getMonth() - 2);
           break;
+        case 'last_3_months':
+          startDateDynamic = new Date();
+          startDateDynamic.setMonth(now.getMonth() - 3);
+          break;
         case 'last_6_months':
           startDateDynamic = new Date();
           startDateDynamic.setMonth(now.getMonth() - 6);

@@ -402,3 +402,226 @@
         display: none !important;
     }
 }
+
+/* Improved Print Styles for Better PDF Generation */
+@media print {
+    /* Reset all margins and padding for clean print */
+    * {
+        box-sizing: border-box;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #000;
+        background: white;
+    }
+    
+    /* Hide unnecessary elements */
+    .facture-buttons,
+    .ant-table-pagination,
+    .ant-table-selection,
+    .ant-table-expand-icon-col {
+        display: none !important;
+    }
+    
+    /* Facture container styling */
+    .facture-detail {
+        margin: 0;
+        padding: 15mm;
+        width: 100%;
+        max-width: none;
+        box-shadow: none;
+        background: white;
+    }
+    
+    /* Header styling */
+    .facture-header {
+        margin-bottom: 20px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 15px;
+    }
+    
+    .facture-title h2 {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin: 0 0 15px 0;
+        color: #000;
+    }
+    
+    .facture-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+    }
+    
+    .expediteur, .bon-livraison {
+        flex: 1;
+    }
+    
+    .bon-livraison {
+        text-align: right;
+    }
+    
+    /* Promotion section */
+    .promotion-section {
+        background-color: #fff2e8 !important;
+        border: 1px solid #ffd591 !important;
+        padding: 10px;
+        margin: 15px 0;
+        border-radius: 4px;
+        text-align: center;
+    }
+    
+    .promotion-section h1 {
+        font-size: 16px;
+        font-weight: bold;
+        margin: 0 0 5px 0;
+        color: #000;
+    }
+    
+    .promotion-section p {
+        font-size: 12px;
+        margin: 0;
+        color: #000;
+    }
+    
+    /* Duplicate alert */
+    .duplicate-alert-container {
+        background-color: #fff2f0 !important;
+        border: 1px solid #ffccc7 !important;
+        padding: 10px;
+        margin: 15px 0;
+        border-radius: 4px;
+    }
+    
+    .duplicate-alert-container h4 {
+        color: #cf1322 !important;
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .duplicate-alert-container p {
+        margin: 5px 0;
+        font-size: 11px;
+    }
+    
+    /* Section styling */
+    .simple-section, .recap-section {
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    .simple-header, .recap-header {
+        background-color: #f5f5f5 !important;
+        padding: 8px 12px;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .simple-header h4, .recap-header h4 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: bold;
+        color: #000;
+    }
+    
+    /* Table styling */
+    .table-facture, .table-supplements, .table-calcul {
+        padding: 0;
+        margin: 0;
+    }
+    
+    .ant-table {
+        font-size: 10px;
+        border-collapse: collapse;
+    }
+    
+    .ant-table-thead > tr > th {
+        background-color: #f5f5f5 !important;
+        color: #000 !important;
+        font-weight: bold;
+        border: 1px solid #ddd;
+        padding: 6px 4px;
+        font-size: 9px;
+        text-align: left;
+    }
+    
+    .ant-table-tbody > tr > td {
+        border: 1px solid #ddd;
+        padding: 4px;
+        font-size: 9px;
+        vertical-align: top;
+    }
+    
+    .ant-table-tbody > tr.duplicate-row > td {
+        background-color: #fef2f2 !important;
+    }
+    
+    /* Calculation table specific styling */
+    .table-calc-data .ant-table-tbody > tr > td {
+        border: none;
+        border-bottom: 1px solid #eee;
+        padding: 4px 8px;
+    }
+    
+    .table-calc-data .ant-table-tbody > tr.total-row-simple > td {
+        border-top: 1px solid #333;
+        border-bottom: none;
+        font-weight: bold;
+    }
+    
+    /* Signatures */
+    .facture-signatures {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+        page-break-inside: avoid;
+    }
+    
+    .signature-client, .signature-livreur {
+        width: 45%;
+        text-align: center;
+    }
+    
+    .signature-client p, .signature-livreur p {
+        margin: 0;
+        font-weight: bold;
+        font-size: 11px;
+    }
+    
+    .signature-client::after, .signature-livreur::after {
+        content: "____________________";
+        display: block;
+        margin-top: 20px;
+        margin-bottom: 5px;
+        border-bottom: 1px solid #333;
+    }
+    
+    /* Page breaks */
+    .simple-section, .recap-section {
+        page-break-inside: avoid;
+    }
+    
+    /* Ensure tables don't break across pages */
+    .ant-table-wrapper {
+        page-break-inside: avoid;
+    }
+    
+    /* Responsive adjustments for print */
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+    
+    /* Force background colors and images to print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}

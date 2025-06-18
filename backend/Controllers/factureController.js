@@ -2071,7 +2071,7 @@ try {
     })
     .populate({
         path: 'colis',
-        select: 'code_suivi prix statut crbt statu_final date_livraisant tarif_ajouter',
+        select: 'code_suivi prix statut crbt statu_final date_livraisant tarif_ajouter nom tele',
         populate: {
         path: 'ville',
         select: 'nom key ref tarif tarif_refus'
@@ -2206,6 +2206,10 @@ try {
             case 'last_2_months':
                 startDateDynamic = new Date();
                 startDateDynamic.setMonth(now.getMonth() - 2);
+                break;
+            case 'last_3_months':
+                startDateDynamic = new Date();
+                startDateDynamic.setMonth(now.getMonth() - 3);
                 break;
             case 'last_6_months':
                 startDateDynamic = new Date();
@@ -2376,6 +2380,10 @@ const getFactureLivreur = async (req, res) => {
                 case 'last_2_months':
                     startDateDynamic = new Date();
                     startDateDynamic.setMonth(now.getMonth() - 2);
+                    break;
+                case 'last_3_months':
+                    startDateDynamic = new Date();
+                    startDateDynamic.setMonth(now.getMonth() - 3);
                     break;
                 case 'last_6_months':
                     startDateDynamic = new Date();

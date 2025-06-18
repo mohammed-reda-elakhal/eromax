@@ -25,6 +25,7 @@ import ColisLivrée from "./scene/components/colis/pages/ColisLivrée";
 import Scan from "./scene/components/scan/page/Scan";
 import Compte from "./scene/components/compte/page/Compte";
 import Profile from "./scene/components/profile/page/Profile";
+import ProfileUser from "./scene/components/compte/page/ProfileUser";
 import Ville from "./scene/components/ville/page/Ville";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -213,7 +214,7 @@ function App() {
             <Route path="bussness" element={<Store />} />
             <Route path="payement" element={<Pyements />} />
             <Route path="document" element={<DocumentProfile />} />
-
+            <Route path="profile-user/:storeId" element={<ProfileUser />} />
 
             
             <Route path="profile/:id" element={<Profile />} />

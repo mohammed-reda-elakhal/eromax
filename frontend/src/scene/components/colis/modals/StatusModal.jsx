@@ -103,6 +103,13 @@ const StatusModal = React.memo(({
       cancelText="Annuler"
       className={theme === 'dark' ? 'dark-mode' : ''}
       destroyOnClose
+      width="90%"
+      style={{ top: 20 }}
+      bodyStyle={{
+        maxHeight: '70vh',
+        overflow: 'auto',
+        padding: '24px'
+      }}
     >
       <Form form={form} layout="vertical" name="form_status">
         {/* Quick Search Input */}
@@ -137,19 +144,25 @@ const StatusModal = React.memo(({
         >
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '12px',
-            marginTop: '8px'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: '8px',
+            marginTop: '8px',
+            maxHeight: '300px',
+            overflowY: 'auto',
+            padding: '8px',
+            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+            borderRadius: '6px',
+            backgroundColor: theme === 'dark' ? '#141414' : '#fafafa'
           }}>
             {filteredStatuses.length === 0 ? (
               <div style={{
                 gridColumn: '1 / -1',
                 textAlign: 'center',
-                padding: '40px 20px',
+                padding: '20px',
                 color: theme === 'dark' ? '#8c8c8c' : '#8c8c8c',
                 fontSize: '14px'
               }}>
-                <FaSearch style={{ fontSize: '24px', marginBottom: '8px', opacity: 0.5 }} />
+                <FaSearch style={{ fontSize: '20px', marginBottom: '8px', opacity: 0.5 }} />
                 <div>Aucun statut trouvé pour "{searchTerm}"</div>
                 <div style={{ fontSize: '12px', marginTop: '4px' }}>Essayez un autre terme de recherche</div>
               </div>
@@ -166,25 +179,25 @@ const StatusModal = React.memo(({
                     handleStatusChange(status);
                   }}
                   style={{
-                    padding: '16px',
-                    border: `2px solid ${isSelected ? config.color : (theme === 'dark' ? '#434343' : '#d9d9d9')}`,
-                    borderRadius: '8px',
+                    padding: '8px',
+                    border: `1px solid ${isSelected ? config.color : (theme === 'dark' ? '#434343' : '#d9d9d9')}`,
+                    borderRadius: '6px',
                     backgroundColor: isSelected
                       ? (theme === 'dark' ? `${config.color}20` : `${config.color}10`)
-                      : (theme === 'dark' ? '#1f1f1f' : '#fafafa'),
+                      : (theme === 'dark' ? '#1f1f1f' : '#ffffff'),
                     cursor: 'pointer',
-                    transition: 'all 0.3s ease',
+                    transition: 'all 0.2s ease',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '8px',
+                    gap: '4px',
                     position: 'relative',
-                    minHeight: '80px',
+                    minHeight: '60px',
                     justifyContent: 'center',
                     boxShadow: isSelected
-                      ? `0 4px 12px ${config.color}30`
-                      : (theme === 'dark' ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)'),
-                    transform: isSelected ? 'translateY(-2px)' : 'none'
+                      ? `0 2px 8px ${config.color}30`
+                      : (theme === 'dark' ? '0 1px 4px rgba(0,0,0,0.2)' : '0 1px 4px rgba(0,0,0,0.1)'),
+                    transform: isSelected ? 'translateY(-1px)' : 'none'
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
@@ -196,7 +209,7 @@ const StatusModal = React.memo(({
                   onMouseLeave={(e) => {
                     if (!isSelected) {
                       e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
-                      e.target.style.backgroundColor = theme === 'dark' ? '#1f1f1f' : '#fafafa';
+                      e.target.style.backgroundColor = theme === 'dark' ? '#1f1f1f' : '#ffffff';
                       e.target.style.transform = 'none';
                     }
                   }}
@@ -205,17 +218,17 @@ const StatusModal = React.memo(({
                   {isSelected && (
                     <div style={{
                       position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      width: '20px',
-                      height: '20px',
+                      top: '4px',
+                      right: '4px',
+                      width: '16px',
+                      height: '16px',
                       borderRadius: '50%',
                       backgroundColor: config.color,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: '#fff',
-                      fontSize: '12px'
+                      fontSize: '10px'
                     }}>
                       <FaCheck />
                     </div>
@@ -223,31 +236,37 @@ const StatusModal = React.memo(({
 
                   {/* Status icon */}
                   <div style={{
-                    fontSize: '24px',
+                    fontSize: '16px',
                     color: isSelected ? config.color : (theme === 'dark' ? '#8c8c8c' : '#595959'),
-                    marginBottom: '4px'
+                    marginBottom: '2px'
                   }}>
                     {config.icon}
                   </div>
 
                   {/* Status name */}
                   <div style={{
-                    fontSize: '14px',
+                    fontSize: '11px',
                     fontWeight: isSelected ? '600' : '500',
                     color: isSelected ? config.color : (theme === 'dark' ? '#fff' : '#262626'),
                     textAlign: 'center',
-                    lineHeight: '1.2'
+                    lineHeight: '1.2',
+                    wordBreak: 'break-word'
                   }}>
                     {status}
                   </div>
 
-                  {/* Status description */}
+                  {/* Status description - smaller and truncated */}
                   <div style={{
-                    fontSize: '11px',
+                    fontSize: '9px',
                     color: theme === 'dark' ? '#8c8c8c' : '#8c8c8c',
                     textAlign: 'center',
-                    lineHeight: '1.2',
-                    marginTop: '2px'
+                    lineHeight: '1.1',
+                    marginTop: '1px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
                   }}>
                     {getStatusDescription(status)}
                   </div>

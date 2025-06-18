@@ -750,7 +750,16 @@ const handleConfirmAssignLivreur = async () => {
               color: '#3b82f6',
               fontSize: '13px',
               fontWeight: '500',
-              lineHeight: '1.2'
+              lineHeight: '1.2',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+            onClick={() => {
+              if (record.store?._id) {
+                navigate(`/dashboard/profile-user/${record.store._id}`);
+              } else {
+                toast.error("ID de la boutique non disponible");
+              }
             }}
           >
             {record.store?.storeName || 'N/A'}

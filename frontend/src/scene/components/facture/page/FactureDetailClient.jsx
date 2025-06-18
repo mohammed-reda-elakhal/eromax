@@ -1,13 +1,355 @@
 import React, { useEffect, useRef, useState } from 'react';
-import html2pdf from 'html2pdf.js';
+import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import '../facture.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { getFactureClientByCode } from '../../../../redux/apiCalls/factureApiCalls';
-import { Table, Alert, Tag } from 'antd';
+import { Table, Alert, Tag, Button, message } from 'antd';
 import { useLocation } from 'react-router-dom';
 import '../components/factureStyles.css';
 
+// PDF Styles
+const pdfStyles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    padding: 30,
+    fontSize: 10,
+  },
+  header: {
+    marginBottom: 20,
+    borderBottom: '1px solid #333',
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  infoSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  expediteur: {
+    flex: 1,
+  },
+  bonLivraison: {
+    flex: 1,
+    textAlign: 'right',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 15,
+    borderBottom: '1px solid #ccc',
+    paddingBottom: 5,
+  },
+  table: {
+    display: 'table',
+    width: 'auto',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#bfbfbf',
+    marginBottom: 15,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#bfbfbf',
+    minHeight: 25,
+    alignItems: 'center',
+  },
+  tableColNumber: {
+    width: '8%',
+    borderRightWidth: 1,
+    borderRightColor: '#bfbfbf',
+    padding: 7,
+    fontSize: 8,
+    textAlign: 'center',
+  },
+  tableColHeader: {
+    width: '24%',
+    borderRightWidth: 1,
+    borderRightColor: '#bfbfbf',
+    padding: 7,
+    backgroundColor: '#f0f0f0',
+    fontWeight: 'bold',
+    fontSize: 8,
+    wordBreak: 'break-all',
+    wrap: true,
+  },
+  tableCol: {
+    width: '24%',
+    borderRightWidth: 1,
+    borderRightColor: '#bfbfbf',
+    padding: 7,
+    fontSize: 8,
+    wordBreak: 'break-all',
+    wrap: true,
+  },
+  tableColWide: {
+    width: '20%',
+    borderRightWidth: 1,
+    borderRightColor: '#bfbfbf',
+    padding: 7,
+    fontSize: 9,
+    wordBreak: 'break-word',
+  },
+  tableColLast: {
+    width: '15%',
+    padding: 7,
+    fontSize: 9,
+  },
+  tableColStatus: {
+    width: '12%',
+    borderRightWidth: 1,
+    borderRightColor: '#bfbfbf',
+    padding: 7,
+    fontSize: 8,
+    textAlign: 'center',
+  },
+  promotionSection: {
+    backgroundColor: '#fff2e8',
+    padding: 10,
+    marginBottom: 15,
+    border: '1px solid #ffd591',
+    borderRadius: 4,
+  },
+  promotionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  promotionText: {
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  duplicateAlert: {
+    backgroundColor: '#fff2f0',
+    border: '1px solid #ffccc7',
+    padding: 8,
+    marginBottom: 10,
+    borderRadius: 4,
+  },
+  duplicateTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#cf1322',
+    marginBottom: 5,
+  },
+  duplicateCodes: {
+    fontSize: 8,
+    color: '#cf1322',
+  },
+  recapSection: {
+    marginTop: 20,
+    border: '1px solid #ccc',
+    padding: 10,
+  },
+  recapRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  recapTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTop: '1px solid #333',
+    fontWeight: 'bold',
+  },
+  signatures: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+  },
+  signature: {
+    width: '45%',
+    textAlign: 'center',
+  },
+  signatureLine: {
+    borderBottom: '1px solid #333',
+    marginTop: 20,
+    marginBottom: 5,
+  },
+  pageNumber: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 8,
+    color: '#666',
+  },
+});
+
+// PDF Document Component
+const FacturePDF = ({ facture, promotion, duplicateCodes, calcData }) => (
+  <Document>
+    <Page size="A4" style={pdfStyles.page}>
+      {/* Header */}
+      <View style={pdfStyles.header}>
+        <Text style={pdfStyles.title}>{facture?.code_facture || 'N/A'}</Text>
+        
+        <View style={pdfStyles.infoSection}>
+          <View style={pdfStyles.expediteur}>
+            <Text style={{ fontWeight: 'bold' }}>Expéditeur:</Text>
+            <Text>{facture?.store ? facture.store.storeName : 'N/A'}</Text>
+            <Text>{facture?.store && facture.store.id_client ? facture.store.id_client.tele : 'N/A'}</Text>
+          </View>
+          
+          <View style={pdfStyles.bonLivraison}>
+            <Text style={{ fontWeight: 'bold' }}>Bon Livraison:</Text>
+            <Text>#{facture?.code_facture || 'N/A'}</Text>
+            <Text>
+              {facture?.date
+                ? new Date(facture.date).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : 'N/A'}
+            </Text>
+            <Text>{facture?.colis?.length || 0} Colis</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Promotion Section */}
+      {promotion && Object.keys(promotion).length > 0 && (
+        <View style={pdfStyles.promotionSection}>
+          <Text style={pdfStyles.promotionTitle}>Promotion EROMAX</Text>
+          <Text style={pdfStyles.promotionText}>
+            {promotion.type === 'percentage_discount'
+              ? `Réduction de ${promotion.value} %`
+              : `Tarif Fixe de ${promotion.value} DH`}
+          </Text>
+        </View>
+      )}
+
+      {/* Duplicate Alert */}
+      {duplicateCodes.length > 0 && (
+        <View style={pdfStyles.duplicateAlert}>
+          <Text style={pdfStyles.duplicateTitle}>
+            Attention: Des colis dupliqués ont été détectés dans cette facture
+          </Text>
+          <Text style={pdfStyles.duplicateCodes}>
+            Codes dupliqués: {duplicateCodes.join(', ')}
+          </Text>
+        </View>
+      )}
+
+      {/* Colis Details Table */}
+      <Text style={pdfStyles.sectionTitle}>Détails des Colis</Text>
+      
+      {/* Table Header */}
+      <View style={pdfStyles.table}>
+        <View style={pdfStyles.tableRow}>
+          <Text style={pdfStyles.tableColNumber}>#</Text>
+          <Text style={pdfStyles.tableColHeader}>Code Suivi</Text>
+          <Text style={pdfStyles.tableColHeader}>Date Livraison</Text>
+          <Text style={pdfStyles.tableColWide}>Destinataire</Text>
+          <Text style={pdfStyles.tableColStatus}>Statut</Text>
+          <Text style={pdfStyles.tableColStatus}>Total Tarif</Text>
+          <Text style={pdfStyles.tableColLast}>Montant à Payer</Text>
+        </View>
+        
+        {/* Table Rows */}
+        {facture?.colis?.map((colis, index) => (
+          <View key={colis.code_suivi} style={pdfStyles.tableRow}>
+            <Text style={pdfStyles.tableColNumber}>{index + 1}</Text>
+            <Text style={pdfStyles.tableCol}>
+              {colis.code_suivi}
+              {duplicateCodes.includes(colis.code_suivi) && ' (Dupliqué)'}
+            </Text>
+            <Text style={pdfStyles.tableCol}>
+              {colis.date_livraisant
+                ? new Date(colis.date_livraisant).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })
+                : 'N/A'}
+            </Text>
+            <Text style={pdfStyles.tableColWide}>
+              <Text>{colis.nom}</Text>{'\n'}
+              <Text>{colis.tele}</Text>{'\n'}
+              <Text style={{ fontStyle: 'italic' }}>{colis.ville ? colis.ville.nom : 'N/A'}</Text>{'\n'}
+              Prix: {colis.prix} DH
+            </Text>
+            <Text style={pdfStyles.tableColStatus}>{colis.statu_final}</Text>
+            <Text style={pdfStyles.tableColStatus}>{colis?.crbt?.total_tarif} DH</Text>
+            <Text style={pdfStyles.tableColLast}>{colis?.crbt?.prix_a_payant} DH</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Tarifs Supplémentaires */}
+      {facture && facture.colis && facture.colis.some(colis => colis.tarif_ajouter?.value > 0) && (
+        <>
+          <Text style={pdfStyles.sectionTitle}>Détails des Tarifs Supplémentaires</Text>
+          <View style={pdfStyles.table}>
+            <View style={pdfStyles.tableRow}>
+              <Text style={pdfStyles.tableColHeader}>Code Suivi</Text>
+              <Text style={pdfStyles.tableColHeader}>Montant</Text>
+              <Text style={pdfStyles.tableColWide}>Description</Text>
+            </View>
+            {facture.colis
+              .filter(colis => colis.tarif_ajouter?.value > 0)
+              .map((colis, index) => (
+                <View key={index} style={pdfStyles.tableRow}>
+                  <Text style={pdfStyles.tableCol}>{colis.code_suivi}</Text>
+                  <Text style={pdfStyles.tableCol}>{colis.tarif_ajouter.value} DH</Text>
+                  <Text style={pdfStyles.tableColWide}>
+                    {colis.tarif_ajouter.description || 'Pas de description'}
+                  </Text>
+                </View>
+              ))}
+          </View>
+        </>
+      )}
+
+      {/* Récapitulatif Financier */}
+      <View style={pdfStyles.recapSection}>
+        <Text style={pdfStyles.sectionTitle}>Récapitulatif Financier</Text>
+        {calcData.map((item, index) => (
+          <View key={item.key} style={item.isTotal ? pdfStyles.recapTotal : pdfStyles.recapRow}>
+            <Text style={{ fontWeight: item.isTotal ? 'bold' : 'normal' }}>
+              {item.description}
+            </Text>
+            <Text style={{ fontWeight: item.isTotal ? 'bold' : 'normal' }}>
+              {item.total.toFixed(2)} DH
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Signatures */}
+      <View style={pdfStyles.signatures}>
+        <View style={pdfStyles.signature}>
+          <Text style={pdfStyles.signatureLine}>____________________</Text>
+          <Text>Signature Client</Text>
+        </View>
+        <View style={pdfStyles.signature}>
+          <Text style={pdfStyles.signatureLine}>____________________</Text>
+          <Text>Signature du livreur</Text>
+        </View>
+      </View>
+
+      {/* Page Number */}
+      <Text style={pdfStyles.pageNumber} render={({ pageNumber, totalPages }) => (
+        `Page ${pageNumber} sur ${totalPages}`
+      )} fixed />
+    </Page>
+  </Document>
+);
 
 const FactureDetail = () => {
   const printRef = useRef();
@@ -15,6 +357,7 @@ const FactureDetail = () => {
   const facture = useSelector((state) => state.facture.detailFacture);
   const promotion = useSelector((state) => state.facture.promotionFacture);
   const { code_facture } = useParams();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const location = useLocation();
   const highlightedColisId = location.state?.colisId;
@@ -46,54 +389,113 @@ const FactureDetail = () => {
   // Create a set of duplicate codes for faster lookup
   const duplicateCodesSet = new Set(duplicateCodes);
 
-
   useEffect(() => {
     dispatch(getFactureClientByCode(code_facture));
     window.scrollTo(0, 0);
   }, [dispatch, code_facture]);
 
-  // Function to generate PDF and download
-  const handleDownloadPdf = () => {
-    const element = printRef.current;
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: `${facture?.code_facture}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    };
-
-    html2pdf().set(opt).from(element).save();
-  };
-
-  // Function to print the PDF
+  // Improved print function using browser's print API
   const handlePrintPdf = () => {
+    setPdfLoading(true);
+    
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
     const element = printRef.current;
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: `${facture?.code_facture}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    };
-
-    html2pdf()
-      .set(opt)
-      .from(element)
-      .outputPdf('bloburl')
-      .then((pdfUrl) => {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = pdfUrl;
-        document.body.appendChild(iframe);
-        iframe.onload = () => {
-          setTimeout(() => {
-            iframe.contentWindow.print();
-          }, 1);
-        };
-      });
+    
+    if (printWindow && element) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${facture?.code_facture || 'Facture'}</title>
+            <style>
+              @media print {
+                @page {
+                  size: A4;
+                  margin: 15mm;
+                }
+                body {
+                  font-family: Arial, sans-serif;
+                  font-size: 12px;
+                  line-height: 1.4;
+                }
+                .facture-detail {
+                  margin: 0;
+                  padding: 0;
+                }
+                .facture-buttons {
+                  display: none !important;
+                }
+                .duplicate-alert-container {
+                  background-color: #fff2f0 !important;
+                  border: 1px solid #ffccc7 !important;
+                  padding: 8px !important;
+                  margin-bottom: 10px !important;
+                  border-radius: 4px !important;
+                }
+                .duplicate-row {
+                  background-color: #fef2f2 !important;
+                }
+                table {
+                  border-collapse: collapse;
+                  width: 100%;
+                  font-size: 10px;
+                }
+                th, td {
+                  border: 1px solid #ddd;
+                  padding: 4px;
+                  text-align: left;
+                }
+                th {
+                  background-color: #f5f5f5;
+                  font-weight: bold;
+                }
+                .section-header {
+                  background-color: #f5f5f5;
+                  padding: 8px;
+                  margin: 10px 0;
+                  border: 1px solid #ddd;
+                }
+                .recap-section {
+                  border: 1px solid #ccc;
+                  padding: 10px;
+                  margin: 15px 0;
+                }
+                .signatures {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-top: 30px;
+                }
+                .signature {
+                  width: 45%;
+                  text-align: center;
+                }
+                .signature-line {
+                  border-bottom: 1px solid #333;
+                  margin: 20px 0 5px 0;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            ${element.outerHTML}
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+          setPdfLoading(false);
+        }, 500);
+      };
+    } else {
+      message.error('Impossible d\'ouvrir la fenêtre d\'impression');
+      setPdfLoading(false);
+    }
   };
 
   // New column for row numbering
@@ -166,10 +568,10 @@ const FactureDetail = () => {
       render: (_, record) => (
         <div>
           <div style={{ fontWeight: 'bold' }}>
-            {record.destinataire}
+            {record.nom}
           </div>
           <div>
-            {record.telephone}
+            {record.tele}
           </div>
           <div style={{ fontStyle: 'italic' }}>
             {record.ville ? record.ville.nom : 'N/A'}
@@ -330,8 +732,41 @@ const FactureDetail = () => {
     <div>
       {/* Buttons to download and print the PDF */}
       <div className="facture-buttons">
-        <button onClick={handleDownloadPdf}>Télécharger PDF</button>
-        <button onClick={handlePrintPdf}>Imprimer PDF</button>
+        {facture && (
+          <PDFDownloadLink
+            document={
+              <FacturePDF
+                facture={facture}
+                promotion={promotion}
+                duplicateCodes={duplicateCodes}
+                calcData={calcData}
+              />
+            }
+            fileName={`${facture?.code_facture || 'facture'}.pdf`}
+            style={{
+              display: 'inline-block',
+              marginRight: '10px',
+              padding: '8px 16px',
+              backgroundColor: '#1890ff',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            {({ loading }) => loading ? 'Génération PDF...' : 'Télécharger PDF'}
+          </PDFDownloadLink>
+        )}
+        <Button 
+          type="primary" 
+          onClick={handlePrintPdf}
+          loading={pdfLoading}
+          style={{ marginRight: '10px' }}
+        >
+          Imprimer PDF
+        </Button>
       </div>
 
       {/* Facture detail to be converted into PDF */}
@@ -421,7 +856,7 @@ const FactureDetail = () => {
             </div>
           )}
 
-          <div className="table-facture" style={{ maxHeight: '400px', overflow: 'auto' }}>
+          <div className="table-facture" style={{ maxHeight: '800px', overflow: 'auto' }}>
             <Table
               size="small"
               className="table-simple"
@@ -430,7 +865,7 @@ const FactureDetail = () => {
               pagination={false}
               rowKey="code_suivi"
               bordered
-              scroll={{ y: 'calc(100vh - 500px)', x: 'max-content' }}
+              scroll={{ y: 700, x: 'max-content' }}
               sticky={true}
               rowClassName={(record) => {
                 // Add a class to highlight duplicate rows

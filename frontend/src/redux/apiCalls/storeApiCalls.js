@@ -21,6 +21,22 @@ export function getStoreList() {
   };
 }
 
+// Fetch Store by ID
+export function getStoreById(storeId) {
+  return async (dispatch) => {
+    dispatch(storeActions.fetchStoresStart());
+    try {
+      const { data } = await request.get(`/api/store/${storeId}`);
+      // The API now returns an object with store, wallet, payments, colisStats
+      dispatch(storeActions.fetchStoresSuccess(data));
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message || error.message || "Failed to fetch store";
+      dispatch(storeActions.fetchStoresFailure(errorMsg));
+      toast.error(errorMsg);
+    }
+  };
+}
 
 // Fetch Stores by User ID
 export function getStoreByUser(userId) {

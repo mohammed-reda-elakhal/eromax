@@ -180,11 +180,16 @@ const getDefaultNote = (status) => {
 const getWithdrawalsByStatus = asyncHandler(async (req, res) => {
     try {
         const { status } = req.params;
+        const { page = 1, limit = 10 } = req.query;
         
         // Validate status
         if (!Object.values(WITHDRAWAL_STATUS).includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
+
+        // Calculate pagination
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const total = await Withdrawal.countDocuments({ status });
 
         const withdrawals = await Withdrawal.find({ status })
             .populate({
@@ -203,9 +208,19 @@ const getWithdrawalsByStatus = asyncHandler(async (req, res) => {
                     select: 'Bank image'
                 }
             })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
 
-        res.status(200).json(withdrawals);
+        res.status(200).json({
+            withdrawals,
+            pagination: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(total / parseInt(limit))
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -354,10 +369,16 @@ const getWithdrawalsByWalletId = asyncHandler(async (req, res) => {
 const getWithdrawalsByWalletKey = asyncHandler(async (req, res) => {
     try {
         const { key } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+        
         const wallet = await Wallet.findOne({ key });
         if (!wallet) {
             return res.status(404).json({ error: 'Wallet not found' });
         }
+
+        // Calculate pagination
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const total = await Withdrawal.countDocuments({ wallet: wallet._id });
 
         const withdrawals = await Withdrawal.find({ wallet: wallet._id })
             .populate({
@@ -376,8 +397,19 @@ const getWithdrawalsByWalletKey = asyncHandler(async (req, res) => {
                     select: 'Bank image'
                 }
             })
-            .sort({ createdAt: -1 });
-        res.status(200).json(withdrawals);
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        res.status(200).json({
+            withdrawals,
+            pagination: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(total / parseInt(limit))
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -387,8 +419,14 @@ const getWithdrawalsByWalletKey = asyncHandler(async (req, res) => {
 const getWithdrawalsByStoreId = asyncHandler(async (req, res) => {
     try {
         const { storeId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+        
         const wallets = await Wallet.find({ store: storeId });
         const walletIds = wallets.map(wallet => wallet._id);
+
+        // Calculate pagination
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const total = await Withdrawal.countDocuments({ wallet: { $in: walletIds } });
 
         const withdrawals = await Withdrawal.find({ wallet: { $in: walletIds } })
             .populate({
@@ -407,8 +445,19 @@ const getWithdrawalsByStoreId = asyncHandler(async (req, res) => {
                     select: 'Bank image'
                 }
             })
-            .sort({ createdAt: -1 });
-        res.status(200).json(withdrawals);
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        res.status(200).json({
+            withdrawals,
+            pagination: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(total / parseInt(limit))
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

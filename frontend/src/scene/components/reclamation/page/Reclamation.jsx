@@ -166,7 +166,7 @@ function Reclamation() {
             setSelectedColis(location.state.colis);
 
             // Create a default initial message with the colis code
-            const defaultMessage = `Je souhaite signaler un problème concernant le colis ${location.state.colis.code_suivi}.\n\nDétails du problème: ___`;
+            const defaultMessage = `colis ${location.state.colis.code_suivi}.\n\n ----- `;
             setInitialMessage(defaultMessage);
 
             // Open the create modal
@@ -263,7 +263,7 @@ const getModalStyles = (theme) => ({
                     console.log('No store data found in localStorage, falling back to getAllReclamations');
                     dispatch(getAllReclamations());
                 }
-            }
+            }   
         } else {
             console.log('No valid user role detected for fetching reclamations');
         }

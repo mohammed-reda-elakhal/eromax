@@ -7,6 +7,12 @@ const withdrawalSlice = createSlice({
     selectedWithdrawal: null, // Object for storing a single withdrawal by ID
     loading: false,
     error: null,
+    pagination: {            // Add pagination metadata
+      total: 0,
+      page: 1,
+      limit: 10,
+      totalPages: 0
+    }
   },
   reducers: {
     fetchWithdrawalsStart(state) {
@@ -14,7 +20,24 @@ const withdrawalSlice = createSlice({
       state.error = null;
     },
     fetchWithdrawalsSuccess(state, action) {
-      state.withdrawals = action.payload.withdrawals || [];
+      // Handle both old format (array) and new format (object with withdrawals and pagination)
+      if (Array.isArray(action.payload)) {
+        state.withdrawals = action.payload;
+        state.pagination = {
+          total: action.payload.length,
+          page: 1,
+          limit: action.payload.length,
+          totalPages: 1
+        };
+      } else {
+        state.withdrawals = action.payload.withdrawals || [];
+        state.pagination = action.payload.pagination || {
+          total: 0,
+          page: 1,
+          limit: 10,
+          totalPages: 0
+        };
+      }
       state.loading = false;
     },
     fetchWithdrawalsFailure(state, action) {

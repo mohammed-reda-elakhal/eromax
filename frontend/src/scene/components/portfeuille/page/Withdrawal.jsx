@@ -13,9 +13,15 @@ function Withdrawal() {
     const { theme } = useContext(ThemeContext);
     const dispatch = useDispatch();
 
-    const { withdrawals, loading } = useSelector((state) => ({
+    const { withdrawals, loading, pagination: reduxPagination } = useSelector((state) => ({
         withdrawals: state.withdrawal.withdrawals || [],
-        loading: state.withdrawal.loading
+        loading: state.withdrawal.loading,
+        pagination: state.withdrawal.pagination || {
+            total: 0,
+            page: 1,
+            limit: 10,
+            totalPages: 0
+        }
     }));
 
     const { user } = useSelector((state) => state.auth);
@@ -30,12 +36,6 @@ function Withdrawal() {
         endDate: '',
         page: 1,
         limit: 10
-    });
-
-    const [pagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 0
     });
 
     const [statusModal, setStatusModal] = useState({
@@ -54,8 +54,8 @@ function Withdrawal() {
         withdrawal: null
     });
 
-    // Simplified fetchWithdrawals function
-    const fetchWithdrawals = async (page = pagination.current, pageSize = pagination.pageSize) => {
+    // Updated fetchWithdrawals function to use Redux pagination
+    const fetchWithdrawals = async (page = reduxPagination.page, pageSize = reduxPagination.limit) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -87,9 +87,15 @@ function Withdrawal() {
         }
     };
 
-    // Simplified handleTableChange function
-    const handleTableChange = (pagination) => {
-        fetchWithdrawals(pagination.current, pagination.pageSize);
+    // Updated handleTableChange function
+    const handleTableChange = (paginationInfo) => {
+        const newSearchParams = {
+            ...searchParams,
+            page: paginationInfo.current,
+            limit: paginationInfo.pageSize
+        };
+        setSearchParams(newSearchParams);
+        fetchWithdrawals(paginationInfo.current, paginationInfo.pageSize);
     };
 
     // Update useEffect for initial data fetch
@@ -99,10 +105,14 @@ function Withdrawal() {
         fetchWithdrawals();
     }, [dispatch]);
 
-    // Update useEffect to use searchParams
+    // Update useEffect to use searchParams - but exclude page and limit to avoid infinite loop
     useEffect(() => {
-        fetchWithdrawals();
-    }, [searchParams]);
+        const { page, limit, ...otherParams } = searchParams;
+        // Only trigger if non-pagination params change
+        if (Object.values(otherParams).some(val => val !== '')) {
+            fetchWithdrawals(1, reduxPagination.limit); // Reset to first page when searching
+        }
+    }, [searchParams.storeName, searchParams.walletKey, searchParams.status, searchParams.startDate, searchParams.endDate]);
 
     // Format date for display
     const formatDate = (date) => {
@@ -152,7 +162,7 @@ function Withdrawal() {
             form.resetFields();
 
             // Refresh the withdrawals list
-            fetchWithdrawals(pagination.current, pagination.pageSize);
+            fetchWithdrawals(reduxPagination.page, reduxPagination.limit);
         } catch (error) {
             console.error('Error in handleStatusUpdate:', error);
             if (error.message?.includes('401')) {
@@ -179,7 +189,7 @@ function Withdrawal() {
             form.resetFields();
 
             // Refresh the withdrawals list
-            fetchWithdrawals(pagination.current, pagination.pageSize);
+            fetchWithdrawals(reduxPagination.page, reduxPagination.limit);
         } catch (error) {
             console.error('Error in handleUpload:', error);
             message.error('Failed to upload proof of payment');
@@ -308,7 +318,7 @@ function Withdrawal() {
         const searchParams = {
             ...restValues,
             page: 1,
-            limit: pagination.pageSize
+            limit: reduxPagination.limit
         };
 
         if (dateRange) {
@@ -335,7 +345,7 @@ function Withdrawal() {
             startDate: '',
             endDate: '',
             page: 1,
-            limit: pagination.pageSize
+            limit: reduxPagination.limit
         });
     };
 
@@ -923,7 +933,15 @@ function Withdrawal() {
                                 columns={columns}
                                 dataSource={Array.isArray(withdrawals) ? withdrawals : []}
                                 rowKey="_id"
-                                pagination={pagination}
+                                pagination={{
+                                    current: reduxPagination.page,
+                                    pageSize: reduxPagination.limit,
+                                    total: reduxPagination.total,
+                                    showSizeChanger: true,
+                                    showQuickJumper: true,
+                                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+                                    pageSizeOptions: ['10', '20', '50', '100']
+                                }}
                                 onChange={handleTableChange}
                                 scroll={{ x: true }}
                                 style={{

@@ -20,10 +20,10 @@ router.route('/:id_user')
 router.route('/:id')
         .put(updateStore)
         .delete(deleteStore)
-        .get(getStoreById);
+        .get(verifyToken, getStoreById);
 
 router.route('/user/:id')
-        .get(getStoreByUser)
+        .get(verifyToken, getStoreByUser)
 
 // api/store/:id/photo
 router.route("/:id/photo")

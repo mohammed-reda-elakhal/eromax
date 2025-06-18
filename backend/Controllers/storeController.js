@@ -1,5 +1,8 @@
 const asyncHandler = require('express-async-handler');
 const {Store} = require('../Models/Store');
+const {Wallet} = require('../Models/Wallet');
+const Payement = require('../Models/Payement');
+const {Colis} = require('../Models/Colis');
 const path = require("path")
 const fs = require("fs")
 const {cloudinaryUploadImage, cloudinaryRemoveImage} = require("../utils/cloudinary");
@@ -45,12 +48,52 @@ const getAllStores = asyncHandler(async (req, res) => {
  -------------------------------------------
 */
 const getStoreById = asyncHandler(async (req, res) => {
-  const store = await Store.findById(req.params.id).populate('id_client');
+  const storeId = req.params.id;
+  const requestingUser = req.user;
+
+  const store = await Store.findById(storeId).populate('id_client');
   if (!store) {
     res.status(404).json({ message: 'Store not found' });
     return;
   }
-  res.json(store);
+
+  // Authorization check: Only allow users to access their own stores or admins to access any
+  if (requestingUser.role !== 'admin' && store.id_client._id.toString() !== requestingUser.id) {
+    return res.status(403).json({ message: 'Access denied. You can only view your own stores.' });
+  }
+
+  // Get wallet data related to this store
+  const wallet = await Wallet.findOne({ store: storeId });
+  
+  // Get payment data related to this store's client
+  const payments = await Payement.find({ clientId: store.id_client._id }).populate('idBank');
+
+  // Get colis counts for different statuses
+  const colisCounts = await Promise.all([
+    // Total colis count
+    Colis.countDocuments({ store: storeId }),
+    // Livrée (Delivered) count
+    Colis.countDocuments({ store: storeId, statut: "Livrée" }),
+    // Annulée (Cancelled) count
+    Colis.countDocuments({ store: storeId, statut: "Annulée" }),
+    // Refusée (Refused) count
+    Colis.countDocuments({ store: storeId, statut: "Refusée" })
+  ]);
+
+  // Combine all data in the response
+  const response = {
+    store: store,
+    wallet: wallet || null,
+    payments: payments || [],
+    colisStats: {
+      total: colisCounts[0],
+      livree: colisCounts[1],
+      annulee: colisCounts[2],
+      refusee: colisCounts[3]
+    }
+  };
+
+  res.json(response);
 });
 
 
@@ -63,16 +106,18 @@ const getStoreById = asyncHandler(async (req, res) => {
 */
 const getStoreByUser = asyncHandler(async (req, res) => {
   const userId = req.params.id;
+  const requestingUser = req.user;
 
-  // Find the store where id_client matches the userId
-  const store = await Store.find({ id_client: userId }).populate('id_client');
-
-  if (!store) {
-      res.status(404).json({ message: 'Store not found' });
-      return;
+  // Authorization check: Only allow users to access their own stores or admins to access any
+  if (requestingUser.role !== 'admin' && requestingUser.id !== userId) {
+    return res.status(403).json({ message: 'Access denied. You can only view your own stores.' });
   }
 
-  res.status(200).json(store);
+  // Find the store where id_client matches the userId
+  const stores = await Store.find({ id_client: userId }).populate('id_client');
+
+  // Return empty array if no stores found (this is normal for new users)
+  res.status(200).json(stores);
 });
 
 /** -------------------------------------------
