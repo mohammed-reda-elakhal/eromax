@@ -359,9 +359,9 @@ exports.getLastTransfer = async (req, res) => {
       .select("montant") // Select only the montant field
       .lean();
 
-    // Calculate the total of transfer.montant for the wallet
+    // Calculate the total of transfer.montant for the wallet (only for specific types)
     const totalTransfers = await Transfer.aggregate([
-      { $match: { wallet: wallet._id } },
+      { $match: { wallet: wallet._id, type: { $in: ['Deposit', 'Correction', 'Manuel Depot'] } } },
       { $group: { _id: null, total: { $sum: "$montant" } } },
     ]);
 
@@ -418,9 +418,9 @@ exports.getTransferStatistics = async (req, res) => {
       .select("montant")
       .lean();
 
-    // Calculate the total of transfer.montant for the wallet
+    // Calculate the total of transfer.montant for the wallet (only for specific types)
     const totalTransfers = await Transfer.aggregate([
-      { $match: { wallet: wallet._id } },
+      { $match: { wallet: wallet._id, type: { $in: ['Deposit', 'Correction', 'Manuel Depot'] } } },
       { $group: { _id: null, total: { $sum: "$montant" } } },
     ]);
 

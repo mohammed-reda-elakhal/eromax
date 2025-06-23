@@ -1,0 +1,274 @@
+# CarConnect API Documentation
+
+## Base URL
+```
+http://localhost:8000/api
+```
+
+## Authentication
+The API uses Laravel Sanctum for authentication. Include the Bearer token in the Authorization header:
+```
+Authorization: Bearer {your-token}
+```
+
+## Response Format
+All API responses follow this format:
+```json
+{
+    "success": true|false,
+    "message": "Response message",
+    "data": {...},
+    "errors": {...} // Only on validation errors
+}
+```
+
+## Endpoints
+
+### Authentication
+
+#### Register User
+- **POST** `/auth/register`
+- **Body:**
+```json
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "password_confirmation": "password123",
+    "role": "buyer|seller"
+}
+```
+
+#### Login
+- **POST** `/auth/login`
+- **Body:**
+```json
+{
+    "email": "john@example.com",
+    "password": "password123"
+}
+```
+
+#### Get User Profile
+- **GET** `/auth/user`
+- **Auth:** Required
+
+#### Update Profile
+- **PUT** `/auth/profile`
+- **Auth:** Required
+- **Body:**
+```json
+{
+    "name": "John Doe Updated",
+    "email": "john.updated@example.com",
+    "password": "newpassword123",
+    "password_confirmation": "newpassword123"
+}
+```
+
+#### Logout
+- **POST** `/auth/logout`
+- **Auth:** Required
+
+### Cars
+
+#### List Cars (Public)
+- **GET** `/cars`
+- **Query Parameters:**
+  - `type`: sale|rent|both
+  - `availability`: available|reserved|sold
+  - `brand`: string
+  - `model`: string
+  - `min_price_sale`: number
+  - `max_price_sale`: number
+  - `min_price_rent`: number
+  - `max_price_rent`: number
+  - `search`: string
+  - `per_page`: number (default: 15)
+
+#### Get Car Details (Public)
+- **GET** `/cars/{id}`
+
+#### Get Car Availability (Public)
+- **GET** `/cars/{id}/availability`
+
+#### Create Car Listing
+- **POST** `/cars`
+- **Auth:** Required (Seller only)
+- **Body:**
+```json
+{
+    "brand": "Toyota",
+    "model": "Camry",
+    "description": "Excellent condition car",
+    "price_sale": 25000.00,
+    "price_rent": 50.00,
+    "type": "both",
+    "image_url": "https://example.com/image.jpg"
+}
+```
+
+#### Update Car
+- **PUT** `/cars/{id}`
+- **Auth:** Required (Owner/Admin)
+
+#### Delete Car
+- **DELETE** `/cars/{id}`
+- **Auth:** Required (Owner/Admin)
+
+#### Get My Cars
+- **GET** `/cars/my-cars`
+- **Auth:** Required (Seller)
+
+### Purchases
+
+#### List Purchases
+- **GET** `/purchases`
+- **Auth:** Required
+- **Query Parameters:**
+  - `status`: pending|confirmed
+
+#### Create Purchase Request
+- **POST** `/purchases`
+- **Auth:** Required (Buyer)
+- **Body:**
+```json
+{
+    "car_id": 1,
+    "purchase_date": "2025-06-15"
+}
+```
+
+#### Get Purchase Details
+- **GET** `/purchases/{id}`
+- **Auth:** Required
+
+#### Update Purchase Status
+- **PUT** `/purchases/{id}`
+- **Auth:** Required (Seller/Admin)
+- **Body:**
+```json
+{
+    "status": "confirmed|pending"
+}
+```
+
+#### Cancel Purchase
+- **DELETE** `/purchases/{id}`
+- **Auth:** Required
+
+#### Purchase Statistics
+- **GET** `/purchases/statistics`
+- **Auth:** Required (Seller/Admin)
+
+### Rentals
+
+#### List Rentals
+- **GET** `/rentals`
+- **Auth:** Required
+- **Query Parameters:**
+  - `status`: pending|confirmed|rejected
+  - `start_date`: date
+  - `end_date`: date
+
+#### Create Rental Request
+- **POST** `/rentals`
+- **Auth:** Required (Buyer)
+- **Body:**
+```json
+{
+    "car_id": 1,
+    "start_date": "2025-06-15",
+    "end_date": "2025-06-20"
+}
+```
+
+#### Get Rental Details
+- **GET** `/rentals/{id}`
+- **Auth:** Required
+
+#### Update Rental Status
+- **PUT** `/rentals/{id}`
+- **Auth:** Required (Seller/Admin)
+- **Body:**
+```json
+{
+    "status": "confirmed|rejected|pending",
+    "seller_confirmation": true
+}
+```
+
+#### Cancel Rental
+- **DELETE** `/rentals/{id}`
+- **Auth:** Required
+
+#### Get Available Dates
+- **GET** `/cars/{carId}/available-dates`
+
+#### Rental Statistics
+- **GET** `/rentals/statistics`
+- **Auth:** Required (Seller/Admin)
+
+### Chat
+
+#### Get Conversations
+- **GET** `/chats`
+- **Auth:** Required
+
+#### Get Messages for Car
+- **GET** `/chats/car/{carId}?user_id={userId}`
+- **Auth:** Required
+
+#### Send Message
+- **POST** `/chats`
+- **Auth:** Required
+- **Body:**
+```json
+{
+    "car_id": 1,
+    "receiver_id": 2,
+    "message": "Hello, I'm interested in this car."
+}
+```
+
+#### Update Message
+- **PUT** `/chats/{id}`
+- **Auth:** Required (Sender only)
+- **Body:**
+```json
+{
+    "message": "Updated message content"
+}
+```
+
+#### Delete Message
+- **DELETE** `/chats/{id}`
+- **Auth:** Required (Sender/Admin)
+
+#### Start Conversation
+- **GET** `/chats/car/{carId}/start`
+- **Auth:** Required
+
+#### Chat Statistics
+- **GET** `/chats/statistics`
+- **Auth:** Required (Admin only)
+
+### Utility
+
+#### Health Check
+- **GET** `/health`
+- **Public endpoint to check API status**
+
+## Error Codes
+
+- **200**: Success
+- **201**: Created
+- **400**: Bad Request
+- **401**: Unauthorized
+- **403**: Forbidden
+- **404**: Not Found
+- **422**: Validation Error
+- **500**: Internal Server Error
+
+## Rate Limiting
+API requests are rate-limited to prevent abuse. Default limits apply per user.
