@@ -3,12 +3,15 @@ import { Form, Input, InputNumber, Button, Select } from 'antd';
 
 const { Option } = Select;
 
-function VilleForm({ theme, onSubmit, initialValues }) {
+function VilleForm({ theme, onSubmit, initialValues, regions }) {
     const [form] = Form.useForm();
 
     useEffect(() => {
         if (initialValues) {
-            form.setFieldsValue(initialValues);
+            form.setFieldsValue({
+                ...initialValues,
+                region: initialValues.region?._id || initialValues.region || undefined
+            });
         } else {
             form.resetFields();
         }
@@ -67,6 +70,20 @@ function VilleForm({ theme, onSubmit, initialValues }) {
                     <Option value="Vendredi">Vendredi</Option>
                     <Option value="Samedi">Samedi</Option>
                     <Option value="Dimanche">Dimanche</Option>
+                </Select>
+            </Form.Item>
+            <Form.Item
+                name="region"
+                label="Région"
+            >
+                <Select
+                    placeholder="Choisir une région"
+                    allowClear
+                    style={{ width: '100%' }}
+                >
+                    {regions && regions.map(region => (
+                        <Option key={region._id} value={region._id}>{region.nom}</Option>
+                    ))}
                 </Select>
             </Form.Item>
             <Form.Item>

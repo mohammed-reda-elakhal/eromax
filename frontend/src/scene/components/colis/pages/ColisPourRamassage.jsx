@@ -32,6 +32,7 @@ import { ExclamationCircleOutlined, MinusCircleOutlined } from '@ant-design/icon
 import { IoMdRefresh } from 'react-icons/io';
 import { FaPrint, FaTicketAlt } from 'react-icons/fa';
 import TicketColis from '../../tickets/TicketColis';
+import TicketColis2 from '../components/TicketColis2';
 
 // Add these imports at the top
 import {
@@ -133,10 +134,15 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
   const [loading, setLoading] = useState(false);
   const [openTicket , setOpenTicket] = useState(false);
   const [colis , setColis] = useState(null);
-
+  const [openBatchTicket, setOpenBatchTicket] = useState(false);
 
   // **Add search state**
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Helper function to get selected colis data (inspired by ColisRamasse2.jsx)
+  const getSelectedColisData = () => {
+    return data.filter(colis => selectedRowKeys.includes(colis.code_suivi));
+  };
 
   const success = (text) => {
     messageApi.open({
@@ -589,32 +595,6 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
         );
       },
     },
-    {
-      title: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <FaPrint style={{ fontSize: '14px' }} />
-          Action
-        </span>
-      ),
-      key: 'action',
-      render: (text, record) => (
-        <div className="table-action">
-           <Tooltip title="Ticket colis">
-            <Button
-              type="primary"
-              icon={<FaPrint />}
-              onClick={() => handleTicket(record)}
-              style={{
-                backgroundColor: '#0d6efd',
-                borderColor: '#0d6efd',
-                color: '#fff'
-              }}
-            />
-          </Tooltip>
-        </div>
-      ),
-    }
-
   ];
 
   return (
@@ -687,7 +667,7 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
                 <Button
                   icon={<FaTicketAlt />}
                   type="primary"
-                  onClick={handleBatchTickets}
+                  onClick={() => setOpenBatchTicket(true)}
                   disabled={selectedRowKeys.length === 0}
                   style={{
                     marginRight: '8px',
@@ -809,6 +789,16 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
               }}
             >
               <TicketColis colis={colis} showDownloadButton={true} />
+            </Modal>
+            {/* Batch Ticket Modal */}
+            <Modal
+              width={800}
+              open={openBatchTicket}
+              onCancel={() => setOpenBatchTicket(false)}
+              footer={null}
+              title="Tickets Colis (Sélection)"
+            >
+              <TicketColis2 colisList={getSelectedColisData()} />
             </Modal>
             {contextHolder}
           </div>

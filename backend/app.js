@@ -76,6 +76,7 @@ app.use('/api/note/colis', require('./routes/noteColisRoute'));
 app.use('/api/wallet', require('./routes/walletRoutes'));
 app.use('/api/transfer', require('./routes/transferRoutes'));
 app.use('/api/withdrawal', require('./routes/withdrawalRoutes'));
+app.use('/api/region', require('./routes/regionRoute'));
 
 // Add this line with your other route configurations
 app.use('/api/upload', uploadRoutes);

@@ -22,6 +22,7 @@ import { noteColisReducer } from "./slices/noteColisSlice";
 import { walletReducer } from "./slices/walletSlice";
 import { transferReducer } from "./slices/transferSlice";
 import { withdrawalReducer } from "./slices/withdrawalSlice";
+import { regionReducer } from './slices/regionSlice';
 
 const store = configureStore({
   reducer: {
@@ -47,7 +48,8 @@ const store = configureStore({
     noteColis: noteColisReducer,
     wallet: walletReducer,
     transfer: transferReducer,
-    withdrawal: withdrawalReducer
+    withdrawal: withdrawalReducer,
+    region: regionReducer
   },
 });
 

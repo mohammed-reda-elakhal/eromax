@@ -38,6 +38,8 @@ router.route('/admin/:storeId')
 router.route('/copie/:id_colis')
         .post( colisController.CloneColisCtrl)
 
+// Place this above any /:id route to avoid collision
+router.get('/ramassee', verifyToken, colisController.getRamasseeColisCtrl);
 
 // Router api/colis/:id
 router.route('/:id')

@@ -1468,7 +1468,7 @@ const handleConfirmAssignLivreur = async () => {
                   style={{ backgroundColor: '#8e44ad', borderColor: '#8e44ad', color: '#fff' }}
                 />
               </Tooltip>
-          {user.role === 'admin' && (
+          {user.role === 'admin' && record?.statut !== "Livrée" && record?.statut !== "Annulée" && record?.statut !== "Refusée" && (
             <Tooltip title="Edit Record">
               <Button
                 type="primary"
@@ -1585,41 +1585,57 @@ const handleConfirmAssignLivreur = async () => {
               </Tooltip>
             </>
           )}
-         {(user?.role==="admin" || record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis") && (
-        <Tooltip title="Supprimer colis">
-          <Popconfirm
-            title="Êtes-vous sûr de vouloir supprimer ce colis?"
-            description={`Code Suivi: ${record.code_suivi}`}
-            okText="Oui"
-            okType="danger"
-            cancelText="Non"
-            onConfirm={() => {
-              dispatch(deleteColis(record._id));
-              message.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
-            }}
-            onCancel={() => {
-              message.info('Suppression annulée.');
-            }}
-          >
-            <Button
-              type="primary"
-              style={{
-                backgroundColor: '#dc3545',
-                borderColor: '#dc3545',
-                color: '#fff'
-              }}
-              icon={<MdDelete />}
-            />
-          </Popconfirm>
-        </Tooltip>
-
-      )}
+          {(user?.role === 'admin' || (user?.role === 'client' && (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis"))) && 
+           record?.statut !== "Livrée" && record?.statut !== "Annulée" && record?.statut !== "Refusée" && (
+            <Tooltip title="Supprimer colis">
+              <Popconfirm
+                title="Êtes-vous sûr de vouloir supprimer ce colis?"
+                description={`Code Suivi: ${record.code_suivi}`}
+                okText="Oui"
+                okType="danger"
+                cancelText="Non"
+                onConfirm={() => {
+                  dispatch(deleteColis(record._id));
+                  message.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
+                }}
+                onCancel={() => {
+                  message.info('Suppression annulée.');
+                }}
+              >
+                <Button
+                  type="primary"
+                  style={{
+                    backgroundColor: '#dc3545',
+                    borderColor: '#dc3545',
+                    color: '#fff'
+                  }}
+                  icon={<MdDelete />}
+                />
+              </Popconfirm>
+            </Tooltip>
+          )}
+          {user?.role === 'client' && (record?.statut === "attente de ramassage" || record?.statut === "Nouveau Colis") && 
+           record?.statut !== "Livrée" && record?.statut !== "Annulée" && record?.statut !== "Refusée" && (
+            <Tooltip title="Modifier colis">
+              <Button
+                type="primary"
+                icon={<FaPenFancy />}
+                onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}
+                style={{
+                  backgroundColor: '#ffac33',
+                  borderColor: '#ffac33',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
+          )}
         </div>
       ),
     }
   ], [user, dispatch, navigate, handleInfo, handleTicket, openReclamationModal, handleStatusClick, handleAssignLivreur, state.selectedRowKeys, detailFacture, isMobile]);
 
   const columns = useMemo(() => columnsColis, [columnsColis]);
+  
 
   const handleCreateReclamation = useCallback(() => {
     const { initialMessage, selectedColis } = state;

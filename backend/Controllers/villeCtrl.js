@@ -9,10 +9,13 @@ const ajoutVille = async (req, res) => {
     // Insérer plusieurs villes ou une seule ville dans la base de données
     if (villes.length > 1) {
       const result = await Ville.insertMany(villes);
-      res.status(201).json({ message: `${result.length} villes ajoutées avec succès!`, villes: result });
+      // Populate region for each ville
+      const populated = await Ville.find({ _id: { $in: result.map(v => v._id) } }).populate('region');
+      res.status(201).json({ message: `${result.length} villes ajoutées avec succès!`, villes: populated });
     } else {
       const nouvelleVille = new Ville(villes[0]);
       await nouvelleVille.save();
+      await nouvelleVille.populate('region');
       res.status(201).json({ message: 'Ville ajoutée avec succès!', ville: nouvelleVille });
     }
   } catch (error) {
@@ -31,7 +34,7 @@ const ajoutVille = async (req, res) => {
 const getAllVilles = asyncHandler(async (req, res) => {
   try {
     // Fetch villes and sort by 'tarif' in ascending order
-    const villes = await Ville.find().sort({ tarif: 1 });  // 1 for ascending order
+    const villes = await Ville.find().sort({ tarif: 1 }).populate('region');
     res.json(villes);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -47,7 +50,7 @@ const getAllVilles = asyncHandler(async (req, res) => {
  -------------------------------------------
 */
 const getVilleById = asyncHandler(async (req, res) => {
-  const ville = await Ville.findById(req.params.id)
+  const ville = await Ville.findById(req.params.id).populate('region');
   if (!ville) {
     res.status(404).json({ message: 'Store not found' });
     return;
@@ -64,7 +67,7 @@ const getVilleById = asyncHandler(async (req, res) => {
  -------------------------------------------
 */
 const updateVille = asyncHandler(async (req, res) => {
-  const ville = await Ville.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const ville = await Ville.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('region');
   if (!ville) {
     res.status(404).json({ message: 'Ville not found' });
     return;

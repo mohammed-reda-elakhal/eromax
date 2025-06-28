@@ -5,7 +5,7 @@ import { ThemeContext } from '../../../ThemeContext';
 import './ScanRamasser.css';
 import { Input, Button, Select, Table, Typography, Space, notification, Modal, Card, message } from 'antd';
 import { CiBarcode } from "react-icons/ci";
-import { CheckCircleOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import BarcodeReader from 'react-barcode-reader';
 import Webcam from 'react-webcam'; // Utilisation de react-webcam
@@ -50,11 +50,30 @@ function ScanRamasser() {
   // Référence pour empêcher le traitement multiple des scans
   const isProcessingScan = useRef(false);
 
+  // Handler to remove a scanned colis by barcode
+  const handleRemoveScannedColis = (barcode) => {
+    setScannedItems(prev => prev.filter(item => item.barcode !== barcode));
+  };
+
   // Définition des colonnes pour la table des colis scannés
   const columns = [
     { title: 'Code Suivi', dataIndex: 'barcode', key: 'barcode' },
     { title: 'Statut', dataIndex: 'status', key: 'status' },
     { title: 'Ville', dataIndex: 'ville', key: 'ville' },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Button
+          type="text"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleRemoveScannedColis(record.barcode)}
+        >
+          Supprimer
+        </Button>
+      ),
+    },
   ];
 
   // État pour gérer la direction de la caméra
@@ -333,30 +352,48 @@ function ScanRamasser() {
       color: theme === 'dark' ? '#fff' : '#000',
       minHeight: '100vh'
     }}>
-      <Title level={3} style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Scanner Colis</Title>
 
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        {/* Sélection de la méthode de scan */}
-        <div>
-          <label style={{ color: theme === 'dark' ? '#fff' : '#000', marginRight: '10px' }}>Méthode de scan: </label>
-          <Select
-            defaultValue="barcode"
+        {/* Sélection de la méthode de scan - version cartes */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, margin: '0 auto 12px auto' }}>
+          <Card
+            hoverable
+            onClick={() => handleScanMethodChange('barcode')}
             style={{
-              width: 200,
-              backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
-              borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
-              color: theme === 'dark' ? '#fff' : '#000',
+              width: 110,
+              textAlign: 'center',
+              border: scanMethod === 'barcode' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              background: scanMethod === 'barcode' ? (theme === 'dark' ? '#1e293b' : '#e0f2fe') : (theme === 'dark' ? '#1f1f1f' : '#fff'),
+              color: scanMethod === 'barcode' ? '#1890ff' : (theme === 'dark' ? '#fff' : '#000'),
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              padding: 0,
             }}
-            onChange={handleScanMethodChange}
-            dropdownStyle={{
-              backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fff',
-              color: theme === 'dark' ? '#fff' : '#000',
-            }}
-            popupClassName={theme === 'dark' ? 'dark-select-dropdown' : ''}
+            bodyStyle={{ padding: 10 }}
           >
-            <Option value="barcode">Scanner Code Barre</Option>
-            <Option value="qrcode">Scanner QR Code</Option>
-          </Select>
+            <CiBarcode style={{ fontSize: 22, marginBottom: 4 }} />
+            <div style={{ fontWeight: 600, fontSize: 13 }}>Code Barre</div>
+          </Card>
+          <Card
+            hoverable
+            onClick={() => handleScanMethodChange('qrcode')}
+            style={{
+              width: 110,
+              textAlign: 'center',
+              border: scanMethod === 'qrcode' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              background: scanMethod === 'qrcode' ? (theme === 'dark' ? '#1e293b' : '#e0f2fe') : (theme === 'dark' ? '#1f1f1f' : '#fff'),
+              color: scanMethod === 'qrcode' ? '#1890ff' : (theme === 'dark' ? '#fff' : '#000'),
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              padding: 0,
+            }}
+            bodyStyle={{ padding: 10 }}
+          >
+            <span style={{ fontSize: 22, marginBottom: 4, display: 'block' }}>
+              &#128273;
+            </span>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>QR Code</div>
+          </Card>
         </div>
 
         {/* Lecteur de Code Barre */}
@@ -434,6 +471,16 @@ function ScanRamasser() {
             Scanner un autre colis
           </Button>
         )}
+
+        {/* Bouton pour vider la table des colis scannés */}
+        <Button
+          danger
+          type="primary"
+          onClick={() => setScannedItems([])}
+          style={{ marginBottom: 12 }}
+        >
+          Vider la table
+        </Button>
 
         {/* Table des colis scannés */}
         <Table

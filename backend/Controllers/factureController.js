@@ -388,7 +388,7 @@ const createOrUpdateFactureLivreur = async (colisId) => {
       }
 
     if (!tarifLivreur) {
-        throw new Error(`TarifLivreur not found for livreur ${colis.livreur._id} and ville ${colis.ville._id}`);
+        console.log(`TarifLivreur not found for livreur ${colis.livreur._id} and ville ${colis.ville._id}. Using default tarif: 20`);
     }
 
     // Determine the tarif and montant_a_payer based on statut
@@ -397,7 +397,7 @@ const createOrUpdateFactureLivreur = async (colisId) => {
     let remarque = ''; // To store any remarks
 
     if (colis.statut === 'Livrée') {
-        tarif = tarifLivreur.tarif || 0;
+        tarif = tarifLivreur ? (tarifLivreur.tarif || 20) : 20;
         montant_a_payer = colis.prix - tarif;
 
         // Ensure montant_a_payer is not negative

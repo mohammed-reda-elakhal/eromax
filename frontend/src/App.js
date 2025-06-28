@@ -6,6 +6,7 @@ import HomeDashboard from "./scene/components/home/pages/HomeDashboard";
 import { ThemeProvider as CustomThemeProvider } from "./scene/ThemeContext";
 import ColisList from "./scene/components/colis/pages/ColisList";
 import ColisPourRamassage from "./scene/components/colis/pages/ColisPourRamassage";
+import ColisRamasse2 from "./scene/components/colis/pages/ColisRamasse2";
 import AjouterColis from "./scene/components/colis/pages/AjouterColis";
 import ColisImport from "./scene/components/colis/pages/ColisImport";
 import ProduitList from "./scene/components/stock/pages/ProduitList";
@@ -27,6 +28,7 @@ import Compte from "./scene/components/compte/page/Compte";
 import Profile from "./scene/components/profile/page/Profile";
 import ProfileUser from "./scene/components/compte/page/ProfileUser";
 import Ville from "./scene/components/ville/page/Ville";
+import Region from "./scene/components/region/page/Region"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RegisterLivreur from "./Vitrine page/RegisterLivreur";
@@ -221,6 +223,8 @@ function App() {
             <Route path="portfeuille" element={<Wallet />} />
             <Route path="scan" element={<Scan />} /> 
             <Route path="ville" element={<Ville />} /> 
+            <Route path="region" element={<Region />} /> 
+
             <Route path="tarif-livreur" element={<TarifLivreur />} /> 
             <Route path="tarif-livreur/:idLivreur" element={<TarifLivreur />} /> 
             <Route path="reclamation" element={<Reclamation />} />
@@ -268,6 +272,7 @@ function App() {
             <Route path="crbt" element={<Crbt search = {getColumnSearchProps} />} />
             <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
             <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
+            <Route path="colis-r2" element={<ColisRamasse2 />} />
             <Route path="colis-ex" element={<ColisExpide search = {getColumnSearchProps} />} />
             <Route path="colis-rc" element={<ColisReçu search = {getColumnSearchProps} />} />
             <Route path="colis-md" element={<ColisMiseDistribution search = {getColumnSearchProps} />} />

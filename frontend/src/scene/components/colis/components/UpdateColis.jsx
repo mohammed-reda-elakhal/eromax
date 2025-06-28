@@ -18,7 +18,7 @@ import {
   Tooltip,
   message,
 } from 'antd';
-import { LoadingOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { LoadingOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
 import styles from '../styles/UpdateColis.module.css';
@@ -88,6 +88,7 @@ const UpdateColis = ({ theme }) => {
         description: values.tarif_ajouter?.description || '',
       };
       updatedData.ville = values.ville;
+      updatedData.livreur = values.livreur;
     }
 
     dispatch(updateColisById(selectedColis._id, updatedData));
@@ -139,6 +140,40 @@ const UpdateColis = ({ theme }) => {
             </div>
           </div>
 
+          {/* Current Livreur Information */}
+          <div className={styles.formSection}>
+            <h3 className={styles.sectionTitle}>
+              Current Livreur Information
+              {isAdmin && (
+                <Tooltip title="You can change the livreur assignment in the Location Details section below">
+                  <InfoCircleOutlined style={{ marginLeft: 8, color: '#1890ff', fontSize: '14px' }} />
+                </Tooltip>
+              )}
+            </h3>
+            <div className={styles.formGrid}>
+              <Form.Item label="Current Livreur">
+                <Input 
+                  disabled 
+                  value={selectedColis.livreur ? `${selectedColis.livreur.nom} - ${selectedColis.livreur.tele}` : 'No livreur assigned'}
+                  style={{ 
+                    color: selectedColis.livreur ? '#52c41a' : '#ff4d4f',
+                    fontWeight: selectedColis.livreur ? '500' : 'normal'
+                  }}
+                />
+              </Form.Item>
+              <Form.Item label="Livreur Status">
+                <Input 
+                  disabled 
+                  value={selectedColis.livreur ? 'Assigned' : 'Not Assigned'}
+                  style={{ 
+                    color: selectedColis.livreur ? '#52c41a' : '#ff4d4f',
+                    fontWeight: '500'
+                  }}
+                />
+              </Form.Item>
+            </div>
+          </div>
+
           {/* Location Details */}
           <div className={styles.formSection}>
             <h3 className={styles.sectionTitle}>Location Details</h3>
@@ -166,6 +201,37 @@ const UpdateColis = ({ theme }) => {
                 </Select>
               </Form.Item>
               
+              )}
+              {isAdmin && (
+                <Form.Item
+                  label={
+                    <Tooltip title="Assign or change the livreur responsible for this colis">
+                      <span>
+                        <UserOutlined style={{ marginRight: 8 }} />
+                        Livreur
+                      </span>
+                    </Tooltip>
+                  }
+                  name="livreur"
+                  rules={[{ required: false, message: 'Please select a livreur' }]}
+                >
+                  <Select
+                    showSearch
+                    placeholder="Select a livreur (optional)"
+                    allowClear
+                    loading={livreursLoading}
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.children.toLowerCase().includes(input.toLowerCase())
+                    }
+                  >
+                    {livreursData?.map(livreur => (
+                      <Option key={livreur._id} value={livreur._id}>
+                        {livreur.nom} - {livreur.tele}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
               )}
               <Form.Item
                 label="Adresse"

@@ -279,7 +279,20 @@ export function updateColisById(id, colisData) {
 
       const { data } = await request.put(`/api/colis/${id}`, colisData, config);
       dispatch(colisActions.updateColis(data));
-      toast.success('Colis updated successfully');
+      
+      // Update selectedColis if it matches the updated colis
+      dispatch(colisActions.setSelectedColis(data));
+      
+      // Show specific message if livreur was updated
+      if (colisData.livreur !== undefined) {
+        if (colisData.livreur) {
+          toast.success('Colis updated successfully - Livreur assigned');
+        } else {
+          toast.success('Colis updated successfully - Livreur removed');
+        }
+      } else {
+        toast.success('Colis updated successfully');
+      }
     } catch (error) {
       console.error("Failed to update colis:", error);
       dispatch(colisActions.setError(error.message));
@@ -934,6 +947,47 @@ export function updateTarifAjouter(identifier, tarifData) {
       toast.error(error.response?.data?.message || "Failed to update tarif_ajouter");
     } finally {
       dispatch(colisActions.setTarifAjouterLoading(false));
+    }
+  };
+}
+
+/**
+ * Fetch colis with statut "Ramassée" grouped by region
+ * This API returns role-based filtered data grouped by region
+ */
+export function getColisRamasse() {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Authentication token is missing");
+        return;
+      }
+
+      dispatch(colisActions.setColisRamasseLoading(true));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+
+      const { data } = await request.get('/api/colis/ramassee', config);
+
+      // Dispatch the grouped data to Redux
+      dispatch(colisActions.setColisRamasseData({
+        total: data.total,
+        groupedColis: data.groupedColis
+      }));
+
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch colis ramassée:", error);
+      dispatch(colisActions.setColisRamasseError(error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || "Failed to fetch colis ramassée");
+    } finally {
+      dispatch(colisActions.setColisRamasseLoading(false));
     }
   };
 }

@@ -938,19 +938,75 @@ module.exports.deleteColis = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
  **/
 module.exports.updateColis = asyncHandler(async (req, res) => {
+  try {
+    const { livreur: newLivreurId } = req.body;
+    
+    // If a new livreur is being assigned, validate it exists
+    if (newLivreurId) {
+      const livreur = await Livreur.findById(newLivreurId);
+      if (!livreur) {
+        return res.status(404).json({ message: "Livreur not found" });
+      }
+    }
 
+    // Find the current colis to check if livreur is being changed
+    const currentColis = await Colis.findById(req.params.id).populate('livreur').populate('store');
+    if (!currentColis) {
+      return res.status(404).json({ message: "Colis not found" });
+    }
 
-  // Find and update Colis by _id
-  const updatedColis = await Colis.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    .populate('ville')
-    .populate('store')
-    .populate('livreur');
+    // Check if livreur is being changed
+    const isLivreurChanged = currentColis.livreur && 
+      currentColis.livreur._id.toString() !== newLivreurId;
 
-  if (!updatedColis) {
-    return res.status(404).json({ message: "Colis not found" });
+    // Find and update Colis by _id
+    const updatedColis = await Colis.findByIdAndUpdate(req.params.id, req.body, { new: true })
+      .populate('ville')
+      .populate('store')
+      .populate('livreur');
+
+    if (!updatedColis) {
+      return res.status(404).json({ message: "Colis not found" });
+    }
+
+    // If livreur was changed, create notifications
+    if (isLivreurChanged && newLivreurId) {
+      const newLivreur = await Livreur.findById(newLivreurId);
+      
+      // Create notification for the store about the livreur change
+      if (updatedColis.store) {
+        try {
+          const notification = new Notification_User({
+            id_store: updatedColis.store._id,
+            colisId: updatedColis._id,
+            title: "Livreur changé",
+            description: `Le livreur du colis avec le code de suivi ${updatedColis.code_suivi} a été changé pour ${newLivreur.nom}.`,
+          });
+          await notification.save();
+        } catch (error) {
+          console.error("Failed to create store notification:", error);
+        }
+      }
+
+      // Create notification for the new livreur
+      try {
+        const livreurNotification = new NotificationUser({
+          id_livreur: newLivreurId,
+          colisId: updatedColis._id,
+          title: 'Nouveau Colis',
+          description: `Bonjour, un nouveau colis a été affecté pour vous. Code de suivi: ${updatedColis.code_suivi}`,
+        });
+        await livreurNotification.save();
+      } catch (error) {
+        console.error("Failed to create livreur notification:", error);
+      }
+    }
+
+    res.status(200).json(updatedColis);
+  } catch (error) {
+    console.error("Error updating colis:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
-
-  res.status(200).json(updatedColis);
 });
 
 /**
@@ -2440,7 +2496,7 @@ exports.updateTarifAjouter = async (req, res) => {
 
     // Check if the colis has been processed for wallet and handle wallet update
     let transferCreated = null;
-    if (colis.wallet_prosseced && colis.store) {
+    if (colis.store) {
       // Import required models
       const { Wallet } = require('../Models/Wallet');
       const { Transfer } = require('../Models/Transfer');
@@ -2461,37 +2517,64 @@ exports.updateTarifAjouter = async (req, res) => {
 
       // Only update wallet and create transfer if there's a change in value
       if (tarifDifference !== 0) {
-        // Check if wallet has sufficient balance
-        if (wallet.solde < tarifDifference) {
-          return res.status(400).json({ message: "Insufficient wallet balance for tarif adjustment" });
+        // If colis has been processed for wallet, create transfer and update wallet
+        if (colis.wallet_prosseced) {
+          // Determine transfer type and amount based on the difference
+          let transferType, transferAmount, transferComment;
+          
+          if (tarifDifference > 0) {
+            // Tarif increased - store owes more money (withdrawal from wallet)
+            transferType = 'Manuel Withdrawal';
+            transferAmount = tarifDifference;
+            transferComment = `Ajustement tarif supplémentaire: +${tarifDifference} DH`;
+            
+            // Check if wallet has sufficient balance for withdrawal
+            if (wallet.solde < transferAmount) {
+              return res.status(400).json({ 
+                message: `Solde insuffisant. Solde actuel: ${wallet.solde} DH, montant requis: ${transferAmount} DH` 
+              });
+            }
+            
+            // Update wallet balance (subtract for withdrawal)
+            wallet.solde -= transferAmount;
+          } else {
+            // Tarif decreased - store owes less money (deposit to wallet)
+            transferType = 'Manuel Depot';
+            transferAmount = Math.abs(tarifDifference); // Use absolute value
+            transferComment = `Ajustement tarif supplémentaire: -${Math.abs(tarifDifference)} DH`;
+            
+            // Update wallet balance (add for deposit)
+            wallet.solde += transferAmount;
+          }
+
+          // Create transfer object
+          const transferData = {
+            wallet: wallet._id,
+            type: transferType,
+            montant: transferAmount,
+            commentaire: transferComment,
+            admin: req.user.id,
+            status: 'validé'
+          };
+
+          // Create new transfer
+          const transfer = new Transfer(transferData);
+
+          // Save both documents
+          await Promise.all([
+            transfer.save(),
+            wallet.save()
+          ]);
+
+          // Store the created transfer for response
+          transferCreated = await Transfer.findById(transfer._id)
+            .populate('wallet')
+            .populate('admin', 'Nom Prenom email');
+        } else {
+          // Colis hasn't been processed for wallet yet, just update the tarif
+          // No wallet update or transfer creation needed
+          console.log(`Colis ${colis.code_suivi} not yet processed for wallet. Tarif updated but no wallet adjustment made.`);
         }
-
-        // Create transfer object
-        const transferData = {
-          wallet: wallet._id,
-          type: 'Manuel Withdrawal',
-          montant: tarifDifference,
-          commentaire: description || 'Ajustement de tarif supplémentaire',
-          admin: req.user.id,
-          status: 'validé'
-        };
-
-        // Create new transfer
-        const transfer = new Transfer(transferData);
-
-        // Update wallet balance (subtract for withdrawal)
-        wallet.solde -= tarifDifference;
-
-        // Save both documents
-        await Promise.all([
-          transfer.save(),
-          wallet.save()
-        ]);
-
-        // Store the created transfer for response
-        transferCreated = await Transfer.findById(transfer._id)
-          .populate('wallet')
-          .populate('admin', 'Nom Prenom email');
       }
     }
 
@@ -2507,6 +2590,8 @@ exports.updateTarifAjouter = async (req, res) => {
     if (transferCreated) {
       response.transfer = transferCreated;
       response.message += " and wallet balance adjusted";
+    } else if (colis.wallet_prosseced === false) {
+      response.message += " (wallet not yet processed for this colis)";
     }
 
     res.status(200).json(response);
@@ -2654,3 +2739,178 @@ exports.resetColisAndSuivi = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur lors de la réinitialisation." });
   }
 };
+
+module.exports.getRamasseeColisCtrl = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    let filter = { statut: 'Ramassée' };
+
+    // Role-based filtering (same as getAllColisCtrl)
+    switch (user.role) {
+      case 'admin':
+        break;
+      case 'livreur':
+        filter.livreur = user.id;
+        break;
+      case 'client':
+        if (user.store) {
+          filter.store = user.store;
+        } else {
+          return res.status(400).json({ message: "Client does not have an associated store." });
+        }
+        break;
+      default:
+        return res.status(403).json({ message: "Access denied: insufficient permissions." });
+    }
+
+    // Use aggregation to group by region
+    const groupedColis = await Colis.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'villes',
+          localField: 'ville',
+          foreignField: '_id',
+          as: 'villeData'
+        }
+      },
+      { $unwind: '$villeData' },
+      {
+        $lookup: {
+          from: 'regions',
+          localField: 'villeData.region',
+          foreignField: '_id',
+          as: 'regionData'
+        }
+      },
+      { $unwind: { path: '$regionData', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'stores',
+          localField: 'store',
+          foreignField: '_id',
+          as: 'storeData'
+        }
+      },
+      { $unwind: { path: '$storeData', preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: {
+            regionId: '$regionData._id',
+            regionName: '$regionData.nom',
+            regionKey: '$regionData.key'
+          },
+          colis: { $push: '$$ROOT' },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          region: {
+            _id: '$_id.regionId',
+            nom: '$_id.regionName',
+            key: '$_id.regionKey'
+          },
+          colis: 1,
+          count: 1
+        }
+      },
+      { $sort: { 'region.nom': 1 } }
+    ]);
+
+    // Calculate total count
+    const total = groupedColis.reduce((sum, group) => sum + group.count, 0);
+
+    res.status(200).json({
+      total,
+      groupedColis
+    });
+  } catch (error) {
+    console.error("Error fetching Ramassée colis:", error);
+    res.status(500).json({ message: "Failed to fetch Ramassée colis.", error: error.message });
+  }
+});
+
+module.exports.getRamasseeColisGroupedByRegionCtrl = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    let filter = { statut: 'Ramassée' };
+
+    // Role-based filtering (same as getAllColisCtrl)
+    switch (user.role) {
+      case 'admin':
+        break;
+      case 'livreur':
+        filter.livreur = user.id;
+        break;
+      case 'client':
+        if (user.store) {
+          filter.store = user.store;
+        } else {
+          return res.status(400).json({ message: "Client does not have an associated store." });
+        }
+        break;
+      default:
+        return res.status(403).json({ message: "Access denied: insufficient permissions." });
+    }
+
+    // Use aggregation to group by region
+    const groupedColis = await Colis.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'villes',
+          localField: 'ville',
+          foreignField: '_id',
+          as: 'villeData'
+        }
+      },
+      { $unwind: '$villeData' },
+      {
+        $lookup: {
+          from: 'regions',
+          localField: 'villeData.region',
+          foreignField: '_id',
+          as: 'regionData'
+        }
+      },
+      { $unwind: { path: '$regionData', preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: {
+            regionId: '$regionData._id',
+            regionName: '$regionData.nom',
+            regionKey: '$regionData.key'
+          },
+          colis: { $push: '$$ROOT' },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          region: {
+            _id: '$_id.regionId',
+            nom: '$_id.regionName',
+            key: '$_id.regionKey'
+          },
+          colis: 1,
+          count: 1
+        }
+      },
+      { $sort: { 'region.nom': 1 } }
+    ]);
+
+    // Calculate total count
+    const total = groupedColis.reduce((sum, group) => sum + group.count, 0);
+
+    res.status(200).json({
+      total,
+      groupedColis
+    });
+  } catch (error) {
+    console.error("Error fetching Ramassée colis grouped by region:", error);
+    res.status(500).json({ message: "Failed to fetch Ramassée colis grouped by region.", error: error.message });
+  }
+});

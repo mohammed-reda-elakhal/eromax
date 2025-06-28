@@ -46,6 +46,13 @@ const colisSlice = createSlice({
     selectedTarifAjouter: null,
     tarifAjouterLoading: false,
     tarifAjouterError: null,
+    // Add new state for colis ramassée grouped by region
+    colisRamasseList: {
+      total: 0,
+      groupedColis: [],
+      loading: false,
+      error: null,
+    },
   },
   reducers: {
     setColis: (state, action) => {
@@ -221,6 +228,20 @@ const colisSlice = createSlice({
       }
       // Update selectedTarifAjouter
       state.selectedTarifAjouter = updatedColis.tarif_ajouter;
+    },
+    // New reducers for colis ramassée grouped by region
+    setColisRamasseLoading: (state, action) => {
+      state.colisRamasseList.loading = action.payload;
+    },
+    setColisRamasseError: (state, action) => {
+      state.colisRamasseList.error = action.payload;
+      state.colisRamasseList.loading = false;
+    },
+    setColisRamasseData: (state, action) => {
+      state.colisRamasseList.total = action.payload.total;
+      state.colisRamasseList.groupedColis = action.payload.groupedColis;
+      state.colisRamasseList.loading = false;
+      state.colisRamasseList.error = null;
     },
   },
 });

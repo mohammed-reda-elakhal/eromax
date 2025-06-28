@@ -10,6 +10,7 @@ import { MdDelete } from "react-icons/md";
 import VilleForm from '../components/VilleForm';
 import { getAllVilles, ajoutVille, updateVille, deleteVille } from '../../../../redux/apiCalls/villeApiCalls'; // Import API functions
 import { useDispatch, useSelector } from 'react-redux';
+import { getAllRegions } from '../../../../redux/apiCalls/regionApiCalls';
 
 // **Import debounce from lodash (optional for debouncing)**
 import { debounce } from 'lodash';
@@ -28,10 +29,14 @@ function Ville() {
     const { villes } = useSelector(state => ({
         villes: state.ville.villes
     }));
+    const { regions } = useSelector(state => ({
+        regions: state.region?.regions || []
+    }));
 
     // Fetch villes data
     useEffect(() => {
         loadVilles();
+        dispatch(getAllRegions());
     }, []);
 
     const loadVilles = async () => {
@@ -147,6 +152,12 @@ function Ville() {
             ),
         },
         {
+            title: 'Région',
+            dataIndex: 'region',
+            key: 'region',
+            render: (region) => region ? (region.nom || '-') : '-',
+        },
+        {
             title: 'Action',
             dataIndex: 'action',
             key: 'action',
@@ -237,6 +248,7 @@ function Ville() {
                                 theme={theme}
                                 onSubmit={handleFormSubmit}
                                 initialValues={selectedVille} // Pass initial values for editing
+                                regions={regions}
                             />
                         </Drawer>
                     </div>
