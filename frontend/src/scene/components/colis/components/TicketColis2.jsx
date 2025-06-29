@@ -63,6 +63,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     padding: 5, // réduit
     marginBottom: 4, // réduit
+    width: '100%',
+    height: 82, // fixed height
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
   },
   infoRow: {
     flexDirection: 'row',
@@ -82,6 +89,9 @@ const styles = StyleSheet.create({
     fontWeight: 'normal',
     maxWidth: 90, // réduit
     wordBreak: 'break-word',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   codeSuivi: {
     fontSize: 9, // réduit
