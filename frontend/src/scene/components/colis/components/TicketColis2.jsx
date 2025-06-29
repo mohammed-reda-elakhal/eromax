@@ -1,113 +1,143 @@
 import React, { useEffect, useState } from 'react';
-import { Document, Page, Text, View, StyleSheet, PDFViewer, Image, PDFDownloadLink } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, PDFViewer, Image, PDFDownloadLink, Font } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 import JsBarcode from 'jsbarcode';
 
+// Register local Arabic font for PDF
+Font.register({
+  family: 'NotoSansArabic',
+  src: '/fonts/NotoSansArabic-Regular.ttf',
+  fontStyle: 'normal',
+  fontWeight: 'normal',
+});
+
+// --- SIMPLE & ELEGANT TICKET STYLES ---
 const styles = StyleSheet.create({
   page: {
-    width: '100mm',
-    height: '100mm',
-    padding: 0,
-    fontFamily: 'Helvetica',
-    backgroundColor: '#f7fafc',
+    width: 283.46, // 10cm
+    height: 283.46, // 10cm
+    padding: 8, // réduit
+    fontFamily: 'NotoSansArabic',
+    backgroundColor: '#fff',
+    color: '#22223b',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    border: '1.2px solid #e2e8f0',
+    boxSizing: 'border-box',
   },
-  headerRow: {
+  logoBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 4,
-    marginBottom: 2,
+    marginBottom: 4,
+    paddingHorizontal: 2,
+  },
+  logoBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   logo: {
-    width: 32,
-    height: 32,
-    marginRight: 6,
+    width: 28,
+    height: 28,
+    marginRight: 4,
+    objectFit: 'contain',
+  },
+  brandName: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    letterSpacing: 1,
+  },
+  codeSuiviSmall: {
+    fontSize: 8,
+    color: '#1e40af',
+    fontWeight: 'bold',
+    textAlign: 'right',
+    minWidth: 60,
+  },
+  infoSection: {
+    border: '1px solid #e5e7eb',
+    borderRadius: 5,
+    backgroundColor: '#f8fafc',
+    padding: 5, // réduit
+    marginBottom: 4, // réduit
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 1,
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: 7.5, // réduit
+    color: '#64748b',
+    fontWeight: 'bold',
+    minWidth: 40, // réduit
+  },
+  value: {
+    fontSize: 8.5, // réduit
+    color: '#22223b',
+    fontWeight: 'normal',
+    maxWidth: 90, // réduit
+    wordBreak: 'break-word',
   },
   codeSuivi: {
-    fontSize: 12,
+    fontSize: 9, // réduit
     fontWeight: 'bold',
     color: '#1e40af',
-    letterSpacing: 1.2,
-    flex: 1,
-    textAlign: 'right',
-  },
-  region: {
-    fontSize: 8,
-    color: '#64748b',
     textAlign: 'center',
-    marginBottom: 2,
-    marginTop: -6,
+    marginVertical: 2, // réduit
+    letterSpacing: 0.5,
   },
   codesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 18,
-    marginBottom: 6,
+    marginVertical: 4, // réduit
+    paddingHorizontal: 2, // réduit
   },
   qr: {
-    width: 50,
-    height: 50,
+    width: 50, // réduit
+    height: 50, // réduit
   },
   barcode: {
-    width: 130,
-    height: 40,
+    width: 120, // réduit
+    height: 40, // réduit
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 8,
-    marginTop: 6,
-    marginBottom: 10,
+  storeSection: {
+    border: '1px solid #e5e7eb',
+    borderRadius: 5,
+    backgroundColor: '#f1f5f9',
+    padding: 3, // plus petit
+    marginBottom: 2, // plus petit
   },
-  infoBox: {
-    backgroundColor: '#fff',
-    borderRadius: 7,
-    padding: 7,
-    width: '48%',
-    minHeight: 80,
-    boxShadow: '0 1px 4px #e2e8f0',
-  },
-  sectionTitle: {
-    fontSize: 9,
+  storeTitle: {
+    fontSize: 7, // plus petit
     fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 3,
-    paddingBottom: 4,
-    textAlign: 'center',
+    color: '#1e293b',
+    marginBottom: 1,
   },
-  infoLine: {
+  storeRow: {
     flexDirection: 'row',
-    marginBottom: 2,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 8,
   },
-  label: {
-    width: 34,
-    fontSize: 8,
+  storeValue: {
+    fontSize: 7, // plus petit
+    color: '#22223b',
+    marginRight: 8,
+    marginBottom: 0,
+  },
+  footer: {
+    borderTop: '1px solid #e2e8f0',
+    paddingTop: 3, // réduit
+    marginTop: 4, // réduit
+    fontSize: 7, // réduit
     color: '#64748b',
-    fontWeight: 'bold',
-  },
-  value: {
-    fontSize: 8,
-    color: '#0f172a',
     textAlign: 'center',
-    flex: 1,
-  },
-  price: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#059669',
-    marginBottom: 2,
-  },
-  messageFooter: {
-    fontSize: 8,
-    textAlign: 'center',
-    boxShadow: '0 1px 4px #e2e8f0',
-    margin: '6px 0',
-    padding: '6px 8px',
-    backgroundColor: '#fff',
   },
   downloadBtn: {
     marginTop: 8,
@@ -117,6 +147,7 @@ const styles = StyleSheet.create({
     border: 'none',
     borderRadius: 4,
     fontSize: 14,
+    cursor: 'pointer',
   },
 });
 
@@ -150,42 +181,67 @@ const TicketPDF = ({ colisList, codes }) => (
   <Document>
     {colisList.map((colis, idx) => (
       <Page key={colis.code_suivi || idx} size={{ width: 283.46, height: 283.46 }} style={styles.page}>
-        {/* Header Row: Logo + Code Suivi */}
-        <View style={styles.headerRow}>
-          <Image src={'/image/logo-light.png'} style={styles.logo} />
-          <Text style={styles.codeSuivi}>{colis?.code_suivi || ''}</Text>
+        {/* Logo, Brand, Code suivi */}
+        <View style={styles.logoBox}>
+          <View style={styles.logoBrand}>
+            <Image src="/image/logo-light.png" style={styles.logo} />
+            <Text style={styles.brandName}>EROMAX</Text>
+          </View>
+          <Text style={styles.codeSuiviSmall}>{colis?.code_suivi || ''}</Text>
         </View>
-        {/* Region under code suivi */}
-        <Text style={styles.region}>{colis?.regionData?.nom || colis?.region?.nom || ''}</Text>
-        {/* QR and Barcode Row */}
+        {/* Infos Colis réorganisées */}
+        <View style={styles.infoSection}>
+          {/* Nom & Tél sur une ligne */}
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Nom:</Text>
+            <Text style={styles.value}>{colis?.nom || ''}</Text>
+            <Text style={styles.label}>Tél:</Text>
+            <Text style={styles.value}>{colis?.tele || ''}</Text>
+          </View>
+          {/* Ville & Prix sur une ligne */}
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Ville:</Text>
+            <Text style={styles.value}>{colis?.villeData?.nom || colis?.ville?.nom || ''}</Text>
+            <Text style={styles.label}>Prix:</Text>
+            <Text style={styles.value}>{colis?.prix || ''} DH</Text>
+          </View>
+          {/* Adresse seule */}
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Adresse:</Text>
+            <Text style={styles.value}>{colis?.adresse || ''}</Text>
+          </View>
+          {/* Région seule */}
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Région:</Text>
+            <Text style={styles.value}>{colis?.regionData?.nom || colis?.region?.nom || ''}</Text>
+          </View>
+          {/* Fragile & Remplacer sur une ligne */}
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Fragile:</Text>
+            <Text style={styles.value}>{colis?.is_fragile ? 'Oui' : 'Non'}</Text>
+            <Text style={styles.label}>Remplacer:</Text>
+            <Text style={styles.value}>{colis?.is_remplacer ? 'Oui' : 'Non'}</Text>
+          </View>
+        </View>
+        {/* Infos Expéditeur compactes */}
+        <View style={styles.storeSection}>
+          <Text style={styles.storeTitle}>Expéditeur</Text>
+          <View style={styles.storeRow}>
+            <Text style={styles.storeValue}>
+              {colis?.storeData?.storeName || colis?.store?.storeName || ''}
+            </Text>
+            <Text style={styles.storeValue}>
+              {colis?.storeData?.tele || colis?.store?.tele || ''}
+            </Text>
+          </View>
+        </View>
+        {/* QR & Barcode */}
         <View style={styles.codesRow}>
           {codes[idx]?.qr && <Image src={codes[idx].qr} style={styles.qr} />}
           {codes[idx]?.barcode && <Image src={codes[idx].barcode} style={styles.barcode} />}
         </View>
-        {/* Info Row: Store (left), Colis (right) */}
-        <View style={styles.infoRow}>
-          {/* Store Info */}
-          <View style={styles.infoBox}>
-            <Text style={styles.sectionTitle}>Expéditeur (Store)</Text>
-            <View style={styles.infoLine}><Text style={styles.value}>{colis?.storeData?.storeName || colis?.store?.storeName || ''}</Text></View>
-            <View style={styles.infoLine}><Text style={styles.value}>{colis?.storeData?.tele || colis?.store?.tele || ''}</Text></View>
-          </View>
-          {/* Colis Info */}
-          <View style={styles.infoBox}>
-            <Text style={styles.sectionTitle}>Informations Colis</Text>
-            <View style={styles.infoLine}><Text style={styles.label}>Nom:</Text><Text style={styles.value}>{colis?.nom || ''}</Text></View>
-            <View style={styles.infoLine}><Text style={styles.label}>Tél:</Text><Text style={styles.value}>{colis?.tele || ''}</Text></View>
-            <View style={styles.infoLine}><Text style={styles.label}>Prix:</Text><Text style={styles.price}>{colis?.prix || ''} DH</Text></View>
-            <View style={styles.infoLine}><Text style={styles.label}>Ville:</Text><Text style={styles.value}>{colis?.villeData?.nom || colis?.ville?.nom || ''}</Text></View>
-            <View style={styles.infoLine}><Text style={styles.label}>Adresse:</Text><Text style={styles.value}>{colis?.adresse || ''}</Text></View>
-            <View style={styles.infoLine}><Text style={styles.label}>Produit:</Text><Text style={styles.value}>{colis?.nature_produit || ''}</Text></View>
-            <View style={styles.infoLine}><Text style={styles.label}>Région:</Text><Text style={styles.value}>{colis?.regionData?.nom || colis?.region?.nom || ''}</Text></View>
-          </View>
-        </View>
         {/* Footer */}
-        <View>
-          <Text style={styles.messageFooter}>Eromax est uniquement responsable de la livraison</Text>
-        </View>
+        <Text style={styles.footer}>إيروماكس مسؤولة فقط عن التوصيل</Text>
       </Page>
     ))}
   </Document>
@@ -218,4 +274,4 @@ function TicketColis2({ colis, colisList }) {
   );
 }
 
-export default TicketColis2; 
+export default TicketColis2;
