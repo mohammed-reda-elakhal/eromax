@@ -160,9 +160,9 @@ function Menubar() {
         <div className={`header-menu reclamation-item`}>
 
             <img
-              src={'/image/eromax_logo.png'}
+              src={'/image/eromax_logo3.png'}
               alt=""
-              style={collapsed ? { width: '60px'} : { width: '100px'}}
+              style={collapsed ? { width: '90px'} : { width: '130px'}}
               onClick={toggleCollapsed}
             />
         </div>

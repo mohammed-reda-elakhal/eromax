@@ -89,9 +89,6 @@ function Header() {
                     <Link to={`/register`} className="header-bottom-link">
                         Devenir Client
                     </Link>
-                    <Link to={`/register/livreur`} className="header-bottom-link">
-                        Devenir Livreur
-                    </Link>
                     <Link to={`/login`} className="header-bottom-link">
                         Connexion
                     </Link>

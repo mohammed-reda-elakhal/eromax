@@ -669,8 +669,14 @@ function ColisRamasse2() {
             color: theme === 'dark' ? '#fff' : '#002242',
           }}
         >
-          <div className="page-content-header">
-            <Title nom='Colis Ramassée par Région' />
+          
+          <div
+            className="content"
+            style={{
+              backgroundColor: theme === 'dark' ? '#001529' : '#fff',
+            }}
+          >
+            <div className="page-content-header">
             <div style={{ display: 'flex', gap: '8px' }}>
               <Button
                 icon={<IoMdRefresh />}
@@ -719,12 +725,6 @@ function ColisRamasse2() {
               </Button>
             </div>
           </div>
-          <div
-            className="content"
-            style={{
-              backgroundColor: theme === 'dark' ? '#001529' : '#fff',
-            }}
-          >
             {/* Statistics Cards */}
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
               <Col xs={24} sm={12} md={6}>

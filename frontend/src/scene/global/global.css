@@ -54,7 +54,7 @@
 }
 
 .page-content {
-  padding: 12px;
+  padding: 4px;
   flex-grow: 1; /* Allow content to grow and take available space */
   overflow: hidden; /* Prevent scrolling on the parent element */
   display: flex;
@@ -69,10 +69,8 @@
 }
 
 .content {
-  margin: 12px 0;
   height: 100%;
   border-radius: 8px;
-  padding: 12px;
   overflow-x: auto; /* Enable horizontal scrolling */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-grow: 1; /* Allow content to grow and take available space */
@@ -355,6 +353,162 @@
   cursor: pointer;
 }
 
+/*-------------Menu Items Styling--------------------------*/
+/* Light theme menu items */
+.ant-menu-light .ant-menu-item,
+.ant-menu-light .ant-menu-submenu-title {
+  margin: 2px 4px !important;
+  border-radius: 5px !important;
+  transition: all 0.3s ease !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  font-size: 14px !important;
+  min-height: 32px !important;
+}
+
+.ant-menu-light .ant-menu-item:hover,
+.ant-menu-light .ant-menu-submenu-title:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.ant-menu-light .ant-menu-item-selected {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-color: rgba(24, 144, 255, 0.3) !important;
+  color: #1890ff !important;
+}
+
+/* Dark theme menu items */
+.ant-menu-dark .ant-menu-item,
+.ant-menu-dark .ant-menu-submenu-title {
+  margin: 2px 4px !important;
+  border-radius: 5px !important;
+  transition: all 0.3s ease !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  font-size: 14px !important;
+  min-height: 32px !important;
+}
+
+.ant-menu-dark .ant-menu-item:hover,
+.ant-menu-dark .ant-menu-submenu-title:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  background: rgba(24, 144, 255, 0.2) !important;
+  border-color: rgba(24, 144, 255, 0.4) !important;
+  color: #1890ff !important;
+}
+
+/* Submenu items styling */
+.ant-menu-inline .ant-menu-sub .ant-menu-item {
+  margin: 0px 2px 0px 12px !important;
+  border-radius: 3px !important;
+  font-size: 12px !important;
+  min-height: 22px !important;
+  padding: 2px 6px !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.ant-menu-inline .ant-menu-sub .ant-menu-submenu-title {
+  margin: 0px 2px 0px 12px !important;
+  border-radius: 3px !important;
+  font-size: 12px !important;
+  min-height: 22px !important;
+  padding: 2px 6px !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Dark theme submenu items */
+.ant-menu-dark .ant-menu-inline .ant-menu-sub .ant-menu-item {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.ant-menu-dark .ant-menu-inline .ant-menu-sub .ant-menu-submenu-title {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Hover effects for submenu items */
+.ant-menu-light .ant-menu-inline .ant-menu-sub .ant-menu-item:hover {
+  background: rgba(0, 0, 0, 0.12) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.ant-menu-dark .ant-menu-inline .ant-menu-sub .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Collapsed menu adjustments */
+.ant-menu-inline-collapsed .ant-menu-item,
+.ant-menu-inline-collapsed .ant-menu-submenu-title {
+  margin: 2px 2px !important;
+  border-radius: 4px !important;
+}
+
+/* Menu item content spacing */
+.ant-menu-item a,
+.ant-menu-submenu-title {
+  padding: 4px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Badge positioning adjustments */
+.ant-menu-item .ant-badge,
+.ant-menu-submenu-title .ant-badge {
+  margin-left: auto !important;
+}
+
+/* Smooth transitions for all menu interactions */
+.ant-menu-item,
+.ant-menu-submenu-title,
+.ant-menu-submenu {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Icon centering for menu items */
+.ant-menu-item a, .ant-menu-submenu-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 8px !important;
+  min-height: 22px !important;
+}
+
+.ant-menu-item a svg, .ant-menu-submenu-title svg {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 1.1em;
+  line-height: 1;
+  margin-right: 6px;
+}
+
+/* For submenu items, ensure icon and text are centered */
+.ant-menu-inline .ant-menu-sub .ant-menu-item a, .ant-menu-inline .ant-menu-sub .ant-menu-submenu-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 2px 6px !important;
+  min-height: 22px !important;
+}
+
+.ant-menu-inline .ant-menu-sub .ant-menu-item a svg, .ant-menu-inline .ant-menu-sub .ant-menu-submenu-title svg {
+  font-size: 1em;
+  margin-right: 5px;
+}
+
 @media (min-width: 768px) {
   .open-menu,
   .open-menu-c {
@@ -373,7 +527,6 @@
     grid-template-columns: repeat(2,1fr);
   }
 }
-
 @keyframes changeColor {
   0% { color: yellow; }
   50% { color: red; }
@@ -420,3 +573,4 @@
   margin-left: 0;
   z-index: 1;
 }
+

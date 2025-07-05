@@ -121,22 +121,13 @@ function ColisList({ search }) {
             color: theme === 'dark' ? '#fff' : '#002242',
           }}
         >
-          <div className="page-content-header">
-            <Title nom="List Colis" />
-            {user?.role === "client" ? (
-              <Link to={`/dashboard/ajouter-colis/simple`} className="btn-dashboard">
-                <PlusCircleFilled style={{ marginRight: "8px" }} />
-                Ajouter Colis
-              </Link>
-            ) : ""}
-          </div>
           <div
             className="content"
             style={{
               backgroundColor: theme === 'dark' ? '#001529' : '#fff',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'start', flexDirection: "column", marginBottom: "8px" }}>
+            <div style={{ display: 'flex', alignItems: 'start', flexDirection: "column" }}>
               <h4>List Colis</h4>
               <ColisReporteProgramme/>
             </div>

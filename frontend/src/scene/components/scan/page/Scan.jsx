@@ -69,9 +69,6 @@ const Scan = () => {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Scan Colis' />
-                    </div>
                     <div
                         className="content"
                         style={{
