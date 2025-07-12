@@ -69,7 +69,7 @@ const ColisSchema = new mongoose.Schema({
     },
     statut: {
         type: String,
-        default: "attente de ramassage",
+        default: "Nouveau Colis",
         enum: [
             "Nouveau Colis",
             "attente de ramassage",

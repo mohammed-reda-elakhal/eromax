@@ -595,6 +595,17 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
         );
       },
     },
+    {
+      title: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <EnvironmentOutlined style={{ fontSize: '14px' }} />
+          Adresse
+        </span>
+      ),
+      dataIndex: 'adresse',
+      key: 'adresse',
+      render: (text, record) => <span style={{ color: theme === 'dark' ? '#a3e635' : '#0ea5e9', fontWeight: 500 }}>{record.adresse || 'N/A'}</span>,
+    },
   ];
 
   return (
@@ -619,54 +630,22 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
             {
               user?.role === "admin"
               ?
-              <div className="bar-action-data" style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <Button
-                  icon={<IoMdRefresh />}
-                  type="primary"
-                  onClick={getDataColis}
-                  style={{ marginRight: '8px' }}
-                >
-                  Refresh
-                </Button>
-                <Button
-                  icon={<FaBoxesStacked />}
-                  type="primary"
-                  onClick={handleRamasse}
-                  loading={loading}
-                  style={{ marginRight: '8px' }}
-                >
-                  Ramasser
-                </Button>
-                <Button
-                  icon={<IoQrCodeSharp />}
-                  type="primary"
-                  onClick={() => navigate("/dashboard/scan/statu/Ramassée")}
-                  loading={loading}
-                  style={{ marginRight: '8px' }}
-                >
-                  Scan
-                </Button>
-                <Button
-                  icon={<FaDownload />}
-                  type="default"
-                  onClick={exportToExcel}
-                  disabled={selectedRowKeys.length === 0}
-                >
-                  Export to Excel
-                </Button>
-                <Button
-                  icon={<FaTicketAlt />}
-                  type="primary"
-                  onClick={() => setOpenBatchTicket(true)}
-                  disabled={selectedRowKeys.length === 0}
-                  style={{
-                    marginRight: '8px',
-                    backgroundColor: '#1890ff',
-                    borderColor: '#1890ff'
-                  }}
-                >
-                  Tickets Groupés
-                </Button>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '16px',
+                background: theme === 'dark' ? '#0f172a' : '#f8fafc',
+                borderRadius: '12px',
+                boxShadow: theme === 'dark' ? '0 2px 8px #0f172a33' : '0 2px 8px #e0e7ef33',
+                marginBottom: '24px',
+                flexWrap: 'wrap',
+              }}>
+                <Button icon={<IoMdRefresh />} type="primary" onClick={getDataColis} loading={loading}>Refresh</Button>
+                <Button icon={<FaBoxesStacked />} type="primary" onClick={handleRamasse} loading={loading} style={{ marginRight: '8px' }}>Ramasser</Button>
+                <Button icon={<IoQrCodeSharp />} type="primary" onClick={() => navigate("/dashboard/scan/statu/Ramassée")} loading={loading} style={{ marginRight: '8px' }}>Scan</Button>
+                <Button icon={<FaDownload />} type="default" onClick={exportToExcel} disabled={selectedRowKeys.length === 0}>Export to Excel</Button>
+                <Button icon={<FaTicketAlt />} type="primary" onClick={() => setOpenBatchTicket(true)} disabled={selectedRowKeys.length === 0} style={{ marginRight: '8px', backgroundColor: '#1890ff', borderColor: '#1890ff' }}>Tickets Groupés</Button>
               </div>
               :
               ""
@@ -764,6 +743,7 @@ function ColisPourRamassage() { // Removed 'search' prop as it's handled interna
                 borderRadius: '12px',
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                marginTop: '8px',
               }}
             />
             <Modal

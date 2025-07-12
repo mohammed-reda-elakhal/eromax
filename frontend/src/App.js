@@ -83,7 +83,9 @@ import Transfer from "./scene/components/portfeuille/page/Transfer";
 import Wallet from "./scene/components/portfeuille/page/Wallet";
 import Withdrawal from "./scene/components/portfeuille/page/Withdrawal";
 import Contact from "./scene/components/home/pages/Contact";
-
+import ColisNouveau from "./scene/components/colis/pages/ColisNouveau";
+import ColisPourRamase2 from "./scene/components/colis/pages/ColisPourRamase2";
+import ColisPaginated from './scene/components/colis/pages/ColisPaginated';
 
 function App() {
 
@@ -282,6 +284,7 @@ function App() {
             <Route path="ajouter/colis/admin/:type" element={<AjouterColisAdmin />} />
             <Route path="import-colis" element={<ColisImport />} />
             <Route path="colis/update/:codeSuivi" element={<UpdateColisPage />} />
+            <Route path="colis-paginated" element={<ColisPaginated />} />
 
             <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
             <Route path="ajouter-produit" element={<AjouterProduit />} />
@@ -293,6 +296,8 @@ function App() {
 
 
             <Route path="promotion" element={<Promotions />} />
+            <Route path="colis-nouveau" element={<ColisNouveau />} />
+            <Route path="colis-pour-ramasse" element={<ColisPourRamase2 />} />
           
         </Route>
       </Routes>

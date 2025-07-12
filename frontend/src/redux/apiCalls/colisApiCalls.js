@@ -992,3 +992,91 @@ export function getColisRamasse() {
   };
 }
 
+// Fetch Nouveau Colis
+export function getNouveauColis() {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        dispatch(colisActions.setNouveauColisError('Authentication token is missing'));
+        return;
+      }
+      dispatch(colisActions.setNouveauColisLoading(true));
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+      const { data } = await request.get('/api/colis/nouveau', config);
+      dispatch(colisActions.setNouveauColisData({ total: data.total, colis: data.colis }));
+    } catch (error) {
+      dispatch(colisActions.setNouveauColisError(error.response?.data?.message || error.message));
+    } finally {
+      dispatch(colisActions.setNouveauColisLoading(false));
+    }
+  };
+}
+
+// Fetch Attente de Ramassage Colis
+export function getAttenteRamassageColis() {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        dispatch(colisActions.setAttenteRamassageColisError('Authentication token is missing'));
+        return;
+      }
+      dispatch(colisActions.setAttenteRamassageColisLoading(true));
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      };
+      const { data } = await request.get('/api/colis/attente-ramassage', config);
+      dispatch(colisActions.setAttenteRamassageColisData({ total: data.total, colis: data.colis }));
+    } catch (error) {
+      dispatch(colisActions.setAttenteRamassageColisError(error.response?.data?.message || error.message));
+    } finally {
+      dispatch(colisActions.setAttenteRamassageColisLoading(false));
+    }
+  };
+}
+
+export function getColisPaginated(filters = {}) {
+  return async (dispatch) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        dispatch(colisActions.setColisPaginatedError('Authentication token is missing'));
+        return;
+      }
+      dispatch(colisActions.setColisPaginatedLoading(true));
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        params: {
+          page: filters.page || 1,
+          limit: filters.limit || 20,
+          client: filters.client || '',
+          livreur: filters.livreur || '',
+          statut: filters.statut || '',
+          ville: filters.ville || '',
+          dateFrom: filters.dateFrom || '',
+          dateTo: filters.dateTo || '',
+          store: filters.store || '', // <-- Add this line
+        },
+      };
+      const { data } = await request.get('/api/colis/paginated', config);
+      dispatch(colisActions.setColisPaginatedData(data));
+    } catch (error) {
+      dispatch(colisActions.setColisPaginatedError(error.response?.data?.message || error.message));
+    } finally {
+      dispatch(colisActions.setColisPaginatedLoading(false));
+    }
+  };
+}
+

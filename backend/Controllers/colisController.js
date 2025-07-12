@@ -102,7 +102,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
         id_store: store,
         colisId: saveColis._id,
         title: 'Nouvelle colis',
-        description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
+        description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} .`,
       });
       await notification.save();  // Save the notification
     } catch (error) {
@@ -117,7 +117,7 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     code_suivi: saveColis.code_suivi,
     date_create: saveColis.createdAt,
     status_updates: [
-      { status: "Attente de Ramassage", date: new Date() }  // Initial status
+      { status: "Nouveau Colis", date: new Date() }  // Initial status
     ]
   });
   const save_suivi = await suivi_colis.save();
@@ -212,7 +212,7 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
     code_suivi: saveColis.code_suivi,
     date_create: saveColis.createdAt,
     status_updates: [
-      { status: "Attente de Ramassage", date: new Date() }  // Initial status
+      { status: "Nouveau Colis", date: new Date() }  // Initial status
     ]
   });
 
@@ -2912,5 +2912,204 @@ module.exports.getRamasseeColisGroupedByRegionCtrl = asyncHandler(async (req, re
   } catch (error) {
     console.error("Error fetching Ramassée colis grouped by region:", error);
     res.status(500).json({ message: "Failed to fetch Ramassée colis grouped by region.", error: error.message });
+  }
+});
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Get colis with statut 'Nouveau Colis', filtered by user role
+ * @route    /api/colis/nouveau
+ * @method   GET
+ * @access   Private (admin: all, client: by store)
+ * -------------------------------------------------------------------
+**/
+module.exports.getNouveauColisCtrl = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    let filter = { statut: 'Nouveau Colis' };
+
+    switch (user.role) {
+      case 'admin':
+        // Admin: no extra filter
+        break;
+      case 'client':
+        if (user.store) {
+          filter.store = user.store;
+        } else {
+          return res.status(400).json({ message: "Client does not have an associated store." });
+        }
+        break;
+      default:
+        return res.status(403).json({ message: "Access denied: insufficient permissions." });
+    }
+
+    const colis = await Colis.find(filter)
+      .populate('team')
+      .populate('livreur')
+      .populate('store')
+      .populate('ville')
+      .sort({ updatedAt: -1 });
+
+    const total = await Colis.countDocuments(filter);
+
+    res.status(200).json({
+      total,
+      colis
+    });
+  } catch (error) {
+    console.error("Error fetching Nouveau Colis:", error);
+    res.status(500).json({ message: "Failed to fetch Nouveau Colis.", error: error.message });
+  }
+});
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Get colis with statut 'attente de ramassage', filtered by user role
+ * @route    /api/colis/attente-ramassage
+ * @method   GET
+ * @access   Private (admin: all, client: by store)
+ * -------------------------------------------------------------------
+**/
+module.exports.getAttenteRamassageColisCtrl = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    let filter = { statut: 'attente de ramassage' };
+
+    switch (user.role) {
+      case 'admin':
+        // Admin: no extra filter
+        break;
+      case 'client':
+        if (user.store) {
+          filter.store = user.store;
+        } else {
+          return res.status(400).json({ message: "Client does not have an associated store." });
+        }
+        break;
+      default:
+        return res.status(403).json({ message: "Access denied: insufficient permissions." });
+    }
+
+    const colis = await Colis.find(filter)
+      .populate('team')
+      .populate('livreur')
+      .populate('store')
+      .populate('ville')
+      .sort({ updatedAt: -1 });
+
+    const total = await Colis.countDocuments(filter);
+
+    res.status(200).json({
+      total,
+      colis
+    });
+  } catch (error) {
+    console.error("Error fetching attente de ramassage Colis:", error);
+    res.status(500).json({ message: "Failed to fetch attente de ramassage Colis.", error: error.message });
+  }
+});
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Get all colis (all statuses), fully populated, paginated, role-based
+ * @route    /api/colis/paginated
+ * @method   GET
+ * @access   Private (token required)
+ * -------------------------------------------------------------------
+**/
+
+module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    let filter = {};
+    // Role-based filtering
+    if (user.role === 'admin') {
+      // No filter
+    } else if (user.role === 'client') {
+      if (!user.store) {
+        return res.status(400).json({ message: 'Client does not have an associated store.' });
+      }
+      filter.store = user.store;
+    } else if (user.role === 'livreur') {
+      filter.livreur = user.id;
+    } else {
+      return res.status(403).json({ message: 'Access denied: insufficient permissions.' });
+    }
+
+    // Additional filters from query params
+    const { client, livreur, statut, ville, dateFrom, dateTo, store } = req.query;
+    if (client) {
+      filter.clientId = client;
+    }
+    if (livreur) {
+      filter.livreur = livreur;
+    }
+    if (statut) {
+      filter.statut = statut;
+    }
+    if (ville) {
+      filter.ville = ville;
+    }
+    if (store) {
+      filter.store = store;
+    }
+    // Date range filter (createdAt)
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        if (!isNaN(fromDate)) {
+          filter.createdAt.$gte = fromDate;
+        }
+      }
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        if (!isNaN(toDate)) {
+          filter.createdAt.$lte = toDate;
+        }
+      }
+      if (Object.keys(filter.createdAt).length === 0) {
+        delete filter.createdAt;
+      }
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 20;
+    const skip = (page - 1) * limit;
+
+    // Query with population
+    const [colis, total] = await Promise.all([
+      Colis.find(filter)
+        .populate({
+          path: 'store',
+        })
+        .populate({
+          path: 'ville',
+          populate: { path: 'region' }
+        })
+        .populate('livreur')
+        .populate('team')
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Colis.countDocuments(filter)
+    ]);
+
+    // Populate Suivi_Colis for each colis (asynchronously)
+    const colisWithSuivi = await Promise.all(colis.map(async (c) => {
+      const suivi = await Suivi_Colis.findOne({ code_suivi: c.code_suivi });
+      return { ...c.toObject(), suivi_colis: suivi };
+    }));
+
+    res.status(200).json({
+      total,
+      page,
+      limit,
+      data: colisWithSuivi
+    });
+  } catch (error) {
+    console.error('Error in getAllColisPaginatedCtrl:', error);
+    res.status(500).json({ message: 'Failed to fetch paginated colis.', error: error.message });
   }
 });

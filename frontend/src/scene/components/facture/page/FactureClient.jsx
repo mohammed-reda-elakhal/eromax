@@ -30,9 +30,6 @@ function FactureClient() {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Facture Client' />
-                    </div>
                     <div
                         className="content"
                         style={{

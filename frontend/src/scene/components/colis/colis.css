@@ -466,8 +466,120 @@
     width: 100%;
 }
 
+/* Filter bar select styles for both modes */
+.filter-bar-select .ant-select-selector {
+  background: #fff;
+  color: #222;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  min-height: 38px;
+  font-size: 16px;
+}
+.filter-bar-select .ant-select-selection-placeholder {
+  color: #888;
+  opacity: 1;
+}
+.filter-bar-select .ant-select-selection-item {
+  color: #222;
+}
 
+.dark-mode .filter-bar-select .ant-select-selector {
+  background: #001529;
+  color: #fff;
+  border: 1px solid #555;
+}
+.dark-mode .filter-bar-select .ant-select-selection-placeholder {
+  color: #bbb;
+}
+.dark-mode .filter-bar-select .ant-select-selection-item {
+  color: #fff;
+}
+.dark-mode .filter-bar-select .ant-select-arrow {
+  color: #fff;
+}
+.dark-mode .ant-select-dropdown {
+  background: #001529;
+  color: #fff;
+}
+.dark-mode .ant-select-item-option {
+  background: #001529;
+  color: #fff;
+}
+.dark-mode .ant-select-item-option-selected {
+  background: #003366 !important;
+  color: #fff !important;
+}
+.dark-mode .ant-select-item-option-active {
+  background: #002242 !important;
+  color: #fff !important;
+}
 
+/* Filter bar input overrides */
+.filter-bar-select .ant-select-selector,
+.filter-bar-select .ant-picker-input > input {
+  background: transparent !important;
+  color: inherit !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.filter-bar-select .ant-select-selection-placeholder,
+.filter-bar-select .ant-picker-input > input::placeholder {
+  color: #888 !important;
+  opacity: 1 !important;
+}
+
+.dark-mode .filter-bar-select .ant-select-selector,
+.dark-mode .filter-bar-select .ant-picker-input > input {
+  background: transparent !important;
+  color: #fff !important;
+}
+
+.dark-mode .filter-bar-select .ant-select-selection-placeholder,
+.dark-mode .filter-bar-select .ant-picker-input > input::placeholder {
+  color: #bbb !important;
+}
+
+/* Filter bar RangePicker enhancements */
+.filter-bar-date-row {
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+.filter-bar-select.ant-picker {
+  width: 340px !important;
+  min-width: 260px !important;
+  height: 36px !important;
+  font-size: 16px !important;
+  border-radius: 8px !important;
+}
+.filter-bar-select .ant-picker-input > input {
+  font-size: 16px !important;
+  height: 36px !important;
+  color: inherit !important;
+}
+
+.dark-mode .filter-bar-select.ant-picker,
+.dark-mode .filter-bar-select.ant-picker input {
+  background: #1e293b !important;
+  color: #fff !important;
+  border-color: #334155 !important;
+  height: 36px !important;
+}
+
+.dark-mode .filter-bar-select.ant-picker input::placeholder {
+  color: #bbb !important;
+  opacity: 1 !important;
+}
+
+.dark-mode .filter-bar-select.ant-picker .ant-picker-suffix {
+  color: #fff !important;
+}
+
+.dark-mode .filter-bar-select.ant-picker .ant-picker-clear {
+  color: #fff !important;
+}
 
 
 /* Responsive adjustments */
@@ -496,4 +608,46 @@
     .option_colis_form{
         flex-direction: column;
     }
+}
+
+@media (max-width: 900px) {
+  .filter-bar-date-row {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+  .filter-bar-select.ant-picker,
+  .filter-bar-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-bottom: 8px !important;
+  }
+  .filter-bar-select .ant-picker-input > input {
+    width: 100% !important;
+  }
+}
+@media (max-width: 600px) {
+  .filter-bar-date-row {
+    gap: 16px !important;
+    margin-top: 16px !important;
+  }
+  .filter-bar-select.ant-picker,
+  .filter-bar-select {
+    font-size: 15px !important;
+    height: 38px !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .filter-bar-select .ant-picker-input > input {
+    font-size: 15px !important;
+    height: 38px !important;
+  }
+  .filter-bar-date-row button,
+  .filter-bar-date-row .ant-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 8px !important;
+  }
 }

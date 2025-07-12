@@ -223,24 +223,24 @@ function Menubar() {
               <Menu.Item icon={<FaListAlt />}>
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaShippingFast />}>
-                <Link to="/dashboard/colis-ar">
-                  Colis Pour Ramassage {colis.length > 0 ? <Badge count={colis.length} color={colorBadge} /> : ""}
-                </Link>
+              <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/colis-nouveau">Colis Nouveau</Link>
+              </Menu.Item>
+              <Menu.Item icon={<MdPendingActions />}>
+                <Link to="/dashboard/colis-pour-ramasse">Colis Attente Ramassage</Link>
+              </Menu.Item>
+              <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/colis-paginated">Colis Paginated</Link>
               </Menu.Item>
               <Menu.Item icon={<GrObjectGroup />}>
                 <Link to="/dashboard/colis-r2">
                   Colis  Ramasse <span style={{color:"red" , fontSize:"10px" , fontWeight:"600"}}>New</span> {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
                 </Link>
               </Menu.Item>
-              <Menu.Item icon={<MdLocalShipping />}>
-                <Link to="/dashboard/colis-r">
-                  Colis Ramasse {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
-                </Link>
-              </Menu.Item>
               <Menu.Item icon={<MdFactCheck />}>
                 <Link to="/dashboard/facture/globale">Fichier</Link>
               </Menu.Item>
+              
             </Menu.SubMenu>
           )
         }
@@ -378,11 +378,11 @@ function Menubar() {
               <Menu.Item icon={<FaListAlt />}>
                 <Link to="/dashboard/list-colis">List Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaShippingFast />}>
-                <Link to="/dashboard/colis-ar">Colis Pour Ramassage</Link>
+              <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/colis-nouveau">Colis Nouveau</Link>
               </Menu.Item>
-              <Menu.Item icon={<GrObjectGroup />}>
-                <Link to="/dashboard/colis-r2">Colis Ramasse par Région</Link>
+              <Menu.Item icon={<MdPendingActions />}>
+                <Link to="/dashboard/colis-pour-ramasse">Colis Attente Ramassage</Link>
               </Menu.Item>
               <Menu.Item icon={<FaFileImport />}>
                 <Link to="/dashboard/import-colis">Import Colis</Link>
@@ -390,6 +390,7 @@ function Menubar() {
               <Menu.Item icon={<FaReceipt />}>
                 <Link to="/dashboard/facture/globale">Fichier</Link>
               </Menu.Item>
+              
             </Menu.SubMenu>
           )
         }

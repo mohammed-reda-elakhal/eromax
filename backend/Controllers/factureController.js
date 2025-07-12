@@ -2347,6 +2347,8 @@ const getFactureLivreur = async (req, res) => {
         // Get livreurId, date range, and dateRange type from query parameters
         const { livreurId, startDate, endDate, dateRange } = req.query;
 
+        console.log('getFactureLivreur called with:', { livreurId, startDate, endDate, dateRange });
+
         const filter = { type: 'livreur' };
         if (livreurId) {
             filter.livreur = livreurId;
@@ -2417,6 +2419,8 @@ const getFactureLivreur = async (req, res) => {
             };
         }
 
+        console.log('Filter applied:', JSON.stringify(filter, null, 2));
+
         // Find factures of type "livreur" and select necessary fields.
         const factures = await Facture.find(filter)
             .select('code_facture etat createdAt colis type')
@@ -2441,38 +2445,47 @@ const getFactureLivreur = async (req, res) => {
             .lean()
             .sort({ etat: 1, createdAt: -1 }); // Sort by 'etat = false' first, then by latest date
 
-        let totalTarifLivreur = 0 ;
-        let totalPrix = 0 ;
-        let colisCount = 0;
-
+        console.log(`Found ${factures.length} factures`);
 
         // Now loop through each facture and colis to get the corresponding tarif from TarifLivreur
         for (const facture of factures) {
+            let totalTarifLivreur = 0;
+            let totalPrix = 0;
+            let colisCount = 0;
+
             for (const colis of facture.colis) {
                 const { ville, livreur } = colis;
 
-                // Get the tarif from TarifLivreur based on livreur and ville
-                const tarif = await TarifLivreur.findOne({
-                    id_livreur: livreur._id,
-                    id_ville: ville._id
-                }).select('tarif');
+                // Add null checks to prevent errors
+                if (!ville || !livreur) {
+                    console.warn(`Missing ville or livreur for colis ${colis.code_suivi}`);
+                    continue;
+                }
 
-                // If no tarif is found, use the default value (20)
-                const tarifLivreur = tarif ? tarif.tarif : 20;
-                colis.tarif_livreur = tarifLivreur; // Optional: you can add this to the colis for further use
-                totalTarifLivreur += tarifLivreur ;
-                totalPrix += colis.prix;
-                colisCount ++ ;
+                try {
+                    // Get the tarif from TarifLivreur based on livreur and ville
+                    const tarif = await TarifLivreur.findOne({
+                        id_livreur: livreur._id,
+                        id_ville: ville._id
+                    }).select('tarif');
 
+                    // If no tarif is found, use the default value (20)
+                    const tarifLivreur = tarif ? tarif.tarif : 20;
+                    colis.tarif_livreur = tarifLivreur; // Optional: you can add this to the colis for further use
+                    totalTarifLivreur += tarifLivreur;
+                    totalPrix += colis.prix || 0;
+                    colisCount++;
+                } catch (colisError) {
+                    console.error(`Error processing colis ${colis.code_suivi}:`, colisError);
+                    // Continue with next colis
+                    continue;
+                }
             }
+            
             facture.totalTarifLivreur = totalTarifLivreur;
             facture.totalPrix = totalPrix;
             facture.prixPayer = totalPrix - totalTarifLivreur;
-            facture.colisCount = colisCount ;
-            colisCount = 0;
-            totalTarifLivreur = 0 ;
-            totalPrix = 0 ;
-
+            facture.colisCount = colisCount;
         }
 
         res.status(200).json({
@@ -2481,7 +2494,11 @@ const getFactureLivreur = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching livreur factures:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ 
+            message: 'Internal server error',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 

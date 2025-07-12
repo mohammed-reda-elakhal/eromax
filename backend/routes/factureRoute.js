@@ -41,7 +41,7 @@ router.route('/colis/:colisId')
 
 
 router.get('/client', getFactureClient);
-router.get('/livreur', getFactureLivreur);
+router.get('/livreur', verifyToken, getFactureLivreur);
 router.get('/detail/:code_facture', getFactureByCode);
 router.get('/detail/client/:code_facture', getFactureClientByCode);
 router.get('/detail/livreur/:code_facture', getFactureLivreurByCode);

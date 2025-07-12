@@ -53,6 +53,29 @@ const colisSlice = createSlice({
       loading: false,
       error: null,
     },
+    // New state for Nouveau Colis
+    nouveauColisList: {
+      total: 0,
+      colis: [],
+      loading: false,
+      error: null,
+    },
+    // New state for Attente de Ramassage Colis
+    attenteRamassageColisList: {
+      total: 0,
+      colis: [],
+      loading: false,
+      error: null,
+    },
+    // New state for paginated, filtered colis
+    colisPaginatedList: {
+      total: 0,
+      page: 1,
+      limit: 20,
+      data: [],
+      loading: false,
+      error: null,
+    },
   },
   reducers: {
     setColis: (state, action) => {
@@ -242,6 +265,50 @@ const colisSlice = createSlice({
       state.colisRamasseList.groupedColis = action.payload.groupedColis;
       state.colisRamasseList.loading = false;
       state.colisRamasseList.error = null;
+    },
+    // New reducers for Nouveau Colis
+    setNouveauColisLoading: (state, action) => {
+      state.nouveauColisList.loading = action.payload;
+    },
+    setNouveauColisError: (state, action) => {
+      state.nouveauColisList.error = action.payload;
+      state.nouveauColisList.loading = false;
+    },
+    setNouveauColisData: (state, action) => {
+      state.nouveauColisList.total = action.payload.total;
+      state.nouveauColisList.colis = action.payload.colis;
+      state.nouveauColisList.loading = false;
+      state.nouveauColisList.error = null;
+    },
+    // New reducers for Attente de Ramassage Colis
+    setAttenteRamassageColisLoading: (state, action) => {
+      state.attenteRamassageColisList.loading = action.payload;
+    },
+    setAttenteRamassageColisError: (state, action) => {
+      state.attenteRamassageColisList.error = action.payload;
+      state.attenteRamassageColisList.loading = false;
+    },
+    setAttenteRamassageColisData: (state, action) => {
+      state.attenteRamassageColisList.total = action.payload.total;
+      state.attenteRamassageColisList.colis = action.payload.colis;
+      state.attenteRamassageColisList.loading = false;
+      state.attenteRamassageColisList.error = null;
+    },
+    // New reducers for paginated colis
+    setColisPaginatedLoading: (state, action) => {
+      state.colisPaginatedList.loading = action.payload;
+    },
+    setColisPaginatedError: (state, action) => {
+      state.colisPaginatedList.error = action.payload;
+      state.colisPaginatedList.loading = false;
+    },
+    setColisPaginatedData: (state, action) => {
+      state.colisPaginatedList.total = action.payload.total;
+      state.colisPaginatedList.page = action.payload.page;
+      state.colisPaginatedList.limit = action.payload.limit;
+      state.colisPaginatedList.data = action.payload.data;
+      state.colisPaginatedList.loading = false;
+      state.colisPaginatedList.error = null;
     },
   },
 });

@@ -41,6 +41,15 @@ router.route('/copie/:id_colis')
 // Place this above any /:id route to avoid collision
 router.get('/ramassee', verifyToken, colisController.getRamasseeColisCtrl);
 
+// Route to get colis with statut 'Nouveau Colis' (admin: all, client: by store)
+router.get('/nouveau', verifyToken, colisController.getNouveauColisCtrl);
+
+// Route to get colis with statut 'attente de ramassage' (admin: all, client: by store)
+router.get('/attente-ramassage', verifyToken, colisController.getAttenteRamassageColisCtrl);
+
+// Route to get all colis, fully populated, paginated, role-based
+router.get('/paginated', verifyToken, colisController.getAllColisPaginatedCtrl);
+
 // Router api/colis/:id
 router.route('/:id')
         .get(colisController.getColisByIdCtrl)

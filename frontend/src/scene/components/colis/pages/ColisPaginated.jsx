@@ -1,0 +1,1145 @@
+import React, { useEffect, useState, useContext } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getColisPaginated } from '../../../../redux/apiCalls/colisApiCalls';
+import { getAllVilles } from '../../../../redux/apiCalls/villeApiCalls';
+import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
+import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
+// Removed all Ant Design imports
+// import { Table, Card, Typography, Tag, Spin, Alert, Select, DatePicker, Row, Col, Button, Tooltip } from 'antd';
+// import { ...icons } from '@ant-design/icons';
+import {
+  CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined,
+  ExclamationCircleOutlined, CalendarOutlined, EnvironmentOutlined, InfoCircleOutlined, TagOutlined, EditOutlined, ShopOutlined,
+  FolderOpenOutlined, AppstoreOutlined, RetweetOutlined, CopyOutlined, WalletOutlined, MoreOutlined, UserOutlined
+} from '@ant-design/icons';
+import { FaUser, FaMapMarkerAlt, FaHeart, FaInfoCircle, FaQuestionCircle, FaSms, FaPlane, FaPhoneSlash, FaTruck, FaClock, FaCheck } from 'react-icons/fa';
+import { TbShieldCode, TbTruckDelivery } from 'react-icons/tb';
+import { AiFillProduct } from 'react-icons/ai';
+import { HiStatusOnline } from 'react-icons/hi';
+import { BsCalendar2DateFill } from 'react-icons/bs';
+import { RiUserLocationFill } from 'react-icons/ri';
+import Menubar from '../../../global/Menubar';
+import Topbar from '../../../global/Topbar';
+import { ThemeContext } from '../../../ThemeContext';
+import moment from 'moment';
+import Select from 'react-select';
+import { Typography, Tooltip, Tag, Divider } from 'antd';
+import { Spin, Dropdown, Button, Menu, Popover, Modal, Timeline, Descriptions } from 'antd';
+import AssignLivreurModal from '../modals/AssignLivreurModal';
+import request from '../../../../utils/request';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import StatusModal from '../modals/StatusModal';
+import { Form } from 'antd';
+import { updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+
+const STATUT_LIST = [
+  "Nouveau Colis",
+  "attente de ramassage",
+  "Ramassée",
+  "Expediée",
+  "Reçu",
+  "Mise en Distribution",
+  "Livrée",
+  "Annulée",
+  "Programmée",
+  "Refusée",
+  "En Retour",
+  "Préparer pour Roteur",
+  "Remplacée",
+  "Fermée",
+  "Boite vocale",
+  "Pas de reponse jour 1",
+  "Pas de reponse jour 2",
+  "Pas de reponse jour 3",
+  "Pas reponse + sms / + whatsap",
+  "En voyage",
+  "Injoignable",
+  "Hors-zone",
+  "Intéressé",
+  "Numéro Incorrect",
+  "Reporté",
+  "Confirmé Par Livreur",
+  "Endomagé",
+  "Prét Pour Expédition",
+  "Manque de stock",
+  "Intéressé"
+];
+
+const STATUS_META = {
+  "Nouveau Colis": { color: "blue", icon: <SyncOutlined /> },
+  "attente de ramassage": { color: "cyan", icon: <ClockCircleOutlined /> },
+  "Ramassée": { color: "geekblue", icon: <CheckCircleOutlined /> },
+  "Expediée": { color: "purple", icon: <SyncOutlined /> },
+  "Reçu": { color: "green", icon: <CheckCircleOutlined /> },
+  "Mise en Distribution": { color: "gold", icon: <SyncOutlined /> },
+  "Livrée": { color: "success", icon: <CheckCircleOutlined /> },
+  "Annulée": { color: "red", icon: <CloseCircleOutlined /> },
+  "Programmée": { color: "orange", icon: <CalendarOutlined /> },
+  "Refusée": { color: "volcano", icon: <ExclamationCircleOutlined /> },
+  "En Retour": { color: "magenta", icon: <SyncOutlined /> },
+  "Préparer pour Roteur": { color: "lime", icon: <SyncOutlined /> },
+  "Remplacée": { color: "purple", icon: <SyncOutlined /> },
+  "Fermée": { color: "default", icon: <CloseCircleOutlined /> },
+  "Boite vocale": { color: "default", icon: <InfoCircleOutlined /> },
+  "Pas de reponse jour 1": { color: "default", icon: <InfoCircleOutlined /> },
+  "Pas de reponse jour 2": { color: "default", icon: <InfoCircleOutlined /> },
+  "Pas de reponse jour 3": { color: "default", icon: <InfoCircleOutlined /> },
+  "Pas reponse + sms / + whatsap": { color: "default", icon: <InfoCircleOutlined /> },
+  "En voyage": { color: "default", icon: <InfoCircleOutlined /> },
+  "Injoignable": { color: "default", icon: <InfoCircleOutlined /> },
+  "Hors-zone": { color: "default", icon: <InfoCircleOutlined /> },
+  "Intéressé": { color: "default", icon: <InfoCircleOutlined /> },
+  "Numéro Incorrect": { color: "default", icon: <ExclamationCircleOutlined /> },
+  "Reporté": { color: "orange", icon: <CalendarOutlined /> },
+  "Confirmé Par Livreur": { color: "success", icon: <CheckCircleOutlined /> },
+  "Endomagé": { color: "volcano", icon: <ExclamationCircleOutlined /> },
+  "Prét Pour Expédition": { color: "cyan", icon: <SyncOutlined /> },
+  "Manque de stock": { color: "magenta", icon: <ExclamationCircleOutlined /> },
+};
+
+function ColisPaginated() {
+  const dispatch = useDispatch();
+  const { theme } = useContext(ThemeContext);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [filters, setFilters] = useState({
+    ville: '',
+    store: '',
+    livreur: '',
+    statut: '',
+    dateRange: ['', ''],
+  });
+  const {user } = useSelector(state => ({
+    user: state.auth.user
+  }));
+  const { colisPaginatedList } = useSelector(state => state.colis);
+  const villes = useSelector(state => state.ville.villes);
+  const stores = useSelector(state => state.store.stores);
+  const livreurs = useSelector(state => state.livreur.livreurList);
+  const [suiviModalOpen, setSuiviModalOpen] = useState(false);
+  const [selectedColis, setSelectedColis] = useState(null);
+  // Add state for details modal
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [detailsColis, setDetailsColis] = useState(null);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [assignSelectedColis, setAssignSelectedColis] = useState(null);
+  const [assignSelectedLivreur, setAssignSelectedLivreur] = useState(null);
+  const [loadingAssign, setLoadingAssign] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  // Status modal state
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [statusType, setStatusType] = useState("");
+  const [statusColis, setStatusColis] = useState(null);
+  const [form] = Form.useForm();
+
+  // Status comments
+  const statusComments = {
+    "Annulée": [
+      "Client a annulé la commande / الزبون ألغى الطلب",
+      "Le produit n'est plus disponible / المنتج لم يعد متوفراً",
+      "Erreur dans la commande / خطأ في الطلب",
+      "Adresse incorrecte / العنوان غير صحيح",
+      "Numéro de téléphone injoignable / رقم الهاتف غير متاح",
+      "Client a commandé par erreur / الزبون طلب بالخطأ",
+      "Client a changé d'avis / الزبون غير رأيه",
+      "Client a trouvé moins cher / الزبون وجد سعراً أقل",
+      "Client ne répond pas / الزبون لا يرد",
+      "Client a déjà reçu le produit / الزبون استلم المنتج مسبقاً"
+    ],
+    "Refusée": [
+      "Le client a refusé la livraison / الزبون رفض الاستلام",
+      "Le destinataire était absent / لم يكن المستلم موجوداً",
+      "Le produit était endommagé / المنتج كان تالفاً",
+      "Produit ne correspond pas à la commande / المنتج لا يطابق الطلب",
+      "Client n'a plus besoin du produit / الزبون لم يعد بحاجة للمنتج",
+      "Client n'a pas d'argent / الزبون ليس لديه مال",
+      "Client a changé d'avis / الزبون غير رأيه",
+      "Client a trouvé moins cher / الزبون وجد سعراً أقل",
+      "Client a déjà reçu le produit / الزبون استلم المنتج مسبقاً",
+      "Client n'a pas pu être contacté / لم يتمكن من التواصل مع الزبون"
+    ],
+  };
+
+  // Status badge config
+  const getStatusBadgeConfig = (theme) => ({
+    "Nouveau Colis": {
+      color: theme === 'dark' ? '#dc2626' : '#ef4444',
+      icon: <FaHeart />,
+      textColor: 'white'
+    },
+    "attente de ramassage": {
+      color: theme === 'dark' ? '#ea580c' : '#f97316',
+      icon: <TbTruckDelivery />,
+      textColor: 'white'
+    },
+    "Ramassée": {
+      color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+      icon: <TbTruckDelivery />,
+      textColor: 'white'
+    },
+    "Mise en Distribution": {
+      color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+      icon: <FaTruck />,
+      textColor: 'white'
+    },
+    "Reçu": {
+      color: theme === 'dark' ? '#0891b2' : '#06b6d4',
+      icon: <CheckCircleOutlined />,
+      textColor: 'white'
+    },
+    "Livrée": {
+      color: theme === 'dark' ? '#059669' : '#10b981',
+      icon: <CheckCircleOutlined />,
+      textColor: 'white'
+    },
+    "Annulée": {
+      color: theme === 'dark' ? '#dc2626' : '#ef4444',
+      icon: <CloseCircleOutlined />,
+      textColor: 'white'
+    },
+    "Programmée": {
+      color: theme === 'dark' ? '#7c3aed' : '#8b5cf6',
+      icon: <ClockCircleOutlined />,
+      textColor: 'white'
+    },
+    "Refusée": {
+      color: theme === 'dark' ? '#dc2626' : '#ef4444',
+      icon: <CloseCircleOutlined />,
+      textColor: 'white'
+    },
+    "Boite vocale": {
+      color: theme === 'dark' ? '#7c3aed' : '#8b5cf6',
+      icon: <FaInfoCircle />,
+      textColor: 'white'
+    },
+    "Pas de reponse jour 1": {
+      color: theme === 'dark' ? '#d97706' : '#f59e0b',
+      icon: <FaQuestionCircle />,
+      textColor: 'white'
+    },
+    "Pas de reponse jour 2": {
+      color: theme === 'dark' ? '#d97706' : '#f59e0b',
+      icon: <FaQuestionCircle />,
+      textColor: 'white'
+    },
+    "Pas de reponse jour 3": {
+      color: theme === 'dark' ? '#d97706' : '#f59e0b',
+      icon: <FaQuestionCircle />,
+      textColor: 'white'
+    },
+    "Pas reponse + sms / + whatsap": {
+      color: theme === 'dark' ? '#d97706' : '#f59e0b',
+      icon: <FaSms />,
+      textColor: 'white'
+    },
+    "En voyage": {
+      color: theme === 'dark' ? '#0891b2' : '#06b6d4',
+      icon: <FaPlane />,
+      textColor: 'white'
+    },
+    "Injoignable": {
+      color: theme === 'dark' ? '#be185d' : '#ec4899',
+      icon: <FaPhoneSlash />,
+      textColor: 'white'
+    },
+    "Hors-zone": {
+      color: theme === 'dark' ? '#dc2626' : '#ef4444',
+      icon: <FaMapMarkerAlt />,
+      textColor: 'white'
+    },
+    "Intéressé": {
+      color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+      icon: <FaHeart />,
+      textColor: 'white'
+    },
+    "Numéro Incorrect": {
+      color: theme === 'dark' ? '#ea580c' : '#f97316',
+      icon: <FaHeart />,
+      textColor: 'white'
+    },
+    "Reporté": {
+      color: theme === 'dark' ? '#7c3aed' : '#8b5cf6',
+      icon: <FaClock />,
+      textColor: 'white'
+    },
+    "Confirmé Par Livreur": {
+      color: theme === 'dark' ? '#1e40af' : '#3b82f6',
+      icon: <FaCheck />,
+      textColor: 'white'
+    },
+    "Préparer pour Roteur": {
+      color: theme === 'dark' ? '#059669' : '#10b981',
+      icon: <FaCheck />,
+      textColor: 'white'
+    },
+    "En Retou": {
+      color: theme === 'dark' ? '#d97706' : '#f59e0b',
+      icon: <FaCheck />,
+      textColor: 'white'
+    },
+    "Endomagé": {
+      color: theme === 'dark' ? '#dc2626' : '#ef4444',
+      icon: <FaHeart />,
+      textColor: 'white'
+    },
+    "Fermée": {
+      color: theme === 'dark' ? '#dc2626' : '#ef4444',
+      icon: <FaHeart />,
+      textColor: 'white'
+    },
+  });
+
+  // Allowed statuses
+  const allowedStatuses = React.useMemo(() => {
+    if (user?.role === 'admin') {
+      return [
+        "Nouveau Colis",
+        "attente de ramassage",
+        "Ramassée",
+        "Mise en Distribution",
+        "Reçu",
+        "Livrée",
+        "Annulée",
+        "Programmée",
+        "Refusée",
+        "Boite vocale",
+        "Pas de reponse jour 1",
+        "Pas de reponse jour 2",
+        "Pas de reponse jour 3",
+        "Pas reponse + sms / + whatsap",
+        "En voyage",
+        "Injoignable",
+        "Hors-zone",
+        "Intéressé",
+        "Numéro Incorrect",
+        "Reporté",
+        "Confirmé Par Livreur",
+        "Endomagé",
+        "Préparer pour Roteur",
+        "En Retour",
+        "Fermée",
+        "Prét Pour Expédition",
+        "Manque de stock",
+        "Intéressé"
+      ];
+    } else if (user?.role === 'livreur') {
+      return [
+        "Mise en Distribution",
+        "Reçu",
+        "Livrée",
+        "Annulée",
+        "Programmée",
+        "Refusée",
+        "Boite vocale",
+        "Pas de reponse jour 1",
+        "Pas de reponse jour 2",
+        "Pas de reponse jour 3",
+        "Pas reponse + sms / + whatsap",
+        "En voyage",
+        "Injoignable",
+        "Hors-zone",
+        "Intéressé",
+        "Numéro Incorrect",
+        "Reporté",
+        "Confirmé Par Livreur",
+        "Endomagé",
+        "Préparer pour Roteur",
+        "Manque de stock",
+        "Intéressé"
+      ];
+    } else {
+      return [];
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    dispatch(getAllVilles());
+    dispatch(getStoreList());
+    dispatch(getLivreurList());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const params = {
+      page: currentPage,
+      limit: pageSize,
+      ville: filters.ville || undefined,
+      store: filters.store || undefined,
+      livreur: filters.livreur || undefined,
+      statut: filters.statut || undefined,
+    };
+    if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
+      params.dateFrom = moment(filters.dateRange[0]).startOf('day').toISOString();
+      params.dateTo = moment(filters.dateRange[1]).endOf('day').toISOString();
+    }
+    dispatch(getColisPaginated(params));
+  }, [dispatch, currentPage, pageSize, filters]);
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1); // Reset to first page on filter change
+  };
+
+  // Helper for status color
+  const getStatusStyle = (statut) => {
+    switch (statut) {
+      case 'Livrée': return { background: '#d1fae5', color: '#065f46' };
+      case 'Annulée': return { background: '#fee2e2', color: '#991b1b' };
+      case 'Programmée': return { background: '#fef3c7', color: '#92400e' };
+      case 'Reporté': return { background: '#fef3c7', color: '#92400e' };
+      case 'Ramassée': return { background: '#e0e7ff', color: '#3730a3' };
+      default: return { background: '#f3f4f6', color: '#374151' };
+    }
+  };
+
+  // Responsive styles remain
+  const responsiveStyles = `
+.colis-paginated-responsive .filter-bar-container {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+}
+.colis-paginated-responsive .filter-bar-date-row {
+  flex-direction: row;
+  gap: 6px;
+}
+@media (max-width: 768px) {
+  .colis-paginated-responsive .filter-bar-container {
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 4px !important;
+  }
+  .colis-paginated-responsive .filter-bar-date-row {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  .colis-paginated-responsive .filter-bar-select {
+    font-size: 12px !important;
+    min-height: 24px !important;
+    padding: 2px 4px !important;
+  }
+  .colis-paginated-responsive table {
+    font-size: 12px !important;
+  }
+  .colis-paginated-responsive th {
+    font-size: 13px !important;
+    padding: 6px 4px !important;
+    min-width: 120px !important;
+  }
+  .colis-paginated-responsive td {
+    font-size: 12px !important;
+    padding: 6px 4px !important;
+    min-width: 120px !important;
+  }
+  .colis-paginated-responsive .table-content {
+    overflow-x: auto !important;
+  }
+}
+`;
+
+  // Table columns as array of objects for rendering
+  const baseColumns = [
+    { key: 'code_suivi', label: <><TbShieldCode /> Code</>, render: (record) => (
+      <div style={{ minHeight: 60, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <span style={{ fontFamily: 'monospace', color: theme === 'dark' ? '#60a5fa' : '#3b82f6', fontSize: 14, whiteSpace: 'nowrap', textAlign: 'center', display: 'block', fontWeight: 'bold' }}>
+          <Typography.Text
+            copyable={{ text: record.code_suivi }}
+            style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6', background: 'none', fontSize: 14, fontFamily: 'monospace', fontWeight: 'bold', marginRight: 4 }}
+          >
+            {record.code_suivi}
+          </Typography.Text>
+        </span>
+        {record.expedation_type === 'ameex' && record.code_suivi_ameex && (
+          <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>AMEEX: {record.code_suivi_ameex}</span>
+        )}
+        {/* Attribute icons */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 6, justifyContent: 'center' }}>
+          <Tooltip title="Ouvrir">
+            <FolderOpenOutlined style={{ fontSize: 16, color: record.ouvrir ? (theme === 'dark' ? '#22d3ee' : '#0ea5e9') : '#cbd5e1' }} />
+          </Tooltip>
+          <Tooltip title="Simple">
+            <AppstoreOutlined style={{ fontSize: 16, color: record.is_simple ? (theme === 'dark' ? '#34d399' : '#10b981') : '#cbd5e1' }} />
+          </Tooltip>
+          <Tooltip title="Remplacé">
+            <RetweetOutlined style={{ fontSize: 16, color: record.is_remplace ? (theme === 'dark' ? '#f59e42' : '#f59e42') : '#cbd5e1' }} />
+          </Tooltip>
+          <Tooltip title="Fragile">
+            <ExclamationCircleOutlined style={{ fontSize: 16, color: record.is_fragile ? (theme === 'dark' ? '#f87171' : '#ef4444') : '#cbd5e1' }} />
+          </Tooltip>
+          <Tooltip title="Wallet Processed">
+            <WalletOutlined style={{ fontSize: 16, color: record.wallet_prosseced ? (theme === 'dark' ? '#facc15' : '#eab308') : '#cbd5e1' }} />
+          </Tooltip>
+        </div>
+      </div>
+    ) },
+    { key: 'destinataire', label: <><FaUser /> Destinataire</>, render: (record) => {
+      const phoneRegex = /^0[67]\d{8}$/;
+      const isValidPhoneNumber = phoneRegex.test(record.tele);
+      return (
+        <div style={{ minHeight: 60, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
+          <span style={{ color: theme === 'dark' ? '#94a3b8' : '#475569', fontSize: 13, fontWeight: 600 }}>{record.nom?.length > 18 ? record.nom.substring(0, 18) + '...' : record.nom}</span>
+          <span style={{ color: isValidPhoneNumber ? (theme === 'dark' ? '#60a5fa' : '#64748b') : (theme === 'dark' ? '#fca5a5' : '#dc2626'), fontSize: 12, fontWeight: 500 }}>{record.tele}</span>
+          <span style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6', fontSize: 16, fontWeight: 700 }}>{record.prix || 'N/A'} DH</span>
+        </div>
+      );
+    } },
+    { key: 'nature_produit', label: <><AiFillProduct /> Produit</>, render: (record) => {
+      const text = record.nature_produit;
+      if (!text) {
+        return <span style={{ background: theme === 'dark' ? '#374151' : '#9ca3af', color: 'white', borderRadius: 4, fontSize: 12, fontWeight: 500, padding: '2px 8px' }}>N/A</span>;
+      }
+      const words = text.split(' ');
+      const shortText = words.slice(0, 2).join(' ');
+      const displayText = shortText.length > 20 ? shortText.substring(0, 20) + '...' : shortText;
+      const hasMore = text.length > displayText.length;
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {hasMore ? (
+            <Tooltip title={text} placement="top">
+              <span style={{ background: theme === 'dark' ? '#0f766e' : '#14b8a6', color: 'white', borderRadius: 4, fontSize: 12, fontWeight: 500, padding: '2px 8px', cursor: 'pointer' }}>{displayText}</span>
+            </Tooltip>
+          ) : (
+            <span style={{ background: theme === 'dark' ? '#0f766e' : '#14b8a6', color: 'white', borderRadius: 4, fontSize: 12, fontWeight: 500, padding: '2px 8px' }}>{displayText}</span>
+          )}
+        </div>
+      );
+    } },
+    { key: 'adresse', label: <><FaMapMarkerAlt /> Adresse</>, render: (record) => (
+      <div style={{ minHeight: 60, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }}>
+          <span>📍 Ville: {record?.ville?.nom}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: theme === 'dark' ? '#22d3ee' : '#059669' }}>
+          <span>🏠 {record.adresse}</span>
+        </div>
+      </div>
+    ) },
+    // Add Commentaire column
+    { key: 'commentaire', label: '📝 Commentaire', render: (record) => (
+      <span style={{ fontStyle: 'italic', color: record.commentaire ? (theme === 'dark' ? '#fbbf24' : '#92400e') : '#64748b', fontSize: 13 }}>
+        {record.commentaire ? record.commentaire : <span style={{ color: '#bdbdbd' }}>—</span>}
+      </span>
+    ) },
+  ];
+  const adminColumns = user?.role === 'admin' ? [
+    { key: 'store', label: <>🏬 Store</>, render: (record) => (
+      <span>{record.store?.storeName || 'N/A'}</span>
+    ) },
+    { key: 'livreur', label: <>🧑‍💼 Livreur</>, render: (record) => (
+      <span>{record.livreur?.username || record.livreur?.nom || 'N/A'}</span>
+    ) },
+  ] : [];
+  const statusAndDateColumns = [
+    { key: 'statut', label: <><HiStatusOnline /> Statut</>, render: (record) => {
+      const statusBadgeConfig = getStatusBadgeConfig(theme);
+      const config = statusBadgeConfig[record.statut] || { color: '#64748b', icon: null, textColor: 'white' };
+      let extraDate = null;
+      if (record.statut === 'Livrée' && record.date_livraisant) {
+        extraDate = (
+          <div style={{ fontSize: 11, color: '#52c41a', marginTop: 2 }}>
+            <span>📅 {moment(record.date_livraisant).format('DD/MM/YYYY HH:mm')}</span>
+          </div>
+        );
+      }
+      if ((record.statut === 'Programmée' || record.statut === 'Reporté') && record.date_programme) {
+        extraDate = (
+          <div style={{ fontSize: 11, color: '#faad14', marginTop: 2 }}>
+            <span>📅 {moment(record.date_programme).format('DD/MM/YYYY HH:mm')}</span>
+          </div>
+        );
+      }
+      // Add comment for Annulée and Refusée
+      let extraComment = null;
+      if (record.statut === 'Annulée' && record.comment_annule) {
+        extraComment = (
+          <div style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic', marginTop: 2 }}>
+            <span>📝 {record.comment_annule}</span>
+          </div>
+        );
+      }
+      if (record.statut === 'Refusée' && record.comment_refuse) {
+        extraComment = (
+          <div style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic', marginTop: 2 }}>
+            <span>📝 {record.comment_refuse}</span>
+          </div>
+        );
+      }
+      // Make badge clickable for admin/livreur
+      const isClickable = user?.role === 'admin' || user?.role === 'livreur';
+      const badge = (
+        <span style={{
+          background: config.color,
+          color: config.textColor,
+          fontWeight: 600,
+          padding: '2px 8px',
+          borderRadius: 5,
+          fontSize: 11,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          cursor: isClickable ? 'pointer' : 'default',
+        }}
+        onClick={() => {
+          if (isClickable) {
+            setStatusColis(record);
+            setStatusType("");
+            setStatusModalOpen(true);
+          }
+        }}
+        >
+          {config.icon}
+          {record.statut}
+        </span>
+      );
+      return (
+        <div>
+          {badge}
+          {extraDate}
+          {extraComment}
+        </div>
+      );
+    } },
+    { key: 'dates', label: <><BsCalendar2DateFill /> Dates</>, render: (record) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }}>
+          <span>🗓️ Créé: {moment(record.createdAt).format('DD/MM/YYYY HH:mm')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: theme === 'dark' ? '#22d3ee' : '#059669' }}>
+          <span>✏️ Maj: {moment(record.updatedAt).format('DD/MM/YYYY HH:mm')}</span>
+        </div>
+      </div>
+    ) },
+  ];
+  const columns = [...baseColumns, ...adminColumns, ...statusAndDateColumns,
+    {
+      key: 'options',
+      label: 'Options',
+      render: (record) => {
+        const menu = (
+          <Menu>
+            <Menu.Item key="track" onClick={() => { setSelectedColis(record); setSuiviModalOpen(true); }}>
+              <Button type="link" icon={<SyncOutlined />} style={{ padding: 0 }}>Suivi</Button>
+            </Menu.Item>
+            <Menu.Item key="details" onClick={() => { setDetailsColis(record); setDetailsModalOpen(true); }}>
+              <Button type="link" icon={<InfoCircleOutlined />} style={{ padding: 0 }}>Détails</Button>
+            </Menu.Item>
+            {user?.role === 'admin' && (
+              <Menu.Item key="affecter" onClick={() => { setAssignSelectedColis(record); setAssignModalOpen(true); }}>
+                <Button type="link" icon={<UserOutlined />} style={{ padding: 0 }}>Affecter Livreur</Button>
+              </Menu.Item>
+            )}
+            <Menu.Item key="update" onClick={() => {/* handle update */}}>
+              <Button type="link" icon={<EditOutlined />} style={{ padding: 0 }}>Update</Button>
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="delete" onClick={() => {/* handle delete */}}>
+              <Button type="link" danger icon={<ExclamationCircleOutlined />} style={{ padding: 0 }}>Delete</Button>
+            </Menu.Item>
+          </Menu>
+        );
+        return (
+          <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+            <Button icon={<MoreOutlined />} size="small" style={{ border: 'none', boxShadow: 'none' }} />
+          </Dropdown>
+        );
+      }
+    }
+  ];
+
+  // Pagination logic
+  const totalPages = Math.ceil((colisPaginatedList.total || 0) / (colisPaginatedList.limit || 20));
+
+  // Filter livreurs for modal (preferred: covers all villes of colis, other: rest)
+  const filteredLivreurs = React.useMemo(() => {
+    if (!assignSelectedColis || !livreurs) return { preferred: [], other: [] };
+    const colisVille = assignSelectedColis.ville?.nom;
+    if (!colisVille) return { preferred: [], other: livreurs };
+    const preferred = livreurs.filter(l => l.villes && l.villes.includes(colisVille));
+    const other = livreurs.filter(l => !l.villes || !l.villes.includes(colisVille));
+    return { preferred, other };
+  }, [assignSelectedColis, livreurs]);
+
+  return (
+    <div className='page-dashboard colis-paginated-responsive'>
+      <style>{responsiveStyles}</style>
+      <Menubar />
+      <main className="page-main">
+        <Topbar />
+        <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
+          <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff', width: '100%', overflowX: 'auto' }}>
+            {/* Filter Bar */}
+            <div
+              className="filter-bar-container"
+              style={{
+                marginBottom: 12, // was 24
+                background: theme === 'dark' ? '#0a192f' : '#fff',
+                borderRadius: 8, // was 12
+                padding: 10, // was 20
+                boxShadow: theme === 'dark'
+                  ? '0 2px 8px rgba(0,0,0,0.45)'
+                  : '0 2px 8px rgba(0,0,0,0.08)',
+                border: `1px solid ${theme === 'dark' ? '#22304a' : '#e5e7eb'}`,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6, // was 12
+              }}
+            >
+              <div style={{ display: 'flex', width: '100%', gap: 6, flexWrap: 'wrap' }}>
+                {/* Ville */}
+                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                  <Select
+                    classNamePrefix="filter-bar-select"
+                    value={villes && villes.find(v => v._id === filters.ville) ? { value: filters.ville, label: villes.find(v => v._id === filters.ville).nom } : null}
+                    onChange={option => handleFilterChange('ville', option ? option.value : '')}
+                    options={villes ? villes.map(ville => ({ value: ville._id, label: ville.nom })) : []}
+                    placeholder="Ville"
+                    isClearable
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: 28,
+                        fontSize: 13,
+                        borderRadius: 4,
+                        padding: '0 2px',
+                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        background: theme === 'dark' ? '#0a192f' : '#fff',
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        boxShadow: 'none',
+                        cursor: 'pointer',
+                      }),
+                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        cursor: 'pointer',
+                      }),
+                    }}
+                  />
+                </div>
+                {/* Store */}
+                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                  <Select
+                    classNamePrefix="filter-bar-select"
+                    value={stores && stores.find(s => s._id === filters.store) ? { value: filters.store, label: stores.find(s => s._id === filters.store).storeName } : null}
+                    onChange={option => handleFilterChange('store', option ? option.value : '')}
+                    options={stores ? stores.map(store => ({ value: store._id, label: store.storeName })) : []}
+                    placeholder="Store"
+                    isClearable
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: 28,
+                        fontSize: 13,
+                        borderRadius: 4,
+                        padding: '0 2px',
+                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        background: theme === 'dark' ? '#0a192f' : '#fff',
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        boxShadow: 'none',
+                        cursor: 'pointer',
+                      }),
+                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        cursor: 'pointer',
+                      }),
+                    }}
+                  />
+                </div>
+                {/* Livreur */}
+                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                  <Select
+                    classNamePrefix="filter-bar-select"
+                    value={livreurs && livreurs.find(l => l._id === filters.livreur) ? { value: filters.livreur, label: livreurs.find(l => l._id === filters.livreur).username || livreurs.find(l => l._id === filters.livreur).nom } : null}
+                    onChange={option => handleFilterChange('livreur', option ? option.value : '')}
+                    options={livreurs ? livreurs.map(livreur => ({ value: livreur._id, label: livreur.username || livreur.nom })) : []}
+                    placeholder="Livreur"
+                    isClearable
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: 28,
+                        fontSize: 13,
+                        borderRadius: 4,
+                        padding: '0 2px',
+                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        background: theme === 'dark' ? '#0a192f' : '#fff',
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        boxShadow: 'none',
+                        cursor: 'pointer',
+                      }),
+                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        cursor: 'pointer',
+                      }),
+                    }}
+                  />
+                </div>
+                {/* Statut */}
+                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                  <Select
+                    classNamePrefix="filter-bar-select"
+                    value={filters.statut ? { value: filters.statut, label: filters.statut } : null}
+                    onChange={option => handleFilterChange('statut', option ? option.value : '')}
+                    options={STATUT_LIST.map(statut => ({ value: statut, label: statut }))}
+                    placeholder="Statut"
+                    isClearable
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: 28,
+                        fontSize: 13,
+                        borderRadius: 4,
+                        padding: '0 2px',
+                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        background: theme === 'dark' ? '#0a192f' : '#fff',
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        boxShadow: 'none',
+                        cursor: 'pointer',
+                      }),
+                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
+                        color: theme === 'dark' ? '#fff' : '#222',
+                        cursor: 'pointer',
+                      }),
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="filter-bar-date-row" style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                <input
+                  className="filter-bar-select"
+                  type="date"
+                  value={filters.dateRange[0]}
+                  onChange={e => handleFilterChange('dateRange', [e.target.value, filters.dateRange[1]])}
+                  style={{ border: `1px solid ${theme === 'dark' ? '#555' : '#d9d9d9'}`, borderRadius: 4, fontSize: 13, padding: '2px 6px', cursor: 'pointer' }}
+                />
+                <input
+                  className="filter-bar-select"
+                  type="date"
+                  value={filters.dateRange[1]}
+                  onChange={e => handleFilterChange('dateRange', [filters.dateRange[0], e.target.value])}
+                  style={{ border: `1px solid ${theme === 'dark' ? '#555' : '#d9d9d9'}`, borderRadius: 4, fontSize: 13, padding: '2px 6px', cursor: 'pointer' }}
+                />
+                <button
+                  onClick={() => setFilters({ ville: '', store: '', livreur: '', statut: '', dateRange: ['', ''] })}
+                  style={{ width: '100%', minWidth: 80, background: theme === 'dark' ? '#003366' : '#f0f0f0', color: theme === 'dark' ? '#fff' : '#222', border: `1px solid ${theme === 'dark' ? '#555' : '#d9d9d9'}`, borderRadius: 4, fontSize: 13, padding: '4px 8px', cursor: 'pointer' }}
+                >
+                  Réinitialiser
+                </button>
+              </div>
+            </div>
+            {/* End Filter Bar */}
+            {colisPaginatedList.loading ? (
+              <div style={{ textAlign: 'center', margin: '40px auto', fontSize: 20 }}>
+                <Spin size="large" tip="Chargement..." />
+              </div>
+            ) : colisPaginatedList.error ? (
+              <div style={{ color: 'red', textAlign: 'center', margin: '20px auto', fontWeight: 'bold' }}>{colisPaginatedList.error}</div>
+            ) : (
+              <div className="table-content" style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', background: 'transparent', borderRadius: 12, boxShadow: theme === 'dark' ? '0 2px 8px rgba(0,0,0,0.45)' : '0 2px 8px rgba(0,0,0,0.08)', marginTop: 8, fontSize: 13 }}>
+                  <thead>
+                    <tr>
+                      {columns.map(col => (
+                        <th key={col.key} style={{ background: theme === 'dark' ? '#1e293b' : '#f8fafc', color: theme === 'dark' ? '#fff' : '#222', fontWeight: 700, fontSize: 15, borderBottom: `2px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`, padding: 8, minWidth: 120 }}>{col.label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {colisPaginatedList.data && colisPaginatedList.data.length > 0 ? (
+                      colisPaginatedList.data.map((record, idx) => [
+                        <tr key={record._id || idx} style={{ background: theme === 'dark' ? '#0a192f' : '#fff', color: theme === 'dark' ? '#e2e8f0' : '#222', fontSize: 13, borderBottom: `1px solid ${theme === 'dark' ? '#22304a' : '#e5e7eb'}` }}>
+                          {columns.map(col => (
+                            <td key={col.key} style={{ padding: 8, verticalAlign: 'top', maxWidth: 180, wordBreak: 'break-word', minWidth: 120 }}>{col.render(record)}</td>
+                          ))}
+                        </tr>
+                      ])
+                    ) : (
+                      <tr><td colSpan={columns.length} style={{ textAlign: 'center', padding: 24 }}>Aucun colis trouvé.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+                {/* Pagination */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, margin: '24px 0' }}>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #d1d5db', background: currentPage === 1 ? '#e5e7eb' : '#fff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                  >
+                    Précédent
+                  </button>
+                  <span style={{ fontWeight: 600, fontSize: 15 }}>
+                    Page {currentPage} / {totalPages || 1} | Total: {colisPaginatedList.total || 0} résultats
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #d1d5db', background: (currentPage === totalPages || totalPages === 0) ? '#e5e7eb' : '#fff', cursor: (currentPage === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer' }}
+                  >
+                    Suivant
+                  </button>
+                  <select
+                    value={pageSize}
+                    onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                    style={{ border: '1px solid #d1d5db', borderRadius: 6, padding: 6, fontSize: 15 }}
+                  >
+                    {[10, 20, 50, 100].map(size => (
+                      <option key={size} value={size}>{size} / page</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Suivi Modal */}
+                <Modal
+                  open={suiviModalOpen}
+                  onCancel={() => { setSuiviModalOpen(false); setSelectedColis(null); }}
+                  title={selectedColis ? `Suivi du colis: ${selectedColis.code_suivi}` : 'Suivi du colis'}
+                  footer={null}
+                  width={500}
+                >
+                  {selectedColis && selectedColis.suivi_colis && selectedColis.suivi_colis.status_updates && selectedColis.suivi_colis.status_updates.length > 0 ? (
+                    <Timeline mode="left">
+                      {selectedColis.suivi_colis.status_updates.map((suivi, i) => (
+                        <Timeline.Item key={suivi._id || i} color={i === selectedColis.suivi_colis.status_updates.length - 1 ? 'blue' : 'gray'}>
+                          <div style={{ fontWeight: 600, color: '#3b82f6', fontSize: 15 }}>{suivi.status}</div>
+                          <div style={{ color: '#64748b', fontSize: 13 }}>{moment(suivi.date).format('DD/MM/YYYY HH:mm')}</div>
+                        </Timeline.Item>
+                      ))}
+                    </Timeline>
+                  ) : (
+                    <div style={{ color: '#64748b', fontStyle: 'italic' }}>Aucun historique de suivi trouvé.</div>
+                  )}
+                </Modal>
+                {/* Details Modal */}
+                <Modal
+                  open={detailsModalOpen}
+                  onCancel={() => { setDetailsModalOpen(false); setDetailsColis(null); }}
+                  title={detailsColis ? (
+                    <span>
+                      <TbShieldCode style={{ color: '#3b82f6', marginRight: 8, fontSize: 20 }} />
+                      Détails du colis: <span style={{ color: '#3b82f6', fontWeight: 700 }}>{detailsColis.code_suivi}</span>
+                    </span>
+                  ) : 'Détails du colis'}
+                  footer={null}
+                  width={800}
+                >
+                  {detailsColis && (
+                    <div>
+                      {/* General Info */}
+                      <Divider orientation="left"><Tag color="blue"><InfoCircleOutlined /> Informations Générales</Tag></Divider>
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="Code Suivi">
+                          <Tag color="geekblue" style={{ fontWeight: 700 }}>{detailsColis.code_suivi}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Statut">
+                          <Tag color={detailsColis.statut === 'Livrée' ? 'green' : detailsColis.statut === 'Annulée' ? 'red' : 'blue'}>{detailsColis.statut}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Statut Final">{detailsColis.statu_final}</Descriptions.Item>
+                        <Descriptions.Item label="Date Création">{moment(detailsColis.createdAt).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
+                        <Descriptions.Item label="Date Mise à jour">{moment(detailsColis.updatedAt).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
+                        <Descriptions.Item label="Date Livraison">{detailsColis.date_livraisant ? moment(detailsColis.date_livraisant).format('DD/MM/YYYY HH:mm') : '—'}</Descriptions.Item>
+                        <Descriptions.Item label="Date Programmée">{detailsColis.date_programme ? moment(detailsColis.date_programme).format('DD/MM/YYYY HH:mm') : '—'}</Descriptions.Item>
+                        <Descriptions.Item label="Expédition Type">{detailsColis.expedation_type}</Descriptions.Item>
+                        <Descriptions.Item label="ID Colis">{detailsColis.id_Colis}</Descriptions.Item>
+                      </Descriptions>
+
+                      {/* Adresse & Ville */}
+                      <Divider orientation="left"><Tag color="cyan"><EnvironmentOutlined /> Adresse & Ville</Tag></Divider>
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="Nom Destinataire">{detailsColis.nom}</Descriptions.Item>
+                        <Descriptions.Item label="Téléphone">{detailsColis.tele}</Descriptions.Item>
+                        <Descriptions.Item label="Adresse">{detailsColis.adresse}</Descriptions.Item>
+                        <Descriptions.Item label="Ville">{detailsColis.ville?.nom}</Descriptions.Item>
+                        <Descriptions.Item label="Région">{detailsColis.ville?.region?.nom}</Descriptions.Item>
+                      </Descriptions>
+
+                      {/* Store & Livreur */}
+                      <Divider orientation="left"><Tag color="purple"><ShopOutlined /> Store & Livreur</Tag></Divider>
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="Store">{detailsColis.store?.storeName}</Descriptions.Item>
+                        <Descriptions.Item label="Livreur">{detailsColis.livreur?.username || detailsColis.livreur?.nom}</Descriptions.Item>
+                        <Descriptions.Item label="Téléphone Store">{detailsColis.store?.tele}</Descriptions.Item>
+                        <Descriptions.Item label="Téléphone Livreur">{detailsColis.livreur?.tele}</Descriptions.Item>
+                      </Descriptions>
+
+                      {/* Produit & Commentaires */}
+                      <Divider orientation="left"><Tag color="gold"><AiFillProduct /> Produit & Commentaires</Tag></Divider>
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="Nature Produit">{detailsColis.nature_produit}</Descriptions.Item>
+                        <Descriptions.Item label="Prix Colis"><Tag color="green">{detailsColis.prix} DH</Tag></Descriptions.Item>
+                        <Descriptions.Item label="Prix à Payer">{detailsColis.prix_payer} DH</Descriptions.Item>
+                        <Descriptions.Item label="Commentaire">{detailsColis.commentaire}</Descriptions.Item>
+                        <Descriptions.Item label="Commentaire Annulation">{detailsColis.comment_annule}</Descriptions.Item>
+                        <Descriptions.Item label="Commentaire Refus">{detailsColis.comment_refuse}</Descriptions.Item>
+                        <Descriptions.Item label="Produits">
+                          {detailsColis.produits && detailsColis.produits.length > 0 ? (
+                            <ul style={{ margin: 0, paddingLeft: 16 }}>
+                              {detailsColis.produits.map((prod, idx) => (
+                                <li key={idx}><Tag color="blue">{JSON.stringify(prod)}</Tag></li>
+                              ))}
+                            </ul>
+                          ) : '—'}
+                        </Descriptions.Item>
+                      </Descriptions>
+
+                      {/* CRBT & Tarifs */}
+                      <Divider orientation="left"><Tag color="magenta"><WalletOutlined /> CRBT & Tarifs</Tag></Divider>
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="Prix Colis (CRBT)">{detailsColis.crbt?.prix_colis} DH</Descriptions.Item>
+                        <Descriptions.Item label="Tarif Livraison">{detailsColis.crbt?.tarif_livraison} DH</Descriptions.Item>
+                        <Descriptions.Item label="Tarif Refus">{detailsColis.crbt?.tarif_refuse} DH</Descriptions.Item>
+                        <Descriptions.Item label="Tarif Fragile">{detailsColis.crbt?.tarif_fragile} DH</Descriptions.Item>
+                        <Descriptions.Item label="Tarif Supplémentaire">{detailsColis.crbt?.tarif_supplementaire} DH</Descriptions.Item>
+                        <Descriptions.Item label="Prix à Payant">{detailsColis.crbt?.prix_a_payant} DH</Descriptions.Item>
+                        <Descriptions.Item label="Total Tarif">{detailsColis.crbt?.total_tarif} DH</Descriptions.Item>
+                        <Descriptions.Item label="Tarif Ajouter">
+                          {detailsColis.tarif_ajouter && (
+                            <div>
+                              <div>Value: {detailsColis.tarif_ajouter.value}</div>
+                              <div>Description: {detailsColis.tarif_ajouter.description}</div>
+                            </div>
+                          )}
+                        </Descriptions.Item>
+                      </Descriptions>
+
+                      {/* Autres */}
+                      <Divider orientation="left"><Tag color="lime"><TagOutlined /> Autres</Tag></Divider>
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="Ouvrir">
+                          <Tag color={detailsColis.ouvrir ? 'green' : 'red'}>{detailsColis.ouvrir ? 'Oui' : 'Non'}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Simple">
+                          <Tag color={detailsColis.is_simple ? 'green' : 'red'}>{detailsColis.is_simple ? 'Oui' : 'Non'}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Remplacé">
+                          <Tag color={detailsColis.is_remplace ? 'green' : 'red'}>{detailsColis.is_remplace ? 'Oui' : 'Non'}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Fragile">
+                          <Tag color={detailsColis.is_fragile ? 'green' : 'red'}>{detailsColis.is_fragile ? 'Oui' : 'Non'}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Wallet Processed">
+                          <Tag color={detailsColis.wallet_prosseced ? 'green' : 'red'}>{detailsColis.wallet_prosseced ? 'Oui' : 'Non'}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Pret Payant">
+                          <Tag color={detailsColis.pret_payant ? 'green' : 'red'}>{detailsColis.pret_payant ? 'Oui' : 'Non'}</Tag>
+                        </Descriptions.Item>
+                      </Descriptions>
+                    </div>
+                  )}
+                </Modal>
+                {/* Assign Livreur Modal */}
+                <AssignLivreurModal
+                  visible={assignModalOpen}
+                  onAssign={async () => {
+                    if (!assignSelectedLivreur) {
+                      toast.error("Veuillez sélectionner un livreur.");
+                      return;
+                    }
+                    setLoadingAssign(true);
+                    try {
+                      await request.put('/api/colis/statu/affecter', {
+                        codesSuivi: [assignSelectedColis.code_suivi],
+                        livreurId: assignSelectedLivreur._id,
+                      });
+                      toast.success("Livreur assigné avec succès.");
+                      setAssignModalOpen(false);
+                      setAssignSelectedColis(null);
+                      setAssignSelectedLivreur(null);
+                      setLoadingAssign(false);
+                      dispatch(getColisPaginated({
+                        page: currentPage,
+                        limit: pageSize,
+                        ville: filters.ville || undefined,
+                        store: filters.store || undefined,
+                        livreur: filters.livreur || undefined,
+                        statut: filters.statut || undefined,
+                        ...(filters.dateRange && filters.dateRange[0] && filters.dateRange[1] ? {
+                          dateFrom: moment(filters.dateRange[0]).startOf('day').toISOString(),
+                          dateTo: moment(filters.dateRange[1]).endOf('day').toISOString(),
+                        } : {})
+                      }));
+                    } catch (err) {
+                      setLoadingAssign(false);
+                      toast.error(err?.response?.data?.message || "Erreur lors de l'assignation du livreur.");
+                    }
+                  }}
+                  onCancel={() => {
+                    setAssignModalOpen(false);
+                    setAssignSelectedColis(null);
+                    setAssignSelectedLivreur(null);
+                  }}
+                  filteredLivreurs={filteredLivreurs}
+                  assignSelectedLivreur={assignSelectedLivreur}
+                  selectAssignLivreur={setAssignSelectedLivreur}
+                  loadingAssign={loadingAssign}
+                  theme={theme}
+                  toast={toast}
+                  selectedColis={assignSelectedColis}
+                />
+                {/* Status Modal */}
+                <StatusModal
+                  visible={statusModalOpen}
+                  onOk={async () => {
+                    try {
+                      const values = await form.validateFields();
+                      const { status, comment, date, note } = values;
+                      let dateField = null;
+                      if (status === "Programmée") dateField = "date_programme";
+                      else if (status === "Reporté") dateField = "date_reporte";
+                      await dispatch(updateStatut(statusColis._id, status, comment, dateField && date ? date.format('YYYY-MM-DD') : null, note));
+                      toast.success("Statut mis à jour avec succès.");
+                      setStatusModalOpen(false);
+                      setStatusColis(null);
+                      setStatusType("");
+                      form.resetFields();
+                      dispatch(getColisPaginated({
+                        page: currentPage,
+                        limit: pageSize,
+                        ville: filters.ville || undefined,
+                        store: filters.store || undefined,
+                        livreur: filters.livreur || undefined,
+                        statut: filters.statut || undefined,
+                        ...(filters.dateRange && filters.dateRange[0] && filters.dateRange[1] ? {
+                          dateFrom: moment(filters.dateRange[0]).startOf('day').toISOString(),
+                          dateTo: moment(filters.dateRange[1]).endOf('day').toISOString(),
+                        } : {})
+                      }));
+                    } catch (err) {
+                      toast.error("Erreur lors de la mise à jour du statut.");
+                    }
+                  }}
+                  onCancel={() => {
+                    setStatusModalOpen(false);
+                    setStatusColis(null);
+                    setStatusType("");
+                    form.resetFields();
+                  }}
+                  form={form}
+                  selectedColis={statusColis}
+                  allowedStatuses={allowedStatuses}
+                  statusBadgeConfig={getStatusBadgeConfig(theme)}
+                  statusComments={statusComments}
+                  statusType={statusType}
+                  setStatusType={setStatusType}
+                  theme={theme}
+                />
+                <ToastContainer />
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default ColisPaginated; 
