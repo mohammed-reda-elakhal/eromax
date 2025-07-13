@@ -24,9 +24,6 @@ function UpdateColisPage({search}) {
                         color: theme === 'dark' ? '#fff' : '#002242',
                     }}
                 >
-                    <div className="page-content-header">
-                        <Title nom='Modifier Colis' />
-                    </div>
                     <div
                         className="content"
                         style={{

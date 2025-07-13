@@ -2515,10 +2515,10 @@ const getFactureLivreurByCode = async (req, res) => {
 
         // Find the facture of type "livreur" with the given code
         const facture = await Facture.findOne(filter)
-            .select('code_facture etat createdAt colis type')
+            .select('code_facture etat createdAt colis type livreur')
             .populate({
                 path: 'colis',
-                select: 'crbt statu_final ville prix date_livraisant code_suivi',
+                select: 'crbt statu_final ville prix date_livraisant code_suivi livreur',
                 populate: [
                     {
                         path: 'ville', // Populate the 'ville' field in colis
@@ -2553,6 +2553,16 @@ const getFactureLivreurByCode = async (req, res) => {
 
                 // Destructure ville and livreur from the colis
                 const { ville, livreur } = colis;
+
+                // Add null checks for ville and livreur
+                if (!ville || !livreur) {
+                    console.warn(`Missing ville or livreur for colis ${colis.code_suivi}`);
+                    // Use default tarif of 20 if data is missing
+                    const tarifLivreur = 20;
+                    totalTarifLivreur += tarifLivreur;
+                    colis.tarif_livreur = tarifLivreur;
+                    continue;
+                }
 
                 // Get the tarif from TarifLivreur based on livreur._id and ville._id
                 const tarifDoc = await TarifLivreur.findOne({

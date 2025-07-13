@@ -221,16 +221,16 @@ function Menubar() {
                 <Link to="/dashboard/ajouter/colis/admin/simple">Ajouter Colis</Link>
               </Menu.Item>
               <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/list-colis">List Colis</Link>
+                <Link to="/dashboard/colis-paginated">List Colis (Nouveau)</Link>
+              </Menu.Item>
+              <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/list-colis">List Colis (Ancien)</Link>
               </Menu.Item>
               <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/colis-nouveau">Colis Nouveau</Link>
               </Menu.Item>
               <Menu.Item icon={<MdPendingActions />}>
                 <Link to="/dashboard/colis-pour-ramasse">Colis Attente Ramassage</Link>
-              </Menu.Item>
-              <Menu.Item icon={<FaClipboardList />}>
-                <Link to="/dashboard/colis-paginated">Colis Paginated</Link>
               </Menu.Item>
               <Menu.Item icon={<GrObjectGroup />}>
                 <Link to="/dashboard/colis-r2">
@@ -336,39 +336,18 @@ function Menubar() {
         }
 
         {
-          userData.role ==="client" && (
-            <>
-              <Menu.SubMenu icon={<IoWalletSharp />} title="Portfeuille">
-                <Menu.Item icon={<IoWalletSharp />}>
-                  <Link to={"/dashboard/portfeuille"}>Portfeuille</Link>
-                </Menu.Item>
-                <Menu.Item icon={<FaFileInvoiceDollar />}>
-                  <Link to={'/dashboard/transaction'}>List transactions</Link>
-                </Menu.Item>
-                <Menu.Item icon={<FaMoneyBillWave />} className={isNewReclamation ? "change-color-animation" : ""}>
-                <Link to="/dashboard/demande-retrait">
-                  Demande retrait {demandeRetrait.length > 0 ? <Badge count={demandeRetrait.length} color={colorBadge} /> : ""}
-                </Link>
-              </Menu.Item>
-              </Menu.SubMenu>
+          userData.role === "admin" &&(
+            <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
+                  <Menu.Item icon={<BiNote />}>
+                    <Link to="/dashboard/gnotification">Notifications</Link>
+                  </Menu.Item>
+                  <Menu.Item icon={<RiDiscountPercentLine />}>
+                    <Link to="/dashboard/promotion">Promotions</Link>
+                  </Menu.Item>
 
-              <Drawer
-                title="Portfeuille"
-                open={openWallet}
-                onClose={() => setOpenWallet(prev => !prev)}
-              >
-                <Solde />
-                <DemandeRetrait setOpenWallet = {setOpenWallet} theme={theme} />
-              </Drawer>
-            </>
+            </Menu.SubMenu>
           )
         }
-
-
-
-
-
-
         {
           userData.role ==="client" && (
             <Menu.SubMenu icon={<MdInventory />} title="Gestion colis">
@@ -376,7 +355,10 @@ function Menubar() {
                 <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
               </Menu.Item>
               <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/list-colis">List Colis</Link>
+                <Link to="/dashboard/colis-paginated">List Colis (Nouveau)</Link>
+              </Menu.Item>
+              <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/list-colis">List Colis (Ancien)</Link>
               </Menu.Item>
               <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/colis-nouveau">Colis Nouveau</Link>
@@ -396,19 +378,6 @@ function Menubar() {
         }
 
         {
-          userData.role === "admin" &&(
-            <Menu.SubMenu icon={<GiSettingsKnobs />} title="Général">
-                  <Menu.Item icon={<BiNote />}>
-                    <Link to="/dashboard/gnotification">Notifications</Link>
-                  </Menu.Item>
-                  <Menu.Item icon={<RiDiscountPercentLine />}>
-                    <Link to="/dashboard/promotion">Promotions</Link>
-                  </Menu.Item>
-
-            </Menu.SubMenu>
-          )
-        }
-        {
           userData.role ==="livreur" && (
             <Menu.Item icon={<LuScanLine />}>
               <Link to="/dashboard/scan">Scan</Link>
@@ -419,8 +388,11 @@ function Menubar() {
         {
           userData.role ==="livreur" && (
             <Menu.SubMenu icon={<TbTruckDelivery />} title="Espace Livreur">
+              <Menu.Item icon={<FaListAlt />}>
+                <Link to="/dashboard/colis-paginated">List Colis (Nouveau)</Link>
+              </Menu.Item>
               <Menu.Item icon={<FaTruck />}>
-                <Link to="/dashboard/list-colis">List Colis</Link>
+                <Link to="/dashboard/list-colis">List Colis (Ancien)</Link>
               </Menu.Item>
               <Menu.Item icon={<MdLocalShipping />}>
                 <Link to="/dashboard/colis-ex">Colis Expidée</Link>

@@ -134,7 +134,7 @@ const FactureDetailLivreur = () => {
       dataIndex: 'ville',
       render: (text, record) => (
         <span>
-          { `${record?.ville.nom}`}
+          { `${record?.ville?.nom}`}
         </span>
       ),
     },

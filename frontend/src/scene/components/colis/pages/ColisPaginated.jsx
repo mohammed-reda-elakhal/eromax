@@ -10,7 +10,7 @@ import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 import {
   CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined,
   ExclamationCircleOutlined, CalendarOutlined, EnvironmentOutlined, InfoCircleOutlined, TagOutlined, EditOutlined, ShopOutlined,
-  FolderOpenOutlined, AppstoreOutlined, RetweetOutlined, CopyOutlined, WalletOutlined, MoreOutlined, UserOutlined
+  FolderOpenOutlined, AppstoreOutlined, RetweetOutlined, CopyOutlined, WalletOutlined, MoreOutlined, UserOutlined, PlusOutlined
 } from '@ant-design/icons';
 import { FaUser, FaMapMarkerAlt, FaHeart, FaInfoCircle, FaQuestionCircle, FaSms, FaPlane, FaPhoneSlash, FaTruck, FaClock, FaCheck } from 'react-icons/fa';
 import { TbShieldCode, TbTruckDelivery } from 'react-icons/tb';
@@ -32,6 +32,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import StatusModal from '../modals/StatusModal';
 import { Form } from 'antd';
 import { updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+import { useNavigate } from 'react-router-dom';
+import TicketColis2 from '../components/TicketColis2';
+// Add reclamation imports
+import { createReclamation, getReclamationsByColis } from '../../../../redux/apiCalls/reclamationApiCalls';
+import ReclamationModal from '../modals/ReclamationModal';
 
 const STATUT_LIST = [
   "Nouveau Colis",
@@ -110,6 +115,13 @@ function ColisPaginated() {
     statut: '',
     dateRange: ['', ''],
   });
+  const [appliedFilters, setAppliedFilters] = useState({
+    ville: '',
+    store: '',
+    livreur: '',
+    statut: '',
+    dateRange: ['', ''],
+  });
   const {user } = useSelector(state => ({
     user: state.auth.user
   }));
@@ -132,6 +144,16 @@ function ColisPaginated() {
   const [statusType, setStatusType] = useState("");
   const [statusColis, setStatusColis] = useState(null);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const [ticketColisList, setTicketColisList] = useState([]);
+  // Add reclamation state
+  const [state, setState] = useState({
+    reclamationModalVisible: false,
+    selectedColis: null,
+    initialMessage: '',
+  });
 
   // Status comments
   const statusComments = {
@@ -363,21 +385,146 @@ function ColisPaginated() {
     const params = {
       page: currentPage,
       limit: pageSize,
-      ville: filters.ville || undefined,
-      store: filters.store || undefined,
-      livreur: filters.livreur || undefined,
-      statut: filters.statut || undefined,
+      ville: appliedFilters.ville || undefined,
+      store: appliedFilters.store || undefined,
+      livreur: appliedFilters.livreur || undefined,
+      statut: appliedFilters.statut || undefined,
     };
-    if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
-      params.dateFrom = moment(filters.dateRange[0]).startOf('day').toISOString();
-      params.dateTo = moment(filters.dateRange[1]).endOf('day').toISOString();
+    if (appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1]) {
+      params.dateFrom = moment(appliedFilters.dateRange[0]).startOf('day').toISOString();
+      params.dateTo = moment(appliedFilters.dateRange[1]).endOf('day').toISOString();
     }
     dispatch(getColisPaginated(params));
-  }, [dispatch, currentPage, pageSize, filters]);
+  }, [dispatch, currentPage, pageSize, appliedFilters]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-    setCurrentPage(1); // Reset to first page on filter change
+  };
+
+  const handleSearch = () => {
+    setAppliedFilters(filters);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
+  const handleReset = () => {
+    const emptyFilters = { ville: '', store: '', livreur: '', statut: '', dateRange: ['', ''] };
+    setFilters(emptyFilters);
+    setAppliedFilters(emptyFilters);
+    setCurrentPage(1);
+  };
+
+  // Helper to get selected data
+  const getSelectedData = () => {
+    if (selectedRowIds.length === 0) return colisPaginatedList.data || [];
+    return (colisPaginatedList.data || []).filter(row => selectedRowIds.includes(row._id));
+  };
+
+  // Handle ticket generation
+  const handleGenerateTickets = () => {
+    const dataToUse = getSelectedData();
+    if (dataToUse.length === 0) {
+      toast.error("Aucun colis sélectionné pour générer les tickets!");
+      return;
+    }
+    setTicketColisList(dataToUse);
+    setTicketModalOpen(true);
+  };
+
+  // Handle reclamation creation
+  const handleCreateReclamation = () => {
+    const { initialMessage, selectedColis } = state;
+    if (!initialMessage || !selectedColis) {
+      toast.error("Veuillez remplir le message initial.");
+      return;
+    }
+    if (!selectedColis._id) {
+      toast.error("Impossible de créer une réclamation: ID du colis manquant.");
+      console.error('Missing colis ID:', selectedColis);
+      return;
+    }
+    const reclamationData = {
+      colisId: selectedColis._id,
+      initialMessage: initialMessage
+    };
+    const loadingToast = toast.loading("Création de la réclamation en cours...");
+    dispatch(createReclamation(reclamationData))
+      .then((response) => {
+        toast.dismiss(loadingToast);
+        if (response && response.reclamation) {
+          toast.success("Réclamation créée avec succès!");
+          setState(prev => ({ ...prev, reclamationModalVisible: false, initialMessage: '', selectedColis: null }));
+        } else {
+          toast.error("Erreur lors de la création de la réclamation.");
+        }
+      })
+      .catch((error) => {
+        toast.dismiss(loadingToast);
+        console.error('Error creating reclamation:', error);
+        toast.error(error?.response?.data?.message || "Erreur lors de la création de la réclamation.");
+      });
+  };
+
+  // Function to open reclamation modal
+  const openReclamationModal = (colis) => {
+    const defaultMessage = `Je souhaite signaler un problème concernant le colis ${colis.code_suivi}.\n\nDétails du problème: ___`;
+    setState(prev => ({ ...prev, selectedColis: colis, initialMessage: defaultMessage, reclamationModalVisible: true }));
+  };
+
+  // Export Excel function
+  const handleExportExcel = () => {
+    const exportData = getSelectedData();
+    if (!exportData || exportData.length === 0) {
+      toast.error("Aucune donnée à exporter!");
+      return;
+    }
+
+    try {
+      // Prepare headers
+      const headers = [
+        'Code Suivi',
+        'Prix (DH)',
+        'Nom Destinataire',
+        'Téléphone',
+        'Adresse',
+        'Ville',
+        'Région',
+        'Date Création'
+      ];
+
+      // Prepare data rows
+      const dataRows = exportData.map(colis => [
+        colis.code_suivi || '',
+        colis.prix || '',
+        colis.nom || '',
+        colis.tele || '',
+        colis.adresse || '',
+        colis.ville?.nom || '',
+        colis.ville?.region?.nom || '',
+        colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : ''
+      ]);
+
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...dataRows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `colis_export_${moment().format('YYYY-MM-DD_HH-mm')}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Export réussi! ${exportData.length} colis exportés.`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error("Erreur lors de l'export des données.");
+    }
   };
 
   // Helper for status color
@@ -616,6 +763,16 @@ function ColisPaginated() {
       key: 'options',
       label: 'Options',
       render: (record) => {
+        // Determine button visibility
+        const isAdmin = user?.role === 'admin';
+        const isClient = user?.role === 'client';
+        const isLivreur = user?.role === 'livreur';
+        const statut = record.statut;
+        const forbidden = ["Livrée", "Annulée", "Refusée"];
+        const canUpdateDelete = (
+          (isAdmin && !forbidden.includes(statut)) ||
+          (isClient && statut === "Nouveau Colis" && !forbidden.includes(statut))
+        );
         const menu = (
           <Menu>
             <Menu.Item key="track" onClick={() => { setSelectedColis(record); setSuiviModalOpen(true); }}>
@@ -629,13 +786,67 @@ function ColisPaginated() {
                 <Button type="link" icon={<UserOutlined />} style={{ padding: 0 }}>Affecter Livreur</Button>
               </Menu.Item>
             )}
-            <Menu.Item key="update" onClick={() => {/* handle update */}}>
-              <Button type="link" icon={<EditOutlined />} style={{ padding: 0 }}>Update</Button>
-            </Menu.Item>
+            {user?.role === 'client' && (
+              <Menu.Item key="reclamation" onClick={() => {
+                dispatch(getReclamationsByColis(record._id))
+                  .then((reclamations) => {
+                    if (reclamations && reclamations.length > 0) {
+                      const openReclamation = reclamations.find(r => r.closed === false);
+                      if (openReclamation) {
+                        toast.error(
+                          <div>
+                            Une réclamation est déjà ouverte pour ce colis.
+                            <div style={{ marginTop: '10px' }}>
+                              <button
+                                onClick={() => navigate(`/dashboard/reclamation`, {
+                                  state: { viewReclamation: openReclamation._id }
+                                })}
+                                style={{
+                                  padding: '5px 10px',
+                                  backgroundColor: '#1890ff',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Voir la réclamation existante
+                              </button>
+                            </div>
+                          </div>,
+                          { autoClose: 8000 }
+                        );
+                        return;
+                      }
+                    }
+                    setTimeout(() => openReclamationModal(record), 0);
+                  })
+                  .catch((error) => {
+                    console.error('Error checking existing reclamations:', error);
+                    toast.error("Erreur lors de la vérification des réclamations existantes.");
+                  });
+              }}>
+                <Button type="link" icon={<ExclamationCircleOutlined />} style={{ padding: 0 }}>Réclamation</Button>
+              </Menu.Item>
+            )}
+            {canUpdateDelete && (
+              <Menu.Item key="update" onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}>
+                <Button type="link" icon={<EditOutlined />} style={{ padding: 0 }}>Update</Button>
+              </Menu.Item>
+            )}
             <Menu.Divider />
-            <Menu.Item key="delete" onClick={() => {/* handle delete */}}>
-              <Button type="link" danger icon={<ExclamationCircleOutlined />} style={{ padding: 0 }}>Delete</Button>
-            </Menu.Item>
+            {canUpdateDelete && (
+              <Menu.Item key="delete">
+                <Button type="link" danger icon={<ExclamationCircleOutlined />} style={{ padding: 0 }}
+                  onClick={e => {
+                    e.domEvent?.stopPropagation?.();
+                    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le colis ${record.code_suivi} ?`)) {
+                      handleDeleteColis(record);
+                    }
+                  }}
+                >Delete</Button>
+              </Menu.Item>
+            )}
           </Menu>
         );
         return (
@@ -659,6 +870,28 @@ function ColisPaginated() {
     const other = livreurs.filter(l => !l.villes || !l.villes.includes(colisVille));
     return { preferred, other };
   }, [assignSelectedColis, livreurs]);
+
+  // Add delete handler
+  const handleDeleteColis = async (record) => {
+    try {
+      await request.delete(`/api/colis/${record._id}`);
+      toast.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
+      dispatch(getColisPaginated({
+        page: currentPage,
+        limit: pageSize,
+        ville: appliedFilters.ville || undefined,
+        store: appliedFilters.store || undefined,
+        livreur: appliedFilters.livreur || undefined,
+        statut: appliedFilters.statut || undefined,
+        ...(appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1] ? {
+          dateFrom: moment(appliedFilters.dateRange[0]).startOf('day').toISOString(),
+          dateTo: moment(appliedFilters.dateRange[1]).endOf('day').toISOString(),
+        } : {})
+      }));
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Erreur lors de la suppression du colis.");
+    }
+  };
 
   return (
     <div className='page-dashboard colis-paginated-responsive'>
@@ -831,14 +1064,211 @@ function ColisPaginated() {
                   style={{ border: `1px solid ${theme === 'dark' ? '#555' : '#d9d9d9'}`, borderRadius: 4, fontSize: 13, padding: '2px 6px', cursor: 'pointer' }}
                 />
                 <button
-                  onClick={() => setFilters({ ville: '', store: '', livreur: '', statut: '', dateRange: ['', ''] })}
-                  style={{ width: '100%', minWidth: 80, background: theme === 'dark' ? '#003366' : '#f0f0f0', color: theme === 'dark' ? '#fff' : '#222', border: `1px solid ${theme === 'dark' ? '#555' : '#d9d9d9'}`, borderRadius: 4, fontSize: 13, padding: '4px 8px', cursor: 'pointer' }}
+                  onClick={handleSearch}
+                  style={{ 
+                    flex: 1, 
+                    background: theme === 'dark' ? '#059669' : '#10b981', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: 4, 
+                    fontSize: 13, 
+                    padding: '4px 8px', 
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 4
+                  }}
                 >
-                  Réinitialiser
+                  🔍 Rechercher
+                </button>
+                <button
+                  onClick={handleReset}
+                  style={{ 
+                    flex: 1, 
+                    background: theme === 'dark' ? '#dc2626' : '#ef4444', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: 4, 
+                    fontSize: 13, 
+                    padding: '4px 8px', 
+                    cursor: 'pointer',
+                    fontWeight: 600
+                  }}
+                >
+                  🗑️ Réinitialiser
                 </button>
               </div>
             </div>
             {/* End Filter Bar */}
+            
+            {/* Action Bar */}
+            <div
+              style={{
+                marginBottom: 12,
+                background: theme === 'dark' ? '#0a192f' : '#fff',
+                borderRadius: 8,
+                padding: 12,
+                boxShadow: theme === 'dark'
+                  ? '0 2px 8px rgba(0,0,0,0.45)'
+                  : '0 2px 8px rgba(0,0,0,0.08)',
+                border: `1px solid ${theme === 'dark' ? '#22304a' : '#e5e7eb'}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ 
+                  fontSize: 14, 
+                  fontWeight: 600, 
+                  color: theme === 'dark' ? '#e2e8f0' : '#374151' 
+                }}>
+                  Actions
+                </span>
+              </div>
+              
+              <div style={{ display: 'flex', gap: 8 }}>
+                {/* Nouveau Colis Button (admin/client only) */}
+                {(user?.role === 'admin' || user?.role === 'client') && (
+                  <button
+                    onClick={() => {
+                      if (user?.role === 'admin') {
+                        navigate('/dashboard/ajouter/colis/admin/normal');
+                      } else if (user?.role === 'client') {
+                        navigate('/dashboard/ajouter-colis/normal');
+                      }
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 16px',
+                      borderRadius: 6,
+                      border: 'none',
+                      background: theme === 'dark' ? '#2563eb' : '#3b82f6',
+                      color: 'white',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={e => { e.target.style.background = theme === 'dark' ? '#1d4ed8' : '#2563eb'; }}
+                    onMouseLeave={e => { e.target.style.background = theme === 'dark' ? '#2563eb' : '#3b82f6'; }}
+                  >
+                    <PlusOutlined style={{ fontSize: 14 }} />
+                    Nouveau Colis
+                  </button>
+                )}
+                {/* Refresh Button */}
+                <button
+                  onClick={() => {
+                    dispatch(getColisPaginated({
+                      page: currentPage,
+                      limit: pageSize,
+                      ville: appliedFilters.ville || undefined,
+                      store: appliedFilters.store || undefined,
+                      livreur: appliedFilters.livreur || undefined,
+                      statut: appliedFilters.statut || undefined,
+                      ...(appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1] ? {
+                        dateFrom: moment(appliedFilters.dateRange[0]).startOf('day').toISOString(),
+                        dateTo: moment(appliedFilters.dateRange[1]).endOf('day').toISOString(),
+                      } : {})
+                    }));
+                    toast.success("Données actualisées avec succès!");
+                  }}
+                  disabled={colisPaginatedList.loading}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 16px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: theme === 'dark' ? '#059669' : '#10b981',
+                    color: 'white',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: colisPaginatedList.loading ? 'not-allowed' : 'pointer',
+                    opacity: colisPaginatedList.loading ? 0.6 : 1,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!colisPaginatedList.loading) {
+                      e.target.style.background = theme === 'dark' ? '#047857' : '#059669';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!colisPaginatedList.loading) {
+                      e.target.style.background = theme === 'dark' ? '#059669' : '#10b981';
+                    }
+                  }}
+                >
+                  <SyncOutlined style={{ fontSize: 14 }} />
+                  Actualiser
+                </button>
+
+                {/* Ticket Button */}
+                <button
+                  onClick={handleGenerateTickets}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 16px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: theme === 'dark' ? '#7c3aed' : '#8b5cf6',
+                    color: 'white',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = theme === 'dark' ? '#6d28d9' : '#7c3aed';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = theme === 'dark' ? '#7c3aed' : '#8b5cf6';
+                  }}
+                >
+                  <TagOutlined style={{ fontSize: 14 }} />
+                  Ticket
+                </button>
+
+                {/* Export Excel Button */}
+                <button
+                  onClick={handleExportExcel}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 16px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: theme === 'dark' ? '#dc2626' : '#ef4444',
+                    color: 'white',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = theme === 'dark' ? '#b91c1c' : '#dc2626';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = theme === 'dark' ? '#dc2626' : '#ef4444';
+                  }}
+                >
+                  <FolderOpenOutlined style={{ fontSize: 14 }} />
+                  Export Excel
+                </button>
+              </div>
+            </div>
+            {/* End Action Bar */}
+            
             {colisPaginatedList.loading ? (
               <div style={{ textAlign: 'center', margin: '40px auto', fontSize: 20 }}>
                 <Spin size="large" tip="Chargement..." />
@@ -850,6 +1280,20 @@ function ColisPaginated() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', background: 'transparent', borderRadius: 12, boxShadow: theme === 'dark' ? '0 2px 8px rgba(0,0,0,0.45)' : '0 2px 8px rgba(0,0,0,0.08)', marginTop: 8, fontSize: 13 }}>
                   <thead>
                     <tr>
+                      <th style={{ width: 40, minWidth: 40 }}>
+                        <input
+                          type="checkbox"
+                          checked={colisPaginatedList.data && colisPaginatedList.data.length > 0 && selectedRowIds.length === colisPaginatedList.data.length}
+                          indeterminate={selectedRowIds.length > 0 && selectedRowIds.length < (colisPaginatedList.data ? colisPaginatedList.data.length : 0)}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setSelectedRowIds((colisPaginatedList.data || []).map(row => row._id));
+                            } else {
+                              setSelectedRowIds([]);
+                            }
+                          }}
+                        />
+                      </th>
                       {columns.map(col => (
                         <th key={col.key} style={{ background: theme === 'dark' ? '#1e293b' : '#f8fafc', color: theme === 'dark' ? '#fff' : '#222', fontWeight: 700, fontSize: 15, borderBottom: `2px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`, padding: 8, minWidth: 120 }}>{col.label}</th>
                       ))}
@@ -859,13 +1303,26 @@ function ColisPaginated() {
                     {colisPaginatedList.data && colisPaginatedList.data.length > 0 ? (
                       colisPaginatedList.data.map((record, idx) => [
                         <tr key={record._id || idx} style={{ background: theme === 'dark' ? '#0a192f' : '#fff', color: theme === 'dark' ? '#e2e8f0' : '#222', fontSize: 13, borderBottom: `1px solid ${theme === 'dark' ? '#22304a' : '#e5e7eb'}` }}>
+                          <td style={{ textAlign: 'center' }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedRowIds.includes(record._id)}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedRowIds(prev => [...prev, record._id]);
+                                } else {
+                                  setSelectedRowIds(prev => prev.filter(id => id !== record._id));
+                                }
+                              }}
+                            />
+                          </td>
                           {columns.map(col => (
                             <td key={col.key} style={{ padding: 8, verticalAlign: 'top', maxWidth: 180, wordBreak: 'break-word', minWidth: 120 }}>{col.render(record)}</td>
                           ))}
                         </tr>
                       ])
                     ) : (
-                      <tr><td colSpan={columns.length} style={{ textAlign: 'center', padding: 24 }}>Aucun colis trouvé.</td></tr>
+                      <tr><td colSpan={columns.length + 1} style={{ textAlign: 'center', padding: 24 }}>Aucun colis trouvé.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -1058,13 +1515,13 @@ function ColisPaginated() {
                       dispatch(getColisPaginated({
                         page: currentPage,
                         limit: pageSize,
-                        ville: filters.ville || undefined,
-                        store: filters.store || undefined,
-                        livreur: filters.livreur || undefined,
-                        statut: filters.statut || undefined,
-                        ...(filters.dateRange && filters.dateRange[0] && filters.dateRange[1] ? {
-                          dateFrom: moment(filters.dateRange[0]).startOf('day').toISOString(),
-                          dateTo: moment(filters.dateRange[1]).endOf('day').toISOString(),
+                        ville: appliedFilters.ville || undefined,
+                        store: appliedFilters.store || undefined,
+                        livreur: appliedFilters.livreur || undefined,
+                        statut: appliedFilters.statut || undefined,
+                        ...(appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1] ? {
+                          dateFrom: moment(appliedFilters.dateRange[0]).startOf('day').toISOString(),
+                          dateTo: moment(appliedFilters.dateRange[1]).endOf('day').toISOString(),
                         } : {})
                       }));
                     } catch (err) {
@@ -1104,13 +1561,13 @@ function ColisPaginated() {
                       dispatch(getColisPaginated({
                         page: currentPage,
                         limit: pageSize,
-                        ville: filters.ville || undefined,
-                        store: filters.store || undefined,
-                        livreur: filters.livreur || undefined,
-                        statut: filters.statut || undefined,
-                        ...(filters.dateRange && filters.dateRange[0] && filters.dateRange[1] ? {
-                          dateFrom: moment(filters.dateRange[0]).startOf('day').toISOString(),
-                          dateTo: moment(filters.dateRange[1]).endOf('day').toISOString(),
+                        ville: appliedFilters.ville || undefined,
+                        store: appliedFilters.store || undefined,
+                        livreur: appliedFilters.livreur || undefined,
+                        statut: appliedFilters.statut || undefined,
+                        ...(appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1] ? {
+                          dateFrom: moment(appliedFilters.dateRange[0]).startOf('day').toISOString(),
+                          dateTo: moment(appliedFilters.dateRange[1]).endOf('day').toISOString(),
                         } : {})
                       }));
                     } catch (err) {
@@ -1130,6 +1587,42 @@ function ColisPaginated() {
                   statusComments={statusComments}
                   statusType={statusType}
                   setStatusType={setStatusType}
+                  theme={theme}
+                />
+                {/* Ticket Modal */}
+                <Modal
+                  open={ticketModalOpen}
+                  onCancel={() => {
+                    setTicketModalOpen(false);
+                    setTicketColisList([]);
+                  }}
+                  title={
+                    <span>
+                      <TagOutlined style={{ color: '#8b5cf6', marginRight: 8, fontSize: 20 }} />
+                      Tickets Colis ({ticketColisList.length} colis)
+                    </span>
+                  }
+                  footer={null}
+                  width={800}
+                  style={{ top: 20 }}
+                  bodyStyle={{ 
+                    height: '70vh', 
+                    overflow: 'hidden',
+                    padding: 0
+                  }}
+                >
+                  <div style={{ height: '100%', width: '100%' }}>
+                    <TicketColis2 colisList={ticketColisList} />
+                  </div>
+                </Modal>
+                {/* Reclamation Modal */}
+                <ReclamationModal
+                  open={state.reclamationModalVisible}
+                  onCreate={handleCreateReclamation}
+                  onCancel={() => setState(prev => ({ ...prev, reclamationModalVisible: false }))}
+                  initialMessage={state.initialMessage}
+                  setInitialMessage={val => setState(prev => ({ ...prev, initialMessage: val }))}
+                  selectedColis={state.selectedColis}
                   theme={theme}
                 />
                 <ToastContainer />
