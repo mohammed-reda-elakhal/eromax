@@ -410,6 +410,28 @@ function Menubar() {
           )
         }
 
+       
+
+        {
+          userData.role === "client" && (
+            <Menu.SubMenu icon={<IoWalletSharp />} title="Portefeuille">
+              <Menu.Item icon={<IoWalletSharp />}>
+                <Link to="/dashboard/portfeuille">Mon Portefeuille</Link>
+              </Menu.Item>
+              <Menu.Item icon={<IoWalletSharp />} className={isNewReclamation ? "change-color-animation" : ""}>
+                <Link to="/dashboard/demande-retrait">
+                  Demande retrait {demandeRetrait.length > 0 ? <Badge count={demandeRetrait.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<FaFileInvoiceDollar />}>
+                <Link to={'/dashboard/transaction'}>
+                  Transactions
+                </Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
         {
           userData.role === "client"&& (
             <Menu.SubMenu icon={<FaFileInvoiceDollar />} title="Facture">
