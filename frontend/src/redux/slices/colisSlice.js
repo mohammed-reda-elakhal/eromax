@@ -75,6 +75,7 @@ const colisSlice = createSlice({
       data: [],
       loading: false,
       error: null,
+      statistics: {}, // Add statistics field
     },
   },
   reducers: {
@@ -307,6 +308,7 @@ const colisSlice = createSlice({
       state.colisPaginatedList.page = action.payload.page;
       state.colisPaginatedList.limit = action.payload.limit;
       state.colisPaginatedList.data = action.payload.data;
+      state.colisPaginatedList.statistics = action.payload.statistics || {};
       state.colisPaginatedList.loading = false;
       state.colisPaginatedList.error = null;
     },

@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   infoSection: {
-    border: '1px solid #e5e7eb',
-    borderRadius: 5,
+    border: '1px solid #000', // dark solid border
+    borderRadius: 2,
     backgroundColor: '#f8fafc',
     padding: 5, // réduit
     marginBottom: 4, // réduit
@@ -141,6 +141,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 4, // réduit
     paddingHorizontal: 2, // réduit
+    border: '1px solid #000', // dark solid border
+    borderRadius: 2,
   },
   qr: {
     width: 50, // réduit
@@ -151,32 +153,35 @@ const styles = StyleSheet.create({
     height: 40, // réduit
   },
   storeSection: {
-    border: '1px solid #e5e7eb',
-    borderRadius: 5,
+    border: '1px solid #000', // dark solid border
+    borderRadius: 2,
     backgroundColor: '#f1f5f9',
-    padding: 3, // plus petit
-    marginBottom: 2, // plus petit
+    padding: 8, // increased for more space
+    marginBottom: 4, // slightly more space below
+    minHeight: 38, // ensure more height
+    justifyContent: 'center',
   },
   storeTitle: {
-    fontSize: 7, // plus petit
+    fontSize: 9, // larger for clarity
     fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 1,
+    marginBottom: 3, // more space below title
   },
   storeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 8,
+    gap: 16, // more gap between name and phone
   },
   storeValue: {
-    fontSize: 7, // plus petit
+    fontSize: 9, // larger for clarity
     color: '#22223b',
-    marginRight: 8,
+    marginRight: 12,
     marginBottom: 0,
+    fontWeight: 'bold',
   },
   footer: {
-    borderTop: '1px solid #e2e8f0',
+    borderTop: '1px solid #000', // dark solid border
     paddingTop: 3, // réduit
     marginTop: 4, // réduit
     fontSize: 7, // réduit

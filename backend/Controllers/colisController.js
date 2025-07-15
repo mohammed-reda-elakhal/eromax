@@ -643,6 +643,20 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
       filter.createdAt = { $gte: oneMonthAgo };
     }
 
+    // Sanitize filter: remove any fields that are '', null, or undefined
+    Object.keys(filter).forEach(key => {
+      if (filter[key] === '' || filter[key] === null || filter[key] === undefined) {
+        delete filter[key];
+      }
+    });
+
+    // Convert reference fields to ObjectId if needed
+    ['ville', 'store', 'livreur', 'clientId', 'team'].forEach(key => {
+      if (filter[key] && typeof filter[key] === 'string' && mongoose.Types.ObjectId.isValid(filter[key])) {
+        filter[key] = new mongoose.Types.ObjectId(filter[key]);
+      }
+    });
+
     // Fetch colis based on the constructed filter
     const colis = await Colis.find(filter)
       .populate('team')        // Populate the team details
@@ -3037,7 +3051,7 @@ module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
     }
 
     // Additional filters from query params
-    const { client, livreur, statut, ville, dateFrom, dateTo, store } = req.query;
+    const { client, livreur, statut, ville, dateFrom, dateTo, store, code_suivi, tele } = req.query;
     if (client) {
       filter.clientId = client;
     }
@@ -3052,6 +3066,14 @@ module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
     }
     if (store) {
       filter.store = store;
+    }
+    // NEW: code_suivi filter (exact or partial match)
+    if (code_suivi) {
+      filter.code_suivi = { $regex: code_suivi, $options: 'i' };
+    }
+    // NEW: tele filter (exact or partial match)
+    if (tele) {
+      filter.tele = { $regex: tele, $options: 'i' };
     }
     // Date range filter (createdAt)
     if (dateFrom || dateTo) {
@@ -3072,6 +3094,20 @@ module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
         delete filter.createdAt;
       }
     }
+
+    // Sanitize filter: remove any fields that are '', null, or undefined
+    Object.keys(filter).forEach(key => {
+      if (filter[key] === '' || filter[key] === null || filter[key] === undefined) {
+        delete filter[key];
+      }
+    });
+
+    // Convert reference fields to ObjectId if needed
+    ['ville', 'store', 'livreur', 'clientId', 'team'].forEach(key => {
+      if (filter[key] && typeof filter[key] === 'string' && mongoose.Types.ObjectId.isValid(filter[key])) {
+        filter[key] = new mongoose.Types.ObjectId(filter[key]);
+      }
+    });
 
     // Pagination
     const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
@@ -3102,11 +3138,96 @@ module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
       return { ...c.toObject(), suivi_colis: suivi };
     }));
 
+    // --- Simplified Statistics Section ---
+    // Only compute total, Livrée, Refusée, Annulée, and En cours
+    // Each facet must use the filter (spread) to match filtered data
+    const statsPipeline = [
+      {
+        $facet: {
+          total: [
+            { $match: filter },
+            { $count: "count" }
+          ],
+          delivered: [
+            { $match: { ...filter, statut: "Livrée" } },
+            { $count: "count" }
+          ],
+          refused: [
+            { $match: { ...filter, statut: "Refusée" } },
+            { $count: "count" }
+          ],
+          annulled: [
+            { $match: { ...filter, statut: "Annulée" } },
+            { $count: "count" }
+          ]
+        }
+      }
+    ];
+
+    const statsResultArr = await Colis.aggregate(statsPipeline);
+    const statsResult = statsResultArr[0] || {};
+    const statsTotal = statsResult.total && statsResult.total[0] ? statsResult.total[0].count : 0;
+    const delivered = statsResult.delivered && statsResult.delivered[0] ? statsResult.delivered[0].count : 0;
+    const refused = statsResult.refused && statsResult.refused[0] ? statsResult.refused[0].count : 0;
+    const annulled = statsResult.annulled && statsResult.annulled[0] ? statsResult.annulled[0].count : 0;
+    const inProgress = statsTotal - delivered - refused - annulled;
+
+    // --- Extended Statistics: Colis by Day/Week/Month and Trends ---
+    const now = new Date();
+    // Today
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Robust start of week (Monday)
+    const dayOfWeek = startOfToday.getDay(); // 0 (Sun) - 6 (Sat)
+    const diffToMonday = (dayOfWeek + 6) % 7; // 0 (Mon), 1 (Tue), ..., 6 (Sun)
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfToday.getDate() - diffToMonday);
+    // This month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Previous week
+    const startOfPrevWeek = new Date(startOfWeek);
+    startOfPrevWeek.setDate(startOfPrevWeek.getDate() - 7);
+    const endOfPrevWeek = new Date(startOfWeek);
+    endOfPrevWeek.setDate(endOfPrevWeek.getDate() - 1);
+    // Previous month
+    const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+    // Build date filters with current filter
+    const todayFilter = { ...filter, createdAt: { $gte: startOfToday } };
+    const weekFilter = { ...filter, createdAt: { $gte: startOfWeek } };
+    // For last month, ignore any existing createdAt filter
+    const { createdAt, ...filterWithoutDate } = filter;
+    const lastMonthFilter = { ...filterWithoutDate, createdAt: { $gte: startOfPrevMonth, $lte: endOfPrevMonth } };
+
+    // Debug log for last month filter
+    console.log('Last month filter:', lastMonthFilter);
+    console.log('Start of last month:', startOfPrevMonth);
+    console.log('End of last month:', endOfPrevMonth);
+
+    const [todayCount, weekCount, lastMonthCount] = await Promise.all([
+      Colis.countDocuments(todayFilter),
+      Colis.countDocuments(weekFilter),
+      Colis.countDocuments(lastMonthFilter)
+    ]);
+    console.log('Colis created last month:', lastMonthCount);
+
+    const statistics = {
+      total: statsTotal,
+      delivered,
+      refused,
+      annulled,
+      inProgress,
+      createdToday: todayCount,
+      createdThisWeek: weekCount,
+      createdLastMonth: lastMonthCount
+    };
+
     res.status(200).json({
       total,
       page,
       limit,
-      data: colisWithSuivi
+      data: colisWithSuivi,
+      statistics
     });
   } catch (error) {
     console.error('Error in getAllColisPaginatedCtrl:', error);

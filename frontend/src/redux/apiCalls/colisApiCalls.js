@@ -1053,22 +1053,21 @@ export function getColisPaginated(filters = {}) {
         return;
       }
       dispatch(colisActions.setColisPaginatedLoading(true));
+
+      // Only include filters that are set and not empty
+      const params = {};
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params[key] = value;
+        }
+      });
+
       const config = {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        params: {
-          page: filters.page || 1,
-          limit: filters.limit || 20,
-          client: filters.client || '',
-          livreur: filters.livreur || '',
-          statut: filters.statut || '',
-          ville: filters.ville || '',
-          dateFrom: filters.dateFrom || '',
-          dateTo: filters.dateTo || '',
-          store: filters.store || '', // <-- Add this line
-        },
+        params,
       };
       const { data } = await request.get('/api/colis/paginated', config);
       dispatch(colisActions.setColisPaginatedData(data));

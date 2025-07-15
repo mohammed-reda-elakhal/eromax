@@ -10,7 +10,8 @@ import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 import {
   CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined,
   ExclamationCircleOutlined, CalendarOutlined, EnvironmentOutlined, InfoCircleOutlined, TagOutlined, EditOutlined, ShopOutlined,
-  FolderOpenOutlined, AppstoreOutlined, RetweetOutlined, CopyOutlined, WalletOutlined, MoreOutlined, UserOutlined, PlusOutlined
+  FolderOpenOutlined, AppstoreOutlined, RetweetOutlined, CopyOutlined, WalletOutlined, MoreOutlined, UserOutlined, PlusOutlined,
+  ArrowUpOutlined, ArrowDownOutlined, FieldTimeOutlined
 } from '@ant-design/icons';
 import { FaUser, FaMapMarkerAlt, FaHeart, FaInfoCircle, FaQuestionCircle, FaSms, FaPlane, FaPhoneSlash, FaTruck, FaClock, FaCheck } from 'react-icons/fa';
 import { TbShieldCode, TbTruckDelivery } from 'react-icons/tb';
@@ -37,6 +38,7 @@ import TicketColis2 from '../components/TicketColis2';
 // Add reclamation imports
 import { createReclamation, getReclamationsByColis } from '../../../../redux/apiCalls/reclamationApiCalls';
 import ReclamationModal from '../modals/ReclamationModal';
+import { Statistic, Card, Row, Col, Progress } from 'antd';
 
 const STATUT_LIST = [
   "Nouveau Colis",
@@ -114,6 +116,8 @@ function ColisPaginated() {
     livreur: '',
     statut: '',
     dateRange: ['', ''],
+    code_suivi: '',
+    tele: '',
   });
   const [appliedFilters, setAppliedFilters] = useState({
     ville: '',
@@ -121,11 +125,26 @@ function ColisPaginated() {
     livreur: '',
     statut: '',
     dateRange: ['', ''],
+    code_suivi: '',
+    tele: '',
   });
   const {user } = useSelector(state => ({
     user: state.auth.user
   }));
   const { colisPaginatedList } = useSelector(state => state.colis);
+  const statistics = colisPaginatedList.statistics || {};
+  const mainStatusOrder = [
+    "Nouveau Colis",
+    "attente de ramassage",
+    "Ramassée",
+    "Expediée",
+    "Livrée",
+    "Annulée",
+    "Refusée",
+    "Programmée",
+    "En Retour",
+    "Mise en Distribution"
+  ];
   const villes = useSelector(state => state.ville.villes);
   const stores = useSelector(state => state.store.stores);
   const livreurs = useSelector(state => state.livreur.livreurList);
@@ -389,6 +408,8 @@ function ColisPaginated() {
       store: appliedFilters.store || undefined,
       livreur: appliedFilters.livreur || undefined,
       statut: appliedFilters.statut || undefined,
+      code_suivi: appliedFilters.code_suivi || undefined,
+      tele: appliedFilters.tele || undefined,
     };
     if (appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1]) {
       params.dateFrom = moment(appliedFilters.dateRange[0]).startOf('day').toISOString();
@@ -407,7 +428,7 @@ function ColisPaginated() {
   };
 
   const handleReset = () => {
-    const emptyFilters = { ville: '', store: '', livreur: '', statut: '', dateRange: ['', ''] };
+    const emptyFilters = { ville: '', store: '', livreur: '', statut: '', dateRange: ['', ''], code_suivi: '', tele: '' };
     setFilters(emptyFilters);
     setAppliedFilters(emptyFilters);
     setCurrentPage(1);
@@ -901,26 +922,201 @@ function ColisPaginated() {
         <Topbar />
         <div className="page-content" style={{ backgroundColor: theme === 'dark' ? '#002242' : 'var(--gray1)', color: theme === 'dark' ? '#fff' : '#002242' }}>
           <div className="content" style={{ backgroundColor: theme === 'dark' ? '#001529' : '#fff', width: '100%', overflowX: 'auto' }}>
+            {/* Responsive Statistics Bars */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 12,
+              marginBottom: 12,
+              marginTop: 8,
+              justifyContent: 'center',
+              alignItems: 'flex-start',
+            }}>
+              {/* Status Bar */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 8,
+                flexWrap: 'wrap',
+                minWidth: 0,
+                flex: 2,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <Card size="small" bordered style={{ background: 'linear-gradient(90deg, #f3f4f6 60%, #e0e7ff 100%)', borderRadius: 8, textAlign: 'center', minWidth: 80, maxWidth: 120, boxShadow: '0 1px 4px rgba(99,102,241,0.06)', margin: 0, padding: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <InfoCircleOutlined style={{ fontSize: 18, color: '#2563eb', marginBottom: 1 }} />
+                    <Statistic title={<span style={{ fontSize: 11, color: '#2563eb', fontWeight: 700 }}>Total</span>} value={statistics?.total || 0} valueStyle={{ color: '#1e293b', fontWeight: 700, fontSize: 15 }} />
+                  </div>
+                </Card>
+                <Card size="small" bordered style={{ background: 'linear-gradient(90deg, #e0f7fa 60%, #d1fae5 100%)', borderRadius: 8, textAlign: 'center', minWidth: 80, maxWidth: 120, boxShadow: '0 1px 4px rgba(16,185,129,0.06)', margin: 0, padding: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <CheckCircleOutlined style={{ fontSize: 18, color: '#059669', marginBottom: 1 }} />
+                    <Statistic title={<span style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Livrée</span>} value={statistics?.delivered || 0} valueStyle={{ color: '#059669', fontWeight: 700, fontSize: 15 }} />
+                  </div>
+                </Card>
+                <Card size="small" bordered style={{ background: 'linear-gradient(90deg, #fff7e6 60%, #fef2f2 100%)', borderRadius: 8, textAlign: 'center', minWidth: 80, maxWidth: 120, boxShadow: '0 1px 4px rgba(245,158,11,0.06)', margin: 0, padding: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <CloseCircleOutlined style={{ fontSize: 18, color: '#f59e42', marginBottom: 1 }} />
+                    <Statistic title={<span style={{ fontSize: 11, color: '#f59e42', fontWeight: 700 }}>Refusée</span>} value={statistics?.refused || 0} valueStyle={{ color: '#f59e42', fontWeight: 700, fontSize: 15 }} />
+                  </div>
+                </Card>
+                <Card size="small" bordered style={{ background: 'linear-gradient(90deg, #fef2f2 60%, #fee2e2 100%)', borderRadius: 8, textAlign: 'center', minWidth: 80, maxWidth: 120, boxShadow: '0 1px 4px rgba(239,68,68,0.06)', margin: 0, padding: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <CloseCircleOutlined style={{ fontSize: 18, color: '#dc2626', marginBottom: 1 }} />
+                    <Statistic title={<span style={{ fontSize: 11, color: '#dc2626', fontWeight: 700 }}>Annulée</span>} value={statistics?.annulled || 0} valueStyle={{ color: '#dc2626', fontWeight: 700, fontSize: 15 }} />
+                  </div>
+                </Card>
+                <Card size="small" bordered style={{ background: 'linear-gradient(90deg, #f0fdf4 60%, #f3f4f6 100%)', borderRadius: 8, textAlign: 'center', minWidth: 80, maxWidth: 120, boxShadow: '0 1px 4px rgba(16,185,129,0.06)', margin: 0, padding: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <SyncOutlined style={{ fontSize: 18, color: '#f59e42', marginBottom: 1 }} />
+                    <Statistic title={<span style={{ fontSize: 11, color: '#f59e42', fontWeight: 700 }}>En cours</span>} value={statistics?.inProgress || 0} valueStyle={{ color: '#f59e42', fontWeight: 700, fontSize: 15 }} />
+                  </div>
+                </Card>
+              </div>
+              {/* Time Bar */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 8,
+                flexWrap: 'wrap',
+                minWidth: 0,
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <Card size="small" bordered style={{ background: 'linear-gradient(90deg, #e0e7ff 60%, #f3f4f6 100%)', borderRadius: 8, textAlign: 'center', minWidth: 80, maxWidth: 120, boxShadow: '0 1px 4px rgba(99,102,241,0.06)', margin: 0, padding: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <CalendarOutlined style={{ fontSize: 18, color: '#6366f1', marginBottom: 1 }} />
+                    <Statistic title={<span style={{ fontSize: 11, color: '#6366f1', fontWeight: 700 }}>Aujourd'hui</span>} value={statistics?.createdToday || 0} valueStyle={{ color: '#1e293b', fontWeight: 700, fontSize: 15 }} />
+                  </div>
+                </Card>
+                <Card size="small" bordered style={{ background: 'linear-gradient(90deg, #d1fae5 60%, #f3f4f6 100%)', borderRadius: 8, textAlign: 'center', minWidth: 80, maxWidth: 120, boxShadow: '0 1px 4px rgba(16,185,129,0.06)', margin: 0, padding: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <FieldTimeOutlined style={{ fontSize: 18, color: '#059669', marginBottom: 1 }} />
+                    <Statistic title={<span style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Cette semaine</span>} value={statistics?.createdThisWeek || 0} valueStyle={{ color: '#1e293b', fontWeight: 700, fontSize: 15 }} />
+                  </div>
+                </Card>
+              </div>
+            </div>
+            <style>{`
+@media (max-width: 768px) {
+  .page-dashboard .content > div[style*='flex-direction: row'] {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+  .page-dashboard .content .ant-card {
+    min-width: 90px !important;
+    max-width: 100% !important;
+    margin-bottom: 4px !important;
+  }
+  .page-dashboard .content .ant-statistic-title {
+    font-size: 10px !important;
+  }
+  .page-dashboard .content .ant-statistic-content-value {
+    font-size: 13px !important;
+  }
+}
+`}</style>
             {/* Filter Bar */}
             <div
               className="filter-bar-container"
               style={{
-                marginBottom: 12, // was 24
+                marginBottom: 12,
                 background: theme === 'dark' ? '#0a192f' : '#fff',
-                borderRadius: 8, // was 12
-                padding: 10, // was 20
+                borderRadius: 8,
+                padding: 10,
                 boxShadow: theme === 'dark'
                   ? '0 2px 8px rgba(0,0,0,0.45)'
                   : '0 2px 8px rgba(0,0,0,0.08)',
                 border: `1px solid ${theme === 'dark' ? '#22304a' : '#e5e7eb'}`,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6, // was 12
               }}
             >
-              <div style={{ display: 'flex', width: '100%', gap: 6, flexWrap: 'wrap' }}>
+              <style>{`
+                .filter-bar-grid {
+                  display: grid;
+                  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                  gap: 10px;
+                  align-items: center;
+                  width: 100%;
+                }
+                .filter-bar-field {
+                  min-width: 0;
+                  width: 100%;
+                  display: flex;
+                  align-items: center;
+                  max-width: 250px;
+                }
+                .filter-bar-select, .filter-bar-input {
+                  width: 100%;
+                  min-width: 0;
+                  max-width: 250px;
+                  min-height: 36px;
+                  font-size: 15px;
+                  border-radius: 5px;
+                  padding: 6px 10px;
+                  box-sizing: border-box;
+                  border: 1px solid #d1d5db;
+                  background: ${theme === 'dark' ? '#0a192f' : '#fff'};
+                  color: ${theme === 'dark' ? '#fff' : '#222'};
+                  transition: border 0.2s;
+                }
+                .filter-bar-input:focus {
+                  border: 1.5px solid #3b82f6;
+                  outline: none;
+                }
+                .filter-bar-btn {
+                  min-width: 0;
+                  width: 100%;
+                  max-width: 250px;
+                  min-height: 36px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  border-radius: 5px;
+                  border: none;
+                  cursor: pointer;
+                  transition: background 0.2s, color 0.2s;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 6px;
+                }
+                .filter-bar-btn.search {
+                  background: #10b981;
+                  color: #fff;
+                }
+                .filter-bar-btn.search:hover {
+                  background: #059669;
+                }
+                .filter-bar-btn.reset {
+                  background: #ef4444;
+                  color: #fff;
+                }
+                .filter-bar-btn.reset:hover {
+                  background: #dc2626;
+                }
+                @media (max-width: 1200px) {
+                  .filter-bar-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                  }
+                  .filter-bar-field, .filter-bar-select, .filter-bar-input, .filter-bar-btn {
+                    max-width: 100%;
+                  }
+                }
+                @media (max-width: 700px) {
+                  .filter-bar-grid {
+                    grid-template-columns: 1fr;
+                  }
+                  .filter-bar-field, .filter-bar-select, .filter-bar-input, .filter-bar-btn {
+                    max-width: 100%;
+                  }
+                }
+              `}</style>
+              <div className="filter-bar-grid">
                 {/* Ville */}
-                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                <div className="filter-bar-field">
                   <Select
                     classNamePrefix="filter-bar-select"
                     value={villes && villes.find(v => v._id === filters.ville) ? { value: filters.ville, label: villes.find(v => v._id === filters.ville).nom } : null}
@@ -929,19 +1125,31 @@ function ColisPaginated() {
                     placeholder="Ville"
                     isClearable
                     styles={{
-                      control: (base, state) => ({
+                      container: (base) => ({ ...base, width: '100%', maxWidth: 250 }),
+                      control: (base) => ({
                         ...base,
-                        minHeight: 28,
-                        fontSize: 13,
-                        borderRadius: 4,
-                        padding: '0 2px',
-                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        minHeight: 36,
+                        fontSize: 15,
+                        borderRadius: 5,
+                        borderColor: theme === 'dark' ? '#555' : '#d1d5db',
                         background: theme === 'dark' ? '#0a192f' : '#fff',
                         color: theme === 'dark' ? '#fff' : '#222',
                         boxShadow: 'none',
                         cursor: 'pointer',
+                        width: '100%',
+                        maxWidth: 250,
                       }),
-                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                        background: 'transparent',
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        background: theme === 'dark' ? '#1e293b' : '#e5e7eb',
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                      }),
+                      menu: base => ({ ...base, fontSize: 15, zIndex: 10 }),
                       option: (base, state) => ({
                         ...base,
                         background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
@@ -952,7 +1160,7 @@ function ColisPaginated() {
                   />
                 </div>
                 {/* Store */}
-                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                <div className="filter-bar-field">
                   <Select
                     classNamePrefix="filter-bar-select"
                     value={stores && stores.find(s => s._id === filters.store) ? { value: filters.store, label: stores.find(s => s._id === filters.store).storeName } : null}
@@ -961,19 +1169,31 @@ function ColisPaginated() {
                     placeholder="Store"
                     isClearable
                     styles={{
-                      control: (base, state) => ({
+                      container: (base) => ({ ...base, width: '100%', maxWidth: 250 }),
+                      control: (base) => ({
                         ...base,
-                        minHeight: 28,
-                        fontSize: 13,
-                        borderRadius: 4,
-                        padding: '0 2px',
-                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        minHeight: 36,
+                        fontSize: 15,
+                        borderRadius: 5,
+                        borderColor: theme === 'dark' ? '#555' : '#d1d9db',
                         background: theme === 'dark' ? '#0a192f' : '#fff',
                         color: theme === 'dark' ? '#fff' : '#222',
                         boxShadow: 'none',
                         cursor: 'pointer',
+                        width: '100%',
+                        maxWidth: 250,
                       }),
-                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                        background: 'transparent',
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        background: theme === 'dark' ? '#1e293b' : '#e5e7eb',
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                      }),
+                      menu: base => ({ ...base, fontSize: 15, zIndex: 10 }),
                       option: (base, state) => ({
                         ...base,
                         background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
@@ -984,7 +1204,7 @@ function ColisPaginated() {
                   />
                 </div>
                 {/* Livreur */}
-                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                <div className="filter-bar-field">
                   <Select
                     classNamePrefix="filter-bar-select"
                     value={livreurs && livreurs.find(l => l._id === filters.livreur) ? { value: filters.livreur, label: livreurs.find(l => l._id === filters.livreur).username || livreurs.find(l => l._id === filters.livreur).nom } : null}
@@ -993,19 +1213,31 @@ function ColisPaginated() {
                     placeholder="Livreur"
                     isClearable
                     styles={{
-                      control: (base, state) => ({
+                      container: (base) => ({ ...base, width: '100%', maxWidth: 250 }),
+                      control: (base) => ({
                         ...base,
-                        minHeight: 28,
-                        fontSize: 13,
-                        borderRadius: 4,
-                        padding: '0 2px',
-                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        minHeight: 36,
+                        fontSize: 15,
+                        borderRadius: 5,
+                        borderColor: theme === 'dark' ? '#555' : '#d1d5db',
                         background: theme === 'dark' ? '#0a192f' : '#fff',
                         color: theme === 'dark' ? '#fff' : '#222',
                         boxShadow: 'none',
                         cursor: 'pointer',
+                        width: '100%',
+                        maxWidth: 250,
                       }),
-                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                        background: 'transparent',
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        background: theme === 'dark' ? '#1e293b' : '#e5e7eb',
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                      }),
+                      menu: base => ({ ...base, fontSize: 15, zIndex: 10 }),
                       option: (base, state) => ({
                         ...base,
                         background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
@@ -1016,7 +1248,7 @@ function ColisPaginated() {
                   />
                 </div>
                 {/* Statut */}
-                <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                <div className="filter-bar-field">
                   <Select
                     classNamePrefix="filter-bar-select"
                     value={filters.statut ? { value: filters.statut, label: filters.statut } : null}
@@ -1025,19 +1257,31 @@ function ColisPaginated() {
                     placeholder="Statut"
                     isClearable
                     styles={{
-                      control: (base, state) => ({
+                      container: (base) => ({ ...base, width: '100%', maxWidth: 250 }),
+                      control: (base) => ({
                         ...base,
-                        minHeight: 28,
-                        fontSize: 13,
-                        borderRadius: 4,
-                        padding: '0 2px',
-                        borderColor: theme === 'dark' ? '#555' : '#d9d9d9',
+                        minHeight: 36,
+                        fontSize: 15,
+                        borderRadius: 5,
+                        borderColor: theme === 'dark' ? '#555' : '#d1d5db',
                         background: theme === 'dark' ? '#0a192f' : '#fff',
                         color: theme === 'dark' ? '#fff' : '#222',
                         boxShadow: 'none',
                         cursor: 'pointer',
+                        width: '100%',
+                        maxWidth: 250,
                       }),
-                      menu: base => ({ ...base, fontSize: 13, zIndex: 10 }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                        background: 'transparent',
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        background: theme === 'dark' ? '#1e293b' : '#e5e7eb',
+                        color: theme === 'dark' ? '#e5e7eb' : '#222',
+                      }),
+                      menu: base => ({ ...base, fontSize: 15, zIndex: 10 }),
                       option: (base, state) => ({
                         ...base,
                         background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
@@ -1047,61 +1291,64 @@ function ColisPaginated() {
                     }}
                   />
                 </div>
-              </div>
-              <div className="filter-bar-date-row" style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-                <input
-                  className="filter-bar-select"
-                  type="date"
-                  value={filters.dateRange[0]}
-                  onChange={e => handleFilterChange('dateRange', [e.target.value, filters.dateRange[1]])}
-                  style={{ border: `1px solid ${theme === 'dark' ? '#555' : '#d9d9d9'}`, borderRadius: 4, fontSize: 13, padding: '2px 6px', cursor: 'pointer' }}
-                />
-                <input
-                  className="filter-bar-select"
-                  type="date"
-                  value={filters.dateRange[1]}
-                  onChange={e => handleFilterChange('dateRange', [filters.dateRange[0], e.target.value])}
-                  style={{ border: `1px solid ${theme === 'dark' ? '#555' : '#d9d9d9'}`, borderRadius: 4, fontSize: 13, padding: '2px 6px', cursor: 'pointer' }}
-                />
+                {/* Code Suivi */}
+                <div className="filter-bar-field">
+                  <input
+                    className="filter-bar-input"
+                    type="text"
+                    value={filters.code_suivi}
+                    onChange={e => handleFilterChange('code_suivi', e.target.value)}
+                    placeholder="Code Suivi"
+                  />
+                </div>
+                {/* Téléphone */}
+                <div className="filter-bar-field">
+                  <input
+                    className="filter-bar-input"
+                    type="text"
+                    value={filters.tele}
+                    onChange={e => handleFilterChange('tele', e.target.value)}
+                    placeholder="Téléphone"
+                  />
+                </div>
+                {/* Date From */}
+                <div className="filter-bar-field">
+                  <input
+                    className="filter-bar-input"
+                    type="date"
+                    value={filters.dateRange[0]}
+                    onChange={e => handleFilterChange('dateRange', [e.target.value, filters.dateRange[1]])}
+                    placeholder="Date début"
+                  />
+                </div>
+                {/* Date To */}
+                <div className="filter-bar-field">
+                  <input
+                    className="filter-bar-input"
+                    type="date"
+                    value={filters.dateRange[1]}
+                    onChange={e => handleFilterChange('dateRange', [filters.dateRange[0], e.target.value])}
+                    placeholder="Date fin"
+                  />
+                </div>
+                {/* Search Button */}
                 <button
+                  className="filter-bar-btn search"
                   onClick={handleSearch}
-                  style={{ 
-                    flex: 1, 
-                    background: theme === 'dark' ? '#059669' : '#10b981', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: 4, 
-                    fontSize: 13, 
-                    padding: '4px 8px', 
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 4
-                  }}
+                  type="button"
                 >
-                  🔍 Rechercher
+                  <span role="img" aria-label="search">🔍</span> Rechercher
                 </button>
+                {/* Reset Button */}
                 <button
+                  className="filter-bar-btn reset"
                   onClick={handleReset}
-                  style={{ 
-                    flex: 1, 
-                    background: theme === 'dark' ? '#dc2626' : '#ef4444', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: 4, 
-                    fontSize: 13, 
-                    padding: '4px 8px', 
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
+                  type="button"
                 >
-                  🗑️ Réinitialiser
+                  <span role="img" aria-label="reset">🗑️</span> Réinitialiser
                 </button>
               </div>
             </div>
-            {/* End Filter Bar */}
             
             {/* Action Bar */}
             <div
