@@ -18,6 +18,7 @@ import {
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../../ThemeContext';
 import './ColisForm.css';
+import Select from 'react-select';
 
 const daysOfWeek = [
   'Lundi',
@@ -236,28 +237,22 @@ function ColisForm({ type }) {
                   <label htmlFor="ville">
                     Ville <span className="required-star">*</span>
                   </label>
-                  {/* Search input for ville */}
-                  <input
-                    type="text"
-                    placeholder="Rechercher une ville..."
-                    value={villeSearch}
-                    onChange={e => setVilleSearch(e.target.value)}
-                    className={`ant-input ville-search-input-${theme}`}
-                    style={{ marginBottom: 6, borderRadius: 8, fontSize: 14, padding: '6px 10px' }}
-                  />
-                  <select
+                  {/* Searchable Select for ville using react-select */}
+                  <Select
                     id="ville"
-                    value={formData.ville}
-                    onChange={e => handleVilleChange(e.target.value)}
-                    className={`colis-select-ville-${theme}`}
-                    required
-                    style={{ minHeight: 40, borderRadius: 10, padding: '10px 14px', fontSize: 15 }}
-                  >
-                    <option value="">Choisir une ville</option>
-                    {filteredVilles.map((ville) => (
-                      <option key={ville._id} value={ville._id}>{ville.nom}</option>
-                    ))}
-                  </select>
+                    options={uniqueVilles.map(ville => ({ value: ville._id, label: ville.nom }))}
+                    value={uniqueVilles
+                      .map(ville => ({ value: ville._id, label: ville.nom }))
+                      .find(opt => opt.value === formData.ville) || null}
+                    onChange={option => handleVilleChange(option ? option.value : '')}
+                    placeholder="Choisir une ville"
+                    isClearable
+                    classNamePrefix="react-select"
+                    styles={{
+                      menu: provided => ({ ...provided, zIndex: 9999 }),
+                      control: provided => ({ ...provided, minHeight: 40, borderRadius: 10, fontSize: 15 }),
+                    }}
+                  />
                 </div>
 
                 {/* Price Input */}
@@ -352,10 +347,10 @@ function ColisForm({ type }) {
                   </h3>
                   <div className={`days-checkbox-list-${theme}`}>
                     {daysOfWeek.map((day) => (
-                      <label key={day} className={selectedVille.disponibility.includes(day) ? 'checked' : ''} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                      <label key={day} className={selectedVille.disponibility && selectedVille.disponibility.includes(day) ? 'checked' : ''} style={{display:'flex',alignItems:'center',gap:'6px'}}>
                         <input
                           type="checkbox"
-                          checked={selectedVille.disponibility.includes(day)}
+                          checked={selectedVille.disponibility ? selectedVille.disponibility.includes(day) : false}
                           disabled
                           readOnly
                         />

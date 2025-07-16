@@ -77,6 +77,19 @@ const getColisR = async (req, res) => {
     }
 };
 
+// Get all Colis with statut 'Nouveau Colis' and expedation_type 'eromax'
+const getColisNouveau = async (req, res) => {
+    try {
+        const colis = await Colis.find({
+            statut: 'Nouveau Colis',
+            expedation_type: 'eromax'
+        });
+        res.status(200).json(colis);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching new packages', error });
+    }
+};
+
 
 // Controller to count Colis for a specific Livreur where statut is 'Expediée'
 const countExpedieColisForLivreur = async (req, res) => {
@@ -164,5 +177,6 @@ module.exports = {
     countPretToLivreeColisForLivreur,
     getNouveauClient,
     getColisR,
-    getIncompleteWithdrawalsCount
+    getIncompleteWithdrawalsCount,
+    getColisNouveau
 };

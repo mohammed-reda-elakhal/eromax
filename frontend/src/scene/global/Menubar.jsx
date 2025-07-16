@@ -22,7 +22,7 @@ import { GrObjectGroup } from "react-icons/gr";
 import { CiMenuFries } from 'react-icons/ci';
 import { GiSettingsKnobs } from "react-icons/gi";
 import { IoIosAdd, IoMdPricetags } from 'react-icons/io';
-import { getColisATRToday, getColisExpidée, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
+import { getColisATRToday, getColisExpidée, getColisNouveau, getColisPret, getColisRamasser, getDemandeRetraitToday, getReclamationToday } from '../../redux/apiCalls/missionApiCalls';
 import { FaTruck, FaMoneyBillWave, FaShippingFast, FaListAlt, FaFileImport, FaReceipt } from "react-icons/fa";
 import { MdLocalShipping, MdInventory, MdPendingActions } from "react-icons/md";
 import { TbTruckDelivery } from "react-icons/tb";
@@ -41,7 +41,7 @@ function Menubar() {
   const {user} = useSelector(state => state.auth );
 
 
-    const { demandeRetrait , openReclamationsCount, colis, reclamations , colisExp , colisPret , client , colisR } = useSelector((state) => ({
+    const { demandeRetrait , openReclamationsCount, colis, reclamations , colisExp , colisPret , client , colisR, colisNouveau } = useSelector((state) => ({
           demandeRetrait: state.mission.demandeRetrait,
           openReclamationsCount: state.mission.openReclamationsCount,
           colis: state.mission.colis,
@@ -50,6 +50,7 @@ function Menubar() {
           colisPret: state.mission.colisPret,
           reclamations: state.mission.reclamations,
           client : state.mission.client,
+          colisNouveau: state.mission.colisNouveau,
       }));
 
       let totaleColisAdmin = colis.length + colisR.length;
@@ -66,6 +67,7 @@ function Menubar() {
               dispatch(getReclamationToday());
               dispatch(getColisATRToday());
               dispatch(getColisRamasser());
+              dispatch(getColisNouveau());
           }else if(user?.role === "livreur"){
               dispatch(getColisExpidée())
               dispatch(getColisPret())
@@ -227,10 +229,14 @@ function Menubar() {
                 <Link to="/dashboard/list-colis">List Colis (Ancien)</Link>
               </Menu.Item>
               <Menu.Item icon={<FaClipboardList />}>
-                <Link to="/dashboard/colis-nouveau">Colis Nouveau</Link>
+                <Link to="/dashboard/colis-nouveau">
+                  Colis Nouveau {colisNouveau && colisNouveau.length > 0 ? <Badge count={colisNouveau.length} color={colorBadge} /> : ""}
+                </Link>
               </Menu.Item>
               <Menu.Item icon={<MdPendingActions />}>
-                <Link to="/dashboard/colis-pour-ramasse">Colis Attente Ramassage</Link>
+                <Link to="/dashboard/colis-pour-ramasse">
+                  Colis Attente Ramassage {colis && colis.length > 0 ? <Badge count={colis.length} color={colorBadge} /> : ""}
+                </Link>
               </Menu.Item>
               <Menu.Item icon={<GrObjectGroup />}>
                 <Link to="/dashboard/colis-r2">

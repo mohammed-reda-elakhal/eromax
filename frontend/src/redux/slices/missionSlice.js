@@ -12,6 +12,7 @@ const missionSlice = createSlice({
         colisExp : [],
         colisPret : [],
         incompleteWithdrawals: 0,
+        colisNouveau: [],
     },
     reducers: {
         // Set DemandeRetrait data
@@ -48,6 +49,10 @@ const missionSlice = createSlice({
         },
         setIncompleteWithdrawals(state, action) {
             state.incompleteWithdrawals = action.payload;
+        },
+        // Set Colis Nouveau data
+        setColisNouveau(state, action) {
+            state.colisNouveau = action.payload;
         },
     },
 });

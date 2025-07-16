@@ -230,3 +230,26 @@ export function getIncompleteWithdrawals() {
     };
 }
 
+// Fetch new packages (Colis Nouveau)
+export function getColisNouveau() {
+    return async (dispatch) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            toast.error('Authentification token est manquant');
+            return;
+        }
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        };
+        try {
+            const { data } = await request.get(`/api/mission/colis-nouveau`, config);
+            dispatch(missionActions.setColisNouveau(data));
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to fetch new packages");
+        }
+    };
+}
+
