@@ -58,18 +58,11 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   infoSection: {
-    border: '1px solid #000', // dark solid border
-    borderRadius: 2,
+    border: '1px solid #e5e7eb',
+    borderRadius: 5,
     backgroundColor: '#f8fafc',
     padding: 5, // réduit
     marginBottom: 4, // réduit
-    width: '100%',
-    height: 82, // fixed height
-    overflow: 'hidden',
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
   },
   infoRow: {
     flexDirection: 'row',
@@ -89,43 +82,6 @@ const styles = StyleSheet.create({
     fontWeight: 'normal',
     maxWidth: 90, // réduit
     wordBreak: 'break-word',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  addressValue: {
-    fontSize: 8.5,
-    color: '#22223b',
-    fontWeight: 'normal',
-    wordBreak: 'break-word',
-    whiteSpace: 'normal',
-    width: '100%',
-    marginLeft: 4,
-  },
-  booleanValue: {
-    fontSize: 7.5,
-    fontWeight: 'bold',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 3,
-    textAlign: 'center',
-    minWidth: 25,
-    marginTop: 8,
-  },
-  booleanTrue: {
-    backgroundColor: '#dcfce7',
-    color: '#166534',
-    border: '1px solid #bbf7d0',
-  },
-  booleanFalse: {
-    backgroundColor: '#fef2f2',
-    color: '#dc2626',
-    border: '1px solid #fecaca',
-  },
-  booleanNeutral: {
-    backgroundColor: '#f3f4f6',
-    color: '#6b7280',
-    border: '1px solid #d1d5db',
   },
   codeSuivi: {
     fontSize: 9, // réduit
@@ -141,8 +97,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 4, // réduit
     paddingHorizontal: 2, // réduit
-    border: '1px solid #000', // dark solid border
-    borderRadius: 2,
   },
   qr: {
     width: 50, // réduit
@@ -153,35 +107,32 @@ const styles = StyleSheet.create({
     height: 40, // réduit
   },
   storeSection: {
-    border: '1px solid #000', // dark solid border
-    borderRadius: 2,
+    border: '1px solid #e5e7eb',
+    borderRadius: 5,
     backgroundColor: '#f1f5f9',
-    padding: 8, // increased for more space
-    marginBottom: 4, // slightly more space below
-    minHeight: 38, // ensure more height
-    justifyContent: 'center',
+    padding: 3, // plus petit
+    marginBottom: 2, // plus petit
   },
   storeTitle: {
-    fontSize: 9, // larger for clarity
+    fontSize: 7, // plus petit
     fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 3, // more space below title
+    marginBottom: 1,
   },
   storeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 16, // more gap between name and phone
+    gap: 8,
   },
   storeValue: {
-    fontSize: 9, // larger for clarity
+    fontSize: 7, // plus petit
     color: '#22223b',
-    marginRight: 12,
+    marginRight: 8,
     marginBottom: 0,
-    fontWeight: 'bold',
   },
   footer: {
-    borderTop: '1px solid #000', // dark solid border
+    borderTop: '1px solid #e2e8f0',
     paddingTop: 3, // réduit
     marginTop: 4, // réduit
     fontSize: 7, // réduit
@@ -254,30 +205,22 @@ const TicketPDF = ({ colisList, codes }) => (
             <Text style={styles.label}>Prix:</Text>
             <Text style={styles.value}>{colis?.prix || ''} DH</Text>
           </View>
-           {/* Région  */}
+          {/* Adresse seule */}
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Adresse:</Text>
+            <Text style={styles.value}>{colis?.adresse || ''}</Text>
+          </View>
+          {/* Région seule */}
           <View style={styles.infoRow}>
             <Text style={styles.label}>Région:</Text>
             <Text style={styles.value}>{colis?.regionData?.nom || colis?.region?.nom || ''}</Text>
-            <Text style={styles.label}>Produit :</Text>
-            <Text style={styles.value}>{colis?.nature_produit || ''}</Text>
           </View>
-          {/* Adresse seule */}
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 1 }}>
-            <Text style={styles.label}>Adresse:</Text>
-            <Text style={styles.addressValue}>{colis?.adresse || ''}</Text>
-          </View>
-         
           {/* Fragile & Remplacer sur une ligne */}
           <View style={styles.infoRow}>
-            <Text style={[styles.booleanValue, colis?.ouvrir ? styles.booleanTrue : styles.booleanFalse]}>
-              {colis?.ouvrir ? 'Ouvrir' : 'Non Ouvrir'}
-            </Text>
-            <Text style={[styles.booleanValue, colis?.is_fragile ? styles.booleanTrue : styles.booleanNeutral]}>
-              {colis?.is_fragile ? 'Fragile' : ''}
-            </Text>
-            <Text style={[styles.booleanValue, colis?.is_remplace ? styles.booleanTrue : styles.booleanNeutral]}>
-              {colis?.is_remplace ? 'Remplacer' : ''}
-            </Text>
+            <Text style={styles.label}>Fragile:</Text>
+            <Text style={styles.value}>{colis?.is_fragile ? 'Oui' : 'Non'}</Text>
+            <Text style={styles.label}>Remplacer:</Text>
+            <Text style={styles.value}>{colis?.is_remplacer ? 'Oui' : 'Non'}</Text>
           </View>
         </View>
         {/* Infos Expéditeur compactes */}
