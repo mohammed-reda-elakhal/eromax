@@ -270,7 +270,7 @@ function App() {
               <Route path="modifier/:id" element={<MethodePayementOperation />}  />
             </Route>
 
-            <Route path="list-colis" element={<ColisList search = {getColumnSearchProps} />} />
+            <Route path="list-colis" element={<ColisPaginated />} />
             <Route path="crbt" element={<Crbt search = {getColumnSearchProps} />} />
             <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
             <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
@@ -284,7 +284,7 @@ function App() {
             <Route path="ajouter/colis/admin/:type" element={<AjouterColisAdmin />} />
             <Route path="import-colis" element={<ColisImport />} />
             <Route path="colis/update/:codeSuivi" element={<UpdateColisPage />} />
-            <Route path="colis-paginated" element={<ColisPaginated />} />
+            <Route path="colis-paginated" element={<ColisList search = {getColumnSearchProps} />} />
 
             <Route path="list-produit" element={<ProduitList search = {getColumnSearchProps} />} />
             <Route path="ajouter-produit" element={<AjouterProduit />} />

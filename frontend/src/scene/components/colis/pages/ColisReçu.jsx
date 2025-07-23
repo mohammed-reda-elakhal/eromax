@@ -1,53 +1,62 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { ThemeContext } from '../../../ThemeContext';
+// ==================== DÉBUT DU BLOC À COPIER ====================
 
-import Menubar from '../../../global/Menubar';
-import Topbar from '../../../global/Topbar';
-import Title from '../../../global/Title';
-import { PlusCircleFilled, DownOutlined } from '@ant-design/icons';
-//import { Button, Popconfirm, Dropdown, Menu, message, Modal, Form, Input } from 'antd';
-import Input from 'antd/es/input';
-import Space from 'antd/es/space';
-import Button from 'antd/es/button';
-import Form from 'antd/es/form'
-import Modal from 'antd/es/modal/Modal';
-import { Menu } from 'antd';
-import Avatar from 'antd';
-import { message } from 'antd';
-import Popconfirm from 'antd/es/popconfirm';
-import Dropdown from 'antd/es/dropdown';
-import FloatButton from 'antd/es/float-button';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import TableDashboard from '../../../global/TableDashboard';
-import { MdDeliveryDining } from "react-icons/md";
-import { BsUpcScan } from "react-icons/bs";
 import { useDispatch, useSelector } from 'react-redux';
-import { colisActions} from '../../../../redux/slices/colisSlice';
-import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+
+// --- Librairies tierces (antd, react-icons) ---
+import { 
+  Button, 
+  Popconfirm, 
+  Dropdown, 
+  Menu, 
+  message, 
+  Modal, 
+  Form, 
+  Input,
+  Tag,
+  FloatButton,
+  Space,
+  Avatar,
+  Typography
+} from 'antd';
 import {
+  PlusCircleFilled,
+  DownOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
   SyncOutlined,
-} from '@ant-design/icons';
-import { Tag } from 'antd';
-import request from '../../../../utils/request';
-import { FaBoxesStacked } from 'react-icons/fa6';
-import { IoQrCodeSharp } from 'react-icons/io5';
-import { IoMdRefresh } from 'react-icons/io';
-
-import { 
-  PhoneOutlined, 
-  EnvironmentOutlined, 
+  PhoneOutlined,
+  EnvironmentOutlined,
   ShopOutlined,
   CalendarOutlined,
   EditOutlined,
   DollarOutlined,
   TagOutlined,
   CopyOutlined,
-  CheckOutlined
 } from '@ant-design/icons';
-import { Typography } from 'antd';
+import { MdDeliveryDining } from "react-icons/md";
+import { BsUpcScan } from "react-icons/bs";
+import { FaBoxesStacked } from 'react-icons/fa6';
+import { IoQrCodeSharp } from 'react-icons/io5';
+import { IoMdRefresh } from 'react-icons/io';
+
+// --- Fichiers internes au projet ---
+import { ThemeContext } from '../../../ThemeContext';
+import Menubar from '../../../global/Menubar';
+import Topbar from '../../../global/Topbar';
+import Title from '../../../global/Title';
+import TableDashboard from '../../../global/TableDashboard';
+import request from '../../../../utils/request';
+
+// --- Logique Redux ---
+import { getColis, getColisForClient, getColisForLivreur, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
+// Note: colisActions est importé mais n'est pas utilisé dans le code que vous avez fourni.
+// Si vous ne l'utilisez pas, vous pouvez le supprimer pour nettoyer le code.
+import { colisActions } from '../../../../redux/slices/colisSlice'; 
+
+// ===================== FIN DU BLOC À COPIER =====================
 
 const getTableCellStyles = (theme) => ({
   codeCell: {

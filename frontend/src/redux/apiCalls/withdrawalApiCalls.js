@@ -1,7 +1,7 @@
 import { withdrawalActions } from "../slices/withdrawalSlice";
 import { toast } from "react-toastify";
 import request from "../../utils/request";
-import { Table, Tag, Typography, Button, Space, Spin, message, Input, Select, DatePicker, Popconfirm, Tooltip, Modal, Form, InputNumber, Timeline, Drawer, Card, Avatar, Divider, Row, Col, Box, Upload } from 'antd';
+import { message} from 'antd';
 
 
 // Fetch all withdrawals (admin only)

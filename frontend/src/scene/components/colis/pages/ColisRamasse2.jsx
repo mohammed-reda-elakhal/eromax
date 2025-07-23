@@ -23,7 +23,6 @@ import {
   CalendarOutlined,
   EditOutlined,
   TagOutlined,
-  FaPrint,
 } from '@ant-design/icons';
 import { toast } from 'react-toastify';
 import moment from 'moment';

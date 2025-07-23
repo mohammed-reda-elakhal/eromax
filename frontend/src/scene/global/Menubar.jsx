@@ -222,12 +222,13 @@ function Menubar() {
               <Menu.Item icon={<FaRegSquarePlus />}>
                 <Link to="/dashboard/ajouter/colis/admin/simple">Ajouter Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/colis-paginated">List Colis (Nouveau)</Link>
-              </Menu.Item>
               <Menu.Item icon={<FaClipboardList />}>
-                <Link to="/dashboard/list-colis">List Colis (Ancien)</Link>
+                <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
               </Menu.Item>
+              <Menu.Item icon={<FaListAlt />}>
+                <Link to="/dashboard/colis-paginated">List Colis (Ancien)</Link>
+              </Menu.Item>
+              
               <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/colis-nouveau">
                   Colis Nouveau {colisNouveau && colisNouveau.length > 0 ? <Badge count={colisNouveau.length} color={colorBadge} /> : ""}
@@ -360,12 +361,13 @@ function Menubar() {
               <Menu.Item icon={<FaRegSquarePlus />}>
                 <Link to="/dashboard/ajouter-colis/simple">Ajouter Colis</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/colis-paginated">List Colis (Nouveau)</Link>
-              </Menu.Item>
               <Menu.Item icon={<FaClipboardList />}>
-                <Link to="/dashboard/list-colis">List Colis (Ancien)</Link>
+                <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
               </Menu.Item>
+              <Menu.Item icon={<FaListAlt />}>
+                <Link to="/dashboard/colis-paginated">List Colis (Ancien)</Link>
+              </Menu.Item>
+              
               <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/colis-nouveau">Colis Nouveau</Link>
               </Menu.Item>
@@ -394,11 +396,11 @@ function Menubar() {
         {
           userData.role ==="livreur" && (
             <Menu.SubMenu icon={<TbTruckDelivery />} title="Espace Livreur">
-              <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/colis-paginated">List Colis (Nouveau)</Link>
+               <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaTruck />}>
-                <Link to="/dashboard/list-colis">List Colis (Ancien)</Link>
+              <Menu.Item icon={<FaListAlt />}>
+                <Link to="/dashboard/colis-paginated">List Colis (Ancien)</Link>
               </Menu.Item>
               <Menu.Item icon={<MdLocalShipping />}>
                 <Link to="/dashboard/colis-ex">Colis Expidée</Link>
