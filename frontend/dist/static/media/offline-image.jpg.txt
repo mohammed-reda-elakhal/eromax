@@ -1,0 +1,11 @@
+This is a placeholder file. 
+
+Please replace this with an actual JPG image named "offline-image.jpg" that will be displayed on the offline page.
+
+The image should be:
+- Relevant to your brand
+- Optimized for web (compressed)
+- Approximately 600px wide
+- Visually appealing
+
+This image will be shown to users when they try to access your site while offline.
