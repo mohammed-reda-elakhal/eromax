@@ -491,7 +491,7 @@ function ColisPaginated() {
     setState(prev => ({ ...prev, selectedColis: colis, initialMessage: defaultMessage, reclamationModalVisible: true }));
   };
 
-  // Export Excel function
+  // Export Excel function with Arabic support
   const handleExportExcel = () => {
     const exportData = getSelectedData();
     if (!exportData || exportData.length === 0) {
@@ -509,7 +509,9 @@ function ColisPaginated() {
         'Adresse',
         'Ville',
         'Région',
-        'Date Création'
+        'Date Création',
+        'Statut',
+        'Commentaire'
       ];
 
       // Prepare data rows
@@ -521,17 +523,35 @@ function ColisPaginated() {
         colis.adresse || '',
         colis.ville?.nom || '',
         colis.ville?.region?.nom || '',
-        colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : ''
+        colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : '',
+        colis.statut || '',
+        colis.commentaire || ''
       ]);
 
-      // Create CSV content
+      // Create CSV content with proper escaping for Arabic text
       const csvContent = [
         headers.join(','),
-        ...dataRows.map(row => row.map(cell => `"${cell}"`).join(','))
-      ].join('\n');
+        ...dataRows.map(row =>
+          row.map(cell => {
+            // Properly escape cells containing Arabic text, commas, quotes, or newlines
+            const cellStr = String(cell || '');
+            if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n') || cellStr.includes('\r') || /[\u0600-\u06FF]/.test(cellStr)) {
+              return `"${cellStr.replace(/"/g, '""')}"`;
+            }
+            return cellStr;
+          }).join(',')
+        )
+      ].join('\r\n');
 
-      // Create and download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      // Add BOM (Byte Order Mark) for proper UTF-8 encoding in Excel
+      const BOM = '\uFEFF';
+      const csvWithBOM = BOM + csvContent;
+
+      // Create and download file with proper encoding
+      const blob = new Blob([csvWithBOM], {
+        type: 'text/csv;charset=utf-8;'
+      });
+
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -540,8 +560,9 @@ function ColisPaginated() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      toast.success(`Export réussi! ${exportData.length} colis exportés.`);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Export réussi! ${exportData.length} colis exportés avec support Arabic.`);
     } catch (error) {
       console.error('Export error:', error);
       toast.error("Erreur lors de l'export des données.");

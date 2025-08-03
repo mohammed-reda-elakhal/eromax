@@ -159,17 +159,31 @@ function Menubar() {
           <Button type='primary' icon={<CiMenuFries />} onClick={toggleMenu}>
           </Button>
         </div>
-        <div className={`header-menu reclamation-item`}>
-
+        <div className={`header-menu reclamation-item`} style={{ position: 'relative', cursor: 'pointer', marginBottom: '15px' }}>
             <img
               src={'/image/eromax_logo3.png'}
               alt=""
               style={collapsed ? { width: '90px'} : { width: '130px'}}
               onClick={toggleCollapsed}
             />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '5px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: '16px',
+                color: '#666',
+                opacity: 0.7,
+                transition: 'all 0.3s ease'
+              }}
+              onClick={toggleCollapsed}
+            >
+              {collapsed ? <FaAngleDoubleRight /> : <FaAngleDoubleLeft />}
+            </div>
         </div>
 
-
+        <Divider style={{ margin: '10px 0', borderColor: theme === 'dark' ? '#434343' : '#d9d9d9' }} />
 
         {/* admin menu items  */}
 
