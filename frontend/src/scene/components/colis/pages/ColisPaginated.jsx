@@ -723,18 +723,27 @@ function ColisPaginated() {
     { key: 'statut', label: <><HiStatusOnline /> Statut</>, render: (record) => {
       const statusBadgeConfig = getStatusBadgeConfig(theme);
       const config = statusBadgeConfig[record.statut] || { color: '#64748b', icon: null, textColor: 'white' };
+
+      // Status verification for date display
+      const isProgrammée = record.statut === 'Programmée';
+      const isReporté = record.statut === 'Reporté';
+      const shouldShowDateLivraisant = record.statut === 'Livrée';
+
+      // Retrieve the corresponding date from the record
+      const dateToDisplay = isProgrammée
+        ? record.date_programme
+        : isReporté
+        ? record.date_reporte
+        : shouldShowDateLivraisant
+        ? record.date_livraisant
+        : null;
+
       let extraDate = null;
-      if (record.statut === 'Livrée' && record.date_livraisant) {
+      if (dateToDisplay) {
+        const dateColor = shouldShowDateLivraisant ? '#52c41a' : '#faad14';
         extraDate = (
-          <div style={{ fontSize: 11, color: '#52c41a', marginTop: 2 }}>
-            <span>📅 {moment(record.date_livraisant).format('DD/MM/YYYY HH:mm')}</span>
-          </div>
-        );
-      }
-      if ((record.statut === 'Programmée' || record.statut === 'Reporté') && record.date_programme) {
-        extraDate = (
-          <div style={{ fontSize: 11, color: '#faad14', marginTop: 2 }}>
-            <span>📅 {moment(record.date_programme).format('DD/MM/YYYY HH:mm')}</span>
+          <div style={{ fontSize: 11, color: dateColor, marginTop: 2 }}>
+            <span>📅 {moment(dateToDisplay).format('DD/MM/YYYY HH:mm')}</span>
           </div>
         );
       }
@@ -812,7 +821,7 @@ function ColisPaginated() {
         const statut = record.statut;
         const forbidden = ["Livrée", "Annulée", "Refusée"];
         const canUpdateDelete = (
-          (isAdmin && !forbidden.includes(statut)) ||
+          isAdmin || // Admin can always update/delete regardless of status
           (isClient && statut === "Nouveau Colis" && !forbidden.includes(statut))
         );
         const menu = (
