@@ -1,9 +1,11 @@
 const { Withdrawal, validateWithdrawal, WITHDRAWAL_STATUS } = require('../Models/Withdrawal');
 const { Wallet } = require('../Models/Wallet');
+const { Transfer } = require('../Models/Transfer');
 const asyncHandler = require('express-async-handler');
 const { withdrawalWallet } = require('../Middlewares/payments');
 const { Store } = require('../Models/Store');
 const { cloudinaryUploadImage } = require('../utils/cloudinary');
+const Payement = require('../Models/Payement');
 
 // Create a new withdrawal
 const createWithdrawal = asyncHandler(async (req, res) => {
@@ -159,6 +161,125 @@ const updateWithdrawalStatus = asyncHandler(async (req, res) => {
         res.status(200).json(populatedWithdrawal);
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// Admin create withdrawal on behalf of user
+const createAdminWithdrawal = asyncHandler(async (req, res) => {
+    try {
+        const { walletId, paymentId, montant, note } = req.body;
+        const adminId = req.user.id; // Get admin ID from token
+
+        // Validate required fields
+        if (!walletId || !paymentId || !montant) {
+            return res.status(400).json({ error: 'Wallet ID, Payment ID, and amount are required' });
+        }
+
+        // Validate minimum amount
+        if (montant < 100) {
+            return res.status(400).json({ error: 'Minimum withdrawal amount must be 100 DH' });
+        }
+
+        // Verify wallet exists and is active
+        const wallet = await Wallet.findById(walletId);
+        if (!wallet) {
+            return res.status(404).json({ error: 'Wallet not found' });
+        }
+        if (!wallet.active) {
+            return res.status(400).json({ error: 'Wallet is not active' });
+        }
+
+        // Get store and verify it exists
+        const store = await Store.findById(wallet.store);
+        if (!store) {
+            return res.status(404).json({ error: 'Store not found for this wallet' });
+        }
+
+        // Verify payment method exists and belongs to the same client
+        const payment = await Payement.findById(paymentId);
+        if (!payment) {
+            return res.status(404).json({ error: 'Payment method not found' });
+        }
+        if (payment.clientId.toString() !== store.id_client.toString()) {
+            return res.status(400).json({ error: 'Payment method does not belong to the wallet owner' });
+        }
+
+        // Check if wallet has sufficient balance
+        if (wallet.solde < montant) {
+            return res.status(400).json({ error: 'Insufficient wallet balance' });
+        }
+
+        const frais = 5; // Fixed frais
+        const pureMontant = montant - frais;
+
+        // Create a transfer record for this admin withdrawal with required fields
+        const transferData = {
+            wallet: walletId,
+            type: 'Manuel Withdrawal',
+            montant: -montant, // Negative amount for withdrawal
+            admin: adminId,
+            commentaire: note || `Admin withdrawal created for ${pureMontant} DH (+ ${frais} DH fees)`,
+            status: 'validé'
+        };
+
+        const transfer = new Transfer(transferData);
+        await transfer.save();
+
+        // Update wallet balance
+        wallet.solde -= montant;
+        await wallet.save();
+
+        // Create new withdrawal record
+        const withdrawal = new Withdrawal({
+            wallet: walletId,
+            payment: paymentId,
+            montant: pureMontant,
+            frais: frais,
+            status: WITHDRAWAL_STATUS.ACCEPTED, // Admin withdrawals start as accepted
+            statusHistory: [
+                {
+                    status: WITHDRAWAL_STATUS.WAITING,
+                    note: 'تم إنشاء طلب السحب من قبل الإدارة'
+                },
+                {
+                    status: WITHDRAWAL_STATUS.ACCEPTED,
+                    note: note || `Admin withdrawal: ${pureMontant} DH approved automatically`
+                }
+            ]
+        });
+
+        const savedWithdrawal = await withdrawal.save();
+
+        // Populate the saved withdrawal with all necessary details
+        const populatedWithdrawal = await Withdrawal.findById(savedWithdrawal._id)
+            .populate({
+                path: 'wallet',
+                select: 'key solde store',
+                populate: {
+                    path: 'store',
+                    select: 'storeName'
+                }
+            })
+            .populate({
+                path: 'payment',
+                select: 'nom rib clientId idBank',
+                populate: {
+                    path: 'idBank',
+                    select: 'Bank image'
+                }
+            });
+
+        res.status(201).json({
+            message: 'Admin withdrawal created successfully',
+            withdrawal: populatedWithdrawal,
+            transfer: transfer
+        });
+    } catch (error) {
+        console.error('Error in createAdminWithdrawal:', error);
+        res.status(400).json({
+            error: error.message || 'Failed to create admin withdrawal',
+            details: error.stack
+        });
     }
 });
 
@@ -465,6 +586,7 @@ const getWithdrawalsByStoreId = asyncHandler(async (req, res) => {
 
 module.exports = {
     createWithdrawal,
+    createAdminWithdrawal,
     getAllWithdrawals,
     getWithdrawalsByWalletId,
     getWithdrawalsByWalletKey,

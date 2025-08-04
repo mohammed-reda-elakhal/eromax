@@ -1,37 +1,27 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../../../ThemeContext';
-import TableDashboard from '../../../global/TableDashboard';
-import { FaBox, FaInfoCircle, FaPenFancy, FaPlus, FaWallet } from "react-icons/fa";
+import { FaEye, FaKey, FaStore } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { GoVerified } from "react-icons/go";
 import {
-    Drawer,
     Modal,
     Button,
-    Spin,
-    Card,
     Avatar,
-    Row,
-    Col,
     Typography,
-    Space,
     Tooltip,
     Tag,
-    Descriptions,
-    Switch,
-    Image,
-    Form,
     message,
     Input,
-    InputNumber,
-    Radio,
-    Empty
+    Table
 } from 'antd';
 import {
     EnvironmentOutlined,
     PhoneOutlined,
-    DollarCircleOutlined,
-    ReloadOutlined
+    ReloadOutlined,
+    ExclamationCircleOutlined,
+    UserOutlined,
+    CalendarOutlined
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -40,30 +30,9 @@ import {
     toggleActiveClient,
     verifyClient
 } from '../../../../redux/apiCalls/profileApiCalls';
-// Add these imports at the top of the file
-import { FaKey } from 'react-icons/fa';
-import {
-    getStoreByUser,
-    deleteStore,
-    toggleAutoDR
-} from '../../../../redux/apiCalls/storeApiCalls';
-
-import {
-    fetchUserDocuments,
-} from '../../../../redux/apiCalls/docApiCalls';
-import { docActions } from '../../../../redux/slices/docSlices';
-import { useNavigate } from 'react-router-dom';
-import ClientFormAdd from '../components/ClientFormAdd';
+import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls';
 import Topbar from '../../../global/Topbar';
 import Menubar from '../../../global/Menubar';
-import StoreForm from '../../profile/components/StoreForm';
-import { IoDocumentAttach } from 'react-icons/io5';
-import { FaB } from 'react-icons/fa6';
-import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls';
-import { TbLockPassword } from 'react-icons/tb';
-import { getWalletByStore, toggleWalletActivation } from '../../../../redux/apiCalls/walletApiCalls';
-import { createManualDeposit, createManualWithdrawal, getTransfersByWallet } from '../../../../redux/apiCalls/transferApiCalls';
-import { Table, Tabs } from 'antd';
 import styled from 'styled-components';
 
 const StyledTable = styled(Table)`
@@ -94,6 +63,34 @@ const StyledTable = styled(Table)`
     margin: 16px 0;
     display: flex;
     justify-content: flex-end;
+  }
+
+  /* Clickable elements styling */
+  .ant-avatar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+  }
+
+  .ant-tag {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.clickable-tag:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(114, 46, 209, 0.3);
+    }
+  }
+
+  .clickable-name {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      background-color: ${props => props.theme === 'dark' ? '#1f1f1f' : '#f0f8ff'} !important;
+      transform: translateX(2px);
+    }
   }
 
   @media (max-width: 768px) {
@@ -140,275 +137,94 @@ const SearchWrapper = styled.div`
   }
 `;
 
-function Client({ search }) {
+function Client() {
+    // Simple search function for table columns
+    const search = (dataIndex) => ({
+        filterDropdown: false,
+        onFilter: (value, record) =>
+            record[dataIndex] ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()) : false,
+    });
     const { theme } = useContext(ThemeContext);
-
-    const [isModalStoreOpen, setIsModalStoreOpen] = useState(false);
-    const [selectedStores, setSelectedStores] = useState([]);
-    const [drawerVisible, setDrawerVisible] = useState(false);
-    const [currentClient, setCurrentClient] = useState(null);
-    const [loadingStores, setLoadingStores] = useState(false);
-    const [isStoreFormVisible, setIsStoreFormVisible] = useState(false);
-    const [storeToEdit, setStoreToEdit] = useState(null);
-
-    const [isDocumentsModalVisible, setIsDocumentsModalVisible] = useState(false);
-    const [selectedClient, setSelectedClient] = useState(null);
-
-    const [searchTerm, setSearchTerm] = useState(""); // New state for search input
-
-    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null); // Store selected user for password reset
-    const [form] = Form.useForm(); // Ant Design Form instance
-
-    const [isWalletModalVisible, setIsWalletModalVisible] = useState(false);
-    const [loadingWallet, setLoadingWallet] = useState(false);
-    const [manualTransferForm] = Form.useForm();
-    const [transferType, setTransferType] = useState('depot');
-    const [walletTransfers, setWalletTransfers] = useState([]);
-
-    const showPasswordModal = (user) => {
-        setSelectedUser(user); // Set the selected user
-        setIsPasswordModalVisible(true); // Show the password modal
-    };
-
-    const handlePasswordSubmit = async (values) => {
-        const { newPassword } = values;
-
-        if (!selectedUser) return;
-
-        try {
-            // Dispatch the action to reset the password
-            await dispatch(resetUserPassword(selectedUser._id, newPassword, selectedUser.role));
-
-            message.success('Password updated successfully');
-            setIsPasswordModalVisible(false); // Close the modal after successful password reset
-            form.resetFields(); // Reset the form fields
-        } catch (error) {
-            message.error('Failed to update password');
-        }
-    };
-
-    const handleCancel = () => {
-        setIsPasswordModalVisible(false);
-        form.resetFields(); // Reset the form when the modal is closed
-    };
-
-
-    const navigate = useNavigate();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { profileList, loading } = useSelector(state => state.profile);
 
-    const { profileList, user, loading, error } = useSelector((state) => ({
-        profileList: state.profile.profileList,
-        user: state.auth.user,
-        loading: state.profile.loading,
-        error: state.profile.error
-    }));
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
 
-    const { stores } = useSelector((state) => ({
-        stores: state.store.stores,
-    }));
 
-    const { files, loading: loadingDocs, error: errorDocs } = useSelector((state) => state.file);
 
-    const { wallets, selectedWallet, loading: walletLoading } = useSelector((state) => ({
-        wallets: state.wallet.wallets,
-        selectedWallet: state.wallet.selectedWallet,
-        loading: state.wallet.loading
-    }));
+    // Get current user for admin check
+    const { user } = useSelector(state => state.auth);
 
     useEffect(() => {
         dispatch(getProfileList("client"));
         window.scrollTo(0, 0);
     }, [dispatch, user]);
 
-    const openStoresModal = async (id) => {
-        setLoadingStores(true);
-        try {
-            await dispatch(getStoreByUser(id));
-            setIsModalStoreOpen(true);
-        } catch (err) {
-            console.error("Failed to fetch stores:", err);
-            Modal.error({
-                title: 'Erreur',
-                content: 'Impossible de récupérer les magasins associés au client.',
-            });
-        } finally {
-            setLoadingStores(false);
-        }
+    // Essential admin functions
+    const toggleActiveCompte = (id, role) => {
+        dispatch(toggleActiveClient(id, role));
     };
 
-    useEffect(() => {
-        if (isModalStoreOpen) {
-            setSelectedStores(stores);
-        }
-    }, [stores, isModalStoreOpen]);
-
-    const toggleActiveCompte = (id , role) => {
-        dispatch(toggleActiveClient(id , role));
+    const handleVerifyClient = (id) => {
+        dispatch(verifyClient(id));
     };
 
-    const handleOk = () => {
-        setIsModalStoreOpen(false);
-        setSelectedStores([]);
-    };
-
-    const openDrawer = (client) => {
-        setCurrentClient(client || {});
-        setDrawerVisible(true);
-    };
-
-    const closeDrawer = () => {
-        setDrawerVisible(false);
-        setCurrentClient(null);
-    };
-
-    const handleDeleteProfile = (id) => {
+    const handleDeleteClient = (id) => {
         Modal.confirm({
-            title: 'Supprimer le client',
-            content: 'Êtes-vous sûr de vouloir supprimer ce client?',
+            title: 'Êtes-vous sûr de vouloir supprimer ce client?',
+            content: 'Cette action est irréversible.',
             okText: 'Oui',
-            okType: 'danger',
             cancelText: 'Non',
             onOk: () => {
-                dispatch(deleteProfile("client", id));
-            },
+                dispatch(deleteProfile(id));
+            }
         });
     };
 
+    // Navigate to ProfileUser page
+    const handleViewProfile = (client) => {
+        if (client?.stores && client.stores.length > 0) {
+            navigate(`/dashboard/profile-user/${client.stores[0]._id}`);
+        } else {
+            message.warning('Aucune boutique associée à ce client');
+        }
+    };
+
+    // Format date helper
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
     };
 
-    const openDocumentsModal = (client) => {
-        setSelectedClient(client);
-        setIsDocumentsModalVisible(true);
-        dispatch(fetchUserDocuments(client.role, client._id))
-            .catch(() => {
-                // Handle error if needed
-            });
-    };
 
-    const closeDocumentsModal = () => {
-        setIsDocumentsModalVisible(false);
-        setSelectedClient(null);
-    };
 
-    const handleVerifyClient = (clientId) => {
-        Modal.confirm({
-            title: 'Vérifier le client',
-            content: 'Êtes-vous sûr de vouloir vérifier ce compte client?',
-            okText: 'Oui',
-            cancelText: 'Non',
-            onOk: () => {
-                dispatch(verifyClient(clientId));
-            },
-        });
-    };
-
-    const showWalletModal = async (storeId) => {
-        try {
-            setLoadingWallet(true);
-            // Dispatch action to fetch wallet info
-            await dispatch(getWalletByStore(storeId));
-            setIsWalletModalVisible(true);
-
-            // Reset the form when opening the modal
-            manualTransferForm.resetFields();
-            setTransferType('depot');
-        } catch (error) {
-            message.error("Failed to fetch wallet information");
-        } finally {
-            setLoadingWallet(false);
-        }
-    };
-
-    // Function to fetch wallet transfers when wallet is selected
-    useEffect(() => {
-        if (selectedWallet && isWalletModalVisible) {
-            dispatch(getTransfersByWallet(selectedWallet._id))
-                .then(response => {
-                    if (response && response.payload) {
-                        setWalletTransfers(response.payload);
-                    }
-                })
-                .catch(error => {
-                    console.error("Failed to fetch wallet transfers:", error);
-                });
-        }
-    }, [selectedWallet, isWalletModalVisible, dispatch]);
-
-    const handleToggleWallet = async (walletId) => {
-        try {
-            setLoadingWallet(true);
-
-            // Call the API to toggle the wallet status
-            const success = dispatch(toggleWalletActivation(walletId));
-
-            // Only refresh if the toggle was successful
-            if (success && selectedWallet?.store) {
-                dispatch(getWalletByStore(selectedWallet.store));
-            }
-        } finally {
-            setLoadingWallet(false);
-        }
-    };
-
-    // Handle manual transfer submission
-    const handleManualTransfer = async (values) => {
-        try {
-            setLoadingWallet(true);
-
-            const transferData = {
-                wallet: selectedWallet._id,
-                montant: parseFloat(values.montant),
-                commentaire: values.commentaire
-            };
-
-            if (transferType === 'depot') {
-                await dispatch(createManualDeposit(transferData));
-                message.success('Dépôt manuel effectué avec succès');
-            } else {
-                await dispatch(createManualWithdrawal(transferData));
-                message.success('Retrait manuel effectué avec succès');
-            }
-
-            // Refresh wallet data
-            if (selectedWallet?.store) {
-                dispatch(getWalletByStore(selectedWallet.store));
-
-                // Refresh transfers
-                dispatch(getTransfersByWallet(selectedWallet._id))
-                    .then(response => {
-                        if (response && response.payload) {
-                            setWalletTransfers(response.payload);
-                        }
-                    });
-            }
-
-            // Reset form
-            manualTransferForm.resetFields();
-
-        } catch (error) {
-            message.error(error.message || 'Échec de l\'opération');
-        } finally {
-            setLoadingWallet(false);
-        }
-    };
 
     const columns = [
         {
             title: 'Profile',
             dataIndex: 'profile',
-            render: (text, record) => (
-                <Tooltip title={record.verify ? "Compte vérifié" : "Compte non vérifié"}>
+            render: (_, record) => (
+                <Tooltip title={`${record.verify ? "Compte vérifié" : "Compte non vérifié"} - Cliquer pour voir le profil détaillé`}>
                     <Avatar
                         src={record.profile?.url || '/image/user.png'}
                         size="large"
+                        onClick={() => handleViewProfile(record)}
                         style={{
                             border: `2px solid ${record.verify ? '#52c41a' : '#ff4d4f'}`,
                             cursor: 'pointer',
-                            transition: 'all 0.3s'
+                            transition: 'all 0.3s',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.1)';
+                            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                         }}
                     />
                 </Tooltip>
@@ -416,10 +232,13 @@ function Client({ search }) {
             width: 80,
         },
         {
-            title: 'Register Date',
+            title: 'Date Création',
             dataIndex: 'createdAt',
-            render: (text, record) => (
-                <>{formatDate(record.createdAt)}</>
+            render: (_, record) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CalendarOutlined style={{ color: '#1890ff' }} />
+                    {formatDate(record.createdAt)}
+                </div>
             ),
             width: 150,
         },
@@ -427,280 +246,203 @@ function Client({ search }) {
             title: 'Nom Complet',
             dataIndex: 'nom',
             ...search('nom'),
-            render: (text, record) => (
-                <span>{record.nom} {record.prenom}</span>
-            ),
-            width: 200,
-        },
-        {
-            title: 'Username',
-            dataIndex: 'username',
-            key: 'username',
-            ...search('username'),
-            width: 150,
-        },
-        {
-            title: 'Wallet Info',
-            dataIndex: 'wallet',
-            render: (text, record) => (
-                <div>
-                    {record.stores && record.stores.map((store, index) => (
-                        <div
-                            key={index}
-                            className="wallet-info-card"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '10px',
-                                marginBottom: '8px',
-                                background: theme === 'dark' ? '#1f1f1f' : '#f5f5f5',
-                                borderRadius: '8px',
-                                border: `1px solid ${theme === 'dark' ? '#303030' : '#e8e8e8'}`,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                transition: 'all 0.3s ease'
-                            }}
-                        >
-                            <div style={{ flex: 1 }}>
-                                <div style={{
-                                    marginBottom: '4px',
-                                    color: theme === 'dark' ? '#fff' : '#000',
-                                    fontSize: '14px',
-                                    fontWeight: '500'
-                                }}>
-                                    <FaWallet style={{ marginRight: '8px', color: '#1890ff' }} />
-                                    {store.wallet?.solde || 0} DH
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Tag color={store.wallet?.active ? 'success' : 'error'}>
-                                        {store.wallet?.active ? 'Active' : 'Inactive'}
-                                    </Tag>
-                                    {store.wallet?.key && (
-                                        <Typography.Text
-                                            copyable={{
-                                                text: store.wallet.key,
-                                                tooltip: 'Copy wallet key'
-                                            }}
-                                            style={{ fontSize: '12px' }}
-                                        >
-                                            <FaKey style={{ color: '#1890ff' }} />
-                                        </Typography.Text>
-                                    )}
-
-                                </div>
-                            </div>
-                            <Button
-                                type="link"
-                                icon={<FaInfoCircle />}
-                                onClick={() => showWalletModal(store._id)}
-                                style={{ padding: '4px' }}
-                            />
-                        </div>
-                    ))}
+            render: (_, record) => (
+                <div
+                    className="clickable-name"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        padding: '4px 8px',
+                        borderRadius: '6px'
+                    }}
+                    onClick={() => handleViewProfile(record)}
+                >
+                    <UserOutlined style={{ color: '#1890ff' }} />
+                    <Tooltip title="Cliquer pour voir le profil détaillé">
+                        <span style={{ fontWeight: '500', color: '#1890ff' }}>
+                            {record.nom} {record.prenom}
+                        </span>
+                    </Tooltip>
                 </div>
             ),
-            width: 200,
-        },
-        {
-            title: 'N° Store',
-            dataIndex: 'stores',
-            render: (text, record) => (
-              <Tag
-                color='green'
-                style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
-                onClick={() => openStoresModal(record._id)}
-              >
-                {(record.stores && record.stores.length) || 0} Store{(record.stores && record.stores.length > 1) ? 's' : ''}
-              </Tag>
-            ),
-            width: 100,
-          },
-          {
-            title: 'Store Info',
-            render: (text, record) => (
-              <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                {record.stores && record.stores.length > 0 ? (
-                  record.stores.map((store, index) => (
-                    <div key={index} style={{ marginBottom: '8px' }}>
-                      <div style={{ fontWeight: 'bold', color: '#28a745' }}>
-                        {store.storeName}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <span>No stores found</span>
-                )}
-              </div>
-            ),
-            width: 200,
-          },
-        {
-            title: 'N° Colis',
-            width: 150,
-            render: (text, record) => (
-                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                    {record.stores && record.stores.length > 0 ? (
-                        record.stores.map((store, index) => (
-                            <div key={index} style={{ marginBottom: '8px' }}>
-                                <div style={{ fontWeight: 'bold', color: '#ff5722' }}>
-                                    <FaBox /> {store.colisCount}
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <span>No stores found</span>
-                    )}
-                </div>
-            )
-        },
-        {
-            title: 'Email',
-            dataIndex: 'email',
-            key: 'email',
-            ...search('email'),
             width: 200,
         },
         {
             title: 'Téléphone',
             dataIndex: 'tele',
-            key: 'tele',
-            ...search('tele'),
-            width: 150,
-        },
-        {
-            title: 'Ville',
-            dataIndex: 'ville',
-            key: 'ville',
-            ...search('ville'),
+            render: (_, record) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <PhoneOutlined style={{ color: '#52c41a' }} />
+                    {record.tele || 'Non renseigné'}
+                </div>
+            ),
             width: 150,
         },
         {
             title: 'Adresse',
             dataIndex: 'adresse',
-            key: 'adresse',
-            width: 200,
-        },
-        {
-            title: 'Role',
-            dataIndex: 'role',
-            key: 'role',
-            width: 100,
-        },
-        {
-            title: 'Autre',
-            render: (text, record) => (
-                <>
-                    <span>Debut en : <strong>{record.start_date}</strong> </span> <br />
-                    <span>Envoyer : <strong>{record.number_colis} colis</strong> </span>
-                </>
+            render: (_, record) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <EnvironmentOutlined style={{ color: '#fa8c16' }} />
+                    <span>{record.adresse || 'Non renseignée'}</span>
+                </div>
             ),
             width: 200,
         },
         {
-            title: 'Activation de compte',
-            dataIndex: 'active',
-            key: 'active',
-            render: (active, record) => (
-                <Switch
-                    checked={active}
-                    onChange={() => toggleActiveCompte(record._id , record?.role)}
-                    checkedChildren="Activer"
-                    unCheckedChildren="Désactiver"
-                    style={{
-                        backgroundColor: active ? '#28a745' : '#dc3545',
-                        borderColor: active ? '#28a745' : '#dc3545',
-                    }}
-                />
+            title: 'Ville',
+            dataIndex: 'ville',
+            render: (_, record) => (
+                <Tag color="blue">{record.ville || 'Non renseignée'}</Tag>
             ),
-            width: 150,
+            width: 120,
         },
-
         {
-            title: 'Action',
-            dataIndex: 'action',
-            render: (text, record) => (
-                <div className='action_user'>
-                    <Tooltip title="Voir Documents" key="view-docs">
-                        <Button
-                            type="link"
-                            style={{ color: '#0080ff', borderColor: "#0080ff", background: "transparent", marginRight: '8px' }}
-                            icon={<IoDocumentAttach size={20} />}
-                            onClick={() => openDocumentsModal(record)}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Change mots de passe" key="change-password">
-                        <Button
-                            type="link"
-                            style={{ color: 'blue', borderColor: "blue" , background: "transparent", marginRight: '8px' }}
-                            icon={<TbLockPassword size={20} />}
-                            onClick={() => showPasswordModal(record)}
-                        />
-                    </Tooltip>
-                    {!record.verify && (
-                        <Tooltip title="Vérifier le client" key="verify-client">
-                            <Button
-                                type="link"
-                                style={{ color: 'green', borderColor: "green", background: "transparent", marginRight: '8px' }}
-                                icon={<GoVerified size={20} />}
-                                onClick={() => handleVerifyClient(record._id)}
-                            />
-                        </Tooltip>
+            title: 'Nom Store',
+            dataIndex: 'stores',
+            render: (_, record) => (
+                <div>
+                    {record?.stores && record.stores.length > 0 ? (
+                        record.stores.map((store, index) => (
+                            <div key={index} style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FaStore style={{ color: '#722ed1' }} />
+                                <Tag
+                                    color="purple"
+                                    className="clickable-tag"
+                                    style={{
+                                        margin: 0,
+                                        cursor: 'pointer',
+                                        border: '1px solid #722ed1'
+                                    }}
+                                    onClick={() => handleViewProfile(record)}
+                                >
+                                    <Tooltip title="Cliquer pour voir le profil détaillé">
+                                        {store?.storeName || 'Store sans nom'}
+                                    </Tooltip>
+                                </Tag>
+                            </div>
+                        ))
+                    ) : (
+                        <Tag color="default">Aucune boutique</Tag>
                     )}
-
-                    <Tooltip title="Edit Client" key="edit-client">
+                </div>
+            ),
+            width: 180,
+        },
+        {
+            title: 'Status',
+            dataIndex: 'active',
+            render: (_, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <Tag color={record.active ? 'success' : 'error'}>
+                        {record.active ? 'Actif' : 'Inactif'}
+                    </Tag>
+                    <Tag color={record.verify ? 'success' : 'warning'}>
+                        {record.verify ? 'Vérifié' : 'Non vérifié'}
+                    </Tag>
+                </div>
+            ),
+            width: 120,
+        },
+        {
+            title: 'Actions',
+            dataIndex: 'action',
+            render: (_, record) => (
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <Tooltip title="Voir Profil Détaillé">
                         <Button
-                            type="link"
-                            style={{ color: 'var(--limon)', borderColor: "var(--limon)", background: "transparent", marginRight: '8px' }}
-                            icon={<FaPenFancy size={20} />}
-                            onClick={() => navigate(`/dashboard/compte/client/${record._id}`, { state: { from: '/dashboard/compte/client' } })}
+                            type="primary"
+                            icon={<FaEye />}
+                            onClick={() => handleViewProfile(record)}
+                            style={{
+                                backgroundColor: '#1890ff',
+                                borderColor: '#1890ff'
+                            }}
                         />
                     </Tooltip>
-                    <Tooltip title="Delete Client" key="delete-client">
+                    <Tooltip title="Réinitialiser le mot de passe">
                         <Button
-                            type="link"
-                            style={{ color: 'red', borderColor: "red", background: "transparent" }}
-                            icon={<MdDelete size={20} />}
-                            onClick={() => handleDeleteProfile(record._id)}
+                            type="primary"
+                            icon={<FaKey />}
+                            onClick={() => {
+                                setSelectedUser(record);
+                                setIsPasswordModalVisible(true);
+                            }}
+                            style={{
+                                backgroundColor: '#722ed1',
+                                borderColor: '#722ed1'
+                            }}
+                        />
+                    </Tooltip>
+                    <Tooltip title={record.verify ? "Compte vérifié" : "Vérifier le compte"}>
+                        <Button
+                            type="primary"
+                            icon={<GoVerified />}
+                            onClick={() => handleVerifyClient(record._id)}
+                            disabled={record.verify}
+                            style={{
+                                backgroundColor: record.verify ? '#52c41a' : '#fa8c16',
+                                borderColor: record.verify ? '#52c41a' : '#fa8c16'
+                            }}
+                        />
+                    </Tooltip>
+                    <Tooltip title={record.active ? "Désactiver le compte" : "Activer le compte"}>
+                        <Button
+                            type="primary"
+                            icon={<ExclamationCircleOutlined />}
+                            onClick={() => toggleActiveCompte(record._id, record.role)}
+                            style={{
+                                backgroundColor: record.active ? '#ff4d4f' : '#52c41a',
+                                borderColor: record.active ? '#ff4d4f' : '#52c41a'
+                            }}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Supprimer le compte">
+                        <Button
+                            type="primary"
+                            danger
+                            icon={<MdDelete />}
+                            onClick={() => handleDeleteClient(record._id)}
                         />
                     </Tooltip>
                 </div>
             ),
-            width: 200,
+            width: 300,
         }
     ];
 
-    const filteredData = profileList.filter(client => {
+    const filteredData = (profileList || []).filter(client => {
         // Get store names if available
-        const storeNames = client.stores && client.stores.length > 0
-            ? client.stores.map(store => store.storeName).join(' ')
+        const storeNames = client?.stores && client.stores.length > 0
+            ? client.stores.map(store => store?.storeName || '').join(' ')
             : '';
 
         const fullText = [
-            client.nom,
-            client.prenom,
-            client.username,
-            client.email,
-            client.tele,
-            client.ville,
-            client.adresse,
+            client?.nom || '',
+            client?.prenom || '',
+            client?.username || '',
+            client?.email || '',
+            client?.tele || '',
+            client?.ville || '',
+            client?.adresse || '',
             storeNames // Add store names to the search text
         ].join(' ').toLowerCase();
 
         return fullText.includes(searchTerm.toLowerCase());
     });
 
-    const openStoreForm = (store) => {
-        setStoreToEdit(store);
-        setIsStoreFormVisible(true);
-    };
-
-    const closeStoreForm = () => {
-        setIsStoreFormVisible(false);
-        setStoreToEdit(null);
-    };
-
-    const handleToggleAutoDR = (storeId) => {
-        dispatch(toggleAutoDR(storeId));
+    // Handle password reset
+    const handlePasswordReset = async (values) => {
+        try {
+            await dispatch(resetUserPassword(selectedUser._id, values.newPassword));
+            message.success('Mot de passe réinitialisé avec succès');
+            setIsPasswordModalVisible(false);
+            setSelectedUser(null);
+        } catch (error) {
+            message.error('Erreur lors de la réinitialisation du mot de passe');
+        }
     };
 
     return (
@@ -721,30 +463,25 @@ function Client({ search }) {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }}
                     >
-                        <Typography.Title level={4} style={{ marginBottom: '16px' }}>Gestion des utilisateurs ( client )</Typography.Title>
+                        <Typography.Title level={4} style={{ marginBottom: '16px' }}>
+                            Gestion des Clients
+                        </Typography.Title>
 
-                            <Button
-                                type="primary"
-                                icon={<FaPlus />}
-                                onClick={() => openDrawer(null)}
-                                style={{ marginBottom: 16 }}
-                            >
-                                Add Client
-                            </Button>
                         <SearchWrapper>
                             <Input.Search
-                                placeholder="Rechercher par nom, email, store..."
+                                placeholder="Rechercher par nom, téléphone, ville, store..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{ width: 300 }}
+                                style={{ width: 400 }}
                                 allowClear
                             />
                             <Button
                                 type="primary"
                                 icon={<ReloadOutlined />}
                                 onClick={() => dispatch(getProfileList("client"))}
+                                loading={loading}
                             >
-                                Rafraîchir
+                                Actualiser
                             </Button>
                         </SearchWrapper>
 
@@ -758,482 +495,57 @@ function Client({ search }) {
                                 pageSize: 10,
                                 showSizeChanger: true,
                                 showTotal: (total, range) =>
-                                    `${range[0]}-${range[1]} sur ${total} éléments`,
+                                    `${range[0]}-${range[1]} sur ${total} clients`,
                             }}
                             size="middle"
-
                             bordered
-                            rowClassName={(record) =>
-                                record.active ? 'table-row-active' : 'table-row-inactive'
-                            }
+                            loading={loading}
+                            locale={{
+                                emptyText: loading ? 'Chargement...' : 'Aucun client trouvé'
+                            }}
                         />
 
+                        {/* Password Reset Modal */}
                         <Modal
-                            title="Stores"
-                            open={isModalStoreOpen}
-                            onOk={handleOk}
-                            onCancel={handleOk}
-                            footer={[
-                                <Button key="close" onClick={handleOk}>
-                                    Close
-                                </Button>,
-                            ]}
-                            width={900}
+                            title="Réinitialiser le mot de passe"
+                            open={isPasswordModalVisible}
+                            onCancel={() => {
+                                setIsPasswordModalVisible(false);
+                                setSelectedUser(null);
+                            }}
+                            footer={null}
                             centered
-                            destroyOnClose
                         >
-                            {loadingStores ? (
-                                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                                    <Spin size="large" />
-                                </div>
-                            ) : (
-                                <>
-                                    <Space style={{ marginBottom: 16 }}>
+                            {selectedUser && (
+                                <div style={{ padding: '20px' }}>
+                                    <Typography.Text strong>
+                                        Réinitialiser le mot de passe pour: {selectedUser.nom} {selectedUser.prenom}
+                                    </Typography.Text>
+                                    <div style={{ marginTop: '20px', textAlign: 'center' }}>
                                         <Button
                                             type="primary"
-                                            icon={<FaPlus />}
-                                            onClick={() => openStoreForm(null)}
+                                            onClick={async () => {
+                                                try {
+                                                    await dispatch(resetUserPassword(selectedUser._id, 'newPassword123'));
+                                                    message.success('Mot de passe réinitialisé avec succès');
+                                                    setIsPasswordModalVisible(false);
+                                                    setSelectedUser(null);
+                                                } catch (error) {
+                                                    message.error('Erreur lors de la réinitialisation');
+                                                }
+                                            }}
                                         >
-                                            Add Store
+                                            Réinitialiser le mot de passe
                                         </Button>
-                                    </Space>
-                                    <Row gutter={[16, 16]}>
-                                        {selectedStores && selectedStores.length > 0 ? (
-                                            selectedStores.map(store => (
-                                                <Col xs={24} sm={12} md={8} key={store._id}>
-                                                    <Card
-                                                        hoverable
-                                                        actions={[
-                                                            <Tooltip title="Edit Store" key="edit">
-                                                                <Button
-                                                                    type="link"
-                                                                    icon={<FaPenFancy />}
-                                                                    onClick={() => openStoreForm(store)}
-                                                                >
-                                                                    Edit
-                                                                </Button>
-                                                            </Tooltip>,
-                                                            <Tooltip title="Delete Store" key="delete">
-                                                                <Button
-                                                                    type="link"
-                                                                    icon={<MdDelete />}
-                                                                    danger
-                                                                    onClick={() => dispatch(deleteStore(store._id))}
-                                                                >
-                                                                    Delete
-                                                                </Button>
-                                                            </Tooltip>,
-                                                        ]}
-                                                    >
-                                                        <Card.Meta
-                                                            title={store.storeName}
-                                                            description={
-                                                                <Descriptions size="small" column={1} bordered>
-                                                                    <Descriptions.Item label="Image">
-                                                                        <Avatar
-                                                                            src={store.image.url}
-                                                                            size='large'
-                                                                        />
-                                                                    </Descriptions.Item>
-                                                                    <Descriptions.Item label="Téléphone">
-                                                                        <Space>
-                                                                            <PhoneOutlined />
-                                                                            {store.tele || 'N/A'}
-                                                                        </Space>
-                                                                    </Descriptions.Item>
-                                                                    <Descriptions.Item label="Solde">
-                                                                        <Space>
-                                                                            <DollarCircleOutlined />
-                                                                            {store.solde} DH
-                                                                        </Space>
-                                                                    </Descriptions.Item>
-                                                                    <Descriptions.Item label="Adresse">
-                                                                        <Space>
-                                                                            <EnvironmentOutlined />
-                                                                            {store.adress || 'N/A'}
-                                                                        </Space>
-                                                                    </Descriptions.Item>
-                                                                    <Descriptions.Item label="Auto D-R">
-                                                                        <Switch
-                                                                            checked={store.auto_DR}
-                                                                            onChange={() => handleToggleAutoDR(store._id)}
-                                                                            checkedChildren="Oui"
-                                                                            unCheckedChildren="Non"
-                                                                        />
-                                                                    </Descriptions.Item>
-                                                                </Descriptions>
-                                                            }
-                                                        />
-                                                    </Card>
-                                                </Col>
-                                            ))
-                                        ) : (
-                                            <Col span={24}>
-                                                <Typography.Text type="secondary">Aucun magasin trouvé pour ce client.</Typography.Text>
-                                            </Col>
-                                        )}
-                                    </Row>
-                                </>
-                            )}
-                        </Modal>
-
-                        <Drawer
-                            title={storeToEdit ? "Edit Store" : "Add Store"}
-                            placement="right"
-                            onClose={closeStoreForm}
-                            visible={isStoreFormVisible}
-                            width={500}
-                            destroyOnClose
-                        >
-                            <StoreForm
-                                onClose={closeStoreForm}
-                                initialValues={storeToEdit}
-                                isEdit={Boolean(storeToEdit)}
-                            />
-                        </Drawer>
-
-                        <Drawer
-                            title={currentClient ? "Edit Client" : "Add Client"}
-                            placement="right"
-                            onClose={closeDrawer}
-                            open={drawerVisible}
-                            width={500}
-                            destroyOnClose
-                        >
-                            <ClientFormAdd client={currentClient} close={closeDrawer} />
-                        </Drawer>
-
-                        <Modal
-                            title={selectedClient ? `Documents de ${selectedClient.nom} ${selectedClient.prenom}` : "Documents"}
-                            visible={isDocumentsModalVisible}
-                            onCancel={closeDocumentsModal}
-                            footer={[
-                                <Button key="close" onClick={closeDocumentsModal}>
-                                    Fermer
-                                </Button>,
-                            ]}
-                            width={800}
-                        >
-                            {loadingDocs ? (
-                                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                                    <Spin size="large" />
+                                    </div>
                                 </div>
-                            ) : errorDocs ? (
-                                <Typography.Text type="danger">{errorDocs}</Typography.Text>
-                            ) : files.length > 0 ? (
-                                <Row gutter={[16, 16]}>
-                                    {files.map((doc) => (
-                                        <Col xs={24} sm={12} md={8} key={doc.id}>
-                                            <Card
-                                                hoverable
-                                                cover={<Image alt={`CIN Recto ${doc.id}`} src={doc.cinRecto.url} />}
-                                            >
-                                                <Card.Meta
-                                                    title={`${doc.type}`}
-                                                    description={
-                                                        <div>
-                                                            <p>Recto: <a href={doc.cinRecto.url} target="_blank" rel="noopener noreferrer">Voir</a></p>
-                                                            <p>Verso: <a href={doc.cinVerso.url} target="_blank" rel="noopener noreferrer">Voir</a></p>
-                                                        </div>
-                                                    }
-                                                />
-                                            </Card>
-                                        </Col>
-                                    ))}
-                                </Row>
-                            ) : (
-                                <Typography.Text type="secondary">Aucun document trouvé pour ce client.</Typography.Text>
                             )}
                         </Modal>
-
-                         <Modal
-                title="Reset User Password"
-                visible={isPasswordModalVisible}
-                onCancel={handleCancel}
-                footer={null}
-                centered
-                destroyOnClose
-            >
-                <Form
-                    form={form}
-                    onFinish={handlePasswordSubmit}
-                    layout="vertical"
-                >
-                    <Form.Item
-                        label="New Password"
-                        name="newPassword"
-                        rules={[
-                            { required: true, message: 'Please input the new password!' },
-                            { min: 6, message: 'Password must be at least 6 characters' },
-                        ]}
-                    >
-                        <Input.Password placeholder="Enter new password" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Confirm New Password"
-                        name="confirmPassword"
-                        dependencies={['newPassword']}
-                        rules={[
-                            { required: true, message: 'Please confirm the new password!' },
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    if (!value || getFieldValue('newPassword') === value) {
-                                        return Promise.resolve();
-                                    }
-                                    return Promise.reject(new Error('Passwords do not match!'));
-                                },
-                            }),
-                        ]}
-                    >
-                        <Input.Password placeholder="Confirm new password" />
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit" block>
-                            Reset Password
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
-
-            <Modal
-                title="Wallet Information"
-                open={isWalletModalVisible}
-                onCancel={() => setIsWalletModalVisible(false)}
-                footer={[
-                    <Button key="close" onClick={() => setIsWalletModalVisible(false)}>
-                        Close
-                    </Button>
-                ]}
-                width={800}
-            >
-                {loadingWallet ? (
-                    <div style={{ textAlign: 'center', padding: '20px' }}>
-                        <Spin size="large" />
-                    </div>
-                ) : (
-                    <div>
-                        {selectedWallet ? (
-                            <Tabs defaultActiveKey="info">
-                                <Tabs.TabPane tab="Information" key="info">
-                                    <Descriptions bordered column={1}>
-                                        <Descriptions.Item label="Wallet Key">
-                                            <Tag color="green">
-                                                <Typography.Text copyable style={{ color: 'inherit' }}>
-                                                    {selectedWallet.key}
-                                                </Typography.Text>
-                                            </Tag>
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label="Balance">
-                                            <Tag color="blue" style={{ fontSize: '16px' }}>
-                                                {selectedWallet.solde} DH
-                                            </Tag>
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label="Status">
-                                            <Space>
-                                                <Tag color={selectedWallet.active ? "green" : "red"}>
-                                                    {selectedWallet.active ? "Active" : "Inactive"}
-                                                </Tag>
-                                                <Switch
-                                                    checked={selectedWallet.active}
-                                                    onChange={() => handleToggleWallet(selectedWallet._id)}
-                                                    loading={walletLoading}
-                                                    checkedChildren="Active"
-                                                    unCheckedChildren="Inactive"
-                                                    style={{
-                                                        backgroundColor: selectedWallet.active ? '#52c41a' : '#ff4d4f',
-                                                    }}
-                                                />
-                                            </Space>
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label="Created At">
-                                            {new Date(selectedWallet.createdAt).toLocaleString()}
-                                        </Descriptions.Item>
-                                    </Descriptions>
-                                </Tabs.TabPane>
-
-                                <Tabs.TabPane tab="Manuel Transfer" key="manual">
-                                    <Card
-                                        title={
-                                            <Radio.Group
-                                                value={transferType}
-                                                onChange={(e) => setTransferType(e.target.value)}
-                                                buttonStyle="solid"
-                                            >
-                                                <Radio.Button value="depot">Dépôt Manuel</Radio.Button>
-                                                <Radio.Button value="withdrawal">Retrait Manuel</Radio.Button>
-                                            </Radio.Group>
-                                        }
-                                    >
-                                        <Form
-                                            form={manualTransferForm}
-                                            layout="vertical"
-                                            onFinish={handleManualTransfer}
-                                        >
-                                            <Form.Item
-                                                name="montant"
-                                                label="Montant (DH)"
-                                                rules={[
-                                                    { required: true, message: 'Veuillez entrer le montant' },
-                                                    {
-                                                        validator: (_, value) => {
-                                                            if (!value || isNaN(value) || parseFloat(value) <= 0) {
-                                                                return Promise.reject('Le montant doit être un nombre positif');
-                                                            }
-
-                                                            if (transferType === 'withdrawal' && selectedWallet && parseFloat(value) > selectedWallet.solde) {
-                                                                return Promise.reject('Solde insuffisant pour ce retrait');
-                                                            }
-
-                                                            return Promise.resolve();
-                                                        }
-                                                    }
-                                                ]}
-                                            >
-                                                <InputNumber
-                                                    style={{ width: '100%' }}
-                                                    min={0.01}
-                                                    step={0.01}
-                                                    precision={2}
-                                                    placeholder="Entrez le montant"
-                                                />
-                                            </Form.Item>
-
-                                            <Form.Item
-                                                name="commentaire"
-                                                label="Commentaire"
-                                                rules={[
-                                                    { required: true, message: 'Veuillez entrer un commentaire' },
-                                                    { min: 5, message: 'Le commentaire doit contenir au moins 5 caractères' }
-                                                ]}
-                                            >
-                                                <Input.TextArea
-                                                    rows={4}
-                                                    placeholder="Raison de ce transfert manuel"
-                                                />
-                                            </Form.Item>
-
-                                            <Form.Item>
-                                                <Button
-                                                    type="primary"
-                                                    htmlType="submit"
-                                                    loading={loadingWallet}
-                                                    block
-                                                >
-                                                    {transferType === 'depot' ? 'Effectuer le dépôt' : 'Effectuer le retrait'}
-                                                </Button>
-                                            </Form.Item>
-                                        </Form>
-                                    </Card>
-                                </Tabs.TabPane>
-
-                                <Tabs.TabPane tab="Historique des Transfers" key="history">
-                                    <Table
-                                        dataSource={walletTransfers}
-                                        rowKey="_id"
-                                        pagination={{ pageSize: 5 }}
-                                        size="small"
-                                        columns={[
-                                            {
-                                                title: 'Date',
-                                                dataIndex: 'createdAt',
-                                                render: (text) => formatDate(text)
-                                            },
-                                            {
-                                                title: 'Type',
-                                                dataIndex: 'type',
-                                                render: (type) => (
-                                                    <Tag color={
-                                                        type === 'Deposit' ? 'green' :
-                                                        type === 'Manuel Depot' ? 'blue' :
-                                                        type === 'Manuel Withdrawal' ? 'orange' :
-                                                        'red'
-                                                    }>
-                                                        {type}
-                                                    </Tag>
-                                                )
-                                            },
-                                            {
-                                                title: 'Montant',
-                                                dataIndex: 'montant',
-                                                render: (montant, record) => (
-                                                    <span style={{
-                                                        color: record.type === 'Manuel Withdrawal' ? 'red' : 'green',
-                                                        fontWeight: 'bold'
-                                                    }}>
-                                                        {record.type === 'Manuel Withdrawal' ? '-' : '+'}{montant} DH
-                                                    </span>
-                                                )
-                                            },
-                                            {
-                                                title: 'Status',
-                                                dataIndex: 'status',
-                                                render: (status) => (
-                                                    <Tag color={
-                                                        status === 'validé' ? 'green' :
-                                                        status === 'corrigé' ? 'blue' :
-                                                        status === 'annuler' ? 'red' :
-                                                        'orange'
-                                                    }>
-                                                        {status}
-                                                    </Tag>
-                                                )
-                                            },
-                                            {
-                                                title: 'Commentaire',
-                                                dataIndex: 'commentaire',
-                                                ellipsis: true
-                                            }
-                                        ]}
-                                    />
-                                </Tabs.TabPane>
-                            </Tabs>
-                        ) : (
-                            <Empty description="No wallet information available" />
-                        )}
-                    </div>
-                )}
-            </Modal>
                     </div>
                 </div>
             </main>
         </div>
     );
 }
-
-const styles = `
-  .table-row-active {
-    background-color: rgba(82, 196, 26, 0.1);
-  }
-
-  .table-row-inactive {
-    background-color: rgba(255, 77, 79, 0.1);
-  }
-
-  .ant-avatar:hover {
-    transform: scale(1.1);
-  }
-
-  .ant-tag {
-    cursor: default;
-    transition: all 0.3s;
-  }
-
-  .ant-tag:hover {
-    transform: scale(1.05);
-  }
-
-  @media (max-width: 576px) {
-    .ant-table-thead > tr > th,
-    .ant-table-tbody > tr > td {
-      font-size: 12px;
-    }
-  }
-`;
-
-const styleSheet = document.createElement('style');
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
 
 export default Client;

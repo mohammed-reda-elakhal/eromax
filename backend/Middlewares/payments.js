@@ -82,7 +82,7 @@ const withdrawalWallet = async (walletId, montant, paymentId) => {
         if (wallet.solde < totalAmount) {
             throw new Error("Insufficient balance. Please ensure you have enough balance including the 5 fee.");
         }
-
+        
         // Check for 24-hour cooldown
         const lastWithdrawal = await Withdrawal.findOne({
             wallet: walletId,
@@ -95,7 +95,7 @@ const withdrawalWallet = async (walletId, montant, paymentId) => {
             const timeLeft = Math.ceil((24 * 60 * 60 * 1000 - (Date.now() - lastWithdrawal.createdAt)) / (1000 * 60 * 60));
             throw new Error(`You can only make one withdrawal every 24 hours. Please wait ${timeLeft} hours before trying again.`);
         }
-
+        
 
         // Create a transfer record for this withdrawal
         const transfer = await createTransferOperation(

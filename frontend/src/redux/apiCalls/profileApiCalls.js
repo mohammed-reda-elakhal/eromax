@@ -123,6 +123,7 @@ export function updateProfileImageOld(userId, formData) {
 // Delete Profile
 export function deleteProfile(role, userId) {
     return async (dispatch) => {
+        dispatch(profileActions.deleteProfileStart());
         try {
             const { data } = await request.delete(`/api/${role}/${userId}`);
             dispatch(profileActions.deleteProfileSuccess(userId));
@@ -130,6 +131,7 @@ export function deleteProfile(role, userId) {
         } catch (error) {
             console.error('Delete profile error:', error);
             const errorMessage = error.response?.data?.message || error.message || "Failed to delete profile";
+            dispatch(profileActions.deleteProfileFailure(errorMessage));
             toast.error(errorMessage);
         }
     };
@@ -165,10 +167,11 @@ export function updateProfileImage(userId, role, formData) {
 }
 export function toggleActiveClient(clientId, role) {
     return async (dispatch) => {
+        dispatch(profileActions.toggleActiveClientStart());
         try {
             const { data } = await request.patch(`/api/${role}/active/${clientId}`);
             let updatedData = null;
-            
+
             // Handle different role-based responses
             if (role === 'client') {
                 updatedData = data.client;  // For client, update the 'client' key
@@ -177,12 +180,13 @@ export function toggleActiveClient(clientId, role) {
             } else if (role === 'livreur') {
                 updatedData = data.livreur;  // For livreur, update the 'livreur' key
             }
-            
+
             dispatch(profileActions.toggleActiveClient(updatedData));
             toast.success(data.message);
         } catch (error) {
             console.error('Toggle active client error:', error);
             const errorMessage = error.response?.data?.message || error.message || "Failed to toggle client account status";
+            dispatch(profileActions.toggleActiveClientFailure(errorMessage));
             toast.error(errorMessage);
         }
     };

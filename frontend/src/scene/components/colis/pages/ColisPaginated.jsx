@@ -34,6 +34,7 @@ import StatusModal from '../modals/StatusModal';
 import { Form } from 'antd';
 import { updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
 import { useNavigate } from 'react-router-dom';
+import { message } from 'antd';
 import TicketColis2 from '../components/TicketColis2';
 // Add reclamation imports
 import { createReclamation, getReclamationsByColis } from '../../../../redux/apiCalls/reclamationApiCalls';
@@ -440,6 +441,15 @@ function ColisPaginated() {
     return (colisPaginatedList.data || []).filter(row => selectedRowIds.includes(row._id));
   };
 
+  // Navigate to ProfileUser page
+  const handleViewProfile = (store) => {
+    if (store?._id) {
+      navigate(`/dashboard/profile-user/${store._id}`);
+    } else {
+      message.warning('Impossible de naviguer vers le profil: ID de boutique manquant');
+    }
+  };
+
   // Handle ticket generation
   const handleGenerateTickets = () => {
     const dataToUse = getSelectedData();
@@ -713,7 +723,33 @@ function ColisPaginated() {
   ];
   const adminColumns = user?.role === 'admin' ? [
     { key: 'store', label: <>🏬 Store</>, render: (record) => (
-      <span>{record.store?.storeName || 'N/A'}</span>
+      <Tooltip title="Cliquer pour voir le profil détaillé">
+        <span
+          onClick={() => handleViewProfile(record.store)}
+          style={{
+            color: record.store?._id ? '#1890ff' : 'inherit',
+            cursor: record.store?._id ? 'pointer' : 'default',
+            textDecoration: record.store?._id ? 'underline' : 'none',
+            transition: 'all 0.3s ease',
+            padding: '2px 4px',
+            borderRadius: '4px'
+          }}
+          onMouseEnter={(e) => {
+            if (record.store?._id) {
+              e.target.style.backgroundColor = theme === 'dark' ? '#1f1f1f' : '#f0f8ff';
+              e.target.style.transform = 'scale(1.02)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (record.store?._id) {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.transform = 'scale(1)';
+            }
+          }}
+        >
+          {record.store?.storeName || 'N/A'}
+        </span>
+      </Tooltip>
     ) },
     { key: 'livreur', label: <>🧑‍💼 Livreur</>, render: (record) => (
       <span>{record.livreur?.username || record.livreur?.nom || 'N/A'}</span>
@@ -1699,7 +1735,35 @@ function ColisPaginated() {
                       {/* Store & Livreur */}
                       <Divider orientation="left"><Tag color="purple"><ShopOutlined /> Store & Livreur</Tag></Divider>
                       <Descriptions bordered column={2} size="small">
-                        <Descriptions.Item label="Store">{detailsColis.store?.storeName}</Descriptions.Item>
+                        <Descriptions.Item label="Store">
+                          <Tooltip title="Cliquer pour voir le profil détaillé">
+                            <span
+                              onClick={() => handleViewProfile(detailsColis.store)}
+                              style={{
+                                color: detailsColis.store?._id ? '#1890ff' : 'inherit',
+                                cursor: detailsColis.store?._id ? 'pointer' : 'default',
+                                textDecoration: detailsColis.store?._id ? 'underline' : 'none',
+                                transition: 'all 0.3s ease',
+                                padding: '2px 4px',
+                                borderRadius: '4px'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (detailsColis.store?._id) {
+                                  e.target.style.backgroundColor = theme === 'dark' ? '#1f1f1f' : '#f0f8ff';
+                                  e.target.style.transform = 'scale(1.02)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (detailsColis.store?._id) {
+                                  e.target.style.backgroundColor = 'transparent';
+                                  e.target.style.transform = 'scale(1)';
+                                }
+                              }}
+                            >
+                              {detailsColis.store?.storeName || 'N/A'}
+                            </span>
+                          </Tooltip>
+                        </Descriptions.Item>
                         <Descriptions.Item label="Livreur">{detailsColis.livreur?.username || detailsColis.livreur?.nom}</Descriptions.Item>
                         <Descriptions.Item label="Téléphone Store">{detailsColis.store?.tele}</Descriptions.Item>
                         <Descriptions.Item label="Téléphone Livreur">{detailsColis.livreur?.tele}</Descriptions.Item>

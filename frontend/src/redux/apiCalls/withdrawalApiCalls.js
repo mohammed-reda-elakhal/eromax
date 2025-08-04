@@ -64,7 +64,7 @@ export function createWithdrawal(withdrawalData) {
     try {
       // Get token from localStorage
       const token = localStorage.getItem('token');
-      
+
       // Add token to request headers
       const headers = {
         Authorization: `Bearer ${token}`
@@ -76,6 +76,33 @@ export function createWithdrawal(withdrawalData) {
     } catch (error) {
       dispatch(withdrawalActions.fetchWithdrawalsFailure(error.message || "Failed to create withdrawal"));
       toast.error(error.message || "Failed to create withdrawal");
+    }
+  };
+}
+
+// Admin create withdrawal on behalf of user
+export function createAdminWithdrawal(withdrawalData) {
+  return async (dispatch) => {
+    dispatch(withdrawalActions.fetchWithdrawalsStart());
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+
+      // Add token to request headers
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const { data } = await request.post('/api/withdrawal/admin', withdrawalData, { headers });
+      dispatch(withdrawalActions.createWithdrawalSuccess(data.withdrawal));
+      toast.success("Admin withdrawal created successfully");
+      return data;
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || "Failed to create admin withdrawal";
+      dispatch(withdrawalActions.fetchWithdrawalsFailure(errorMessage));
+      toast.error(errorMessage);
+      throw error;
     }
   };
 }

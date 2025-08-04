@@ -1,8 +1,9 @@
 const router = require('express').Router();
-const { 
-    createWithdrawal, 
-    getAllWithdrawals, 
-    getWithdrawalsByWalletId, 
+const {
+    createWithdrawal,
+    createAdminWithdrawal,
+    getAllWithdrawals,
+    getWithdrawalsByWalletId,
     getWithdrawalsByWalletKey,
     getWithdrawalsByStoreId,
     getWithdrawalById,
@@ -14,6 +15,9 @@ const { verifyToken } = require('../Middlewares/VerifyToken');
 
 // Create a new withdrawal
 router.post('/', photoUpload.single('verment_preuve'), createWithdrawal);
+
+// Admin create withdrawal on behalf of user
+router.post('/admin', verifyToken, createAdminWithdrawal);
 
 // Get all withdrawals
 router.get('/', verifyToken , getAllWithdrawals);

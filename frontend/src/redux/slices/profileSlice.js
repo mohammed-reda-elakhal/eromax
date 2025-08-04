@@ -18,6 +18,8 @@ const profileSlice = createSlice({
             state.error = null;
         },
         fetchProfileSuccess(state, action) {
+            state.loading = false;
+            state.error = null;
             state.profile = action.payload;
         },
         fetchProfileFailure(state, action) {
@@ -62,24 +64,46 @@ const profileSlice = createSlice({
 
         // Set Profile List
         setProfileList(state, action) {
+            state.loading = false;
+            state.error = null;
             state.profileList = action.payload;
         },
 
         // Delete Profile (if needed)
+        deleteProfileStart(state) {
+            state.loading = true;
+            state.error = null;
+        },
         deleteProfileSuccess(state, action) {
+            state.loading = false;
             state.profileList = state.profileList.filter(profile => profile._id !== action.payload);
         },
+        deleteProfileFailure(state, action) {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // Toggle Active Client
+        toggleActiveClientStart(state) {
+            state.loading = true;
+            state.error = null;
+        },
         toggleActiveClient(state, action) {
+            state.loading = false;
             state.profileList = state.profileList.map(profile => {
                 if (profile._id === action.payload._id) {
                     return { ...profile, active: action.payload.active };
                 }
                 return profile;
             });
-        
+
             if (state.profile && state.profile._id === action.payload._id) {
                 state.profile.active = action.payload.active;
             }
+        },
+        toggleActiveClientFailure(state, action) {
+            state.loading = false;
+            state.error = action.payload;
         },
         verifyClientStart(state) {
             state.loading = true;
