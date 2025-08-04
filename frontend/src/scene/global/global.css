@@ -18,6 +18,25 @@
   margin: 16px;
   transition-duration: 0.5s;
 }
+
+/* Mobile overrides */
+@media (max-width: 767px) {
+  .open-menu {
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+  
+  .open-menu-c {
+    position: fixed !important;
+    top: 10px !important;
+    left: 260px !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+}
 .menu-bar-open {
   transform: translateX(0px);
   transition-duration: 0.2s;
@@ -646,6 +665,59 @@
   .open-menu,
   .open-menu-c {
     display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .open-menu {
+    display: block !important;
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 1000 !important;
+    transform: none !important;
+    margin: 0 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: left 0.3s ease !important;
+  }
+  
+  .open-menu-c {
+    display: block !important;
+    position: fixed !important;
+    top: 10px !important;
+    left: 260px !important;
+    z-index: 1000 !important;
+    transform: none !important;
+    margin: 0 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: left 0.3s ease !important;
+  }
+  
+  .open-menu .ant-btn,
+  .open-menu-c .ant-btn {
+    border: none !important;
+    box-shadow: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+  }
+  
+  /* Override desktop styles for mobile */
+  .open-menu {
+    transform: none !important;
+  }
+  
+  .open-menu-c {
+    transform: none !important;
   }
 }
 

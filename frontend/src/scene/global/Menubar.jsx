@@ -119,17 +119,32 @@ function Menubar() {
     localStorage.setItem('menuCollapsed', JSON.stringify(newCollapsedState));
   };
   const toggleMenu = () =>{
-    setOpenMenu(prev => !prev)
-    if(!openMenu){
-      setCollapsed(true)
+    if(window.innerWidth < 768) {
+      // On mobile: toggle both menu visibility and collapsed state together
+      setOpenMenu(prev => {
+        const newOpenMenu = !prev;
+        if(newOpenMenu) {
+          setCollapsed(false); // Expand menu when opening
+        } else {
+          setCollapsed(true); // Collapse menu when closing
+        }
+        return newOpenMenu;
+      });
+    } else {
+      // On desktop: just toggle menu visibility
+      setOpenMenu(prev => !prev)
+      if(!openMenu){
+        setCollapsed(true)
+      }
     }
   }
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
-        // On mobile devices, keep it collapsed
+        // On mobile devices, keep menu collapsed and closed by default
         setCollapsed(true);
+        setOpenMenu(false);
         localStorage.setItem('menuCollapsed', JSON.stringify(true));
       } else {
         // On laptop/desktop devices, force it open
@@ -148,17 +163,18 @@ function Menubar() {
   }, []);
 
   return (
-    <div className={openMenu ? 'menu-bar-open' : 'menu-bar'}>
-      <Menu
-        mode="inline"
-        theme={theme === 'dark' ? 'dark' : 'light'}
-        inlineCollapsed={collapsed}
-        className='menu'
-      >
-        <div className= {collapsed ?  'open-menu' : 'open-menu-c'}>
-          <Button type='primary' icon={<CiMenuFries />} onClick={toggleMenu}>
-          </Button>
-        </div>
+    <>
+      <div className= {collapsed ?  'open-menu' : 'open-menu-c'}>
+        <Button type='primary' icon={<CiMenuFries />} onClick={toggleMenu}>
+        </Button>
+      </div>
+      <div className={openMenu ? 'menu-bar-open' : 'menu-bar'}>
+        <Menu
+          mode="inline"
+          theme={theme === 'dark' ? 'dark' : 'light'}
+          inlineCollapsed={collapsed}
+          className='menu'
+        >
         <div className={`header-menu reclamation-item`} style={{ position: 'relative', cursor: 'pointer', marginBottom: '15px' }}>
             <img
               src={'/image/eromax_logo3.png'}
@@ -485,8 +501,8 @@ function Menubar() {
         </Menu.Item>
 
       </Menu>
-
-    </div>
+      </div>
+    </>
   );
 }
 
