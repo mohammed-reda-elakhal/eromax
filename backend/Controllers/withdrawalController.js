@@ -235,14 +235,14 @@ const createAdminWithdrawal = asyncHandler(async (req, res) => {
             payment: paymentId,
             montant: pureMontant,
             frais: frais,
-            status: WITHDRAWAL_STATUS.ACCEPTED, // Admin withdrawals start as accepted
+            status: WITHDRAWAL_STATUS.PROCESSING, // Admin withdrawals start as accepted
             statusHistory: [
                 {
                     status: WITHDRAWAL_STATUS.WAITING,
                     note: 'تم إنشاء طلب السحب من قبل الإدارة'
                 },
                 {
-                    status: WITHDRAWAL_STATUS.ACCEPTED,
+                    status: WITHDRAWAL_STATUS.PROCESSING,
                     note: note || `Admin withdrawal: ${pureMontant} DH approved automatically`
                 }
             ]

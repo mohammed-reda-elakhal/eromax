@@ -833,55 +833,48 @@ function ProfileUser() {
 
                                                     {/* Collapsible Admin Controls for Wallet Management */}
                                                     {isAdmin && adminPanelOpen.wallet && (
-                                                        <div className="admin-controls" style={{ marginTop: '20px' }}>
-                                                            <div className="admin-controls-buttons">
-                                                                <Button
-                                                                    className={`admin-button ${wallet.active ? 'admin-button-danger' : 'admin-button-success'}`}
-                                                                    icon={<SettingOutlined />}
+                                                        <div className="admin-controls">
+                                                            <div className="wallet-buttons-container">
+                                                                <button
+                                                                    className={`wallet-button wallet-button-full ${wallet.active ? 'wallet-button-danger' : 'wallet-button-success'}`}
                                                                     onClick={handleToggleWalletActive}
-                                                                    size="small"
-                                                                    block
                                                                 >
+                                                                    <SettingOutlined />
                                                                     {wallet.active ? 'Désactiver' : 'Activer'} Portefeuille
-                                                                </Button>
-                                                                <div style={{ display: 'flex', gap: '8px' }}>
-                                                                    <Button
-                                                                        className="admin-button admin-button-success"
-                                                                        icon={<PlusOutlined />}
+                                                                </button>
+                                                                
+                                                                <div className="wallet-button-row">
+                                                                    <button
+                                                                        className="wallet-button wallet-button-success"
                                                                         onClick={() => openWalletModal('deposit')}
-                                                                        size="small"
-                                                                        style={{ flex: 1 }}
                                                                     >
+                                                                        <PlusOutlined />
                                                                         Dépôt
-                                                                    </Button>
-                                                                    <Button
-                                                                        className="admin-button admin-button-warning"
-                                                                        icon={<MinusOutlined />}
+                                                                    </button>
+                                                                    <button
+                                                                        className="wallet-button wallet-button-warning"
                                                                         onClick={() => openWalletModal('withdraw')}
-                                                                        size="small"
-                                                                        style={{ flex: 1 }}
                                                                     >
+                                                                        <MinusOutlined />
                                                                         Retrait
-                                                                    </Button>
+                                                                    </button>
                                                                 </div>
-                                                                <Button
-                                                                    className="admin-button admin-button-primary"
-                                                                    icon={<MinusOutlined />}
+                                                                
+                                                                <button
+                                                                    className="wallet-button wallet-button-full wallet-button-primary"
                                                                     onClick={openWithdrawalModal}
-                                                                    size="small"
-                                                                    block
                                                                 >
+                                                                    <MinusOutlined />
                                                                     Créer Retrait
-                                                                </Button>
-                                                                <Button
-                                                                    className="admin-button admin-button-danger"
-                                                                    icon={<UndoOutlined />}
+                                                                </button>
+                                                                
+                                                                <button
+                                                                    className="wallet-button wallet-button-full wallet-button-danger"
                                                                     onClick={handleResetWallet}
-                                                                    size="small"
-                                                                    block
                                                                 >
+                                                                    <UndoOutlined />
                                                                     Réinitialiser
-                                                                </Button>
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     )}
@@ -1625,36 +1618,38 @@ function ProfileUser() {
                         cancelText="Annuler"
                     >
                 <div style={{ padding: '16px 0' }}>
-                    <Text style={{ display: 'block', marginBottom: '12px' }}>
+                    <label className="form-label">
                         {walletAction === 'deposit'
                             ? 'Montant à déposer dans le portefeuille:'
                             : 'Montant à retirer du portefeuille:'
                         }
-                    </Text>
-                    <InputNumber
-                        style={{ width: '100%' }}
+                    </label>
+                    <input
+                        className="custom-input"
+                        type="number"
                         placeholder="Entrez le montant"
-                        value={walletAmount}
-                        onChange={setWalletAmount}
+                        value={walletAmount || ''}
+                        onChange={(e) => setWalletAmount(Number(e.target.value))}
                         min={0}
                         step={10}
-                        formatter={value => `${value} DH`}
-                        parser={value => value.replace(' DH', '')}
                     />
                     {wallet && (
-                        <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
+                        <div className="info-text" style={{ marginTop: '8px' }}>
                             Solde actuel: {wallet.solde} DH
-                        </Text>
+                        </div>
                     )}
                 </div>
             </Modal>
 
             {/* Admin Withdrawal Modal */}
             <Modal
+                className="professional-modal"
                 title={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <MinusOutlined />
-                        Créer une demande de retrait
+                    <div className="card-header">
+                        <div className="card-icon">
+                            <MinusOutlined />
+                        </div>
+                        <span>Créer une demande de retrait</span>
                     </div>
                 }
                 open={withdrawalModalVisible}
@@ -1667,60 +1662,50 @@ function ProfileUser() {
             >
                 <div style={{ padding: '16px 0' }}>
                     <div style={{ marginBottom: '16px' }}>
-                        <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                        <label className="form-label">
                             Montant à retirer (DH):
-                        </Text>
-                        <InputNumber
-                            style={{ width: '100%' }}
+                        </label>
+                        <input
+                            className="custom-input"
+                            type="number"
                             placeholder="Montant minimum: 100 DH"
-                            value={withdrawalAmount}
-                            onChange={setWithdrawalAmount}
+                            value={withdrawalAmount || ''}
+                            onChange={(e) => setWithdrawalAmount(Number(e.target.value))}
                             min={100}
                             max={wallet?.solde || 0}
                             step={10}
-                            formatter={value => `${value} DH`}
-                            parser={value => value.replace(' DH', '')}
                         />
                         {wallet && (
-                            <Text type="secondary" style={{ display: 'block', marginTop: '4px' }}>
+                            <div className="info-text" style={{ marginTop: '4px' }}>
                                 Solde disponible: {wallet.solde} DH | Frais: 5 DH | Net: {withdrawalAmount - 5} DH
-                            </Text>
+                            </div>
                         )}
                     </div>
 
                     <div style={{ marginBottom: '16px' }}>
-                        <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                        <label className="form-label">
                             Méthode de paiement:
-                        </Text>
-                        <Select
-                            style={{ width: '100%' }}
-                            placeholder="Sélectionner une méthode de paiement"
-                            value={selectedPayment}
-                            onChange={setSelectedPayment}
+                        </label>
+                        <select
+                            className="custom-select"
+                            value={selectedPayment || ''}
+                            onChange={(e) => setSelectedPayment(e.target.value)}
                         >
+                            <option value="">Sélectionner une méthode de paiement</option>
                             {payments.map(payment => (
-                                <Select.Option key={payment._id} value={payment._id}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        {payment.idBank?.image?.url && (
-                                            <img
-                                                src={payment.idBank.image.url}
-                                                alt="Bank"
-                                                style={{ width: '20px', height: '12px', objectFit: 'contain' }}
-                                            />
-                                        )}
-                                        <span>{payment.nom} - {payment.rib}</span>
-                                        {payment.default && <Tag color="green" size="small">Défaut</Tag>}
-                                    </div>
-                                </Select.Option>
+                                <option key={payment._id} value={payment._id}>
+                                    {payment.nom} - {payment.rib} {payment.default ? '(Défaut)' : ''}
+                                </option>
                             ))}
-                        </Select>
+                        </select>
                     </div>
 
                     <div style={{ marginBottom: '16px' }}>
-                        <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                        <label className="form-label">
                             Note (optionnel):
-                        </Text>
-                        <Input.TextArea
+                        </label>
+                        <textarea
+                            className="custom-textarea"
                             placeholder="Ajouter une note pour cette demande de retrait..."
                             value={withdrawalNote}
                             onChange={(e) => setWithdrawalNote(e.target.value)}
@@ -1735,10 +1720,10 @@ function ProfileUser() {
                         padding: '12px',
                         marginTop: '16px'
                     }}>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                        <div className="info-text" style={{ fontSize: '12px' }}>
                             <strong>Information:</strong> Cette demande sera créée avec le statut "Accepté" et sera traitée immédiatement.
                             Le montant sera déduit du portefeuille du client.
-                        </Text>
+                        </div>
                     </div>
                 </div>
             </Modal>
