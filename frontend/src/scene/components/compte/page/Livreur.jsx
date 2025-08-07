@@ -1,34 +1,190 @@
 import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
-import TableDashboard from '../../../global/TableDashboard';
-import { FaPenFancy, FaInfoCircle, FaPlus, FaBox } from "react-icons/fa";
+import { FaPenFancy, FaInfoCircle, FaPlus, FaBox, FaEye, FaKey, FaTruck, FaMapMarkerAlt, FaPhone, FaEnvelope, FaUser, FaCalendarAlt } from "react-icons/fa";
 import { MdAttachMoney, MdDelete } from "react-icons/md";
-import { Avatar, Button, Modal, Drawer, Input, Switch, Form, message } from 'antd';
+import { Avatar, Button, Modal, Drawer, Input, Switch, Form, message, Tooltip, Tag } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProfile, getProfileList } from '../../../../redux/apiCalls/profileApiCalls';
 import { useNavigate } from 'react-router-dom';
 import LivreurFormAdd from '../components/LivreurFormAdd';
 import Topbar from '../../../global/Topbar';
-import Title from '../../../global/Title';
 import Menubar from '../../../global/Menubar';
-import { toggleActiveClient } from '../../../../redux/apiCalls/profileApiCalls'; // Import the function
-import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls'; // Import password reset action
-
-import { ReloadOutlined } from '@ant-design/icons'; // Import the refresh icon
+import { toggleActiveClient } from '../../../../redux/apiCalls/profileApiCalls';
+import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls';
+import { ReloadOutlined } from '@ant-design/icons';
 import { TbLockPassword, TbZoomMoneyFilled } from 'react-icons/tb';
+import styled from 'styled-components';
+
+const CustomTable = styled.div`
+  background: ${props => props.theme === 'dark' ? '#001529' : '#fff'};
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-top: 20px;
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead {
+    background: ${props => props.theme === 'dark' ? '#002242' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
+    
+    th {
+      color: #fff;
+      font-weight: 600;
+      padding: 16px 12px;
+      text-align: left;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 3px solid ${props => props.theme === 'dark' ? '#1f1f1f' : '#5a67d8'};
+    }
+  }
+
+  tbody {
+    tr {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border-bottom: 1px solid ${props => props.theme === 'dark' ? '#1f1f1f' : '#e2e8f0'};
+      
+      &:hover {
+        background: ${props => props.theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(99, 102, 241, 0.02)'};
+        border-left: 3px solid ${props => props.theme === 'dark' ? '#4299e1' : '#6366f1'};
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 16px 12px;
+      vertical-align: middle;
+      color: ${props => props.theme === 'dark' ? '#fff' : '#2d3748'};
+    }
+  }
+
+  .profile-cell {
+    text-align: center;
+  }
+
+  .actions-cell {
+    text-align: center;
+  }
+
+  .colis-cell {
+    background: ${props => props.theme === 'dark' ? '#1a202c' : '#fff5f5'};
+    border-left: 4px solid #f56565;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .region-cell {
+    background: ${props => props.theme === 'dark' ? '#1a202c' : '#f0fff4'};
+    border-left: 4px solid #48bb78;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    
+    th, td {
+      padding: 8px 6px;
+    }
+  }
+`;
+
+const ActionButton = styled(Button)`
+  margin: 0 2px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    opacity: 0.9;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const StatusTag = styled(Tag)`
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+`;
+
+const ColisCount = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.2);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 3px 8px rgba(255, 107, 107, 0.3);
+    transform: translateY(-1px);
+  }
+`;
+
+const RegionTag = styled.div`
+  display: inline-block;
+  background: linear-gradient(135deg, #48bb78, #38a169);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  margin: 2px;
+  box-shadow: 0 1px 3px rgba(72, 187, 120, 0.2);
+`;
+
+const ClickableLivreurName = styled.div`
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
+  
+  &:hover {
+    background: ${props => props.theme === 'dark' ? 'rgba(66, 153, 225, 0.1)' : 'rgba(66, 153, 225, 0.1)'};
+    color: #4299e1;
+  }
+`;
 
 function Livreur() {
     const { theme } = useContext(ThemeContext);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const [isModalStoreOpen, setIsModalStoreOpen] = useState(false);
-    const [selectedStores, setSelectedStores] = useState([]);
-    const [drawerVisible, setDrawerVisible] = useState(false); // For Drawer visibility
-    const [currentClient, setCurrentClient] = useState(null); // Current client being edited or added
-    const [searchQuery, setSearchQuery] = useState(''); // State for search query
-    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false); // Password reset modal visibility
-    const [selectedUser, setSelectedUser] = useState(null); // Store selected user for password reset
+    const [drawerVisible, setDrawerVisible] = useState(false);
+    const [currentClient, setCurrentClient] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
 
     const { profileList, user, loading } = useSelector((state) => ({
         profileList: state.profile.profileList,
@@ -86,132 +242,14 @@ function Livreur() {
         dispatch(toggleActiveClient(id, role));
     };
 
-    // Define table columns
-    const columns = [
-        {
-            title: 'Profile',
-            dataIndex: 'profile',
-            render: (text, record) => (
-                <Avatar src={record.profile.url || '/image/user.png'} className='profile_image_user' />
-            ),
-        },
-        {
-            title: 'Nom Complet',
-            dataIndex: 'nom',
-            render: (text, record) => (
-                <span>{record.nom} {record.prenom}</span>
-            ),
-        },
-        {
-            title: 'Username',
-            dataIndex: 'username',
-            key: 'username',
-        },
-        {
-            title: 'Email',
-            dataIndex: 'email',
-            key: 'email',
-        },
-        {
-            title: 'Téléphone',
-            dataIndex: 'tele',
-            key: 'tele',
-        },
-        {
-            title: 'Region', // Adding the list of cities
-            dataIndex: 'villes',
-            key: 'villes',
-            render: (villes) => {
-                if (!villes || villes.length === 0) return <span>Aucune ville</span>;
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+    };
 
-                const displayedVilles = villes.slice(0, 6); // Show only the first 6 cities
-                const remainingCount = villes.length - displayedVilles.length;
-
-                return (
-                    <>
-                        <p>
-                            {displayedVilles.join(', ')}
-                        </p>
-                        <p style={{color:"red"}}>
-                            {remainingCount > 0 ? `${remainingCount} Autres Villes` : ''}
-                        </p>
-                    </>
-                );
-            },
-        },
-        {
-            title: 'N° Colis', // This is the new column
-            width: 150, // Set the width of the column
-            render: (text, record) => (
-                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                    <div style={{ fontWeight: 'bold', color: '#ff5722' }}>
-                        <FaBox /> {record.colisCount}
-                    </div>
-                </div>
-            )
-        },
-        {
-            title: 'Adresse',
-            dataIndex: 'adresse',
-            key: 'adresse',
-        },
-        {
-            title: 'Type de Livreur', // Adding the type of livreur
-            dataIndex: 'type',
-            key: 'type',
-        },
-        {
-            title: 'Role',
-            dataIndex: 'role',
-            key: 'role',
-        },
-        {
-            title: 'Activation de compte',
-            dataIndex: 'active',
-            key: 'active',
-            render: (active, record) => (
-                <Switch
-                    checked={active} // If the account is active, the switch will be checked
-                    onChange={() => toggleActiveCompte(record._id, record?.role)} // This will trigger the toggle function
-                    checkedChildren="Activée" // Text displayed when checked
-                    unCheckedChildren="Non Activée" // Text displayed when unchecked
-                    style={{
-                        backgroundColor: active ? '#28a745' : '#dc3545', // Green for active, red for inactive
-                        borderColor: active ? '#28a745' : '#dc3545', // Same color for border
-                    }}
-                />
-            ),
-        },
-        {
-            title: 'Action',
-            dataIndex: 'action',
-            render: (text, record) => (
-                <div className='action_user'>
-                    <Button 
-                        style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
-                        icon={<TbZoomMoneyFilled size={20} />}
-                        onClick={() => navigate(`/dashboard/tarif-livreur/${record._id}`)}
-                    />
-                    <Button 
-                        style={{ color: 'blue', borderColor: "blue" , background:"transparent"  }} 
-                        onClick={() => showPasswordModal(record)} // Trigger the password modal
-                        icon={<TbLockPassword size={20} />}
-                    />
-                    <Button 
-                        style={{ color: 'var(--limon)', borderColor: "var(--limon)" , background:"transparent" }} 
-                        icon={<FaPenFancy size={20} />}
-                        onClick={() => navigate(`/dashboard/compte/livreur/${record._id}`, { state: { from: '/dashboard/compte/livreur' } })}
-                    />
-                    <Button 
-                        style={{ color: 'red', borderColor: "red" , background:"transparent"  }} 
-                        icon={<MdDelete size={20} />}
-                        onClick={() => handleDeleteProfile(record._id)}
-                    />
-                   
-                </div>
-            )
-        }
-    ];
+    const handleViewProfile = (livreur) => {
+        navigate(`/dashboard/profile-livreur/${livreur._id}`);
+    };
 
     // Memoized filtered profiles based on search query
     const filteredProfiles = useMemo(() => {
@@ -224,7 +262,7 @@ function Livreur() {
             const tele = profile.tele.toLowerCase();
             const role = profile.role.toLowerCase();
             const type = profile.type.toLowerCase();
-            const permission = profile.permission ? profile.permission.toLowerCase() : ''; // Handle if permission exists
+            const permission = profile.permission ? profile.permission.toLowerCase() : '';
 
             const query = searchQuery.toLowerCase();
 
@@ -239,6 +277,27 @@ function Livreur() {
             );
         });
     }, [searchQuery, profileList]);
+
+    // Pagination logic
+    const totalItems = filteredProfiles.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const currentData = filteredProfiles.slice(startIndex, endIndex);
+
+    // Reset to first page when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    const handlePageSizeChange = (size) => {
+        setPageSize(size);
+        setCurrentPage(1);
+    };
 
     return (
         <div className='page-dashboard'>
@@ -258,7 +317,19 @@ function Livreur() {
                             backgroundColor: theme === 'dark' ? '#001529' : '#fff',
                         }} 
                     >
-                        <h4>Gestion des utilisateurs ( livreur )</h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h4 style={{ margin: 0 }}>Gestion des Livreurs</h4>
+                            <div style={{ 
+                                background: theme === 'dark' ? '#1a202c' : '#f7fafc',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                color: theme === 'dark' ? '#e2e8f0' : '#4a5568'
+                            }}>
+                                Total: {totalItems} livreurs
+                            </div>
+                        </div>
                         <Button 
                             type="primary" 
                             icon={<FaPlus />} 
@@ -286,12 +357,309 @@ function Livreur() {
                             </Button>
                         </div>
 
-                        <TableDashboard 
-                            theme={theme} 
-                            column={columns} 
-                            id="_id" 
-                            data={filteredProfiles} 
-                        />
+                        <CustomTable theme={theme}>
+                            <div className="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Profile</th>
+                                            <th>Livreur</th>
+                                            <th>Contact</th>
+                                            <th>Régions</th>
+                                            <th>Colis</th>
+                                            <th>Type</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {loading ? (
+                                            <tr>
+                                                <td colSpan="8" style={{ textAlign: 'center', padding: '40px' }}>
+                                                    Chargement...
+                                                </td>
+                                            </tr>
+                                        ) : currentData.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="8" style={{ textAlign: 'center', padding: '40px' }}>
+                                                    Aucun livreur trouvé
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            currentData.map((livreur) => (
+                                                <tr key={livreur._id}>
+                                                    <td className="profile-cell">
+                                                        <Tooltip title="Cliquer pour voir le profil">
+                                                            <Avatar
+                                                                src={livreur.profile?.url || '/image/user.png'}
+                                                                size="large"
+                                                                onClick={() => handleViewProfile(livreur)}
+                                                                style={{
+                                                                    border: `2px solid ${livreur.active ? '#48bb78' : '#f56565'}`,
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.target.style.transform = 'scale(1.05)';
+                                                                    e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.target.style.transform = 'scale(1)';
+                                                                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                                                }}
+                                                            />
+                                                        </Tooltip>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ marginBottom: '8px' }}>
+                                                            <Tooltip title="Cliquer pour voir le profil">
+                                                                <ClickableLivreurName 
+                                                                    theme={theme}
+                                                                    onClick={() => handleViewProfile(livreur)}
+                                                                >
+                                                                    <strong style={{ color: theme === 'dark' ? '#fff' : '#2d3748' }}>
+                                                                        {livreur.nom} {livreur.prenom}
+                                                                    </strong>
+                                                                </ClickableLivreurName>
+                                                            </Tooltip>
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#718096' }}>
+                                                            @{livreur.username}
+                                                        </div>
+                                                        <div style={{ fontSize: '11px', color: '#a0aec0', marginTop: '4px' }}>
+                                                            <FaCalendarAlt style={{ marginRight: '4px' }} />
+                                                            {formatDate(livreur.createdAt)}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ marginBottom: '4px', fontSize: '13px' }}>
+                                                            <FaPhone style={{ color: '#48bb78', marginRight: '6px' }} />
+                                                            {livreur.tele || 'Non renseigné'}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#718096', marginBottom: '4px' }}>
+                                                            <FaEnvelope style={{ marginRight: '6px' }} />
+                                                            {livreur.email}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#718096' }}>
+                                                            <FaMapMarkerAlt style={{ marginRight: '6px' }} />
+                                                            {livreur.adresse || 'Non renseigné'}
+                                                        </div>
+                                                    </td>
+                                                    <td className="region-cell">
+                                                        {livreur.villes && livreur.villes.length > 0 ? (
+                                                            <div>
+                                                                {livreur.villes.slice(0, 3).map((ville, index) => (
+                                                                    <RegionTag key={index}>
+                                                                        {ville}
+                                                                    </RegionTag>
+                                                                ))}
+                                                                {livreur.villes.length > 3 && (
+                                                                    <div style={{ fontSize: '10px', color: '#f56565', marginTop: '4px', fontWeight: '600' }}>
+                                                                        +{livreur.villes.length - 3} autres
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <StatusTag color="default">Aucune région</StatusTag>
+                                                        )}
+                                                    </td>
+                                                    <td className="colis-cell">
+                                                        <ColisCount>
+                                                            <FaBox />
+                                                            {livreur.colisCount || 0}
+                                                        </ColisCount>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ marginBottom: '6px' }}>
+                                                            <StatusTag color="purple">
+                                                                <FaTruck style={{ marginRight: '4px' }} />
+                                                                {livreur.type || 'Standard'}
+                                                            </StatusTag>
+                                                        </div>
+                                                        <div>
+                                                            <StatusTag color="blue">
+                                                                {livreur.role}
+                                                            </StatusTag>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ marginBottom: '8px' }}>
+                                                            <Switch
+                                                                checked={livreur.active}
+                                                                onChange={() => toggleActiveCompte(livreur._id, livreur.role)}
+                                                                checkedChildren="Actif"
+                                                                unCheckedChildren="Inactif"
+                                                                style={{
+                                                                    backgroundColor: livreur.active ? '#48bb78' : '#f56565',
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                    <td className="actions-cell">
+                                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                            <Tooltip title="Voir le profil">
+                                                                <ActionButton
+                                                                    type="primary"
+                                                                    icon={<FaEye />}
+                                                                    size="small"
+                                                                    onClick={() => handleViewProfile(livreur)}
+                                                                />
+                                                            </Tooltip>
+                                                            
+                                                            <Tooltip title="Tarifs">
+                                                                <ActionButton
+                                                                    style={{ backgroundColor: '#f59e0b', borderColor: '#f59e0b' }}
+                                                                    icon={<TbZoomMoneyFilled />}
+                                                                    size="small"
+                                                                    onClick={() => navigate(`/dashboard/tarif-livreur/${livreur._id}`)}
+                                                                />
+                                                            </Tooltip>
+
+                                                            <Tooltip title="Réinitialiser le mot de passe">
+                                                                <ActionButton
+                                                                    style={{ backgroundColor: '#9f7aea', borderColor: '#9f7aea' }}
+                                                                    icon={<FaKey />}
+                                                                    size="small"
+                                                                    onClick={() => showPasswordModal(livreur)}
+                                                                />
+                                                            </Tooltip>
+
+                                                            <Tooltip title="Modifier">
+                                                                <ActionButton
+                                                                    style={{ backgroundColor: '#48bb78', borderColor: '#48bb78' }}
+                                                                    icon={<FaPenFancy />}
+                                                                    size="small"
+                                                                    onClick={() => navigate(`/dashboard/compte/livreur/${livreur._id}`, { state: { from: '/dashboard/compte/livreur' } })}
+                                                                />
+                                                            </Tooltip>
+
+                                                            <Tooltip title="Supprimer">
+                                                                <ActionButton
+                                                                    danger
+                                                                    icon={<MdDelete />}
+                                                                    size="small"
+                                                                    onClick={() => handleDeleteProfile(livreur._id)}
+                                                                />
+                                                            </Tooltip>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CustomTable>
+
+                        {/* Professional Pagination */}
+                        {totalItems > 0 && (
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginTop: '24px',
+                                padding: '16px 0',
+                                borderTop: `1px solid ${theme === 'dark' ? '#1f1f1f' : '#e2e8f0'}`
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '16px',
+                                    fontSize: '14px',
+                                    color: theme === 'dark' ? '#a0aec0' : '#718096'
+                                }}>
+                                    <span>
+                                        Affichage {startIndex + 1}-{Math.min(endIndex, totalItems)} sur {totalItems} livreurs
+                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span>Afficher:</span>
+                                        <select
+                                            value={pageSize}
+                                            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                                            style={{
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                border: `1px solid ${theme === 'dark' ? '#4a5568' : '#cbd5e0'}`,
+                                                background: theme === 'dark' ? '#2d3748' : '#fff',
+                                                color: theme === 'dark' ? '#fff' : '#2d3748',
+                                                fontSize: '13px'
+                                            }}
+                                        >
+                                            <option value={5}>5</option>
+                                            <option value={10}>10</option>
+                                            <option value={20}>20</option>
+                                            <option value={50}>50</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Button
+                                        size="small"
+                                        disabled={currentPage === 1}
+                                        onClick={() => handlePageChange(1)}
+                                        style={{ borderRadius: '6px', minWidth: '32px' }}
+                                    >
+                                        «
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        disabled={currentPage === 1}
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        style={{ borderRadius: '6px', minWidth: '32px' }}
+                                    >
+                                        ‹
+                                    </Button>
+                                    
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        let pageNum;
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = currentPage - 2 + i;
+                                        }
+                                        
+                                        return (
+                                            <Button
+                                                key={pageNum}
+                                                size="small"
+                                                type={currentPage === pageNum ? 'primary' : 'default'}
+                                                onClick={() => handlePageChange(pageNum)}
+                                                style={{
+                                                    borderRadius: '6px',
+                                                    minWidth: '32px',
+                                                    fontWeight: currentPage === pageNum ? '600' : '400'
+                                                }}
+                                            >
+                                                {pageNum}
+                                            </Button>
+                                        );
+                                    })}
+                                    
+                                    <Button
+                                        size="small"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        style={{ borderRadius: '6px', minWidth: '32px' }}
+                                    >
+                                        ›
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => handlePageChange(totalPages)}
+                                        style={{ borderRadius: '6px', minWidth: '32px' }}
+                                    >
+                                        »
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                         <Drawer
                             title={"Ajouter Livreur"}
                             placement="right"
@@ -304,13 +672,20 @@ function Livreur() {
 
                         {/* Password Reset Modal */}
                         <Modal
-                            title="Reset User Password"
-                            visible={isPasswordModalVisible}
+                            title="Réinitialiser le mot de passe"
+                            open={isPasswordModalVisible}
                             onCancel={handlePasswordModalCancel}
                             footer={null}
                             centered
                             destroyOnClose
                         >
+                            {selectedUser && (
+                                <div style={{ marginBottom: '16px' }}>
+                                    <strong>Livreur: {selectedUser.nom} {selectedUser.prenom}</strong>
+                                    <br />
+                                    <span style={{ color: '#718096' }}>Email: {selectedUser.email}</span>
+                                </div>
+                            )}
                             <Form
                                 onFinish={handlePasswordSubmit}
                                 layout="vertical"

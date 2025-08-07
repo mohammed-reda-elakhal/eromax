@@ -8,7 +8,7 @@ const fs = require("fs");
 const File = require("../Models/File");
 const { Colis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
-const { Wallet } = require("../Models/Wallet"); // Add this import at the top
+const { Wallet } = require("../Models/Wallet");
 
 
 /** -------------------------------------------
@@ -18,43 +18,55 @@ const { Wallet } = require("../Models/Wallet"); // Add this import at the top
  * @access private Only admin
  -------------------------------------------
 */
-// Get all clients along with their stores and colis count
+// Get all clients along with their stores, wallets and colis count
 const getAllClients = asyncHandler(async (req, res) => {
     try {
-        // Fetch all clients
-        const clients = await Client.find().sort({ createdAt: -1 });
+        // Fetch all clients with populated stores
+        const clients = await Client.find()
+            .sort({ createdAt: -1 })
+            .lean();
 
-        // Fetch stores and wallets for each client
-        const clientsWithStoresAndColis = await Promise.all(
+        // Get all stores, wallets, and colis counts in parallel
+        const clientsWithData = await Promise.all(
             clients.map(async (client) => {
-                const stores = await Store.find({ id_client: client._id });
-
-                // For each store, count colis and get wallet info
-                const storesWithColisAndWallet = await Promise.all(
+                // Get stores for this client
+                const stores = await Store.find({ id_client: client._id }).lean();
+                
+                // Get data for each store
+                const storesWithData = await Promise.all(
                     stores.map(async (store) => {
-                        const colisCount = await Colis.countDocuments({ store: store._id });
-                        
-                        // Get wallet information for the store
-                        const wallet = await Wallet.findOne({ store: store._id })
-                            .select('key active solde')
-                            .lean();
+                        // Get colis count and wallet data in parallel
+                        const [colisCount, wallet] = await Promise.all([
+                            Colis.countDocuments({ store: store._id }),
+                            Wallet.findOne({ store: store._id })
+                                .select('key active solde')
+                                .lean()
+                        ]);
 
                         return {
-                            ...store._doc,
+                            _id: store._id,
+                            storeName: store.storeName,
+                            adress: store.adress,
+                            tele: store.tele,
+                            default: store.default,
                             colisCount,
                             wallet: wallet || { key: null, active: false, solde: 0 }
                         };
                     })
                 );
 
+                // Calculate total colis count for the client
+                const totalColisCount = storesWithData.reduce((total, store) => total + store.colisCount, 0);
+
                 return {
-                    ...client._doc,
-                    stores: storesWithColisAndWallet,
+                    ...client,
+                    stores: storesWithData,
+                    totalColisCount
                 };
             })
         );
 
-        res.json(clientsWithStoresAndColis);
+        res.json(clientsWithData);
     } catch (error) {
         console.error('Error in getAllClients:', error);
         res.status(500).json({ 

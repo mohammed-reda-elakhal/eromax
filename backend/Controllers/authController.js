@@ -232,7 +232,7 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
         store: store._id,
         key: generateWalletKey(),
         solde: 0,
-        active: false
+        active: true
     });
 
     // Populate the client data in store

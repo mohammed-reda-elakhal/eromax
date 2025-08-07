@@ -430,15 +430,15 @@
   margin: 3px 6px !important;
   border-radius: 8px !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(51, 65, 85, 0.6)) !important;
-  border: 1px solid rgba(71, 85, 105, 0.4) !important;
-  border-left: 3px solid rgba(96, 165, 250, 0.4) !important;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8)) !important;
+  border: 1px solid rgba(71, 85, 105, 0.6) !important;
+  border-left: 3px solid rgba(96, 165, 250, 0.6) !important;
   font-size: 14px !important;
   min-height: 40px !important;
   font-weight: 500 !important;
   position: relative !important;
   overflow: hidden !important;
-  color: rgba(248, 250, 252, 0.9) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
 }
 
 .ant-menu-dark .ant-menu-item::before {
@@ -458,22 +458,22 @@
 
 .ant-menu-dark .ant-menu-item:hover,
 .ant-menu-dark .ant-menu-submenu-title:hover {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(59, 130, 246, 0.2)) !important;
-  border-color: rgba(96, 165, 250, 0.4) !important;
-  border-left-color: rgba(96, 165, 250, 0.9) !important;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(59, 130, 246, 0.25)) !important;
+  border-color: rgba(96, 165, 250, 0.6) !important;
+  border-left-color: rgba(96, 165, 250, 1) !important;
   border-left-width: 4px !important;
   transform: translateY(-2px) scale(1.02) !important;
-  box-shadow: 0 4px 20px rgba(96, 165, 250, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-  color: #93c5fd !important;
+  box-shadow: 0 4px 20px rgba(96, 165, 250, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+  color: #ffffff !important;
 }
 
 .ant-menu-dark .ant-menu-item-selected {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(59, 130, 246, 0.25)) !important;
-  border-color: rgba(96, 165, 250, 0.6) !important;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(59, 130, 246, 0.3)) !important;
+  border-color: rgba(96, 165, 250, 0.8) !important;
   border-left-color: #60a5fa !important;
   border-left-width: 4px !important;
-  color: #93c5fd !important;
-  box-shadow: 0 2px 12px rgba(96, 165, 250, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 12px rgba(96, 165, 250, 0.4) !important;
 }
 
 /* Submenu items styling */
@@ -507,17 +507,17 @@
 
 /* Dark theme submenu items */
 .ant-menu-dark .ant-menu-inline .ant-menu-sub .ant-menu-item {
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.6), rgba(71, 85, 105, 0.4)) !important;
-  border: 1px solid rgba(100, 116, 139, 0.3) !important;
-  border-left: 2px solid rgba(96, 165, 250, 0.3) !important;
-  color: rgba(226, 232, 240, 0.9) !important;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(51, 65, 85, 0.6)) !important;
+  border: 1px solid rgba(100, 116, 139, 0.5) !important;
+  border-left: 2px solid rgba(96, 165, 250, 0.5) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .ant-menu-dark .ant-menu-inline .ant-menu-sub .ant-menu-submenu-title {
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.6), rgba(71, 85, 105, 0.4)) !important;
-  border: 1px solid rgba(100, 116, 139, 0.3) !important;
-  border-left: 2px solid rgba(96, 165, 250, 0.3) !important;
-  color: rgba(226, 232, 240, 0.9) !important;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(51, 65, 85, 0.6)) !important;
+  border: 1px solid rgba(100, 116, 139, 0.5) !important;
+  border-left: 2px solid rgba(96, 165, 250, 0.5) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 /* Hover effects for submenu items */
@@ -532,13 +532,13 @@
 }
 
 .ant-menu-dark .ant-menu-inline .ant-menu-sub .ant-menu-item:hover {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(59, 130, 246, 0.2)) !important;
-  border-color: rgba(96, 165, 250, 0.4) !important;
-  border-left-color: rgba(96, 165, 250, 0.8) !important;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(59, 130, 246, 0.25)) !important;
+  border-color: rgba(96, 165, 250, 0.6) !important;
+  border-left-color: rgba(96, 165, 250, 1) !important;
   border-left-width: 3px !important;
   transform: translateX(4px) scale(1.01) !important;
-  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2) !important;
-  color: #93c5fd !important;
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.3) !important;
+  color: #ffffff !important;
 }
 
 /* Collapsed menu adjustments */
@@ -591,9 +591,16 @@
 
 /* Menu container enhancements */
 .menu {
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: rgba(0, 0, 0, 0.02) !important;
   backdrop-filter: blur(10px) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dark theme menu container */
+.ant-menu-dark.menu {
+  background: rgba(0, 21, 41, 0.95) !important;
+  backdrop-filter: blur(15px) !important;
+  border-right: 1px solid rgba(96, 165, 250, 0.2) !important;
 }
 
 /* Scrollbar styling for menu */
