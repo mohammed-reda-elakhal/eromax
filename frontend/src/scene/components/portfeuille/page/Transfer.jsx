@@ -2,13 +2,10 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import { Table, Typography, Button, Space, Spin, message, Input, Select, DatePicker, Popconfirm, Tooltip, Modal, Form, InputNumber } from 'antd';
+import { Table, Typography, Button, Space, Spin, message, Popconfirm, Tooltip, Modal, Form, InputNumber } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllTransfers, validateTransfer, cancelTransfer, correctTransfer } from '../../../../redux/apiCalls/transferApiCalls';
+import { getAllTransfers, validateTransfer, cancelTransfer, correctTransfer, deleteTransfer } from '../../../../redux/apiCalls/transferApiCalls';
 import { ReloadOutlined, SearchOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from '@ant-design/icons';
-import moment from 'moment';
-
-const { RangePicker } = DatePicker;
 
 function Transfer() {
     const { theme } = useContext(ThemeContext);
@@ -92,176 +89,398 @@ function Transfer() {
                 marginBottom: '16px'
             }}
         >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                <Space wrap size="middle">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
                     {isAdmin && (
                         <>
-                            <Input
-                                placeholder="Enter store name..."
-                                value={searchParams.storeName}
-                                onChange={(e) => setSearchParams({ ...searchParams, storeName: e.target.value })}
-                                style={{
-                                    width: 200,
-                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
-                                    color: theme === 'dark' ? '#fff' : '#000'
-                                }}
-                                prefix={<SearchOutlined style={{ color: theme === 'dark' ? '#8c8c8c' : '#bfbfbf' }} />}
-                                allowClear
-                            />
-                            <Input
-                                placeholder="Enter wallet key..."
-                                value={searchParams.walletKey}
-                                onChange={(e) => setSearchParams({ ...searchParams, walletKey: e.target.value })}
-                                style={{
-                                    width: 200,
-                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                                    borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
-                                    color: theme === 'dark' ? '#fff' : '#000'
-                                }}
-                                prefix={<SearchOutlined style={{ color: theme === 'dark' ? '#8c8c8c' : '#bfbfbf' }} />}
-                                allowClear
-                            />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                                    marginBottom: '2px'
+                                }}>
+                                    Store Name
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter store name..."
+                                    value={searchParams.storeName}
+                                    onChange={(e) => setSearchParams({ ...searchParams, storeName: e.target.value })}
+                                    style={{
+                                        width: '200px',
+                                        padding: '8px 12px',
+                                        backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                        border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                        borderRadius: '6px',
+                                        color: theme === 'dark' ? '#fff' : '#000',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = '#1890ff';
+                                        e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                        e.target.style.boxShadow = 'none';
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                                    marginBottom: '2px'
+                                }}>
+                                    Wallet Key
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter wallet key..."
+                                    value={searchParams.walletKey}
+                                    onChange={(e) => setSearchParams({ ...searchParams, walletKey: e.target.value })}
+                                    style={{
+                                        width: '200px',
+                                        padding: '8px 12px',
+                                        backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                        border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                        borderRadius: '6px',
+                                        color: theme === 'dark' ? '#fff' : '#000',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = '#1890ff';
+                                        e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                        e.target.style.boxShadow = 'none';
+                                    }}
+                                />
+                            </div>
                         </>
                     )}
-                    <Input
-                        placeholder="Enter tracking code..."
-                        value={searchParams.codeSuivi}
-                        onChange={(e) => setSearchParams({ ...searchParams, codeSuivi: e.target.value })}
-                        style={{
-                            width: 200,
-                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                            borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
-                            color: theme === 'dark' ? '#fff' : '#000'
-                        }}
-                        prefix={<SearchOutlined style={{ color: theme === 'dark' ? '#8c8c8c' : '#bfbfbf' }} />}
-                        allowClear
-                    />
-                    <Select
-                        placeholder="Select transfer status..."
-                        value={searchParams.transferStatus}
-                        onChange={(value) => setSearchParams({ ...searchParams, transferStatus: value })}
-                        style={{
-                            width: 200
-                        }}
-                        dropdownStyle={{
-                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
-                        }}
-                        allowClear
-                    >
-                        <Select.OptGroup label="Transfer Status">
-                            <Select.Option value="validé">Validé</Select.Option>
-                            <Select.Option value="corrigé">Corrigé</Select.Option>
-                            <Select.Option value="annuler">Annulé</Select.Option>
-                            <Select.Option value="pending">En attente</Select.Option>
-                        </Select.OptGroup>
-                    </Select>
-                    <Select
-                        placeholder="Select delivery status..."
-                        value={searchParams.colisStatus}
-                        onChange={(value) => setSearchParams({ ...searchParams, colisStatus: value })}
-                        style={{
-                            width: 200
-                        }}
-                        dropdownStyle={{
-                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
-                        }}
-                        allowClear
-                    >
-                        <Select.OptGroup label="Delivery Status">
-                            <Select.Option value="Livrée">Livrée</Select.Option>
-                            <Select.Option value="Refusée">Refusée</Select.Option>
-                        </Select.OptGroup>
-                    </Select>
-                    <Select
-                        placeholder="Select transfer type..."
-                        value={searchParams.transferType}
-                        onChange={(value) => setSearchParams({ ...searchParams, transferType: value })}
-                        style={{
-                            width: 200
-                        }}
-                        dropdownStyle={{
-                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
-                        }}
-                        allowClear
-                    >
-                        <Select.OptGroup label="Transfer Type">
-                            <Select.Option value="Deposit">Deposit</Select.Option>
-                            <Select.Option value="Correction">Correction</Select.Option>
-                            <Select.Option value="Manuel Depot">Manuel Depot</Select.Option>
-                            <Select.Option value="Manuel Withdrawal">Manuel Withdrawal</Select.Option>
-                            <Select.Option value="withdrawal">Withdrawal</Select.Option>
-                        </Select.OptGroup>
-                    </Select>
-                    <Select
-                        placeholder="Manual transfers only..."
-                        value={searchParams.manualOnly}
-                        onChange={(value) => setSearchParams({ ...searchParams, manualOnly: value })}
-                        style={{
-                            width: 200
-                        }}
-                        dropdownStyle={{
-                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`
-                        }}
-                        allowClear
-                    >
-                        <Select.Option value="true">Show manual transfers only</Select.Option>
-                    </Select>
-                    <RangePicker
-                        placeholder={['Start date', 'End date']}
-                        value={[
-                            searchParams.startDate ? moment(searchParams.startDate) : null,
-                            searchParams.endDate ? moment(searchParams.endDate) : null
-                        ]}
-                        onChange={(dates) => {
-                            if (dates) {
-                                setSearchParams({
-                                    ...searchParams,
-                                    startDate: dates[0].toISOString(),
-                                    endDate: dates[1].toISOString()
-                                });
-                            } else {
-                                setSearchParams({
-                                    ...searchParams,
-                                    startDate: '',
-                                    endDate: ''
-                                });
-                            }
-                        }}
-                        format="DD/MM/YYYY HH:mm"
-                        showTime={{ format: 'HH:mm' }}
-                        style={{
-                            width: 300,
-                            backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                            borderColor: theme === 'dark' ? '#434343' : '#d9d9d9'
-                        }}
-                    />
-                    <Button
-                        type="primary"
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                            marginBottom: '2px'
+                        }}>
+                            Tracking Code
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Enter tracking code..."
+                            value={searchParams.codeSuivi}
+                            onChange={(e) => setSearchParams({ ...searchParams, codeSuivi: e.target.value })}
+                            style={{
+                                width: '200px',
+                                padding: '8px 12px',
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                borderRadius: '6px',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                outline: 'none',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = '#1890ff';
+                                e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                e.target.style.boxShadow = 'none';
+                            }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                            marginBottom: '2px'
+                        }}>
+                            Transfer Status
+                        </label>
+                        <select
+                            value={searchParams.transferStatus}
+                            onChange={(e) => setSearchParams({ ...searchParams, transferStatus: e.target.value })}
+                            style={{
+                                width: '200px',
+                                padding: '8px 12px',
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                borderRadius: '6px',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = '#1890ff';
+                                e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                e.target.style.boxShadow = 'none';
+                            }}
+                        >
+                            <option value="">Select transfer status...</option>
+                            <optgroup label="Transfer Status">
+                                <option value="validé">Validé</option>
+                                <option value="corrigé">Corrigé</option>
+                                <option value="annuler">Annulé</option>
+                                <option value="pending">En attente</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                            marginBottom: '2px'
+                        }}>
+                            Delivery Status
+                        </label>
+                        <select
+                            value={searchParams.colisStatus}
+                            onChange={(e) => setSearchParams({ ...searchParams, colisStatus: e.target.value })}
+                            style={{
+                                width: '200px',
+                                padding: '8px 12px',
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                borderRadius: '6px',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = '#1890ff';
+                                e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                e.target.style.boxShadow = 'none';
+                            }}
+                        >
+                            <option value="">Select delivery status...</option>
+                            <optgroup label="Delivery Status">
+                                <option value="Livrée">Livrée</option>
+                                <option value="Refusée">Refusée</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                            marginBottom: '2px'
+                        }}>
+                            Transfer Type
+                        </label>
+                        <select
+                            value={searchParams.transferType}
+                            onChange={(e) => setSearchParams({ ...searchParams, transferType: e.target.value })}
+                            style={{
+                                width: '200px',
+                                padding: '8px 12px',
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                borderRadius: '6px',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = '#1890ff';
+                                e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                e.target.style.boxShadow = 'none';
+                            }}
+                        >
+                            <option value="">Select transfer type...</option>
+                            <optgroup label="Transfer Type">
+                                <option value="Deposit">Deposit</option>
+                                <option value="Correction">Correction</option>
+                                <option value="Manuel Depot">Manuel Depot</option>
+                                <option value="Manuel Withdrawal">Manuel Withdrawal</option>
+                                <option value="withdrawal">Withdrawal</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                            marginBottom: '2px'
+                        }}>
+                            Manual Only
+                        </label>
+                        <select
+                            value={searchParams.manualOnly}
+                            onChange={(e) => setSearchParams({ ...searchParams, manualOnly: e.target.value })}
+                            style={{
+                                width: '200px',
+                                padding: '8px 12px',
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                borderRadius: '6px',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = '#1890ff';
+                                e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                e.target.style.boxShadow = 'none';
+                            }}
+                        >
+                            <option value="">Manual transfers only...</option>
+                            <option value="true">Show manual transfers only</option>
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: theme === 'dark' ? '#d9d9d9' : '#595959',
+                            marginBottom: '2px'
+                        }}>
+                            Date Range
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                                type="datetime-local"
+                                value={searchParams.startDate}
+                                onChange={(e) => setSearchParams({ ...searchParams, startDate: e.target.value })}
+                                style={{
+                                    width: '180px',
+                                    padding: '8px 12px',
+                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                    border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                    borderRadius: '6px',
+                                    color: theme === 'dark' ? '#fff' : '#000',
+                                    fontSize: '14px',
+                                    outline: 'none',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#1890ff';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                            <input
+                                type="datetime-local"
+                                value={searchParams.endDate}
+                                onChange={(e) => setSearchParams({ ...searchParams, endDate: e.target.value })}
+                                style={{
+                                    width: '180px',
+                                    padding: '8px 12px',
+                                    backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                    border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                    borderRadius: '6px',
+                                    color: theme === 'dark' ? '#fff' : '#000',
+                                    fontSize: '14px',
+                                    outline: 'none',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#1890ff';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <button
+                        type="button"
                         onClick={handleSearch}
-                        icon={<SearchOutlined />}
                         style={{
-                            backgroundColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-                            borderColor: theme === 'dark' ? '#1890ff' : '#1890ff'
+                            padding: '8px 16px',
+                            backgroundColor: '#1890ff',
+                            border: '1px solid #1890ff',
+                            borderRadius: '6px',
+                            color: '#fff',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease',
+                            outline: 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#40a9ff';
+                            e.target.style.borderColor = '#40a9ff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#1890ff';
+                            e.target.style.borderColor = '#1890ff';
                         }}
                     >
+                        <SearchOutlined style={{ fontSize: '14px' }} />
                         Search
-                    </Button>
-                    <Button
+                    </button>
+                    <button
+                        type="button"
                         onClick={handleReset}
                         style={{
+                            padding: '8px 16px',
                             backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                            borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
-                            color: theme === 'dark' ? '#fff' : '#000'
+                            border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                            borderRadius: '6px',
+                            color: theme === 'dark' ? '#fff' : '#000',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            outline: 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = theme === 'dark' ? '#434343' : '#f5f5f5';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = theme === 'dark' ? '#262626' : '#fff';
                         }}
                     >
                         Reset
-                    </Button>
-                </Space>
+                    </button>
+                </div>
+                
                 {(searchParams.startDate || searchParams.endDate) && (
                     <div style={{
                         fontSize: '12px',
@@ -274,7 +493,7 @@ function Transfer() {
                         Selected period: {formatDate(searchParams.startDate)} - {formatDate(searchParams.endDate)}
                     </div>
                 )}
-            </Space>
+            </div>
         </div>
     );
 
@@ -331,6 +550,15 @@ function Transfer() {
             currentAmount: transfer.montant,
             newAmount: transfer.montant
         });
+    };
+
+    const handleDeleteTransfer = async (transferId) => {
+        try {
+            await dispatch(deleteTransfer(transferId));
+            dispatch(getAllTransfers(searchParams));
+        } catch (error) {
+            message.error('Failed to delete transfer');
+        }
     };
 
     const columns = [
@@ -687,7 +915,7 @@ function Transfer() {
         {
             title: 'Actions',
             key: 'actions',
-            width: isAdmin ? 280 : 0,
+            width: isAdmin ? 360 : 0,
             render: (_, record) => {
                 // Check transfer conditions
                 const isCorrected = record.type === 'Correction';
@@ -755,6 +983,32 @@ function Transfer() {
                                 >
                                     Correct
                                 </Button>
+                            </Tooltip>
+                        )}
+                        {isAdmin && (
+                            <Tooltip title="Delete Transfer">
+                                <Popconfirm
+                                    title="Delete this transfer?"
+                                    description="This action cannot be undone. Are you sure you want to delete this transfer?"
+                                    onConfirm={() => handleDeleteTransfer(record._id)}
+                                    okText="Yes, Delete"
+                                    cancelText="Cancel"
+                                    okType="danger"
+                                >
+                                                                         <Button
+                                         danger
+                                         icon={<CloseCircleOutlined />}
+                                         size="small"
+                                         style={{ 
+                                             fontSize: '11px',
+                                             backgroundColor: '#ff4d4f',
+                                             borderColor: '#ff4d4f',
+                                             color: '#fff'
+                                         }}
+                                     >
+                                         Delete
+                                     </Button>
+                                </Popconfirm>
                             </Tooltip>
                         )}
                     </Space>
@@ -998,28 +1252,44 @@ function Transfer() {
                             parser={value => value.replace(' DH', '')}
                         />
                     </Form.Item>
-                    <Form.Item
-                        label={
-                            <span style={{ color: theme === 'dark' ? '#fff' : '#262626', fontWeight: '500' }}>
-                                Correction Reason
-                            </span>
-                        }
-                        name="description"
-                        rules={[
-                            { required: true, message: 'Please provide a reason for the correction' },
-                            { min: 10, message: 'Description must be at least 10 characters' }
-                        ]}
-                    >
-                        <Input.TextArea
-                            rows={4}
-                            style={{
-                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
-                                color: theme === 'dark' ? '#fff' : '#262626'
-                            }}
-                            placeholder="Enter the reason for this correction..."
-                        />
-                    </Form.Item>
+                                         <Form.Item
+                         label={
+                             <span style={{ color: theme === 'dark' ? '#fff' : '#262626', fontWeight: '500' }}>
+                                 Correction Reason
+                             </span>
+                         }
+                         name="description"
+                         rules={[
+                             { required: true, message: 'Please provide a reason for the correction' },
+                             { min: 10, message: 'Description must be at least 10 characters' }
+                         ]}
+                     >
+                         <textarea
+                             rows={4}
+                             style={{
+                                 width: '100%',
+                                 padding: '8px 12px',
+                                 backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                 border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
+                                 borderRadius: '6px',
+                                 color: theme === 'dark' ? '#fff' : '#262626',
+                                 fontSize: '14px',
+                                 outline: 'none',
+                                 resize: 'vertical',
+                                 transition: 'all 0.2s ease',
+                                 fontFamily: 'inherit'
+                             }}
+                             placeholder="Enter the reason for this correction..."
+                             onFocus={(e) => {
+                                 e.target.style.borderColor = '#1890ff';
+                                 e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+                             }}
+                             onBlur={(e) => {
+                                 e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
+                                 e.target.style.boxShadow = 'none';
+                             }}
+                         />
+                     </Form.Item>
                     <Form.Item>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                             <Button
