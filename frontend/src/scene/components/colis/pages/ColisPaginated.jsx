@@ -502,7 +502,7 @@ function ColisPaginated() {
   };
 
   // Export Excel function with Arabic support
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     const exportData = getSelectedData();
     if (!exportData || exportData.length === 0) {
       toast.error("Aucune donnée à exporter!");
@@ -510,69 +510,34 @@ function ColisPaginated() {
     }
 
     try {
-      // Prepare headers
-      const headers = [
-        'Code Suivi',
-        'Prix (DH)',
-        'Nom Destinataire',
-        'Téléphone',
-        'Adresse',
-        'Ville',
-        'Région',
-        'Date Création',
-        'Statut',
-        'Commentaire'
-      ];
+      // Dynamic import of xlsx
+      const XLSX = await import('xlsx');
+      
+      // Prepare data for Excel
+      const worksheetData = exportData.map(colis => ({
+        'Code Suivi': colis.code_suivi || '',
+        'Prix (DH)': colis.prix || '',
+        'Nom Destinataire': colis.nom || '',
+        'Téléphone': colis.tele || '',
+        'Adresse': colis.adresse || '',
+        'Ville': colis.ville?.nom || '',
+        'Région': colis.ville?.region?.nom || '',
+        'Date Création': colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : '',
+        'Statut': colis.statut || '',
+        'Commentaire': colis.commentaire || ''
+      }));
 
-      // Prepare data rows
-      const dataRows = exportData.map(colis => [
-        colis.code_suivi || '',
-        colis.prix || '',
-        colis.nom || '',
-        colis.tele || '',
-        colis.adresse || '',
-        colis.ville?.nom || '',
-        colis.ville?.region?.nom || '',
-        colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : '',
-        colis.statut || '',
-        colis.commentaire || ''
-      ]);
-
-      // Create CSV content with proper escaping for Arabic text
-      const csvContent = [
-        headers.join(','),
-        ...dataRows.map(row =>
-          row.map(cell => {
-            // Properly escape cells containing Arabic text, commas, quotes, or newlines
-            const cellStr = String(cell || '');
-            if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n') || cellStr.includes('\r') || /[\u0600-\u06FF]/.test(cellStr)) {
-              return `"${cellStr.replace(/"/g, '""')}"`;
-            }
-            return cellStr;
-          }).join(',')
-        )
-      ].join('\r\n');
-
-      // Add BOM (Byte Order Mark) for proper UTF-8 encoding in Excel
-      const BOM = '\uFEFF';
-      const csvWithBOM = BOM + csvContent;
-
-      // Create and download file with proper encoding
-      const blob = new Blob([csvWithBOM], {
-        type: 'text/csv;charset=utf-8;'
-      });
-
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `colis_export_${moment().format('YYYY-MM-DD_HH-mm')}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success(`Export réussi! ${exportData.length} colis exportés avec support Arabic.`);
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Colis');
+      
+      // Generate Excel file and download
+      XLSX.writeFile(workbook, `colis_export_${moment().format('YYYY-MM-DD_HH-mm')}.xlsx`);
+      
+      toast.success(`Export Excel réussi! ${exportData.length} colis exportés avec support Arabic.`);
     } catch (error) {
       console.error('Export error:', error);
       toast.error("Erreur lors de l'export des données.");

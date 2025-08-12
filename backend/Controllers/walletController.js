@@ -1,7 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const {Wallet, validateWallet} = require('../Models/Wallet');
 const {Store} = require('../Models/Store');
+const {Transfer} = require('../Models/Transfer');
 const moment = require('moment');
+const mongoose = require('mongoose');
 
 // Generate unique wallet key
 const generateWalletKey = () => {
@@ -116,112 +118,184 @@ const toggleWalletActivation = async (req, res) => {
 
 // Middleware for depositing money
 const depositMoney = async (req, res) => {
+    const session = await mongoose.startSession();
+    
     try {
         const { identifier } = req.params;
         const { amount } = req.body;
+        const adminId = req.user?.id || req.user?._id;
+
+        // Validate admin ID is required
+        if (!adminId) {
+            return res.status(401).json({ message: "Admin authentication required for manual operations" });
+        }
 
         if (!amount || amount <= 0) {
             return res.status(400).json({ message: "Invalid amount" });
         }
 
-        let wallet;
-        // Check if identifier is a valid MongoDB ObjectId
-        if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
-            wallet = await Wallet.findById(identifier);
-        } else {
-            wallet = await Wallet.findOne({ key: identifier });
-        }
+        let wallet, transfer;
+        
+        await session.withTransaction(async () => {
+            // Check if identifier is a valid MongoDB ObjectId
+            if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+                wallet = await Wallet.findById(identifier).session(session);
+            } else {
+                wallet = await Wallet.findOne({ key: identifier }).session(session);
+            }
 
-        if (!wallet) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
+            if (!wallet) {
+                throw new Error("Wallet not found");
+            }
 
-        if (!wallet.active) {
-            return res.status(400).json({ message: "Wallet is not active" });
-        }
+            if (!wallet.active) {
+                throw new Error("Wallet is not active");
+            }
 
-        wallet.solde += amount;
-        await wallet.save();
+            // Create transfer record with required admin field
+            transfer = new Transfer({
+                wallet: wallet._id,
+                type: 'Manuel Depot',
+                status: 'validé',
+                montant: amount,
+                commentaire: `Dépôt manuel de ${amount} DH par l'administrateur`,
+                admin: adminId
+            });
+            
+            await transfer.save({ session });
+
+            wallet.solde += amount;
+            await wallet.save({ session });
+        });
 
         res.status(200).json({
             message: "Deposit successful",
-            newBalance: wallet.solde
+            newBalance: wallet.solde,
+            transfer: transfer
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    } finally {
+        await session.endSession();
     }
 };
 
 // Middleware for withdrawing money
 const withdrawMoney = async (req, res) => {
+    const session = await mongoose.startSession();
+    
     try {
         const { identifier } = req.params;
         const { amount } = req.body;
+        const adminId = req.user?.id || req.user?._id;
+
+        // Validate admin ID is required
+        if (!adminId) {
+            return res.status(401).json({ message: "Admin authentication required for manual operations" });
+        }
 
         if (!amount || amount <= 0) {
             return res.status(400).json({ message: "Invalid amount" });
         }
 
-        let wallet;
-        // Check if identifier is a valid MongoDB ObjectId
-        if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
-            wallet = await Wallet.findById(identifier);
-        } else {
-            wallet = await Wallet.findOne({ key: identifier });
-        }
+        let wallet, transfer;
+        
+        await session.withTransaction(async () => {
+            // Check if identifier is a valid MongoDB ObjectId
+            if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+                wallet = await Wallet.findById(identifier).session(session);
+            } else {
+                wallet = await Wallet.findOne({ key: identifier }).session(session);
+            }
 
-        if (!wallet) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
+            if (!wallet) {
+                throw new Error("Wallet not found");
+            }
 
-        if (!wallet.active) {
-            return res.status(400).json({ message: "Wallet is not active" });
-        }
+            if (!wallet.active) {
+                throw new Error("Wallet is not active");
+            }
 
-        if (wallet.solde < amount) {
-            return res.status(400).json({ message: "Insufficient funds" });
-        }
+            if (wallet.solde < amount) {
+                throw new Error("Insufficient funds");
+            }
 
-        wallet.solde -= amount;
-        await wallet.save();
+            // Create transfer record with required admin field
+            transfer = new Transfer({
+                wallet: wallet._id,
+                type: 'Manuel Withdrawal',
+                status: 'validé',
+                montant: -amount, // Negative amount for withdrawal
+                commentaire: `Retrait manuel de ${amount} DH par l'administrateur`,
+                admin: adminId
+            });
+            
+            await transfer.save({ session });
+
+            wallet.solde -= amount;
+            await wallet.save({ session });
+        });
 
         res.status(200).json({
             message: "Withdrawal successful",
-            newBalance: wallet.solde
+            newBalance: wallet.solde,
+            transfer: transfer
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    } finally {
+        await session.endSession();
     }
 };
 
 // Reset wallet to initial state
 const resetWallet = async (req, res) => {
+    const session = await mongoose.startSession();
+    
     try {
+        let wallet, transfer;
         const { identifier } = req.params;
-        let wallet;
+        
+        await session.withTransaction(async () => {
+            // Check if identifier is a valid MongoDB ObjectId
+            if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+                wallet = await Wallet.findById(identifier).session(session);
+            } else {
+                wallet = await Wallet.findOne({ key: identifier }).session(session);
+            }
 
-        // Check if identifier is a valid MongoDB ObjectId
-        if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
-            wallet = await Wallet.findById(identifier);
-        } else {
-            wallet = await Wallet.findOne({ key: identifier });
-        }
+            if (!wallet) {
+                throw new Error("Wallet not found");
+            }
 
-        if (!wallet) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
+            // Create transfer record for reset operation if wallet has balance
+            if (wallet.solde !== 0) {
+                transfer = new Transfer({
+                    wallet: wallet._id,
+                    type: 'Manuel Withdrawal',
+                    status: 'validé',
+                    montant: -wallet.solde, // Negative amount to reset balance
+                    commentaire: `Réinitialisation du portefeuille - Solde précédent: ${wallet.solde} DH`
+                });
+                
+                await transfer.save({ session });
+            }
 
-        // Reset wallet to initial state
-        wallet.solde = 0;
-        wallet.active = false;
-        await wallet.save();
+            // Reset wallet to initial state
+            wallet.solde = 0;
+            wallet.active = false;
+            await wallet.save({ session });
+        });
 
         res.status(200).json({
             message: "Wallet reset successfully",
-            wallet
+            wallet,
+            transfer: transfer || null
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    } finally {
+        await session.endSession();
     }
 };
 

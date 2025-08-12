@@ -128,6 +128,9 @@ function ProfileUser() {
     const [withdrawalNote, setWithdrawalNote] = useState('');
     const [withdrawalLoading, setWithdrawalLoading] = useState(false);
 
+    // Wallet analysis modal state
+    const [analysisModalVisible, setAnalysisModalVisible] = useState(false);
+
     // Admin panel visibility states
     const [adminPanelOpen, setAdminPanelOpen] = useState({
         user: false,
@@ -330,8 +333,9 @@ function ProfileUser() {
             return;
         }
 
-        if (withdrawalAmount > wallet.solde) {
-            message.error('Montant supérieur au solde disponible');
+        const totalAmount = withdrawalAmount + 5; // Total amount including fees
+        if (totalAmount > wallet.solde) {
+            message.error('Montant supérieur au solde disponible (incluant les frais de 5 DH)');
             return;
         }
 
@@ -340,8 +344,8 @@ function ProfileUser() {
             await dispatch(createAdminWithdrawal({
                 walletId: wallet._id,
                 paymentId: selectedPayment,
-                montant: withdrawalAmount,
-                note: withdrawalNote || `Admin withdrawal: ${withdrawalAmount - 5} DH (+ 5 DH fees)`
+                montant: withdrawalAmount, // Net amount (what client receives)
+                note: withdrawalNote || `Admin withdrawal: ${withdrawalAmount} DH net (Total avec frais: ${totalAmount} DH)`
             }));
 
             // Refresh data
@@ -571,6 +575,54 @@ function ProfileUser() {
                                                     )}
                                                 </div>
                                             </InfoSection>
+
+                                            {/* Payment Methods */}
+                                            <div style={{ marginTop: '20px' }}>
+                                                <Title level={5} style={{ color: getTextColor(), marginBottom: '16px' }}>
+                                                    <CreditCardOutlined style={{ marginRight: '8px' }} />
+                                                    Méthodes de Paiement
+                                                </Title>
+                                                
+                                                {payments.length > 0 ? (
+                                                    <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                                                        {payments.map((payment, index) => (
+                                                            <InfoSection key={index} theme={theme} style={{ marginBottom: '12px' }}>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                                    <Text strong style={{ color: getTextColor(), fontSize: '14px' }}>
+                                                                        {payment.nom}
+                                                                    </Text>
+                                                                    {payment.default && (
+                                                                        <Tag color="success" size="small">Défaut</Tag>
+                                                                    )}
+                                                                </div>
+                                                                <div style={{ marginBottom: '8px' }}>
+                                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>
+                                                                        {payment.idBank?.Bank || 'Banque non spécifiée'}
+                                                                    </Text>
+                                                                </div>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>
+                                                                        {payment.rib}
+                                                                    </Text>
+                                                                    <Button 
+                                                                        type="text" 
+                                                                        size="small" 
+                                                                        icon={<CopyOutlined />} 
+                                                                        onClick={() => copyToClipboard(payment.rib, 'RIB')}
+                                                                    />
+                                                                </div>
+                                                            </InfoSection>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                                                        <CreditCardOutlined style={{ fontSize: '32px', color: getTextColor(), opacity: 0.5 }} />
+                                                        <Text style={{ color: getTextColor(), display: 'block', marginTop: '8px', fontSize: '12px' }}>
+                                                            Aucune méthode de paiement
+                                                        </Text>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </StatsCard>
                                     </Col>
 
@@ -903,64 +955,14 @@ function ProfileUser() {
                                 {/* Payment Methods & Transactions */}
                                 <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
 
-                                    {/* Payment Methods */}
-                                    <Col xs={24} md={8}>
-                                        <StatsCard theme={theme}>
-                                            <Title level={4} style={{ color: getTextColor(), marginBottom: '20px' }}>
-                                                <CreditCardOutlined style={{ marginRight: '8px' }} />
-                                                Méthodes de Paiement
-                                            </Title>
-                                            
-                                            {payments.length > 0 ? (
-                                                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                                    {payments.map((payment, index) => (
-                                                        <InfoSection key={index} theme={theme}>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                                <Text strong style={{ color: getTextColor() }}>
-                                                                    {payment.nom}
-                                                                </Text>
-                                                                {payment.default && (
-                                                                    <Tag color="success" size="small">Défaut</Tag>
-                                                                )}
-                                                            </div>
-                                                            <div style={{ marginBottom: '8px' }}>
-                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>
-                                                                    {payment.idBank?.Bank || 'Banque non spécifiée'}
-                                                                </Text>
-                                                            </div>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>
-                                                                    {payment.rib}
-                                                                </Text>
-                                                                <Button 
-                                                                    type="text" 
-                                                                    size="small" 
-                                                                    icon={<CopyOutlined />} 
-                                                                    onClick={() => copyToClipboard(payment.rib, 'RIB')}
-                                                                />
-                                                            </div>
-                                                        </InfoSection>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div style={{ textAlign: 'center', padding: '40px' }}>
-                                                    <CreditCardOutlined style={{ fontSize: '48px', color: getTextColor(), opacity: 0.5 }} />
-                                                    <Text style={{ color: getTextColor(), display: 'block', marginTop: '16px' }}>
-                                                        Aucune méthode de paiement
-                                                    </Text>
-                                                </div>
-                                            )}
-                                        </StatsCard>
-                                    </Col>
-
                                     {/* Withdrawals - Admin Only */}
                                     {isAdmin && (
-                                        <Col xs={24} md={8}>
+                                        <Col xs={24}>
                                             <StatsCard theme={theme}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                                                     <Title level={4} style={{ color: getTextColor(), margin: 0 }}>
                                                         <MinusOutlined style={{ marginRight: '8px' }} />
-                                                        Retraits
+                                                        Demandes de Retrait
                                                     </Title>
                                                     <ActionButton
                                                         type="primary"
@@ -968,45 +970,145 @@ function ProfileUser() {
                                                         onClick={openWithdrawalModal}
                                                         size="small"
                                                     >
-                                                        Nouveau
+                                                        Nouveau Retrait
                                                     </ActionButton>
                                                 </div>
                                                 
+                                                {/* Statistics */}
+                                                {withdrawals && withdrawals.length > 0 && (
+                                                    <Row gutter={[12, 12]} style={{ marginBottom: '20px' }}>
+                                                        <Col span={6}>
+                                                            <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', borderRadius: '8px' }}>
+                                                                <Text style={{ color: '#1890ff', fontSize: '20px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {withdrawals.length}
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>Total</Text>
+                                                            </div>
+                                                        </Col>
+                                                        <Col span={6}>
+                                                            <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', borderRadius: '8px' }}>
+                                                                <Text style={{ color: '#52c41a', fontSize: '20px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {withdrawals.filter(w => w.status === 'done').length}
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>Effectués</Text>
+                                                            </div>
+                                                        </Col>
+                                                        <Col span={6}>
+                                                            <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', borderRadius: '8px' }}>
+                                                                <Text style={{ color: '#fa8c16', fontSize: '20px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {withdrawals.filter(w => w.status === 'pending' || w.status === 'processing').length}
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>En cours</Text>
+                                                            </div>
+                                                        </Col>
+                                                        <Col span={6}>
+                                                            <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', borderRadius: '8px' }}>
+                                                                <Text style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {withdrawals.filter(w => w.status === 'done').reduce((sum, w) => sum + (w.montant + 5), 0)} DH
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>Total Montant</Text>
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )}
+                                                
                                                 {withdrawals && withdrawals.length > 0 ? (
-                                                    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                                        {withdrawals.slice(0, 5).map((withdrawal, index) => (
-                                                            <InfoSection key={index} theme={theme}>
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                                    <Text strong style={{ color: getTextColor() }}>
-                                                                        {withdrawal.montant} DH
-                                                                    </Text>
-                                                                    <Tag
-                                                                        color={
-                                                                            withdrawal.status === 'done' ? 'success' :
-                                                                            withdrawal.status === 'rejected' ? 'error' :
-                                                                            withdrawal.status === 'processing' ? 'processing' :
-                                                                            'warning'
-                                                                        }
-                                                                    >
-                                                                        {withdrawal.status}
-                                                                    </Tag>
-                                                                </div>
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>
-                                                                        Frais: {withdrawal.frais} DH
-                                                                    </Text>
-                                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>
-                                                                        {new Date(withdrawal.createdAt).toLocaleDateString()}
-                                                                    </Text>
-                                                                </div>
-                                                            </InfoSection>
-                                                        ))}
+                                                    <div style={{ 
+                                                        width: '100%',
+                                                        height: '400px',
+                                                        overflowX: 'auto',
+                                                        overflowY: 'auto',
+                                                        border: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`,
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        <table style={{ 
+                                                            width: '100%', 
+                                                            borderCollapse: 'collapse',
+                                                            fontSize: '13px'
+                                                        }}>
+                                                            <thead>
+                                                                <tr style={{ background: theme === 'dark' ? '#1a1a1a' : '#fafafa' }}>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Montant</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Frais</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Net</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Statut</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Méthode</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Wallet Key</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Date</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Note</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {withdrawals.map((withdrawal, index) => (
+                                                                    <tr key={index} style={{ borderBottom: `1px solid ${theme === 'dark' ? '#2a2a2a' : '#f0f0f0'}` }}>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontWeight: '600' }}>
+                                                                            {withdrawal.montant + 5} DH
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: '#fa8c16', fontWeight: '500' }}>
+                                                                            {withdrawal.frais} DH
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: '#52c41a', fontWeight: '600' }}>
+                                                                            {withdrawal.montant} DH
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px' }}>
+                                                                            <Tag
+                                                                                color={
+                                                                                    withdrawal.status === 'done' ? 'success' :
+                                                                                    withdrawal.status === 'rejected' ? 'error' :
+                                                                                    withdrawal.status === 'processing' ? 'processing' :
+                                                                                    'warning'
+                                                                                }
+                                                                                style={{ fontSize: '11px' }}
+                                                                            >
+                                                                                {withdrawal.status === 'done' ? 'Effectué' :
+                                                                                 withdrawal.status === 'rejected' ? 'Rejeté' :
+                                                                                 withdrawal.status === 'processing' ? 'En cours' :
+                                                                                 'En attente'}
+                                                                            </Tag>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontSize: '12px' }}>
+                                                                            {withdrawal.payment?.nom || withdrawal.paymentMethod?.nom || 'N/A'}
+                                                                            <br />
+                                                                            <span style={{ color: '#999', fontSize: '11px' }}>
+                                                                                {withdrawal.payment?.rib || withdrawal.paymentMethod?.rib ? `***${(withdrawal.payment?.rib || withdrawal.paymentMethod?.rib).slice(-4)}` : ''}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontSize: '12px' }}>
+                                                                            <span style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: theme === 'dark' ? '#333' : '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>
+                                                                                {withdrawal.wallet?.key || 'N/A'}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontSize: '12px' }}>
+                                                                            {new Date(withdrawal.createdAt).toLocaleDateString('fr-FR')}
+                                                                            <br />
+                                                                            <span style={{ color: '#999', fontSize: '11px' }}>
+                                                                                {new Date(withdrawal.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontSize: '11px', maxWidth: '150px' }}>
+                                                                            {withdrawal.note ? (
+                                                                                <span title={withdrawal.note} style={{ 
+                                                                                    display: 'block',
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis',
+                                                                                    whiteSpace: 'nowrap'
+                                                                                }}>
+                                                                                    {withdrawal.note}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span style={{ color: '#999', fontStyle: 'italic' }}>—</span>
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 ) : (
                                                     <div style={{ textAlign: 'center', padding: '40px' }}>
                                                         <MinusOutlined style={{ fontSize: '48px', color: getTextColor(), opacity: 0.5 }} />
                                                         <Text style={{ color: getTextColor(), display: 'block', marginTop: '16px' }}>
-                                                            Aucun retrait
+                                                            Aucune demande de retrait
                                                         </Text>
                                                     </div>
                                                 )}
@@ -1016,47 +1118,171 @@ function ProfileUser() {
 
                                     {/* Transfers - Admin Only */}
                                     {isAdmin && (
-                                        <Col xs={24} md={8}>
+                                        <Col xs={24}>
                                             <StatsCard theme={theme}>
-                                                <Title level={4} style={{ color: getTextColor(), marginBottom: '20px' }}>
-                                                    <DollarOutlined style={{ marginRight: '8px' }} />
-                                                    Transferts
-                                                </Title>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                                    <Title level={4} style={{ color: getTextColor(), margin: 0 }}>
+                                                        <DollarOutlined style={{ marginRight: '8px' }} />
+                                                        Transferts
+                                                    </Title>
+                                                </div>
+                                                
+                                                {/* Transfer Statistics */}
+                                                {transfers && transfers.length > 0 && (
+                                                    <Row gutter={[12, 12]} style={{ marginBottom: '20px' }}>
+                                                        <Col span={6}>
+                                                            <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', borderRadius: '8px' }}>
+                                                                <Text style={{ color: '#1890ff', fontSize: '20px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {transfers.length}
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>Total</Text>
+                                                            </div>
+                                                        </Col>
+                                                        <Col span={6}>
+                                                            <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', borderRadius: '8px' }}>
+                                                                <Text style={{ color: '#52c41a', fontSize: '20px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').length}
+                                                                </Text>
+                                                                <Text style={{ color: '#52c41a', fontSize: '14px', fontWeight: '600', display: 'block' }}>
+                                                                    {transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>Entrées</Text>
+                                                            </div>
+                                                        </Col>
+                                                        <Col span={6}>
+                                                            <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', borderRadius: '8px' }}>
+                                                                <Text style={{ color: '#ff4d4f', fontSize: '20px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').length}
+                                                                </Text>
+                                                                <Text style={{ color: '#ff4d4f', fontSize: '14px', fontWeight: '600', display: 'block' }}>
+                                                                    {transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>Sorties</Text>
+                                                            </div>
+                                                        </Col>
+                                                        <Col span={6}>
+                                                            <div 
+                                                                style={{ 
+                                                                    textAlign: 'center', 
+                                                                    padding: '12px', 
+                                                                    background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', 
+                                                                    borderRadius: '8px',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                                onClick={() => setAnalysisModalVisible(true)}
+                                                                onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                                                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                                            >
+                                                                <Text style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold', display: 'block' }}>
+                                                                    {transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0) - transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                                                </Text>
+                                                                <Text style={{ color: getTextColor(), fontSize: '12px' }}>Solde Net</Text>
+                                                                <Text style={{ color: '#1890ff', fontSize: '10px', display: 'block', marginTop: '4px' }}>Cliquer pour analyser</Text>
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )}
                                                 
                                                 {transfers && transfers.length > 0 ? (
-                                                    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                                        {transfers.slice(0, 5).map((transfer, index) => (
-                                                            <InfoSection key={index} theme={theme}>
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                                    <Text strong style={{ color: getTextColor() }}>
-                                                                        {transfer.montant > 0 ? '+' : ''}{transfer.montant} DH
-                                                                    </Text>
-                                                                    <Tag
-                                                                        color={
-                                                                            transfer.status === 'validé' ? 'success' :
-                                                                            transfer.status === 'annuler' ? 'error' :
-                                                                            transfer.status === 'corrigé' ? 'processing' :
-                                                                            'warning'
-                                                                        }
-                                                                    >
-                                                                        {transfer.status}
-                                                                    </Tag>
-                                                                </div>
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>
-                                                                        {transfer.type}
-                                                                    </Text>
-                                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>
-                                                                        {new Date(transfer.createdAt).toLocaleDateString()}
-                                                                    </Text>
-                                                                </div>
-                                                                {transfer.commentaire && (
-                                                                    <Text style={{ color: getTextColor(), fontSize: '11px', fontStyle: 'italic', marginTop: '4px', display: 'block' }}>
-                                                                        {transfer.commentaire}
-                                                                    </Text>
-                                                                )}
-                                                            </InfoSection>
-                                                        ))}
+                                                    <div style={{ 
+                                                        width: '100%',
+                                                        height: '400px',
+                                                        overflowX: 'auto',
+                                                        overflowY: 'auto',
+                                                        border: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`,
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        <table style={{ 
+                                                            width: '100%', 
+                                                            borderCollapse: 'collapse',
+                                                            fontSize: '13px'
+                                                        }}>
+                                                            <thead>
+                                                                <tr style={{ background: theme === 'dark' ? '#1a1a1a' : '#fafafa' }}>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Montant</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Type</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Statut</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Colis</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Date</th>
+                                                                    <th style={{ padding: '12px 8px', textAlign: 'left', borderBottom: `1px solid ${theme === 'dark' ? '#333' : '#e8e8e8'}`, color: getTextColor(), fontWeight: '600' }}>Commentaire</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {transfers.map((transfer, index) => (
+                                                                    <tr key={index} style={{ borderBottom: `1px solid ${theme === 'dark' ? '#2a2a2a' : '#f0f0f0'}` }}>
+                                                                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>
+                                                                            <span style={{
+                                                                                color: transfer.type === 'Correction' ? '#1890ff' :
+                                                                                       transfer.type === 'withdrawal' ? '#ff4d4f' :
+                                                                                       transfer.type === 'Deposit' ? '#52c41a' :
+                                                                                       transfer.type === 'Manuel Depot' ? '#52c41a' :
+                                                                                       transfer.type === 'Manuel Withdrawal' ? '#ff4d4f' :
+                                                                                       getTextColor()
+                                                                            }}>
+                                                                                {transfer.montant > 0 ? '+' : ''}{transfer.montant} DH
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', fontSize: '12px' }}>
+                                                                            <span style={{
+                                                                                color: transfer.type === 'Correction' ? '#1890ff' :
+                                                                                       transfer.type === 'withdrawal' ? '#ff4d4f' :
+                                                                                       transfer.type === 'Deposit' ? '#52c41a' :
+                                                                                       transfer.type === 'Manuel Depot' ? '#52c41a' :
+                                                                                       transfer.type === 'Manuel Withdrawal' ? '#ff4d4f' :
+                                                                                       getTextColor(),
+                                                                                fontWeight: '500'
+                                                                            }}>
+                                                                                {transfer.type}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px' }}>
+                                                                            <Tag
+                                                                                color={
+                                                                                    transfer.status === 'validé' ? 'success' :
+                                                                                    transfer.status === 'annuler' ? 'error' :
+                                                                                    transfer.status === 'corrigé' ? 'processing' :
+                                                                                    'warning'
+                                                                                }
+                                                                                style={{ fontSize: '11px' }}
+                                                                            >
+                                                                                {transfer.status}
+                                                                            </Tag>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontSize: '12px' }}>
+                                                                            {transfer.colis ? (
+                                                                                <span style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: theme === 'dark' ? '#333' : '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>
+                                                                                    {typeof transfer.colis === 'object' ? transfer.colis.code_suivi || transfer.colis._id || 'N/A' : transfer.colis}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span style={{ color: '#999', fontStyle: 'italic' }}>—</span>
+                                                                            )}
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontSize: '12px' }}>
+                                                                            {new Date(transfer.createdAt).toLocaleDateString('fr-FR')}
+                                                                            <br />
+                                                                            <span style={{ color: '#999', fontSize: '11px' }}>
+                                                                                {new Date(transfer.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px 8px', color: getTextColor(), fontSize: '11px', maxWidth: '200px' }}>
+                                                                            {transfer.commentaire ? (
+                                                                                <span title={transfer.commentaire} style={{ 
+                                                                                    display: 'block',
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis',
+                                                                                    whiteSpace: 'nowrap'
+                                                                                }}>
+                                                                                    {transfer.commentaire}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span style={{ color: '#999', fontStyle: 'italic' }}>—</span>
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 ) : (
                                                     <div style={{ textAlign: 'center', padding: '40px' }}>
@@ -1210,7 +1436,7 @@ function ProfileUser() {
                             fontWeight: '500',
                             color: theme === 'dark' ? '#fff' : '#333'
                         }}>
-                            Montant à retirer (DH):
+                            Montant net à recevoir (DH):
                         </label>
                         <input
                             style={{
@@ -1223,11 +1449,11 @@ function ProfileUser() {
                                 outline: 'none'
                             }}
                             type="number"
-                            placeholder="Montant minimum: 100 DH"
+                            placeholder="Montant net minimum: 100 DH"
                             value={withdrawalAmount || ''}
                             onChange={(e) => setWithdrawalAmount(Number(e.target.value))}
                             min={100}
-                            max={wallet?.solde || 0}
+                            max={wallet ? wallet.solde - 5 : 0}
                             step={10}
                             onFocus={(e) => e.target.style.borderColor = '#ff4d4f'}
                             onBlur={(e) => e.target.style.borderColor = '#d9d9d9'}
@@ -1245,7 +1471,7 @@ function ProfileUser() {
                             }}>
                                 <DollarOutlined style={{ color: '#ff4d4f' }} />
                                 <span style={{ fontWeight: '500' }}>
-                                    Solde disponible: {wallet.solde} DH | Frais: 5 DH | Net: {withdrawalAmount - 5} DH
+                                    Solde disponible: {wallet.solde} DH | Montant net: {withdrawalAmount} DH | Frais: 5 DH | Total prélevé: {withdrawalAmount + 5} DH
                                 </span>
                             </div>
                         )}
@@ -1325,6 +1551,269 @@ function ProfileUser() {
                         </div>
                     </div>
                 </div>
+            </Modal>
+
+            {/* Wallet Analysis Modal */}
+            <Modal
+                title={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#1890ff' }}>
+                        <div style={{ 
+                            background: 'linear-gradient(135deg, #1890ff, #722ed1)', 
+                            borderRadius: '50%', 
+                            width: '40px', 
+                            height: '40px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: 'white'
+                        }}>
+                            <DollarOutlined style={{ fontSize: '18px' }} />
+                        </div>
+                        <span style={{ fontSize: '18px', fontWeight: '600' }}>
+                            Analyse Détaillée du Portefeuille
+                        </span>
+                    </div>
+                }
+                open={analysisModalVisible}
+                onCancel={() => setAnalysisModalVisible(false)}
+                footer={null}
+                width={900}
+                styles={{
+                    header: { borderBottom: '1px solid #f0f0f0', paddingBottom: '16px' },
+                    body: { padding: '24px', maxHeight: '70vh', overflowY: 'auto' }
+                }}
+            >
+                {transfers && wallet && (
+                    <div>
+                        {/* Summary Cards */}
+                        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+                            <Col span={8}>
+                                <div style={{ 
+                                    background: 'linear-gradient(135deg, #52c41a, #73d13d)', 
+                                    borderRadius: '12px', 
+                                    padding: '20px', 
+                                    color: 'white', 
+                                    textAlign: 'center' 
+                                }}>
+                                    <Title level={4} style={{ color: 'white', margin: 0 }}>Solde Disponible</Title>
+                                    <Text style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>{wallet.solde} DH</Text>
+                                </div>
+                            </Col>
+                            <Col span={8}>
+                                <div style={{ 
+                                    background: 'linear-gradient(135deg, #1890ff, #40a9ff)', 
+                                    borderRadius: '12px', 
+                                    padding: '20px', 
+                                    color: 'white', 
+                                    textAlign: 'center' 
+                                }}>
+                                    <Title level={4} style={{ color: 'white', margin: 0 }}>Solde Net Calculé</Title>
+                                    <Text style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>
+                                        {transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0) - transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                    </Text>
+                                </div>
+                            </Col>
+                            <Col span={8}>
+                                <div style={{ 
+                                    background: wallet.solde === (transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0) - transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0)) ? 'linear-gradient(135deg, #52c41a, #73d13d)' : 'linear-gradient(135deg, #ff4d4f, #ff7875)', 
+                                    borderRadius: '12px', 
+                                    padding: '20px', 
+                                    color: 'white', 
+                                    textAlign: 'center' 
+                                }}>
+                                    <Title level={4} style={{ color: 'white', margin: 0 }}>Différence</Title>
+                                    <Text style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>
+                                        {wallet.solde - (transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0) - transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0))} DH
+                                    </Text>
+                                </div>
+                            </Col>
+                        </Row>
+
+                        {/* Detailed Calculations */}
+                        <Row gutter={[24, 24]}>
+                            {/* Entrées Detail */}
+                            <Col span={12}>
+                                <div style={{ 
+                                    background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', 
+                                    borderRadius: '12px', 
+                                    padding: '20px',
+                                    border: '2px solid #52c41a'
+                                }}>
+                                    <Title level={4} style={{ color: '#52c41a', marginBottom: '16px' }}>
+                                        📈 Entrées Détaillées
+                                    </Title>
+                                    
+                                    {/* Deposit */}
+                                    <div style={{ marginBottom: '12px', padding: '12px', background: theme === 'dark' ? '#2a2a2a' : '#fff', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ color: getTextColor(), fontWeight: '500' }}>Dépôts Automatiques</Text>
+                                            <Text style={{ color: '#52c41a', fontWeight: 'bold' }}>
+                                                {transfers.filter(t => t.type === 'Deposit').length} transactions
+                                            </Text>
+                                        </div>
+                                        <Text style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {transfers.filter(t => t.type === 'Deposit').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                        </Text>
+                                    </div>
+
+                                    {/* Manuel Depot */}
+                                    <div style={{ marginBottom: '12px', padding: '12px', background: theme === 'dark' ? '#2a2a2a' : '#fff', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ color: getTextColor(), fontWeight: '500' }}>Dépôts Manuels</Text>
+                                            <Text style={{ color: '#52c41a', fontWeight: 'bold' }}>
+                                                {transfers.filter(t => t.type === 'Manuel Depot').length} transactions
+                                            </Text>
+                                        </div>
+                                        <Text style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {transfers.filter(t => t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                        </Text>
+                                    </div>
+
+                                    {/* Total Entrées */}
+                                    <div style={{ padding: '16px', background: '#f6ffed', borderRadius: '8px', border: '1px solid #b7eb8f' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ fontWeight: 'bold', fontSize: '16px' }}>Total Entrées</Text>
+                                            <Text style={{ color: '#52c41a', fontSize: '20px', fontWeight: 'bold' }}>
+                                                {transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                            </Text>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Col>
+
+                            {/* Sorties Detail */}
+                            <Col span={12}>
+                                <div style={{ 
+                                    background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', 
+                                    borderRadius: '12px', 
+                                    padding: '20px',
+                                    border: '2px solid #ff4d4f'
+                                }}>
+                                    <Title level={4} style={{ color: '#ff4d4f', marginBottom: '16px' }}>
+                                        📉 Sorties Détaillées
+                                    </Title>
+                                    
+                                    {/* Withdrawal */}
+                                    <div style={{ marginBottom: '12px', padding: '12px', background: theme === 'dark' ? '#2a2a2a' : '#fff', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ color: getTextColor(), fontWeight: '500' }}>Retraits Clients</Text>
+                                            <Text style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
+                                                {transfers.filter(t => t.type === 'withdrawal').length} transactions
+                                            </Text>
+                                        </div>
+                                        <Text style={{ color: '#ff4d4f', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {transfers.filter(t => t.type === 'withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                        </Text>
+                                    </div>
+
+                                    {/* Manuel Withdrawal */}
+                                    <div style={{ marginBottom: '12px', padding: '12px', background: theme === 'dark' ? '#2a2a2a' : '#fff', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ color: getTextColor(), fontWeight: '500' }}>Retraits Manuels</Text>
+                                            <Text style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
+                                                {transfers.filter(t => t.type === 'Manuel Withdrawal').length} transactions
+                                            </Text>
+                                        </div>
+                                        <Text style={{ color: '#ff4d4f', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {transfers.filter(t => t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                        </Text>
+                                    </div>
+
+                                    {/* Total Sorties */}
+                                    <div style={{ padding: '16px', background: '#fff2f0', borderRadius: '8px', border: '1px solid #ffccc7' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ fontWeight: 'bold', fontSize: '16px' }}>Total Sorties</Text>
+                                            <Text style={{ color: '#ff4d4f', fontSize: '20px', fontWeight: 'bold' }}>
+                                                {transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0)} DH
+                                            </Text>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Col>
+                        </Row>
+
+                        {/* Strategic Analysis */}
+                        <div style={{ 
+                            marginTop: '24px', 
+                            padding: '20px', 
+                            background: theme === 'dark' ? '#1a1a1a' : '#f8fafc', 
+                            borderRadius: '12px',
+                            border: '2px solid #1890ff'
+                        }}>
+                            <Title level={4} style={{ color: '#1890ff', marginBottom: '16px' }}>
+                                🎯 Analyse Stratégique
+                            </Title>
+                            
+                            {(() => {
+                                const soldeDisponible = wallet.solde;
+                                const soldeNet = transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0) - transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0);
+                                const difference = soldeDisponible - soldeNet;
+                                const totalEntrees = transfers.filter(t => t.type === 'Deposit' || t.type === 'Manuel Depot').reduce((sum, t) => sum + Math.abs(t.montant), 0);
+                                const totalSorties = transfers.filter(t => t.type === 'withdrawal' || t.type === 'Manuel Withdrawal').reduce((sum, t) => sum + Math.abs(t.montant), 0);
+                                
+                                return (
+                                    <div>
+                                        {difference === 0 ? (
+                                            <div style={{ padding: '16px', background: '#f6ffed', borderRadius: '8px', border: '1px solid #b7eb8f', marginBottom: '16px' }}>
+                                                <Text style={{ color: '#52c41a', fontWeight: 'bold', fontSize: '16px' }}>✅ Portefeuille Équilibré</Text>
+                                                <Text style={{ display: 'block', marginTop: '8px' }}>Le solde disponible correspond exactement au solde net calculé. Toutes les transactions sont cohérentes.</Text>
+                                            </div>
+                                        ) : difference > 0 ? (
+                                            <div style={{ padding: '16px', background: '#fff7e6', borderRadius: '8px', border: '1px solid #ffd591', marginBottom: '16px' }}>
+                                                <Text style={{ color: '#fa8c16', fontWeight: 'bold', fontSize: '16px' }}>⚠️ Solde Supérieur au Net (+{difference} DH)</Text>
+                                                <Text style={{ display: 'block', marginTop: '8px' }}>Le solde disponible est supérieur au solde net calculé. Cela peut indiquer:</Text>
+                                                <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
+                                                    <li>Des corrections non comptabilisées dans les transferts</li>
+                                                    <li>Des transactions externes au système</li>
+                                                    <li>Un solde initial non reflété dans les transferts</li>
+                                                </ul>
+                                            </div>
+                                        ) : (
+                                            <div style={{ padding: '16px', background: '#fff2f0', borderRadius: '8px', border: '1px solid #ffccc7', marginBottom: '16px' }}>
+                                                <Text style={{ color: '#ff4d4f', fontWeight: 'bold', fontSize: '16px' }}>🚨 Solde Inférieur au Net ({difference} DH)</Text>
+                                                <Text style={{ display: 'block', marginTop: '8px' }}>Le solde disponible est inférieur au solde net calculé. Attention:</Text>
+                                                <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
+                                                    <li>Possible incohérence dans les données</li>
+                                                    <li>Transactions non enregistrées</li>
+                                                    <li>Vérification nécessaire des calculs</li>
+                                                </ul>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Performance Metrics */}
+                                        <Row gutter={[16, 16]}>
+                                            <Col span={8}>
+                                                <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#2a2a2a' : '#fff', borderRadius: '8px' }}>
+                                                    <Text style={{ color: '#1890ff', fontSize: '18px', fontWeight: 'bold', display: 'block' }}>
+                                                        {totalSorties > 0 ? Math.round((totalEntrees / totalSorties) * 100) : 0}%
+                                                    </Text>
+                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>Ratio Entrées/Sorties</Text>
+                                                </div>
+                                            </Col>
+                                            <Col span={8}>
+                                                <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#2a2a2a' : '#fff', borderRadius: '8px' }}>
+                                                    <Text style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold', display: 'block' }}>
+                                                        {transfers.filter(t => t.type === 'Deposit').length + transfers.filter(t => t.type === 'Manuel Depot').length}
+                                                    </Text>
+                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>Total Transactions Entrées</Text>
+                                                </div>
+                                            </Col>
+                                            <Col span={8}>
+                                                <div style={{ textAlign: 'center', padding: '12px', background: theme === 'dark' ? '#2a2a2a' : '#fff', borderRadius: '8px' }}>
+                                                    <Text style={{ color: '#ff4d4f', fontSize: '18px', fontWeight: 'bold', display: 'block' }}>
+                                                        {transfers.filter(t => t.type === 'withdrawal').length + transfers.filter(t => t.type === 'Manuel Withdrawal').length}
+                                                    </Text>
+                                                    <Text style={{ color: getTextColor(), fontSize: '12px' }}>Total Transactions Sorties</Text>
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                );
+                            })()
+                            }
+                        </div>
+                    </div>
+                )}
             </Modal>
         </div>
     );

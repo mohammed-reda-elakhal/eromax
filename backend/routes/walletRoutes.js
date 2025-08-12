@@ -9,6 +9,7 @@ const {
     withdrawMoney,
     resetWallet
 } = require('../Controllers/walletController');
+const { verifyToken } = require('../Middlewares/VerifyToken');
 
 // Route to create wallets for all stores that don't have one
 router.post('/create', createWalletsForStores);
@@ -23,8 +24,8 @@ router.get('/:identifier', getWallet);
 router.patch('/active/:identifier', toggleWalletActivation);
 
 // Route for money operations (using ID or key)
-router.post('/deposit/:identifier', depositMoney);
-router.post('/withdraw/:identifier', withdrawMoney);
+router.post('/deposit/:identifier' , verifyToken , depositMoney);
+router.post('/withdraw/:identifier', verifyToken ,withdrawMoney);
 
 // Route to reset wallet to initial state (using ID or key)
 router.post('/reset/:identifier', resetWallet);

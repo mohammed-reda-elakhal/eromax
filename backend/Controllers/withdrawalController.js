@@ -1,17 +1,19 @@
 const { Withdrawal, validateWithdrawal, WITHDRAWAL_STATUS } = require('../Models/Withdrawal');
 const { Wallet } = require('../Models/Wallet');
-const { Transfer } = require('../Models/Transfer');
+const { Transfer, validateTransfer } = require('../Models/Transfer');
 const asyncHandler = require('express-async-handler');
 const { withdrawalWallet } = require('../Middlewares/payments');
 const { Store } = require('../Models/Store');
 const { cloudinaryUploadImage } = require('../utils/cloudinary');
 const Payement = require('../Models/Payement');
+const mongoose = require('mongoose');
 
 // Create a new withdrawal
 const createWithdrawal = asyncHandler(async (req, res) => {
+    const session = await mongoose.startSession();
+    
     try {
         const { wallet, payment, montant } = req.body;
-       
 
         // Validate the request body
         const { error } = validateWithdrawal({ ...req.body, frais: 5 });
@@ -19,22 +21,26 @@ const createWithdrawal = asyncHandler(async (req, res) => {
             return res.status(400).json({ error: error.details[0].message });
         }
 
-        // Process withdrawal using the middleware function
-        const withdrawalResult = await withdrawalWallet(wallet, montant, payment);
+        let savedWithdrawal;
+        
+        await session.withTransaction(async () => {
+            // Process withdrawal using the middleware function (already has transaction)
+            const withdrawalResult = await withdrawalWallet(wallet, montant, payment);
 
-        // Create new withdrawal record
-        const withdrawal = new Withdrawal({
-            wallet,
-            payment,
-            montant: withdrawalResult.pureMontant,
-            frais: withdrawalResult.frais,
-            statusHistory: [{
-                status: WITHDRAWAL_STATUS.WAITING,
-                note: 'تم إنشاء طلب السحب'
-            }]
+            // Create new withdrawal record
+            const withdrawal = new Withdrawal({
+                wallet,
+                payment,
+                montant: withdrawalResult.pureMontant,
+                frais: withdrawalResult.frais,
+                statusHistory: [{
+                    status: WITHDRAWAL_STATUS.WAITING,
+                    note: 'تم إنشاء طلب السحب'
+                }]
+            });
+
+            savedWithdrawal = await withdrawal.save({ session });
         });
-
-        const savedWithdrawal = await withdrawal.save();
         
         // Populate the saved withdrawal with all necessary details
         const populatedWithdrawal = await Withdrawal.findById(savedWithdrawal._id)
@@ -62,6 +68,8 @@ const createWithdrawal = asyncHandler(async (req, res) => {
             error: error.message || 'Failed to create withdrawal',
             details: error.stack
         });
+    } finally {
+        await session.endSession();
     }
 });
 
@@ -128,12 +136,29 @@ const updateWithdrawalStatus = asyncHandler(async (req, res) => {
             note: note || getDefaultNote(status)
         });
 
-        // If rejected, refund the wallet
+        // If rejected, refund the wallet using transaction
         if (status === WITHDRAWAL_STATUS.REJECTED) {
-            const wallet = await Wallet.findById(withdrawal.wallet);
-            if (wallet) {
-                wallet.solde += (withdrawal.montant + withdrawal.frais);
-                await wallet.save();
+            const session = await mongoose.startSession();
+            try {
+                await session.withTransaction(async () => {
+                    const wallet = await Wallet.findById(withdrawal.wallet).session(session);
+                    if (wallet) {
+                        wallet.solde += (withdrawal.montant + withdrawal.frais);
+                        await wallet.save({ session });
+                        
+                        // Create refund transfer record
+                        const refundTransfer = new Transfer({
+                            wallet: withdrawal.wallet,
+                            type: 'Manuel Depot',
+                            montant: withdrawal.montant + withdrawal.frais,
+                            commentaire: `Refund for rejected withdrawal: ${withdrawal.montant} DH + ${withdrawal.frais} DH fees`,
+                            status: 'validé'
+                        });
+                        await refundTransfer.save({ session });
+                    }
+                });
+            } finally {
+                await session.endSession();
             }
         }
 
@@ -167,12 +192,22 @@ const updateWithdrawalStatus = asyncHandler(async (req, res) => {
 // Admin create withdrawal on behalf of user
 const createAdminWithdrawal = asyncHandler(async (req, res) => {
     try {
+        console.log('Checking if validateTransfer is available:', typeof validateTransfer);
+        console.log('Admin withdrawal request body:', req.body);
+        console.log('Admin user:', req.user);
+        
         const { walletId, paymentId, montant, note } = req.body;
-        const adminId = req.user.id; // Get admin ID from token
+        const adminId = req.user?.id || req.user?._id; // Get admin ID from token
 
         // Validate required fields
         if (!walletId || !paymentId || !montant) {
+            console.log('Missing required fields:', { walletId, paymentId, montant });
             return res.status(400).json({ error: 'Wallet ID, Payment ID, and amount are required' });
+        }
+        
+        if (!adminId) {
+            console.log('Admin ID not found in token');
+            return res.status(401).json({ error: 'Admin authentication required' });
         }
 
         // Validate minimum amount
@@ -212,43 +247,79 @@ const createAdminWithdrawal = asyncHandler(async (req, res) => {
         const frais = 5; // Fixed frais
         const pureMontant = montant - frais;
 
-        // Create a transfer record for this admin withdrawal with required fields
-        const transferData = {
-            wallet: walletId,
-            type: 'Manuel Withdrawal',
-            montant: -montant, // Negative amount for withdrawal
-            admin: adminId,
-            commentaire: note || `Admin withdrawal created for ${pureMontant} DH (+ ${frais} DH fees)`,
-            status: 'validé'
-        };
-
-        const transfer = new Transfer(transferData);
-        await transfer.save();
-
-        // Update wallet balance
-        wallet.solde -= montant;
-        await wallet.save();
-
-        // Create new withdrawal record
-        const withdrawal = new Withdrawal({
-            wallet: walletId,
-            payment: paymentId,
-            montant: pureMontant,
-            frais: frais,
-            status: WITHDRAWAL_STATUS.PROCESSING, // Admin withdrawals start as accepted
-            statusHistory: [
-                {
-                    status: WITHDRAWAL_STATUS.WAITING,
-                    note: 'تم إنشاء طلب السحب من قبل الإدارة'
-                },
-                {
-                    status: WITHDRAWAL_STATUS.PROCESSING,
-                    note: note || `Admin withdrawal: ${pureMontant} DH approved automatically`
+        const session = await mongoose.startSession();
+        let savedWithdrawal, savedTransfer;
+        
+        try {
+            await session.withTransaction(async () => {
+                console.log('Creating transfer with data:', {
+                    wallet: walletId,
+                    type: 'Manuel Withdrawal',
+                    montant: -montant,
+                    admin: adminId
+                });
+                
+                // Validate transfer data
+                const transferData = {
+                    wallet: walletId,
+                    type: 'Manuel Withdrawal',
+                    montant: -montant, // Negative amount for withdrawal
+                    admin: adminId,
+                    commentaire: note || `Admin withdrawal created for ${pureMontant} DH (+ ${frais} DH fees)`,
+                    status: 'validé'
+                };
+                
+                // Validate using the Transfer model validation if available
+                try {
+                    if (validateTransfer) {
+                        const { error } = validateTransfer(transferData);
+                        if (error) {
+                            console.log('Transfer validation error:', error.details[0].message);
+                            throw new Error(`Transfer validation failed: ${error.details[0].message}`);
+                        }
+                    }
+                } catch (validationError) {
+                    console.log('Validation error:', validationError);
+                    // Continue with transfer creation even if validation fails
                 }
-            ]
-        });
+                
+                // Create a transfer record for this admin withdrawal
+                const transfer = new Transfer(transferData);
+                savedTransfer = await transfer.save({ session });
+                console.log('Transfer created successfully:', savedTransfer._id);
 
-        const savedWithdrawal = await withdrawal.save();
+                // Update wallet balance
+                wallet.solde -= montant;
+                await wallet.save({ session });
+                console.log('Wallet balance updated:', wallet.solde);
+
+                // Create new withdrawal record
+                const withdrawal = new Withdrawal({
+                    wallet: walletId,
+                    payment: paymentId,
+                    montant: pureMontant,
+                    frais: frais,
+                    status: WITHDRAWAL_STATUS.PROCESSING,
+                    statusHistory: [
+                        {
+                            status: WITHDRAWAL_STATUS.WAITING,
+                            note: 'تم إنشاء طلب السحب من قبل الإدارة'
+                        },
+                        {
+                            status: WITHDRAWAL_STATUS.PROCESSING,
+                            note: note || `Admin withdrawal: ${pureMontant} DH approved automatically`
+                        }
+                    ]
+                });
+                savedWithdrawal = await withdrawal.save({ session });
+                console.log('Withdrawal created successfully:', savedWithdrawal._id);
+            });
+        } catch (transactionError) {
+            console.error('Transaction error:', transactionError);
+            throw transactionError;
+        } finally {
+            await session.endSession();
+        }
 
         // Populate the saved withdrawal with all necessary details
         const populatedWithdrawal = await Withdrawal.findById(savedWithdrawal._id)
@@ -272,7 +343,7 @@ const createAdminWithdrawal = asyncHandler(async (req, res) => {
         res.status(201).json({
             message: 'Admin withdrawal created successfully',
             withdrawal: populatedWithdrawal,
-            transfer: transfer
+            transfer: savedTransfer
         });
     } catch (error) {
         console.error('Error in createAdminWithdrawal:', error);
@@ -462,6 +533,13 @@ const getAllWithdrawals = asyncHandler(async (req, res) => {
 const getWithdrawalsByWalletId = asyncHandler(async (req, res) => {
     try {
         const { walletId } = req.params;
+        
+        // Get wallet info first
+        const wallet = await Wallet.findById(walletId).select('key solde store');
+        if (!wallet) {
+            return res.status(404).json({ error: 'Wallet not found' });
+        }
+        
         const withdrawals = await Withdrawal.find({ wallet: walletId })
             .populate({
                 path: 'wallet',
@@ -473,14 +551,21 @@ const getWithdrawalsByWalletId = asyncHandler(async (req, res) => {
             })
             .populate({
                 path: 'payment',
-                select: 'nom rib clientId idBank',
+                select: 'nom rib clientId idBank default',
                 populate: {
                     path: 'idBank',
                     select: 'Bank image'
                 }
             })
             .sort({ createdAt: -1 });
-        res.status(200).json(withdrawals);
+            
+        // Transform withdrawals to include paymentMethod for frontend compatibility
+        const transformedWithdrawals = withdrawals.map(withdrawal => ({
+            ...withdrawal.toObject(),
+            paymentMethod: withdrawal.payment
+        }));
+        
+        res.status(200).json(transformedWithdrawals);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
