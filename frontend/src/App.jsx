@@ -30,8 +30,7 @@ import ProfileUser from "./scene/components/compte/page/ProfileUser";
 import ProfileLivreur from "./scene/components/compte/page/ProfileLivreur";
 import Ville from "./scene/components/ville/page/Ville";
 import Region from "./scene/components/region/page/Region"
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Toaster } from 'react-hot-toast';
 import RegisterLivreur from "./Vitrine page/RegisterLivreur";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import Reclamation from "./scene/components/reclamation/page/Reclamation";
@@ -204,7 +203,7 @@ function App() {
 
   return (
     <CustomThemeProvider>
-      <ToastContainer/>
+      <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />

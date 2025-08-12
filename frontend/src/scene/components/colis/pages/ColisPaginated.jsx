@@ -1181,6 +1181,26 @@ function ColisPaginated() {
                 }
               `}</style>
               <div className="filter-bar-grid">
+                 {/* Code Suivi */}
+                <div className="filter-bar-field">
+                  <input
+                    className="filter-bar-input"
+                    type="text"
+                    value={filters.code_suivi}
+                    onChange={e => handleFilterChange('code_suivi', e.target.value)}
+                    placeholder="Code Suivi"
+                  />
+                </div>
+                {/* Téléphone */}
+                <div className="filter-bar-field">
+                  <input
+                    className="filter-bar-input"
+                    type="text"
+                    value={filters.tele}
+                    onChange={e => handleFilterChange('tele', e.target.value)}
+                    placeholder="Téléphone"
+                  />
+                </div>
                 {/* Ville */}
                 <div className="filter-bar-field">
                   <Select
@@ -1357,26 +1377,7 @@ function ColisPaginated() {
                     }}
                   />
                 </div>
-                {/* Code Suivi */}
-                <div className="filter-bar-field">
-                  <input
-                    className="filter-bar-input"
-                    type="text"
-                    value={filters.code_suivi}
-                    onChange={e => handleFilterChange('code_suivi', e.target.value)}
-                    placeholder="Code Suivi"
-                  />
-                </div>
-                {/* Téléphone */}
-                <div className="filter-bar-field">
-                  <input
-                    className="filter-bar-input"
-                    type="text"
-                    value={filters.tele}
-                    onChange={e => handleFilterChange('tele', e.target.value)}
-                    placeholder="Téléphone"
-                  />
-                </div>
+               
                 {/* Date From */}
                 <div className="filter-bar-field">
                   <input

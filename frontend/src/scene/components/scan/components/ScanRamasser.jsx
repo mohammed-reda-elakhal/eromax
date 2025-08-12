@@ -34,6 +34,35 @@ function ScanRamasser() {
   // Référence pour empêcher le traitement multiple des scans
   const isProcessingScan = useRef(false);
 
+  // Sound effects
+  const playSuccessSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  };
+
+  const playErrorSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  };
+
   // Récupérer la liste des livreurs au montage
   useEffect(() => {
     dispatch(getLivreurList());
@@ -86,6 +115,7 @@ function ScanRamasser() {
         message: 'Code Suivi déjà scanné',
         description: 'Ce code a déjà été scanné.',
       });
+      playErrorSound();
       return;
     }
 
@@ -110,6 +140,7 @@ function ScanRamasser() {
           message: 'Statut inconnu',
           description: `Le statut "${statu}" n'est pas reconnu.`,
         });
+        playErrorSound();
         return;
       }
 
@@ -118,6 +149,7 @@ function ScanRamasser() {
           message: 'Statut de colis invalide',
           description: `Seuls les colis avec le statut "${requiredStatuses.join(' ou ')}" peuvent être scannés pour "${statu}".`,
         });
+        playErrorSound();
         return;
       }
 
@@ -132,12 +164,14 @@ function ScanRamasser() {
       ]);
 
       notification.success({ message: 'Colis trouvé et ajouté à la liste' });
+      playSuccessSound();
     } catch (error) {
       console.error('Erreur lors de la récupération du colis:', error);
       notification.error({
         message: 'Erreur lors de la récupération du colis',
         description: error.response?.data?.message || error.message,
       });
+      playErrorSound();
     }
   };
 

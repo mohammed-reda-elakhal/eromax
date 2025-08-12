@@ -1,4 +1,4 @@
-import { toast } from "react-toastify";
+import toast from 'react-hot-toast';
 import request from "../../utils/request";
 import { colisActions } from "../slices/colisSlice";
 import Cookies from "js-cookie";
@@ -515,6 +515,9 @@ export function createColis(colis) {
 
         // Send a POST request to create a single colis with `replacedColis` if available
         const { data } = await request.post(`/api/colis/user/${idToUse}`, colis, config);
+        
+        // Display success notification
+        toast.success(data.message || 'Colis créé avec succès');
       } catch (error) {
         // Error handling
         toast.error(error.response?.data?.message || error.message || "Failed to create colis");

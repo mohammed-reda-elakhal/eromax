@@ -15,7 +15,7 @@ import {
   getVilleById,
   resetVille,
 } from '../../../../redux/apiCalls/villeApiCalls';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { ThemeContext } from '../../../ThemeContext';
 import './ColisForm.css';
 import Select from 'react-select';
@@ -133,7 +133,7 @@ function ColisForm({ type }) {
     };
 
     try {
-      dispatch(createColis(colis));
+      await dispatch(createColis(colis));
       toast.success('Colis créé avec succès !');
       setFormData(initialFormData);
       setPhoneError('');

@@ -18,7 +18,7 @@ import {
   resetVille,
 } from '../../../../redux/apiCalls/villeApiCalls';
 import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { ThemeContext } from '../../../ThemeContext';
 import './ColisForm.css';
 import Select from 'react-select';
