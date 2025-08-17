@@ -23,11 +23,13 @@ import { walletReducer } from "./slices/walletSlice";
 import { transferReducer } from "./slices/transferSlice";
 import { withdrawalReducer } from "./slices/withdrawalSlice";
 import { regionReducer } from './slices/regionSlice';
+import { profileV2Reducer } from './slices/profileV2Slice';
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
     profile: profileReducer,
+    profileV2: profileV2Reducer,
     colis: colisReducer,
     ville: villeReducer,
     livreur: livreurReducer,

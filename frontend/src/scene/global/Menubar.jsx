@@ -496,6 +496,29 @@ function Menubar() {
           )
         }
 
+        { userData.role === "admin" && (
+          <Menu.SubMenu icon={<BiNote />} title="Doc API">
+            <Menu.Item>
+              <Link to="/dashboard/docs/client-api" target="_blank" rel="noopener noreferrer">Client API</Link>
+            </Menu.Item>
+            <Menu.Item>
+              <Link to="/dashboard/docs/livreur-api" target="_blank" rel="noopener noreferrer">Livreur API</Link>
+            </Menu.Item>
+          </Menu.SubMenu>
+        )}
+
+        { userData.role === "client" && (
+          <Menu.Item icon={<BiNote />}>
+            <Link to="/dashboard/docs/client-api" target="_blank" rel="noopener noreferrer">Doc API</Link>
+          </Menu.Item>
+        )}
+
+        { userData.role === "livreur" && (
+          <Menu.Item icon={<BiNote />}>
+            <Link to="/dashboard/docs/livreur-api" target="_blank" rel="noopener noreferrer">Doc API</Link>
+          </Menu.Item>
+        )}
+
         <Menu.Item icon={<BiSupport />}>
           <Link to="/dashboard/support">Support</Link>
         </Menu.Item>

@@ -67,6 +67,8 @@ import FactureRetour from "./scene/components/facture/page/FactureRetour";
 import FactureRetourDetail from "./scene/components/facture/page/FactureRetourDetail";
 import Promotions from "./scene/components/promotion/page/Promotion";
 import Cookies from "js-cookie";
+import DocsClientAPI from "./scene/components/docs/DocsClientAPI";
+import DocsLivreurAPI from "./scene/components/docs/DocsLivreurAPI";
 
 import DocumentProfile from "./scene/components/profile/components/DocumentProfile";
 
@@ -299,6 +301,11 @@ function App() {
             <Route path="promotion" element={<Promotions />} />
             <Route path="colis-nouveau" element={<ColisNouveau />} />
             <Route path="colis-pour-ramasse" element={<ColisPourRamase2 />} />
+            
+            <Route path="docs">
+              <Route path="client-api" element={<DocsClientAPI />} />
+              <Route path="livreur-api" element={<DocsLivreurAPI />} />
+            </Route>
           
         </Route>
       </Routes>

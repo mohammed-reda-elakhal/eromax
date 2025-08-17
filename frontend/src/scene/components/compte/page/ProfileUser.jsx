@@ -30,7 +30,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
 import { getStoreById } from '../../../../redux/apiCalls/storeApiCalls';
-import { toggleActiveClient, verifyClient } from '../../../../redux/apiCalls/profileApiCalls';
+import { toggleActiveClient, verifyClient, toggleApiKey } from '../../../../redux/apiCalls/profileApiCalls';
 import { toggleWalletActivation, depositMoney, withdrawMoney, resetWallet } from '../../../../redux/apiCalls/walletApiCalls';
 import { getWithdrawalsByWalletId, createAdminWithdrawal } from '../../../../redux/apiCalls/withdrawalApiCalls';
 import { getTransfersByWallet } from '../../../../redux/apiCalls/transferApiCalls';
@@ -103,8 +103,6 @@ const InfoSection = styled.div`
   border: 1px solid ${props => props.theme === 'dark' ? '#333' : '#e2e8f0'};
 `;
 
-
-
 function ProfileUser() {
     const { theme } = useContext(ThemeContext);
     const dispatch = useDispatch();
@@ -148,6 +146,26 @@ function ProfileUser() {
             ...prev,
             [panelType]: !prev[panelType]
         }));
+    };
+
+    // Admin function: Toggle API key status (active/inactive)
+    const handleToggleApiKey = async () => {
+        if (!isAdmin || !client?._id) return;
+        const isActive = client?.status === 'active';
+        Modal.confirm({
+            title: `Confirmer ${isActive ? 'la désactivation' : 'l\'activation'} de l'API`,
+            content: `Voulez-vous ${isActive ? 'désactiver' : 'activer'} la clé API de ce client ?`,
+            icon: <ExclamationCircleOutlined />,
+            onOk: async () => {
+                try {
+                    await dispatch(toggleApiKey('client', client._id));
+                    dispatch(getStoreById(storeId));
+                    message.success(`Clé API ${isActive ? 'désactivée' : 'activée'} avec succès`);
+                } catch (_) {
+                    message.error('Erreur lors de la mise à jour du statut API');
+                }
+            }
+        });
     };
 
     // Get the store and client data from the API response
@@ -454,6 +472,9 @@ function ProfileUser() {
                                                 <Tag color={client?.verify ? 'success' : 'warning'}>
                                                     {client?.verify ? 'Vérifié' : 'Non vérifié'}
                                                 </Tag>
+                                                <Tag color={client?.status === 'active' ? 'green' : 'red'}>
+                                                    API: {client?.status || 'inactive'}
+                                                </Tag>
                                             </div>
                                         </Col>
                                         <Col xs={24} sm={6} style={{ textAlign: 'right' }}>
@@ -477,6 +498,14 @@ function ProfileUser() {
                                                             Vérifier
                                                         </ActionButton>
                                                     )}
+                                                    <ActionButton
+                                                        type={client?.status === 'active' ? 'default' : 'primary'}
+                                                        icon={client?.status === 'active' ? <CloseCircleOutlined /> : <CheckCircleOutlined />}
+                                                        onClick={handleToggleApiKey}
+                                                        style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}
+                                                    >
+                                                        {client?.status === 'active' ? 'Désactiver API' : 'Activer API'}
+                                                    </ActionButton>
                                                 </div>
                                             )}
                                         </Col>

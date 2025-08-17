@@ -20,6 +20,23 @@ export function getProfile(userId, role) {
     };
 }
 
+// Toggle API key status (admin): duplicate kept for history (unused)
+export function toggleApiKeyDuplicate(role, userId) {
+    return async (dispatch) => {
+        try {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const { data } = await request.patch(`/api/admin/api-key/${role}/${userId}/toggle`, {}, { headers });
+            toast.success(data.message || 'API key status updated');
+            return data;
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message || 'Failed to update API key status';
+            toast.error(msg);
+            throw error;
+        }
+    };
+}
+
 // Fetch Profile List
 export function getProfileList(role) {
     return async (dispatch) => {
@@ -216,6 +233,23 @@ export function verifyClient(clientId) {
             const errorMessage = error.response?.data?.message || error.message || "Failed to verify client";
             dispatch(profileActions.verifyClientFailure(errorMessage));
             toast.error(errorMessage);
+        }
+    };
+}
+
+// Toggle API key status (admin): active <-> inactive for client/livreur
+export function toggleApiKey(role, userId) {
+    return async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const { data } = await request.patch(`/api/admin/api-key/${role}/${userId}/toggle`, {}, { headers });
+            toast.success(data.message || 'API key status updated');
+            return data;
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message || 'Failed to update API key status';
+            toast.error(msg);
+            throw error;
         }
     };
 }

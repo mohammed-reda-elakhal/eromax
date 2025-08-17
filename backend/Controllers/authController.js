@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const moment = require('moment');  // Add this import
+const crypto = require('crypto');
 const { Wallet } = require("../Models/Wallet");  // Add this import
 const { Admin, validateLogin, adminValidation } = require("../Models/Admin");
 const { Client , clientValidation } = require("../Models/Client");
@@ -19,6 +20,24 @@ const generateWalletKey = () => {
     const random = Math.random().toString(36).substring(2, 7).toUpperCase();
     return `EROMAX-WALLET-${date}-${random}`;
 };
+
+// API key utilities
+function genKeyIdHex() {
+    return crypto.randomBytes(16).toString('hex'); // 128-bit hex
+}
+
+function genApiKey(prefix) {
+    const raw = crypto.randomBytes(18); // 24 base64 chars when URL-safe
+    return `${prefix}${raw.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
+}
+
+async function ensureUnique(Model, fieldName, generator) {
+    for (;;) {
+        const candidate = generator();
+        const exists = await Model.exists({ [fieldName]: candidate });
+        if (!exists) return candidate;
+    }
+}
 
 /**
  * @desc Login Profile
@@ -215,9 +234,14 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const username = req.body.prenom +"_"+ req.body.nom;
-    const client = new Client({ email, password: hashedPassword, username , ...rest });
+    // Pre-generate API credentials (set before save to satisfy immutability)
+    const keyId = await ensureUnique(Client, 'keyId', genKeyIdHex);
+    const apiKey = await ensureUnique(Client, 'apiKey', () => genApiKey('cli_'));
+    const client = new Client({ email, password: hashedPassword, username , status: 'inactive', keyId, apiKey, ...rest });
 
     await client.save();
+
+    // Previously: generate API credentials for client (removed)
 
     // Create store for client
     let store = await Store.create({
@@ -246,7 +270,8 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
             key: wallet.key,
             solde: wallet.solde,
             active: wallet.active
-        }
+        },
+        // API credentials removed from response
     });
 });
 
@@ -262,15 +287,20 @@ module.exports.registerLivreur = asyncHandler(async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const username = req.body.prenom +"_"+ req.body.nom
-    const livreur = new Livreur({ email, password: hashedPassword , username , ...rest });
+    // Pre-generate API credentials for livreur
+    const keyId = await ensureUnique(Livreur, 'keyId', genKeyIdHex);
+    const apiKey = await ensureUnique(Livreur, 'apiKey', () => genApiKey('liv_'));
+    const livreur = new Livreur({ email, password: hashedPassword , username , status: 'inactive', keyId, apiKey, ...rest });
 
     await livreur.save();
+
+    // Previously: generate API credentials for livreur (removed)
 
     res.status(201).json({
         message : `Bonjour ${livreur.prenom} , Votre compte est créer !!`,
         _id: livreur._id,
         email: livreur.email,
-        role: livreur.role,
+        role: livreur.role
     });
 });
 

@@ -23,7 +23,7 @@ import {
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import { getProfile, toggleActiveClient } from '../../../../redux/apiCalls/profileApiCalls';
+import { getProfile, toggleActiveClient, toggleApiKey } from '../../../../redux/apiCalls/profileApiCalls';
 import styled from 'styled-components';
 
 const { Title, Text } = Typography;
@@ -141,6 +141,26 @@ function ProfileLivreur() {
         });
     };
 
+    // Admin: Toggle API key status (active/inactive)
+    const handleToggleApiKey = async () => {
+        if (!isAdmin || !livreur?._id) return;
+        const isActive = livreur?.status === 'active';
+        Modal.confirm({
+            title: `Confirmer ${isActive ? 'la désactivation' : 'l\'activation'} de l'API`,
+            content: `Voulez-vous ${isActive ? 'désactiver' : 'activer'} la clé API de ce livreur ?`,
+            icon: <ExclamationCircleOutlined />,
+            onOk: async () => {
+                try {
+                    await dispatch(toggleApiKey('livreur', livreur._id));
+                    dispatch(getProfile(livreurId, 'livreur'));
+                    message.success(`Clé API ${isActive ? 'désactivée' : 'activée'} avec succès`);
+                } catch (_) {
+                    message.error('Erreur lors de la mise à jour du statut API');
+                }
+            }
+        });
+    };
+
     return (
         <div className='page-dashboard'>
             <Menubar />
@@ -230,18 +250,31 @@ function ProfileLivreur() {
                                                 <Tag color={livreur?.type === 'company' ? 'blue' : 'default'}>
                                                     {livreur?.type === 'company' ? 'Entreprise' : 'Simple'}
                                                 </Tag>
+                                                <Tag color={livreur?.status === 'active' ? 'green' : 'red'}>
+                                                    API: {livreur?.status || 'inactive'}
+                                                </Tag>
                                             </div>
                                         </Col>
                                         <Col xs={24} sm={6} style={{ textAlign: 'right' }}>
                                             {isAdmin && (
-                                                <ActionButton
-                                                    type={livreur?.active ? 'default' : 'primary'}
-                                                    icon={livreur?.active ? <CloseCircleOutlined /> : <CheckCircleOutlined />}
-                                                    onClick={handleToggleUserActive}
-                                                    style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}
-                                                >
-                                                    {livreur?.active ? 'Désactiver' : 'Activer'}
-                                                </ActionButton>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    <ActionButton
+                                                        type={livreur?.active ? 'default' : 'primary'}
+                                                        icon={livreur?.active ? <CloseCircleOutlined /> : <CheckCircleOutlined />}
+                                                        onClick={handleToggleUserActive}
+                                                        style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}
+                                                    >
+                                                        {livreur?.active ? 'Désactiver' : 'Activer'}
+                                                    </ActionButton>
+                                                    <ActionButton
+                                                        type={livreur?.status === 'active' ? 'default' : 'primary'}
+                                                        icon={livreur?.status === 'active' ? <CloseCircleOutlined /> : <CheckCircleOutlined />}
+                                                        onClick={handleToggleApiKey}
+                                                        style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}
+                                                    >
+                                                        {livreur?.status === 'active' ? 'Désactiver API' : 'Activer API'}
+                                                    </ActionButton>
+                                                </div>
                                             )}
                                         </Col>
                                     </Row>

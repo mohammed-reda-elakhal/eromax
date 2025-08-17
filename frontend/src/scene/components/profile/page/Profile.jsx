@@ -1,22 +1,22 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import '../profile.css'
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import Title from '../../../global/Title';
-import { Image, Tabs } from 'antd';
-import { FaRegUser , FaStore } from "react-icons/fa";
-import { IoDocumentAttach } from "react-icons/io5";
-import { MdPayment , MdOutlineSecurity } from "react-icons/md";
-import ProfileInfo from '../components/ProfileInfo';
-import PayementProfile from '../components/PayementProfile';
-
+import ProfileClientV2 from '../components/ProfileClientV2';
+import ProfileLivreurV2 from '../components/ProfileLivreurV2';
+import ProfileAdminV2 from '../components/ProfileAdminV2';
+import { useSelector } from 'react-redux';
 
 function Profile() {
     const { theme } = useContext(ThemeContext);
-   
-   
-  
+    const authUser = useSelector((state) => state.auth.user);
+    const role = authUser?.role;
+
+    // Set theme attribute on document body for CSS variables
+    useEffect(() => {
+        document.body.setAttribute('data-theme', theme);
+    }, [theme]);
 
     return (
         <div className='page-dashboard'>
@@ -37,7 +37,14 @@ function Profile() {
                         }} 
                     >
                         <div className="container-profile">
-                            <ProfileInfo theme={theme} />
+                            {role === 'client' && <ProfileClientV2 theme={theme} />}
+                            {role === 'livreur' && <ProfileLivreurV2 theme={theme} />}
+                            {role === 'admin' && <ProfileAdminV2 theme={theme} />}
+                            {!role && (
+                                <div style={{ padding: 16 }}>
+                                    Unable to detect user role. Please sign in again.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
