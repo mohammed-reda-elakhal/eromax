@@ -28,6 +28,17 @@ const createTransfer = async (req, res) => {
     }
 };
 
+
+// Placeholder: update a transfer (not implemented yet)
+const updateTransfer = async (req, res) => {
+    return res.status(501).json({ message: 'updateTransfer not implemented' });
+};
+
+// Placeholder: correct a transfer (not implemented yet)
+const correctTransfer = async (req, res) => {
+    return res.status(501).json({ message: 'correctTransfer not implemented' });
+};
+
 // Get all transfers
 const getAllTransfers = async (req, res) => {
     try {
@@ -211,170 +222,114 @@ const deleteTransfer = async (req, res) => {
         }
 
         await transfer.deleteOne();
-        res.status(200).json({ message: "Transfer deleted successfully" });
+        return res.status(200).json({ message: "Transfer deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error deleting transfer:', error);
+        return res.status(500).json({ message: "Error deleting transfer", error: error.message });
     }
 };
 
+// Cancel transfer (transactional)
 const cancelTransfer = async (req, res) => {
+    const session = await mongoose.startSession();
     try {
         const { transferId } = req.params;
 
-        // Find the transfer and check its status
-        const transfer = await Transfer.findById(transferId);
-        if (!transfer) {
-            return res.status(404).json({ message: "Transfer not found" });
-        }
+        let result;
+        await session.withTransaction(async () => {
+            const transfer = await Transfer.findById(transferId).session(session);
+            if (!transfer) {
+                throw new Error("Transfer not found");
+            }
+            if (transfer.status === 'annuler') {
+                throw new Error("Transfer is already cancelled");
+            }
 
-        // Check if transfer is already cancelled
-        if (transfer.status === 'annuler') {
-            return res.status(400).json({ message: "Transfer is already cancelled" });
-        }
+            const wallet = await Wallet.findById(transfer.wallet).session(session);
+            if (!wallet) {
+                throw new Error("Wallet not found");
+            }
 
-        // Find the associated wallet
-        const wallet = await Wallet.findById(transfer.wallet);
-        if (!wallet) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
-
-        // Find the associated colis
-        const colis = await Colis.findById(transfer.colis);
-        if (!colis) {
-            return res.status(404).json({ message: "Colis not found" });
-        }
-
-        try {
-            // First mark the transfer as cancelled to prevent concurrent cancellations
+            // Mark transfer cancelled
             transfer.status = 'annuler';
-            await transfer.save();
+            await transfer.save({ session });
 
-            // Then update the wallet balance using findOneAndUpdate to ensure atomicity
-            const updatedWallet = await Wallet.findOneAndUpdate(
-                { _id: wallet._id },
-                { $inc: { solde: -transfer.montant } },
-                { new: true }
-            );
+            // Revert wallet.balance by subtracting transfer.montant
+            wallet.solde -= transfer.montant;
+            await wallet.save({ session });
 
-            if (!updatedWallet) {
-                // If wallet update fails, revert transfer status
-                transfer.status = 'annuler';
-                await transfer.save();
-                throw new Error('Failed to update wallet balance');
-            }
-
-            // Finally update the colis status
-            const updatedColis = await Colis.findOneAndUpdate(
-                { _id: colis._id },
-                { wallet_prosseced: false },
-                { new: true }
-            );
-
-            if (!updatedColis) {
-                // If colis update fails, revert previous changes
-                transfer.status = 'annuler';
-                await transfer.save();
-                await Wallet.findOneAndUpdate(
-                    { _id: wallet._id },
-                    { $inc: { solde: transfer.montant } }
+            // Optionally update colis flag
+            let updatedColis = null;
+            if (transfer.colis) {
+                updatedColis = await Colis.findOneAndUpdate(
+                    { _id: transfer.colis },
+                    { wallet_prosseced: false },
+                    { new: true, session }
                 );
-                throw new Error('Failed to update colis status');
             }
 
-            res.status(200).json({
-                message: "Transfer cancelled successfully",
-                transfer,
-                wallet: updatedWallet,
-                colis: updatedColis
-            });
+            result = { transfer, wallet, colis: updatedColis };
+        });
 
-        } catch (error) {
-            throw new Error(`Failed to cancel transfer: ${error.message}`);
-        }
-
+        return res.status(200).json({ message: "Transfer cancelled successfully", ...result });
     } catch (error) {
         console.error('Error cancelling transfer:', error);
-        res.status(500).json({
-            message: "Error cancelling transfer",
-            error: error.message
-        });
+        return res.status(500).json({ message: "Error cancelling transfer", error: error.message });
+    } finally {
+        await session.endSession();
     }
 };
 
+
 const validateTransferStatus = async (req, res) => {
+    const session = await mongoose.startSession();
     try {
         const { transferId } = req.params;
 
-        // Find the transfer and check its status
-        const transfer = await Transfer.findById(transferId);
-        if (!transfer) {
-            return res.status(404).json({ message: "Transfer not found" });
-        }
+        let result;
+        await session.withTransaction(async () => {
+            // Find the transfer and check its status
+            const transfer = await Transfer.findById(transferId).session(session);
+            if (!transfer) {
+                throw new Error("Transfer not found");
+            }
 
-        // Check if transfer is already validated
-        if (transfer.status === 'validé') {
-            return res.status(400).json({ message: "Transfer is already validated" });
-        }
+            // Check if transfer is already validated
+            if (transfer.status === 'validé') {
+                throw new Error("Transfer is already validated");
+            }
 
-        // Find the associated wallet
-        const wallet = await Wallet.findById(transfer.wallet);
-        if (!wallet) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
+            // Find the associated wallet
+            const wallet = await Wallet.findById(transfer.wallet).session(session);
+            if (!wallet) {
+                throw new Error("Wallet not found");
+            }
 
-        // Find the associated colis
-        const colis = await Colis.findById(transfer.colis);
-        if (!colis) {
-            return res.status(404).json({ message: "Colis not found" });
-        }
-
-        try {
-            // First mark the transfer as validated to prevent concurrent validations
+            // Mark the transfer as validated
             transfer.status = 'validé';
-            await transfer.save();
+            await transfer.save({ session });
 
-            // Then update the wallet balance using findOneAndUpdate to ensure atomicity
-            const updatedWallet = await Wallet.findOneAndUpdate(
-                { _id: wallet._id },
-                { $inc: { solde: transfer.montant } },
-                { new: true }
-            );
+            // Apply wallet balance change
+            wallet.solde += transfer.montant;
+            await wallet.save({ session });
 
-            if (!updatedWallet) {
-                // If wallet update fails, revert transfer status
-                transfer.status = 'pending';
-                await transfer.save();
-                throw new Error('Failed to update wallet balance');
-            }
-
-            // Finally update the colis status
-            const updatedColis = await Colis.findOneAndUpdate(
-                { _id: colis._id },
-                { wallet_prosseced: true },
-                { new: true }
-            );
-
-            if (!updatedColis) {
-                // If colis update fails, revert previous changes
-                transfer.status = 'pending';
-                await transfer.save();
-                await Wallet.findOneAndUpdate(
-                    { _id: wallet._id },
-                    { $inc: { solde: -transfer.montant } }
+            // Update colis status if present
+            let updatedColis = null;
+            if (transfer.colis) {
+                updatedColis = await Colis.findOneAndUpdate(
+                    { _id: transfer.colis },
+                    { wallet_prosseced: true },
+                    { new: true, session }
                 );
-                throw new Error('Failed to update colis status');
             }
 
-            res.status(200).json({
-                message: "Transfer validated successfully",
-                transfer,
-                wallet: updatedWallet,
-                colis: updatedColis
-            });
+            result = { transfer, wallet, colis: updatedColis };
+        });
 
-        } catch (error) {
-            throw new Error(`Failed to validate transfer: ${error.message}`);
-        }
+        res.status(200).json({
+            message: "Transfer validated successfully",
+            ...result
+        });
 
     } catch (error) {
         console.error('Error validating transfer:', error);
@@ -382,120 +337,15 @@ const validateTransferStatus = async (req, res) => {
             message: "Error validating transfer",
             error: error.message
         });
+    } finally {
+        await session.endSession();
     }
 };
 
-const correctTransfer = async (req, res) => {
-    try {
-        const { transferId } = req.params;
-        const { newMontant, description } = req.body;
-
-        if (!newMontant || typeof newMontant !== 'number') {
-            return res.status(400).json({
-                message: "newMontant is required and must be a number"
-            });
-        }
-
-        if (!description) {
-            return res.status(400).json({
-                message: "Description is required for correction transfers"
-            });
-        }
-
-        // Find the transfer
-        const transfer = await Transfer.findById(transferId);
-        if (!transfer) {
-            return res.status(404).json({ message: "Transfer not found" });
-        }
-
-        // Check if transfer can be corrected
-        if (transfer.type === 'Correction') {
-            return res.status(400).json({
-                message: "Cannot correct a correction transfer"
-            });
-        }
-
-        if (transfer.status !== 'validé') {
-            return res.status(400).json({
-                message: "Only validated transfers can be corrected"
-            });
-        }
-
-        // Find the associated wallet
-        const wallet = await Wallet.findById(transfer.wallet);
-        if (!wallet) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
-
-        // Calculate difference
-        const oldMontant = transfer.montant;
-        const difference = newMontant - oldMontant;
-
-        // Check if wallet has sufficient balance for deduction
-        if (difference < 0 && wallet.solde + difference < 0) {
-            return res.status(400).json({
-                message: "Insufficient wallet balance for this correction"
-            });
-        }
-
-        try {
-            // First update the transfer to prevent concurrent modifications
-            transfer.originalMontant = oldMontant;
-            transfer.montant = newMontant;
-            transfer.status = 'corrigé';
-            transfer.type = 'Correction';
-            transfer.description = description;
-            transfer.correctionDate = new Date();
-            await transfer.save();
-
-            // Then update the wallet balance
-            const updatedWallet = await Wallet.findOneAndUpdate(
-                { _id: wallet._id },
-                { $inc: { solde: difference } },
-                { new: true }
-            );
-
-            if (!updatedWallet) {
-                // If wallet update fails, revert transfer changes
-                transfer.montant = oldMontant;
-                transfer.status = 'validé';
-                transfer.type = 'Deposit';
-                transfer.description = undefined;
-                transfer.originalMontant = undefined;
-                transfer.correctionDate = undefined;
-                await transfer.save();
-                throw new Error('Failed to update wallet balance');
-            }
-
-            res.status(200).json({
-                message: "Transfer corrected successfully",
-                transfer: await Transfer.findById(transfer._id)
-                    .populate('colis')
-                    .populate('wallet'),
-                wallet: updatedWallet,
-                correction: {
-                    oldAmount: oldMontant,
-                    newAmount: newMontant,
-                    difference,
-                    description
-                }
-            });
-
-        } catch (error) {
-            throw new Error(`Failed to correct transfer: ${error.message}`);
-        }
-
-    } catch (error) {
-        console.error('Error correcting transfer:', error);
-        res.status(500).json({
-            message: "Error correcting transfer",
-            error: error.message
-        });
-    }
-};
 
 // Create manual deposit
 const createManualDeposit = async (req, res) => {
+    const session = await mongoose.startSession();
     try {
         const { wallet, montant, commentaire } = req.body;
 
@@ -525,42 +375,44 @@ const createManualDeposit = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Find the wallet
-        const walletDoc = await Wallet.findById(wallet);
-        if (!walletDoc) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
+        let savedTransfer;
+        await session.withTransaction(async () => {
+            // Find the wallet in the session
+            const walletDoc = await Wallet.findById(wallet).session(session);
+            if (!walletDoc) {
+                throw new Error("Wallet not found");
+            }
+            if (!walletDoc.active) {
+                throw new Error("Wallet is not active");
+            }
 
-        if (!walletDoc.active) {
-            return res.status(400).json({ message: "Wallet is not active" });
-        }
+            // Create new transfer
+            const transfer = new Transfer(transferData);
+            savedTransfer = await transfer.save({ session });
 
-        // Create new transfer
-        const transfer = new Transfer(transferData);
-
-        // Update wallet balance
-        walletDoc.solde += montant;
-
-        // Save both documents
-        await Promise.all([
-            transfer.save(),
-            walletDoc.save()
-        ]);
+            // Update wallet balance
+            walletDoc.solde += montant;
+            await walletDoc.save({ session });
+        });
 
         // Return created transfer
         res.status(201).json({
             message: "Manual deposit created successfully",
-            transfer: await Transfer.findById(transfer._id)
+            transfer: await Transfer.findById(savedTransfer._id)
                 .populate('wallet')
                 .populate('admin', 'Nom Prenom email')
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    } finally {
+        await session.endSession();
     }
 };
 
+
 // Create manual withdrawal
 const createManualWithdrawal = async (req, res) => {
+    const session = await mongoose.startSession();
     try {
         const { wallet, montant, commentaire } = req.body;
 
@@ -574,11 +426,11 @@ const createManualWithdrawal = async (req, res) => {
             return res.status(400).json({ message: "Amount must be positive for withdrawals" });
         }
 
-        // Create transfer object
+        // Create transfer object (use negative montant for withdrawals)
         const transferData = {
             wallet,
             type: 'Manuel Withdrawal',
-            montant,
+            montant: -montant,
             commentaire,
             admin: req.user.id,
             status: 'validé'
@@ -590,44 +442,44 @@ const createManualWithdrawal = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Find the wallet
-        const walletDoc = await Wallet.findById(wallet);
-        if (!walletDoc) {
-            return res.status(404).json({ message: "Wallet not found" });
-        }
+        let savedTransfer;
+        await session.withTransaction(async () => {
+            // Find the wallet
+            const walletDoc = await Wallet.findById(wallet).session(session);
+            if (!walletDoc) {
+                throw new Error("Wallet not found");
+            }
+            if (!walletDoc.active) {
+                throw new Error("Wallet is not active");
+            }
+            // Check if wallet has sufficient balance
+            if (walletDoc.solde < montant) {
+                throw new Error("Insufficient wallet balance for withdrawal");
+            }
 
-        if (!walletDoc.active) {
-            return res.status(400).json({ message: "Wallet is not active" });
-        }
+            // Create new transfer
+            const transfer = new Transfer(transferData);
+            savedTransfer = await transfer.save({ session });
 
-        // Check if wallet has sufficient balance
-        if (walletDoc.solde < montant) {
-            return res.status(400).json({ message: "Insufficient wallet balance for withdrawal" });
-        }
-
-        // Create new transfer
-        const transfer = new Transfer(transferData);
-
-        // Update wallet balance (subtract for withdrawal)
-        walletDoc.solde -= montant;
-
-        // Save both documents
-        await Promise.all([
-            transfer.save(),
-            walletDoc.save()
-        ]);
+            // Update wallet balance (subtract for withdrawal)
+            walletDoc.solde -= montant;
+            await walletDoc.save({ session });
+        });
 
         // Return created transfer
         res.status(201).json({
             message: "Manual withdrawal created successfully",
-            transfer: await Transfer.findById(transfer._id)
+            transfer: await Transfer.findById(savedTransfer._id)
                 .populate('wallet')
                 .populate('admin', 'Nom Prenom email')
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    } finally {
+        await session.endSession();
     }
 };
+
 
 module.exports = {
     createTransfer,
@@ -638,6 +490,7 @@ module.exports = {
     deleteTransfer,
     cancelTransfer,
     validateTransferStatus,
+    updateTransfer,
     correctTransfer,
     createManualDeposit,
     createManualWithdrawal

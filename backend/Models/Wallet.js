@@ -22,10 +22,17 @@ const WalletSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
         required: true
+    },
+    activationDate: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true
 });
+
+// Enforce one wallet per store
+WalletSchema.index({ store: 1 }, { unique: true });
 
 // Wallet Model
 const Wallet = mongoose.model("Wallet", WalletSchema);
@@ -35,8 +42,9 @@ function validateWallet(obj) {
     const schema = Joi.object({
         key: Joi.string().required(),
         store: Joi.string().required(),
-        solde: Joi.number().required(),
-        active: Joi.boolean().required()
+        solde: Joi.number().min(0).optional(),
+        active: Joi.boolean().optional(),
+        activationDate: Joi.date().optional()
     });
     return schema.validate(obj);
 }

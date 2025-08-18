@@ -44,86 +44,97 @@ const createTransferOperation = async (id_wallet, type, montant, id_colis = null
     }
 };
 
-// Handle wallet withdrawal
-const withdrawalWallet = async (walletId, montant, paymentId) => {
-    const session = await mongoose.startSession();
+// Handle wallet withdrawal (supports external session to avoid nested transactions)
+const withdrawalWallet = async (walletId, montant, paymentId, externalSession = null) => {
+    const ownSession = !externalSession;
+    const session = externalSession || await mongoose.startSession();
     
-    try {
-        return await session.withTransaction(async () => {
-            const frais = 5; // Fixed frais
-            const totalAmount = montant;
+    const run = async () => {
+        const frais = 5; // Fixed frais
+        const totalAmount = montant;
 
-            // Verify wallet exists and is active
-            const wallet = await Wallet.findById(walletId).session(session);
-            if (!wallet) {
-                throw new Error("Wallet not found");
+        // Verify wallet exists and is active
+        const wallet = await Wallet.findById(walletId).session(session);
+        if (!wallet) {
+            throw new Error("Wallet not found");
+        }
+        if (!wallet.active) {
+            throw new Error("Wallet is not active");
+        }
+
+        // Get store and verify client ownership
+        const store = await Store.findById(wallet.store).session(session);
+        if (!store) {
+            throw new Error("Store not found for this wallet");
+        }
+
+        // Verify payment method exists and belongs to the same client
+        const payment = await Payement.findById(paymentId).session(session);
+        if (!payment) {
+            throw new Error("Payment method not found");
+        }
+        if (payment.clientId.toString() !== store.id_client.toString()) {
+            throw new Error("Payment method does not belong to the wallet owner");
+        }
+
+        // Check if pure montant (after frais) is at least 100
+        if (montant < 100) {
+            throw new Error("Minimum withdrawal amount must be 100. Please increase your withdrawal amount.");
+        }
+
+        // Check if wallet has sufficient balance
+        if (wallet.solde < totalAmount) {
+            throw new Error("Insufficient balance. Please ensure you have enough balance including the 5 fee.");
+        }
+        
+        /*
+        // Check for 24-hour cooldown
+        const lastWithdrawal = await Withdrawal.findOne({
+            wallet: walletId,
+            createdAt: {
+                $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24 hours ago
             }
-            if (!wallet.active) {
-                throw new Error("Wallet is not active");
-            }
+        }).session(session);
 
-            // Get store and verify client ownership
-            const store = await Store.findById(wallet.store).session(session);
-            if (!store) {
-                throw new Error("Store not found for this wallet");
-            }
+        if (lastWithdrawal) {
+            const timeLeft = Math.ceil((24 * 60 * 60 * 1000 - (Date.now() - lastWithdrawal.createdAt)) / (1000 * 60 * 60));
+            throw new Error(`You can only make one withdrawal every 24 hours. Please wait ${timeLeft} hours before trying again.`);
+        }
+            */
 
-            // Verify payment method exists and belongs to the same client
-            const payment = await Payement.findById(paymentId).session(session);
-            if (!payment) {
-                throw new Error("Payment method not found");
-            }
-            if (payment.clientId.toString() !== store.id_client.toString()) {
-                throw new Error("Payment method does not belong to the wallet owner");
-            }
-
-            // Check if pure montant (after frais) is at least 100
-            if (montant < 100) {
-                throw new Error("Minimum withdrawal amount must be 100. Please increase your withdrawal amount.");
-            }
-
-            // Check if wallet has sufficient balance
-            if (wallet.solde < totalAmount) {
-                throw new Error("Insufficient balance. Please ensure you have enough balance including the 5 fee.");
-            }
-            
-            // Check for 24-hour cooldown
-            const lastWithdrawal = await Withdrawal.findOne({
-                wallet: walletId,
-                createdAt: {
-                    $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24 hours ago
-                }
-            }).session(session);
-
-            if (lastWithdrawal) {
-                const timeLeft = Math.ceil((24 * 60 * 60 * 1000 - (Date.now() - lastWithdrawal.createdAt)) / (1000 * 60 * 60));
-                throw new Error(`You can only make one withdrawal every 24 hours. Please wait ${timeLeft} hours before trying again.`);
-            }
-
-            // Create transfer record with session
-            const transfer = new Transfer({
-                wallet: walletId,
-                type: 'withdrawal',
-                montant: -montant,
-                commentaire: 'retrait par client'
-            });
-            await transfer.save({ session });
-
-            // Update wallet balance
-            wallet.solde -= montant;
-            await wallet.save({ session });
-
-            return {
-                wallet,
-                transfer,
-                pureMontant: montant - frais,
-                frais
-            };
+        // Create transfer record with session
+        const transfer = new Transfer({
+            wallet: walletId,
+            type: 'withdrawal',
+            montant: -montant,
+            commentaire: 'retrait par client'
         });
+        await transfer.save({ session });
+
+        // Update wallet balance
+        wallet.solde -= montant;
+        await wallet.save({ session });
+
+        return {
+            wallet,
+            transfer,
+            pureMontant: montant - frais,
+            frais
+        };
+    };
+
+    try {
+        if (ownSession) {
+            return await session.withTransaction(run);
+        }
+        // When external session/transaction is provided, just run the logic
+        return await run();
     } catch (error) {
         throw error;
     } finally {
-        await session.endSession();
+        if (ownSession) {
+            await session.endSession();
+        }
     }
 };
 

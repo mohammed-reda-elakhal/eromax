@@ -62,6 +62,11 @@ const TransferSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Performance indexes for frequent queries
+TransferSchema.index({ wallet: 1, createdAt: -1 });
+TransferSchema.index({ type: 1, status: 1, createdAt: -1 });
+TransferSchema.index({ colis: 1 });
+
 // Transfer Model
 const Transfer = mongoose.model("Transfer", TransferSchema);
 

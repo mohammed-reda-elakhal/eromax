@@ -798,9 +798,16 @@ function ProfileUser() {
                                                                     {wallet.active ? 'Actif' : 'Inactif'}
                                                                 </Text>
                                                             </div>
-                                                            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>
-                                                                Créé le {new Date(wallet.createdAt).toLocaleDateString('fr-FR')}
-                                                            </Text>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                                                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>
+                                                                    Créé le {new Date(wallet.createdAt).toLocaleDateString('fr-FR')}
+                                                                </Text>
+                                                                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>
+                                                                    {wallet.activationDate
+                                                                        ? `Activé le ${new Date(wallet.activationDate).toLocaleDateString('fr-FR')}`
+                                                                        : 'Non activé'}
+                                                                </Text>
+                                                            </div>
                                                         </div>
                                                         
                                                         {/* Admin Controls */}

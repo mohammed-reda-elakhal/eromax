@@ -24,8 +24,8 @@ const createWithdrawal = asyncHandler(async (req, res) => {
         let savedWithdrawal;
         
         await session.withTransaction(async () => {
-            // Process withdrawal using the middleware function (already has transaction)
-            const withdrawalResult = await withdrawalWallet(wallet, montant, payment);
+            // Process withdrawal using the middleware function with the same session (single transaction)
+            const withdrawalResult = await withdrawalWallet(wallet, montant, payment, session);
 
             // Create new withdrawal record
             const withdrawal = new Withdrawal({
@@ -247,25 +247,7 @@ const createAdminWithdrawal = asyncHandler(async (req, res) => {
                     throw new Error('Payment method does not belong to the wallet owner');
                 }
 
-                // Duplicate prevention: check existing active withdrawal for same tuple
-                const activeStatuses = [
-                    WITHDRAWAL_STATUS.WAITING,
-                    WITHDRAWAL_STATUS.SEEN,
-                    WITHDRAWAL_STATUS.CHECKING,
-                    WITHDRAWAL_STATUS.ACCEPTED,
-                    WITHDRAWAL_STATUS.PROCESSING
-                ];
-                const existing = await Withdrawal.findOne({
-                    wallet: walletId,
-                    payment: paymentId,
-                    montant: pureMontant,
-                    status: { $in: activeStatuses }
-                }).session(session);
-                if (existing) {
-                    const dupErr = new Error('Duplicate withdrawal request detected');
-                    dupErr.code = 11000;
-                    throw dupErr;
-                }
+                // Duplicate prevention removed per new requirement: allow multiple active withdrawals
 
                 // Check if wallet has sufficient balance at transaction time
                 if (wallet.solde < montant) {

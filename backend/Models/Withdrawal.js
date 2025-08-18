@@ -69,25 +69,10 @@ const WithdrawalSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Create indexes for better query performance
+// Create indexes for better query performance (non-unique)
 WithdrawalSchema.index({ wallet: 1, status: 1 });
 WithdrawalSchema.index({ payment: 1 });
-// Prevent duplicate active withdrawals (waiting/seen/checking/accepted/processing) for same wallet+payment+montant
-WithdrawalSchema.index(
-    { wallet: 1, payment: 1, montant: 1, status: 1 },
-    {
-        unique: true,
-        partialFilterExpression: {
-            status: { $in: [
-                WITHDRAWAL_STATUS.WAITING,
-                WITHDRAWAL_STATUS.SEEN,
-                WITHDRAWAL_STATUS.CHECKING,
-                WITHDRAWAL_STATUS.ACCEPTED,
-                WITHDRAWAL_STATUS.PROCESSING
-            ] }
-        }
-    }
-);
+WithdrawalSchema.index({ wallet: 1, payment: 1, montant: 1, status: 1 });
 
 // Create the model
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
@@ -102,7 +87,7 @@ function validateWithdrawal(obj) {
         status: Joi.string().valid(...Object.values(WITHDRAWAL_STATUS)),
         verment_preuve: Joi.object({
             url: Joi.string(),
-            public_id: Joi.string()
+            publicId: Joi.string()
         })
     });
     return schema.validate(obj);

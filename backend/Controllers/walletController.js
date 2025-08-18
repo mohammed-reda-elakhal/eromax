@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const {Wallet, validateWallet} = require('../Models/Wallet');
 const {Store} = require('../Models/Store');
 const {Transfer} = require('../Models/Transfer');
+const {Withdrawal} = require('../Models/Withdrawal');
 const moment = require('moment');
 const mongoose = require('mongoose');
 
@@ -32,7 +33,8 @@ const createWalletsForStores = async (req, res) => {
                 key: generateWalletKey(),
                 store: store._id,
                 solde: 0,
-                active: false
+                active: true,
+                activationDate: Date.now()
             });
             return newWallet.save();
         });
@@ -105,6 +107,12 @@ const toggleWalletActivation = async (req, res) => {
         }
 
         wallet.active = !wallet.active;
+        // Update activationDate based on new state
+        if (wallet.active) {
+            wallet.activationDate = Date.now();
+        } else {
+            wallet.activationDate = null;
+        }
         await wallet.save();
 
         res.status(200).json({
@@ -248,16 +256,18 @@ const withdrawMoney = async (req, res) => {
     }
 };
 
-// Reset wallet to initial state
+// Reset wallet to a fresh active state
 const resetWallet = async (req, res) => {
     const session = await mongoose.startSession();
     
     try {
-        let wallet, transfer;
+        let wallet;
         const { identifier } = req.params;
+        let deletedTransfers = 0;
+        let deletedWithdrawals = 0;
         
         await session.withTransaction(async () => {
-            // Check if identifier is a valid MongoDB ObjectId
+            // Find wallet by id or key within the session
             if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
                 wallet = await Wallet.findById(identifier).session(session);
             } else {
@@ -268,29 +278,26 @@ const resetWallet = async (req, res) => {
                 throw new Error("Wallet not found");
             }
 
-            // Create transfer record for reset operation if wallet has balance
-            if (wallet.solde !== 0) {
-                transfer = new Transfer({
-                    wallet: wallet._id,
-                    type: 'Manuel Withdrawal',
-                    status: 'validé',
-                    montant: -wallet.solde, // Negative amount to reset balance
-                    commentaire: `Réinitialisation du portefeuille - Solde précédent: ${wallet.solde} DH`
-                });
-                
-                await transfer.save({ session });
-            }
+            // Remove all related transfers and withdrawals
+            const transfersResult = await Transfer.deleteMany({ wallet: wallet._id }).session(session);
+            const withdrawalsResult = await Withdrawal.deleteMany({ wallet: wallet._id }).session(session);
+            deletedTransfers = transfersResult.deletedCount || 0;
+            deletedWithdrawals = withdrawalsResult.deletedCount || 0;
 
-            // Reset wallet to initial state
+            // Reset wallet data and re-activate with new activation date
             wallet.solde = 0;
-            wallet.active = false;
+            wallet.active = true;
+            wallet.activationDate = Date.now();
             await wallet.save({ session });
         });
 
         res.status(200).json({
-            message: "Wallet reset successfully",
+            message: "Wallet reset successfully to a fresh active state",
             wallet,
-            transfer: transfer || null
+            deleted: {
+                transfers: deletedTransfers,
+                withdrawals: deletedWithdrawals
+            }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

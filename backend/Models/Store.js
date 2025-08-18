@@ -74,7 +74,8 @@ StoreSchema.post('save', async function(doc, next) {
                     key: generateWalletKey(),
                     store: doc._id,
                     solde: 0,
-                    active: false
+                    active: true,
+                    activationDate: Date.now()
                 });
                 await wallet.save();
             }
