@@ -68,7 +68,7 @@ function Topbar() {
             Profile
           </Menu.Item>
           <Menu.Divider />
-          <Menu.Item key="logout" icon={<IoMdExit />} onClick={logoutFunction}>
+          <Menu.Item key="logout" icon={<IoMdExit />} onClick={logoutFunction} style={{ color: '#ff4d4f' }}>
             Deconnecter
           </Menu.Item>
         </Menu>
@@ -85,7 +85,7 @@ function Topbar() {
             Documents
           </Menu.Item>
           <Menu.Divider />
-          <Menu.Item key="logout" icon={<IoMdExit />} onClick={logoutFunction}>
+          <Menu.Item key="logout" icon={<IoMdExit />} onClick={logoutFunction} style={{ color: '#ff4d4f' }}>
             Deconnecter
           </Menu.Item>
         </Menu>
@@ -98,17 +98,11 @@ function Topbar() {
         <Menu.Item key="profile" icon={<ProfileOutlined />} onClick={() => navigate(`/dashboard/profile/${user._id}`)}>
           Profile
         </Menu.Item>
-        <Menu.Item key="store" icon={<FaStore />} onClick={() => navigate(`/dashboard/bussness`)}>
-          Bussness
-        </Menu.Item>
-        <Menu.Item key="payement" icon={<FaPaypal />} onClick={() => navigate(`/dashboard/payement`)}>
-          Payements
-        </Menu.Item>
         <Menu.Item key="document" icon={<FaFileArchive />} onClick={() => navigate(`/dashboard/document`)}>
           Documents
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="logout" icon={<IoMdExit />} onClick={logoutFunction}>
+        <Menu.Item key="logout" icon={<IoMdExit />} onClick={logoutFunction} style={{ color: '#ff4d4f' }}>
           Deconnecter
         </Menu.Item>
       </Menu>
