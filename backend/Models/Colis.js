@@ -242,7 +242,7 @@ function validateRegisterColis(obj) {
         ville: Joi.string().required(),
         tele: Joi.string().required(),
         prix: Joi.number().required(),
-        commentaire: Joi.string(),
+        commentaire: Joi.string().allow('', null),
         etat: Joi.boolean(),
         wallet_prosseced: Joi.boolean(),
         nature_produit: Joi.string().allow('', null),

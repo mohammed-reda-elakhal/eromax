@@ -72,6 +72,22 @@ const WithdrawalSchema = new mongoose.Schema({
 // Create indexes for better query performance
 WithdrawalSchema.index({ wallet: 1, status: 1 });
 WithdrawalSchema.index({ payment: 1 });
+// Prevent duplicate active withdrawals (waiting/seen/checking/accepted/processing) for same wallet+payment+montant
+WithdrawalSchema.index(
+    { wallet: 1, payment: 1, montant: 1, status: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            status: { $in: [
+                WITHDRAWAL_STATUS.WAITING,
+                WITHDRAWAL_STATUS.SEEN,
+                WITHDRAWAL_STATUS.CHECKING,
+                WITHDRAWAL_STATUS.ACCEPTED,
+                WITHDRAWAL_STATUS.PROCESSING
+            ] }
+        }
+    }
+);
 
 // Create the model
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);

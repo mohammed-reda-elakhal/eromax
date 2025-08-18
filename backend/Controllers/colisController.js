@@ -45,90 +45,103 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Store information is missing in user data" });
   }
 
-  // Extract store and team information
-  let store = req.user.store || null;  // Assuming req.user.store should be used
-  let team = req.user.id;  // Assuming team is the user id
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      // Extract store and team information
+      const store = req.user.store || null;
+      const team = req.user.id;
 
-  // Validate and fetch the ville by its ID from the request body
-  const ville = await Ville.findById(req.body.ville);
-  if (!ville) {
-    return res.status(400).json({ message: "Ville not found" });
-  }
+      // Validate and fetch the ville by its ID from the request body, within the session
+      const ville = await Ville.findById(req.body.ville).session(session);
+      if (!ville) {
+        throw new Error("Ville not found");
+      }
 
-  // Generate a unique code_suivi
-  let code_suivi;
-  let isUnique = false;
-  while (!isUnique) {
-    code_suivi = generateCodeSuivi(ville.ref);
-    const existingColis = await Colis.findOne({ code_suivi });
-    if (!existingColis) {
-      isUnique = true;
-    }
-  }
+      // Generate a unique code_suivi (loop with small attempt cap)
+      let code_suivi;
+      let isUnique = false;
+      let attempts = 0;
+      const maxAttempts = 5;
+      while (!isUnique && attempts < maxAttempts) {
+        code_suivi = generateCodeSuivi(ville.ref);
+        const existingColis = await Colis.findOne({ code_suivi }).session(session);
+        if (!existingColis) isUnique = true;
+        attempts++;
+      }
+      if (!isUnique) {
+        throw new Error('Impossible de générer un code_suivi unique, veuillez réessayer');
+      }
 
-  // Prepare new Colis data
-  const colisData = {
-    ...req.body,
-    store,
-    team,
-    ville: ville._id,  // Add the ville reference
-    code_suivi,
-  };
+      // Prepare new Colis data
+      const colisData = {
+        ...req.body,
+        store,
+        team,
+        ville: ville._id,
+        code_suivi,
+      };
 
-  // Create and save the new Colis
-  const newColis = new Colis(colisData);
-  const saveColis = await newColis.save();
+      // Create and save the new Colis
+      const newColis = new Colis(colisData);
+      const saveColis = await newColis.save({ session });
 
-  // Populate store, team, and ville data
-  await saveColis.populate('store');
-  await saveColis.populate('team');
-  await saveColis.populate('ville');
+      // Populate store, team, and ville data
+      await saveColis.populate('store');
+      await saveColis.populate('team');
+      await saveColis.populate('ville');
 
-  // Verify that code_suivi is not null before proceeding
-  if (!saveColis.code_suivi) {
-    return res.status(500).json({ message: "Internal server error: code_suivi is null" });
-  }
+      if (!saveColis.code_suivi) {
+        throw new Error('Internal server error: code_suivi is null');
+      }
 
-  // --------------------------
-  // Create the associated NoteColis document
-  // --------------------------
-  const newNoteColis = new NoteColis({ colis: saveColis._id });
-  await newNoteColis.save();
+      // Create NoteColis
+      const newNoteColis = new NoteColis({ colis: saveColis._id });
+      await newNoteColis.save({ session });
 
-  // Create a notification for the user when a new colis is added
-  if (saveColis.store) {
-    try {
-      const notification = new Notification_User({
-        id_store: store,
-        colisId: saveColis._id,
-        title: 'Nouvelle colis',
-        description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} .`,
+      // Create Notification
+      if (saveColis.store) {
+        try {
+          const notification = new Notification_User({
+            id_store: store,
+            colisId: saveColis._id,
+            title: 'Nouvelle colis',
+            description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} .`,
+          });
+          await notification.save({ session });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      // Create Suivi_Colis
+      const suivi_colis = new Suivi_Colis({
+        id_colis: saveColis._id,
+        code_suivi: saveColis.code_suivi,
+        date_create: saveColis.createdAt,
+        status_updates: [
+          { status: "Nouveau Colis", date: new Date() }
+        ]
       });
-      await notification.save();  // Save the notification
-    } catch (error) {
-      console.log(error);
-      // Continue without failing the request
+      const save_suivi = await suivi_colis.save({ session });
+
+      res.status(201).json({
+        message: 'Colis créé avec succès, merci',
+        colis: saveColis,
+        suiviColis: save_suivi,
+      });
+    });
+  } catch (error) {
+    if (error && (error.code === 11000 || /duplicate/i.test(error.message))) {
+      return res.status(409).json({ message: 'Duplicate colis détecté (code_suivi)' });
     }
+    console.error('Erreur lors de la création du colis:', error);
+    return res.status(500).json({ message: error.message || 'Erreur interne du serveur.' });
+  } finally {
+    await session.endSession();
   }
-
-  // Create and save the new Suivi_Colis
-  const suivi_colis = new Suivi_Colis({
-    id_colis: saveColis._id,
-    code_suivi: saveColis.code_suivi,
-    date_create: saveColis.createdAt,
-    status_updates: [
-      { status: "Nouveau Colis", date: new Date() }  // Initial status
-    ]
-  });
-  const save_suivi = await suivi_colis.save();
-
-  // Respond with both the saved Colis and Suivi_Colis
-  res.status(201).json({
-    message: 'Colis créé avec succès, merci',
-    colis: saveColis,
-    suiviColis: save_suivi,
-  });
 });
+
 /**
  * -------------------------------------------------------------------
  * @desc     Create new colis from admin
@@ -139,97 +152,118 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 **/
 
 module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
-  // Check if request body is provided
+  // Validate request body
   if (!req.body) {
     return res.status(400).json({ message: "Les données de votre colis sont manquantes" });
   }
 
-  // Extract store and team information
-  let store = req.params.storeId || null;  // Assuming req.user.store should be used
-
-  // Validate and fetch the ville by its ID from the request body
-  const ville = await Ville.findOne({ nom: req.body.ville });
-  if (!ville) {
-    return res.status(400).json({ message: "Ville not found" });
+  // Validate route param
+  const { storeId } = req.params;
+  if (!storeId || !mongoose.Types.ObjectId.isValid(storeId)) {
+    return res.status(400).json({ message: "Paramètre storeId invalide ou manquant." });
   }
 
-  // Generate a unique code_suivi
-  let code_suivi;
-  let isUnique = false;
-  while (!isUnique) {
-    code_suivi = generateCodeSuivi(ville.ref);
-    const existingColis = await Colis.findOne({ code_suivi });
-    if (!existingColis) {
-      isUnique = true;
-    }
-  }
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      // Validate payload with existing validator if available
+      // Lookup Ville by name (admin sends ville name)
+      const ville = await Ville.findOne({ nom: req.body.ville }).session(session);
+      if (!ville) {
+        throw new Error(`Ville avec le nom "${req.body.ville}" non trouvée.`);
+      }
 
-  // Prepare new Colis data
-  const colisData = {
-    ...req.body,
-    store,
-    ville: ville._id,  // Add the ville reference
-    code_suivi,
-  };
+      // Generate unique code_suivi with bounded attempts
+      let code_suivi;
+      let isUnique = false;
+      let attempts = 0;
+      const maxAttempts = 5;
+      while (!isUnique && attempts < maxAttempts) {
+        code_suivi = generateCodeSuivi(ville.ref);
+        const existingColis = await Colis.findOne({ code_suivi }).session(session);
+        if (!existingColis) isUnique = true;
+        attempts++;
+      }
+      if (!isUnique) {
+        throw new Error('Impossible de générer un code_suivi unique, veuillez réessayer');
+      }
 
-  // Create and save the new Colis
-  const newColis = new Colis(colisData);
-  const saveColis = await newColis.save();
+      // Prepare colis data
+      const colisData = {
+        nom: req.body.nom,
+        tele: req.body.tele,
+        ville: ville._id,
+        adresse: req.body.adresse,
+        commentaire: req.body.commentaire,
+        prix: req.body.prix,
+        nature_produit: req.body.nature_produit,
+        ouvrir: req.body.ouvrir,
+        is_remplace: req.body.is_remplace,
+        is_fragile: req.body.is_fragile,
+        store: storeId,
+        team: req.user?.id || null,
+        code_suivi,
+        livreur: null,
+      };
 
-  // Populate store, team, and ville data
-  await saveColis.populate('store');
-  await saveColis.populate('team');
-  await saveColis.populate('ville');
+      // Create Colis
+      const newColis = new Colis(colisData);
+      const saveColis = await newColis.save({ session });
 
-  // Verify that code_suivi is not null before proceeding
-  if (!saveColis.code_suivi) {
-    return res.status(500).json({ message: "Internal server error: code_suivi is null" });
-  }
+      // Populate references
+      await saveColis.populate('store');
+      await saveColis.populate('team');
+      await saveColis.populate('ville');
 
-  // Create the associated NoteColis document
-  const newNoteColis = new NoteColis({ colis: saveColis._id });
-  await newNoteColis.save();
+      // Create NoteColis
+      const newNoteColis = new NoteColis({ colis: saveColis._id });
+      await newNoteColis.save({ session });
 
-  // Create a notification for the user when a new colis is added
-  if (saveColis.store) {
-    try {
-      const notification = new Notification_User({
-        id_store: store,
-        colisId: saveColis._id,
-        title: 'Nouvelle colis',
-        description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
+      // Create Notification for store
+      if (saveColis.store) {
+        try {
+          const notification = new Notification_User({
+            id_store: saveColis.store._id,
+            colisId: saveColis._id,
+            title: 'Nouvelle colis',
+            description: `Un nouveau colis avec le code de suivi ${saveColis.code_suivi} est en attente de Ramassage.`,
+          });
+          await notification.save({ session });
+        } catch (notifErr) {
+          // Log but do not abort the transaction for notification failure
+          console.error('Erreur lors de la création de la notification:', notifErr);
+        }
+      }
+
+      // Create Suivi_Colis
+      const suivi_colis = new Suivi_Colis({
+        id_colis: saveColis._id,
+        code_suivi: saveColis.code_suivi,
+        date_create: saveColis.createdAt,
+        status_updates: [
+          { status: "Attente de Ramassage", date: new Date() }
+        ]
       });
-      await notification.save();  // Save the notification
-    } catch (error) {
-      console.log(error);
-      // Continue without failing the request
+      const save_suivi = await suivi_colis.save({ session });
+
+      res.status(201).json({
+        message: 'Colis créé avec succès (admin)',
+        colis: saveColis,
+        suiviColis: save_suivi,
+      });
+    });
+  } catch (error) {
+    if (error && (error.code === 11000 || /duplicate/i.test(error.message))) {
+      return res.status(409).json({ message: 'Duplicate colis détecté (code_suivi)' });
     }
+    console.error('Erreur lors de la création du colis (admin):', error);
+    return res.status(500).json({ message: error.message || 'Erreur interne du serveur.' });
+  } finally {
+    await session.endSession();
   }
-
-  // Create and save the new Suivi_Colis
-  const suivi_colis = new Suivi_Colis({
-    id_colis: saveColis._id,
-    code_suivi: saveColis.code_suivi,
-    date_create: saveColis.createdAt,
-    status_updates: [
-      { status: "Nouveau Colis", date: new Date() }  // Initial status
-    ]
-  });
-
-  const save_suivi = await suivi_colis.save();
-
-  // Respond with both the saved Colis and Suivi_Colis
-  res.status(201).json({
-    message: 'Colis créé avec succès, merci ',
-    colis: saveColis,
-    suiviColis: save_suivi,
-  });
 });
 
-
-
 /**
- * -------------------------------------------------------------------
  * @desc     Clone an existing colis by duplicating its data into a new colis
  * @route    /api/colis/clone/:id_colis
  * @method   POST

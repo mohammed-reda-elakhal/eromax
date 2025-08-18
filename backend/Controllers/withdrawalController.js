@@ -215,34 +215,7 @@ const createAdminWithdrawal = asyncHandler(async (req, res) => {
             return res.status(400).json({ error: 'Minimum withdrawal amount must be 100 DH' });
         }
 
-        // Verify wallet exists and is active
-        const wallet = await Wallet.findById(walletId);
-        if (!wallet) {
-            return res.status(404).json({ error: 'Wallet not found' });
-        }
-        if (!wallet.active) {
-            return res.status(400).json({ error: 'Wallet is not active' });
-        }
-
-        // Get store and verify it exists
-        const store = await Store.findById(wallet.store);
-        if (!store) {
-            return res.status(404).json({ error: 'Store not found for this wallet' });
-        }
-
-        // Verify payment method exists and belongs to the same client
-        const payment = await Payement.findById(paymentId);
-        if (!payment) {
-            return res.status(404).json({ error: 'Payment method not found' });
-        }
-        if (payment.clientId.toString() !== store.id_client.toString()) {
-            return res.status(400).json({ error: 'Payment method does not belong to the wallet owner' });
-        }
-
-        // Check if wallet has sufficient balance
-        if (wallet.solde < montant) {
-            return res.status(400).json({ error: 'Insufficient wallet balance' });
-        }
+        // Defer entity validations to inside the transaction to avoid TOCTOU
 
         const frais = 5; // Fixed frais
         const pureMontant = montant - frais;
@@ -252,6 +225,52 @@ const createAdminWithdrawal = asyncHandler(async (req, res) => {
         
         try {
             await session.withTransaction(async () => {
+                // Re-fetch and validate entities within the transaction session
+                const wallet = await Wallet.findById(walletId).session(session);
+                if (!wallet) {
+                    throw new Error('Wallet not found');
+                }
+                if (!wallet.active) {
+                    throw new Error('Wallet is not active');
+                }
+
+                const store = await Store.findById(wallet.store).session(session);
+                if (!store) {
+                    throw new Error('Store not found for this wallet');
+                }
+
+                const payment = await Payement.findById(paymentId).session(session);
+                if (!payment) {
+                    throw new Error('Payment method not found');
+                }
+                if (payment.clientId.toString() !== store.id_client.toString()) {
+                    throw new Error('Payment method does not belong to the wallet owner');
+                }
+
+                // Duplicate prevention: check existing active withdrawal for same tuple
+                const activeStatuses = [
+                    WITHDRAWAL_STATUS.WAITING,
+                    WITHDRAWAL_STATUS.SEEN,
+                    WITHDRAWAL_STATUS.CHECKING,
+                    WITHDRAWAL_STATUS.ACCEPTED,
+                    WITHDRAWAL_STATUS.PROCESSING
+                ];
+                const existing = await Withdrawal.findOne({
+                    wallet: walletId,
+                    payment: paymentId,
+                    montant: pureMontant,
+                    status: { $in: activeStatuses }
+                }).session(session);
+                if (existing) {
+                    const dupErr = new Error('Duplicate withdrawal request detected');
+                    dupErr.code = 11000;
+                    throw dupErr;
+                }
+
+                // Check if wallet has sufficient balance at transaction time
+                if (wallet.solde < montant) {
+                    throw new Error('Insufficient wallet balance');
+                }
                 console.log('Creating transfer with data:', {
                     wallet: walletId,
                     type: 'Manuel Withdrawal',
@@ -347,6 +366,12 @@ const createAdminWithdrawal = asyncHandler(async (req, res) => {
         });
     } catch (error) {
         console.error('Error in createAdminWithdrawal:', error);
+        // Handle duplicate key errors from the unique index or manual check
+        if (error && (error.code === 11000 || /duplicate/i.test(error.message))) {
+            return res.status(409).json({
+                error: 'Duplicate withdrawal detected for the same wallet, payment and amount while active'
+            });
+        }
         res.status(400).json({
             error: error.message || 'Failed to create admin withdrawal',
             details: error.stack

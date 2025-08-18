@@ -381,24 +381,20 @@ const TicketPDF = ({ colisList, codes }) => (
             {/* Combined Row: City and Region */}
             <View style={styles.infoRowCombined}>
               <View style={styles.infoRowLeft}>
-                <Text style={styles.labelCombined}>Ville:</Text>
-                <Text style={styles.valueCombined}>{truncateText(colis?.villeData?.nom || colis?.ville?.nom || '', 12)}</Text>
+                <Text style={styles.labelCombined}>Prix:</Text>
+                <Text style={styles.valueCombined}>{colis?.prix || ''} DH</Text>
               </View>
               <View style={styles.infoRowRight}>
-                <Text style={styles.labelCombined}>Région:</Text>
-                <Text style={styles.valueCombined}>{truncateText(colis?.regionData?.nom || colis?.region?.nom || '', 12)}</Text>
+                <Text style={styles.labelCombined}>Ville:</Text>
+                <Text style={styles.valueCombined}>{truncateText(colis?.ville?.nom || colis?.ville?.nom || '', 12)}</Text>
               </View>
             </View>
 
             {/* Combined Row: Price and Product Nature */}
             <View style={styles.infoRowCombined}>
-              <View style={styles.infoRowLeft}>
-                <Text style={styles.labelCombined}>Prix:</Text>
-                <Text style={styles.valueCombined}>{colis?.prix || ''} DH</Text>
-              </View>
               <View style={styles.infoRowRight}>
                 <Text style={styles.labelCombined}>Produit:</Text>
-                <Text style={styles.valueCombined}>{truncateText(colis?.nature_produit || 'N/A', 12)}</Text>
+                <Text style={styles.valueCombined}>{colis?.nature_produit}</Text>
               </View>
             </View>
 
