@@ -173,8 +173,8 @@ function Home() {
         openGraph={{
           title: 'إيروماكس | حلول التوصيل للتجارة الإلكترونية في المغرب',
           description: 'شبكة توصيل وطنية مع دفع عند الاستلام وتتبع مباشر.',
-          image: `${window.location.origin}/image/logo.png`,
-          url: window.location.href,
+          image: 'https://www.eromax.ma/image/logo.png',
+          url: 'https://www.eromax.ma/',
           type: 'website',
           locale: 'ar_MA'
         }}
@@ -182,8 +182,8 @@ function Home() {
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'Eromax',
-          url: window.location.origin,
-          logo: `${window.location.origin}/image/logo.png`,
+          url: 'https://www.eromax.ma/',
+          logo: 'https://www.eromax.ma/image/logo.png',
           sameAs: []
         }}
       />
