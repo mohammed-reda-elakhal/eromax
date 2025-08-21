@@ -171,3 +171,230 @@ code {
   flex-direction: column;
   gap: 10px;
 }
+
+/*--------- Arabic RTL Support & Home Page Styling ------------*/
+.home[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+  font-family: "Cairo", "Noto Sans Arabic", "Ubuntu", sans-serif;
+}
+
+.home[dir="rtl"] * {
+  text-align: right;
+}
+
+/* Enhanced Arabic Typography */
+.home[dir="rtl"] h1,
+.home[dir="rtl"] h2,
+.home[dir="rtl"] h3,
+.home[dir="rtl"] h4 {
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--primary);
+}
+
+.home[dir="rtl"] p {
+  line-height: 1.6;
+  color: var(--black);
+  font-size: 16px;
+}
+
+/* Hero Section: styles are defined in components/cover/cover.css to keep
+   the hero independent and avoid conflicts. */
+
+/* CTA Button Styling: handled in components/cover/cover.css */
+
+/* Track Section Styling */
+.home[dir="rtl"] .track {
+  background: linear-gradient(135deg, var(--white) 0%, var(--gray1) 100%);
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.home[dir="rtl"] .track h1 {
+  font-size: 2.8rem;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.home[dir="rtl"] .track p {
+  font-size: 1.2rem;
+  color: var(--gray);
+  margin-bottom: 40px;
+}
+
+.home[dir="rtl"] .track-input {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  gap: 15px;
+  direction: rtl;
+}
+
+.home[dir="rtl"] .track-input .ant-input {
+  border-radius: 25px;
+  border: 2px solid var(--gray1);
+  padding: 12px 20px;
+  font-size: 1.1rem;
+  direction: rtl;
+  text-align: right;
+}
+
+.home[dir="rtl"] .track-input .ant-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(130, 3, 0, 0.1);
+}
+
+.home[dir="rtl"] .submit-btn {
+  background: var(--gradien3);
+  border: none;
+  color: var(--white);
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.home[dir="rtl"] .submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(130, 3, 0, 0.3);
+}
+
+/* Service Cards Enhancement */
+.home[dir="rtl"] .service,
+.home[dir="rtl"] .about,
+.home[dir="rtl"] .avantage {
+  padding: 80px 20px;
+  background: var(--white);
+}
+
+.home[dir="rtl"] .service h2,
+.home[dir="rtl"] .about h2,
+.home[dir="rtl"] .avantage h2 {
+  font-size: 2.5rem;
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 50px;
+  position: relative;
+}
+
+.home[dir="rtl"] .service h2::after,
+.home[dir="rtl"] .about h2::after,
+.home[dir="rtl"] .avantage h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  right: 50%;
+  transform: translateX(50%);
+  width: 80px;
+  height: 4px;
+  background: var(--gradien1);
+  border-radius: 2px;
+}
+
+/* Tarif Section Styling */
+.home[dir="rtl"] .tarif {
+  background: var(--gradien2);
+  padding: 80px 20px;
+  color: var(--white);
+}
+
+.home[dir="rtl"] .tarif h2 {
+  color: var(--white);
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.home[dir="rtl"] .tarif-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 30px;
+  margin: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.home[dir="rtl"] .tarif-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Contact Section */
+.home[dir="rtl"] .contact {
+  background: var(--white);
+  padding: 80px 20px;
+}
+
+.home[dir="rtl"] .contact h2 {
+  color: var(--primary);
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+/* Footer Styling */
+.home[dir="rtl"] .footer {
+  background: var(--black);
+  color: var(--white);
+  padding: 50px 20px 20px;
+  text-align: right;
+}
+
+/* Responsive Design for Arabic */
+@media (max-width: 768px) {
+  .home[dir="rtl"] .cover-info h1 {
+    font-size: 2.5rem;
+  }
+  
+  .home[dir="rtl"] .cover-info h4 {
+    font-size: 1.2rem;
+  }
+  
+  .home[dir="rtl"] .track-input {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .home[dir="rtl"] .service h2,
+  .home[dir="rtl"] .about h2,
+  .home[dir="rtl"] .avantage h2,
+  .home[dir="rtl"] .tarif h2,
+  .home[dir="rtl"] .contact h2 {
+    font-size: 2rem;
+  }
+}
+
+/* Arabic Font Loading */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap');
+
+/* Smooth Scrolling */
+.home[dir="rtl"] {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced Animations */
+.home[dir="rtl"] .cover-info,
+.home[dir="rtl"] .track,
+.home[dir="rtl"] .service,
+.home[dir="rtl"] .about,
+.home[dir="rtl"] .avantage,
+.home[dir="rtl"] .tarif,
+.home[dir="rtl"] .contact {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

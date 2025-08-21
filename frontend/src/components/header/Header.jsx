@@ -5,12 +5,12 @@ import Navbar from './NavBar';
 import './header.css'
 
 const languageOptions = [
-    { key: 'English', text: 'English', value: 'English' },
-    { key: 'French', text: 'French', value: 'French' },
+    { key: 'Arabic', text: 'العربية', value: 'Arabic' },
+    { key: 'French', text: 'Français', value: 'French' },
 ]
 
 function Header() {
-    const [languageSelected, setLanguageSelected] = useState('Select Language')
+    const [languageSelected, setLanguageSelected] = useState('اختر اللغة')
     const [isSticky, setSticky] = useState(false);
     const [toogleMenu , setToggleMenu] = useState(false)
 
@@ -54,7 +54,7 @@ function Header() {
             <div className="header-top">
                 <div className="header-top-info">
                     <a href='#'><MailFilled /> support@eromax.com</a>
-                    <a href='#'><PhoneFilled /> +212 5 06 63 32 25</a>
+                    <a href='#'><PhoneFilled /> +212 6 00 00 00 00</a>
                 </div>
                 <div className="header-top-sm">
                     <Link className="header-top-sm-link">
@@ -87,10 +87,10 @@ function Header() {
                 </Link>
                 <div className="header-bottom-links">
                     <Link to={`/register`} className="header-bottom-link">
-                        Devenir Client
+                        انضم إلينا
                     </Link>
                     <Link to={`/login`} className="header-bottom-link">
-                        Connexion
+                        تسجيل الدخول
                     </Link>
                 </div>
                 <Link to="/login" className='header-bottom-icon-login-link'>

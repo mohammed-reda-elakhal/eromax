@@ -15,7 +15,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
   };
 
   return (
-    <div className={`navbar ${toogleMenu ? 'open' : ''}`}>
+    <div className={`navbar ${toogleMenu ? 'open' : ''}`} dir='rtl'>
       <div className="navbar-header">
         <img src="/image/logo_2.png" alt="" style={{ width: '50px' }} />
         <div className="close-navbar-icon" onClick={Menu}>
@@ -32,7 +32,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           className="navbar-link"
           onClick={handleLinkClick} // Close menu when clicked
         >
-          Accueil
+          الرئيسية
         </ScrollLink>
         <ScrollLink
           to="about"
@@ -43,7 +43,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           style={{cursor:'pointer'}}
           onClick={handleLinkClick}
         >
-          A propos
+          من نحن
         </ScrollLink>
         <ScrollLink
           to="service"
@@ -54,7 +54,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           style={{cursor:'pointer'}}
           onClick={handleLinkClick}
         >
-          Service
+          خدماتنا
         </ScrollLink>
         <ScrollLink
           to="contact"
@@ -65,7 +65,7 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           style={{cursor:'pointer'}}
           onClick={handleLinkClick}
         >
-          Contact
+          اتصل بنا
         </ScrollLink>
         <ScrollLink
           to="tarif"
@@ -76,18 +76,15 @@ function Navbar({ languageOptions, languageSelected, handleLanguageChange, setTo
           style={{cursor:'pointer'}}
           onClick={handleLinkClick}
         >
-          Tarif
+          الأثمنة
         </ScrollLink>
       </div>
       <div className="navbar-footer">
         <button onClick={() => {navigate("/register"); handleLinkClick();}} className="header-bottom-link">
-          Devenir Client
-        </button>
-        <button onClick={() => {navigate("/register/livreur"); handleLinkClick();}} className="header-bottom-link">
-          Devenir Livreur
+          التسجيل كعميل
         </button>
         <button onClick={() => {navigate("/login"); handleLinkClick();}} className="header-bottom-link">
-          Connexion
+          تسجيل الدخول
         </button>
       </div>
     </div>

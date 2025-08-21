@@ -48,7 +48,6 @@ function validateWallet(obj) {
     });
     return schema.validate(obj);
 }
-
 module.exports = {
     Wallet,
     validateWallet

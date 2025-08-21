@@ -1,85 +1,115 @@
 .cover{
+    position: relative;
     display: flex;
-    width: 90%;
-    margin: 5em auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    width: 92%;
+    margin: 3.5em auto;
+    padding: 3rem 3.5rem;
+    background: var(--primary);
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
 }
 .cover-info{
-    width: 50%;
+    width: 56%;
 }
 .cover-info p{
-    background: var(--secondary);
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     width: max-content;
-    padding: 8px 26px;
-    border-radius: 50px;
-    font-style: italic;
+    padding: 10px 22px;
+    border-radius: 999px;
     color: var(--white);
+    font-weight: 600;
+    letter-spacing: .2px;
 }
 .cover-icon{
     color: var(--limon);
     padding-left: 8px;
 }
 .cover-info h1{
-    font-size: 3.6em;
+    color: var(--white);
+    font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+    line-height: 1.25;
+    margin: 14px 0 10px;
 }
 .cover-info h4{
-    font-size: 24px;
-    color: var(--gray);
-    margin: 16px 0;
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
+    color: rgba(255,255,255,0.9);
+    margin: 12px 0 22px;
 }
+
+/* Force white text inside hero to avoid being overridden by global headings */
+.home[dir="rtl"] .cover .cover-info h1 { color: #fff !important; }
+.home[dir="rtl"] .cover .cover-info h4 { color: rgba(255,255,255,0.9) !important; }
+.home[dir="rtl"] .cover .cover-info p  { color: #fff !important; }
 .cover-img{
-    width: 45%;
+    width: 44%;
     text-align: center;
 }
-.cover-link{
-    background: var(--black);
-    padding: 10px 24px;
-    margin: 16px 0;
-    border-radius: 50px;
-    color: var(--white);
-    display: flex;
-    align-items: center;
-    width: max-content;
-    transition-duration: 0.3s;
-    font-weight: 600;
-    font-style: italic;
+.cover-img img{
+    width: min(430px, 90%);
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.12));
+    transform: translateZ(0);
 }
-
-.cover-link-icon{
-    margin-right:16px;
-    color: var(--limon);
+.cover-link{
+    display: inline-flex;
+    align-items: center;
+    gap: .75rem;
+    background: var(--limon);
+    color: var(--black);
+    padding: 12px 26px;
+    border-radius: 999px;
+    font-weight: 800;
+    letter-spacing: .2px;
+    box-shadow: 0 8px 18px rgba(255, 152, 0, 0.25);
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
 }
 .cover-link:hover{
-    color: var(--limon);
-    box-shadow: 2px 2px 5px var(--limon);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px rgba(255, 152, 0, 0.3);
+    filter: saturate(1.05);
 }
-.cover-img img{
-    width: 400px;
-    filter: drop-shadow(10px 10px 100px var(--black));
+.cover-link-icon{
+    color: var(--black);
+    font-size: 1.1rem;
 }
 
-@media only screen and (max-width: 600px){
+/* Decorative delivery-themed icons */
+.cover-decor{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.decor-icon{
+    position: absolute;
+    opacity: 0.08;
+    color: var(--white);
+}
+.decor-truck{ top: 12%; left: 8%; font-size: 64px; transform: rotate(-10deg); }
+.decor-box{ bottom: 14%; right: 10%; font-size: 56px; transform: rotate(15deg); }
+.decor-marker{ top: 50%; right: 35%; font-size: 46px; transform: rotate(-8deg); }
+.decor-clock{ bottom: 20%; left: 30%; font-size: 40px; transform: rotate(8deg); }
+
+@media only screen and (max-width: 900px){
     .cover{
         flex-direction: column;
-    }
-    .cover h1{
-        font-size: 18px;
-    }
-    .cover h4{
-        font-size: 24px;
+        text-align: center;
+        padding: 2.25rem 1.25rem;
+        gap: 2rem;
     }
     .cover-info{
         width: 100%;
-    }
-    .cover-img img{
-        width: 90%;
-        margin: auto;
+        margin-inline: auto;
     }
     .cover-img{
+        width: 100%;
         order: -1;
     }
-}
-@media only screen and (min-width: 601px) and (max-width: 900px) {
-    .cover-info{
-        width: 100%;
+    .cover-info p{
+        margin-inline: auto;
     }
 }

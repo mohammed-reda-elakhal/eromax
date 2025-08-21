@@ -10,45 +10,45 @@ import HeaderSection from '../header/HeaderSection';
 
 const avantages = [
     {
-        id : 1,
-        icon : <FaHome/>,
-        title : 'Gestion multicanal',
-        desc : 'Gérez des commandes à partir de tous les canaux sur lesquels vous vendez, y compris woocommerce et Shopify.'
-    },{
-        id : 2,
-        icon : <FaBoxesPacking/>,
-        title : 'Insertion',
-        desc : "Qu'ils soient transactionnels ou postaux, les systèmes d'insertion hautes performances de Awalogs.ma offrent un traitement des documents sécurisé, efficace et flexible."
-    },{
-        id : 3,
-        icon : <AiOutlineControl/>,
-        title : 'Plus de contrôle',
-        desc : "Vous pouvez rechercher vos colis dont vous avez manqué la livraison ou vérifier l'état de l’avancement de vos colis qui doivent être livrés."
-    },{
-        id : 4,
-        icon : <AiOutlineFileProtect/>,
-        title : 'La protection de la vie privée',
-        desc : 'Toutes vos données ou les données de vos clients sont protégées à 100% et ne sont partagées avec aucun tiers'
-    },{
-        id : 5,
-        icon : <MdOutlineTaskAlt/>,
-        title : 'Précision et maîtrise',
-        desc : 'Une équipe de professionnels assure la qualité du service.'
-    },{
-        id : 6,
-        icon : <TbTruckDelivery/>,
-        title : 'Rapidité de mise en œuvre',
-        desc : "Tous nos services ont une priorité dans la mise en œuvre, et notre objectif principal est de vous servir et d'atteindre votre satisfaction."
+        id: 1,
+        icon: <FaHome />,
+        title: 'إدارة متعددة القنوات',
+        desc: 'إدارة الطلبيات من جميع قنوات البيع الخاصة بك مثل Shopify وWooCommerce بسهولة وفي منصة واحدة.'
+    }, {
+        id: 2,
+        icon: <FaBoxesPacking />,
+        title: 'تغليف احترافي',
+        desc: 'عناية خاصة بتجهيز الطرود لضمان وصولها في حالة ممتازة وتعزيز تجربة زبائنك.'
+    }, {
+        id: 3,
+        icon: <AiOutlineControl />,
+        title: 'تحكم وتتبع كامل',
+        desc: 'تتبع حالة كل طرد، إعادة البرمجة، وإدارة محاولات التسليم من لوحة تحكم بسيطة.'
+    }, {
+        id: 4,
+        icon: <AiOutlineFileProtect />,
+        title: 'حماية وأمان البيانات',
+        desc: 'نحمي بياناتك وبيانات زبنائك بنسبة 100% ولا نشاركها مع أي طرف ثالث.'
+    }, {
+        id: 5,
+        icon: <MdOutlineTaskAlt />,
+        title: 'دقة واحترافية',
+        desc: 'فريق محترف يضمن جودة الخدمة وسرعة التنفيذ.'
+    }, {
+        id: 6,
+        icon: <TbTruckDelivery />,
+        title: 'تنفيذ سريع وتغطية واسعة',
+        desc: 'خدمة سريعة مع تغطية لمدن مغربية متعددة للوصول إلى زبنائك أينما كانوا.'
     },
 ]
 
 function Avantage() {
   return (
-    <section className='avantage'>
+    <section className='avantage' dir='rtl'>
         <HeaderSection
-            nom={`Avantage`}
-            title={`Pourquoi nous ?`}
-            desc={`Les avantages de choisir Eromax.ma`}
+            nom={`مميزاتنا`}
+            title={`لماذا تختار EROMAX ؟`}
+            desc={`أفضل المزايا التي نقدمها لتطوير تجارتك الإلكترونية`}
         />
         <div className="avantage-main">
         {

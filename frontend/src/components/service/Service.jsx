@@ -10,38 +10,38 @@ import HeaderSection from '../header/HeaderSection';
 
 const services = [
     {
-        id : 1,
-        icon : <FaBoxes/>,
-        title : 'Ramassage',
-        desc : 'Le ramassage est un service mis en place par la Plateforme Awalogs.ma afin de faciliter au maximum votre processus d’expédition.'
+        id: 1,
+        icon: <FaBoxes />,
+        title: 'الاستلام من المتجر',
+        desc: 'نقوم باستلام الطلبيات من متجرك بسرعة واحترافية لتسهيل عملية الشحن وجعلها أسهل عليك.'
     },
     {
-        id : 2,
-        icon : <GrDeliver/>,
-        title : 'Livraison',
-        desc : 'Grâce à une connaissance du terrain, nos livreurs récupèrent les colis pour une livraison en mains propres à vos clients dans plusieurs villes.'
+        id: 2,
+        icon: <GrDeliver />,
+        title: 'التوصيل إلى الزبون',
+        desc: 'بفضل خبرتنا الميدانية، نوصل الطرود يداً بيد إلى زبنائك في مختلف المدن المغربية.'
     },
     {
-        id : 1,
-        icon : <AiOutlineFieldTime/>,
-        title : 'Expédition',
-        desc : 'L’équipe de Eromax.ma assure l’acheminement de vos colis à votre destinataire contre un accusé de réception.'
+        id: 3,
+        icon: <AiOutlineFieldTime />,
+        title: 'شحن سريع وموثوق',
+        desc: 'فريق EROMAX يضمن إيصال الطرود في الوقت المناسب مع تتبع كامل وإشعار بالاستلام.'
     },
     {
-        id : 1,
-        icon : <FaHandHoldingUsd/>,
-        title : 'Fonds et paiements',
-        desc : 'Nous assure le retour de fonds dans 48 H, des Virements, des bons de livraison d’une manière régulière sur les services de messagerie de nos clients.'
+        id: 4,
+        icon: <FaHandHoldingUsd />,
+        title: 'التحصيل والدفع عند الاستلام',
+        desc: 'نُرجع لك أموالك خلال 48 ساعة مع تحويلات منتظمة وتقارير واضحة لعملياتك.'
     },
 ]
 
 function Service() {
   return (
-    <section className='service' id='service'>
+    <section className='service' id='service' dir='rtl'>
          <HeaderSection
-            nom={`service`}
-            title={`Que Pouvons-Nous Faire Pour Vous`}
-            desc={`Vous vous concentrez sur la croissance. Nous assurons la logistique du commerce électronique.`}
+            nom={`خدماتنا`}
+            title={`ماذا نقدم لنجاح متجرك؟`}
+            desc={`ركز على تنمية مشروعك، ودع علينا اللوجستيك والتوصيل والدفع عند الاستلام.`}
          />
          <div className="service-main">
             {

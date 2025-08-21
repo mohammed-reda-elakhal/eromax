@@ -89,7 +89,7 @@ const clientValidation = (obj) => {
         tele: Joi.string(),
         cin: Joi.string(),
         password: Joi.string().trim().min(5).required(),
-        email: Joi.string().email().trim().min(5).max(100).required(),
+        email: Joi.string().email().lowercase().trim().min(5).max(100).required(),
         profile: Joi.object({
             url: Joi.string().uri(),
             publicId: Joi.string().allow(null)

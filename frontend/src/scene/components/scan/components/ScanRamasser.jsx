@@ -35,32 +35,70 @@ function ScanRamasser() {
   const isProcessingScan = useRef(false);
 
   // Sound effects
-  const playSuccessSound = () => {
+  const successAudioRef = useRef(null);
+  const errorAudioRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize audio elements (place files under public/static/sounds)
+    successAudioRef.current = new Audio('/static/sounds/success.mp3');
+    errorAudioRef.current = new Audio('/static/sounds/error.mp3');
+    if (successAudioRef.current) {
+      successAudioRef.current.preload = 'auto';
+      successAudioRef.current.volume = 0.5;
+    }
+    if (errorAudioRef.current) {
+      errorAudioRef.current.preload = 'auto';
+      errorAudioRef.current.volume = 0.5;
+    }
+  }, []);
+
+  const beep = (type = 'success') => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.3);
+    if (type === 'success') {
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } else {
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
   };
 
-  const playErrorSound = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
+  const playSuccessSound = async () => {
+    try {
+      if (successAudioRef.current) {
+        successAudioRef.current.currentTime = 0;
+        await successAudioRef.current.play();
+        return;
+      }
+    } catch (e) {
+      // fall back to beep
+    }
+    beep('success');
+  };
+
+  const playErrorSound = async () => {
+    try {
+      if (errorAudioRef.current) {
+        errorAudioRef.current.currentTime = 0;
+        await errorAudioRef.current.play();
+        return;
+      }
+    } catch (e) {
+      // fall back to beep
+    }
+    beep('error');
   };
 
   // Récupérer la liste des livreurs au montage

@@ -61,7 +61,7 @@ function Contact() {
                                                 </div>
                                                 <div className="info-item-modern">
                                                     <FaPhone className="icon-modern" />
-                                                    <Text>+212 5 06 63 32 25</Text>
+                                                    <Text><span dir="ltr">+212 5 06 63 32 25</span></Text>
                                                 </div>
                                                 <div className="info-item-modern">
                                                     <ClockCircleOutlined className="icon-modern" />

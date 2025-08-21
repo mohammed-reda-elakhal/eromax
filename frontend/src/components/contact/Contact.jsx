@@ -6,11 +6,11 @@ import HeaderSection from '../header/HeaderSection'
 
 function Contact() {
   return (
-    <div className='contact-section' id='contact'>
+    <div className='contact-section' id='contact' dir='rtl'>
         <HeaderSection
-          nom={`Contact`}
-          title={`Contactez-nous`}
-          desc={`Pour plus d'information contactez-nous`}
+          nom={`اتصل بنا`}
+          title={`هل لديك سؤال؟ نحن هنا لمساعدتك`}
+          desc={`لأي استفسار أو شراكة، تواصل معنا وسنرد عليك بسرعة.`}
         />
         <div className="contact-section-main">
             <Question/>

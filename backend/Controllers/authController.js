@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const moment = require('moment');  // Add this import
 const crypto = require('crypto');
+const Joi = require('joi');
 const { Wallet } = require("../Models/Wallet");  // Add this import
 const { Admin, validateLogin, adminValidation } = require("../Models/Admin");
 const { Client , clientValidation } = require("../Models/Client");
@@ -53,12 +54,13 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
 
     const { role } = req.params;
     const { email, password } = req.body;
+    const normEmail = email?.trim().toLowerCase();
     let user;
     let token;
 
     // Fetch the user based on the role
     if (role === "staf") {
-        user = await Admin.findOne({ email });
+        user = await Admin.findOne({ email: normEmail });
 
         // Admin can login without active check
         if (!user) {
@@ -66,19 +68,19 @@ module.exports.loginProfileCtrl = asyncHandler(async (req, res) => {
         }
     }
     else if (role === "client") {
-        user = await Client.findOne({ email });
+        user = await Client.findOne({ email: normEmail });
 
         // Check if the user is active
         if (!user || !user.active) {
-            return res.status(400).json({ message: "Account is not active" });
+            return res.status(400).json({ message: "Client Account is not active" });
         }
     }
     else if (role === "livreur") {
-        user = await Livreur.findOne({ email });
+        user = await Livreur.findOne({ email: normEmail });
 
         // Check if the user is active
         if (!user || !user.active) {
-            return res.status(400).json({ message: "Account is not active" });
+            return res.status(400).json({ message: "Livreur Account is not active" });
         }
     }
     else {
@@ -220,35 +222,58 @@ module.exports.selectStoreCtrl = asyncHandler(async (req, res) => {
  });
  
 module.exports.registerClient = asyncHandler(async (req, res) => {
-    const {storeName , ...clientData} = req.body;
-    const { error } = clientValidation(clientData);
+    const { storeName, ...clientData } = req.body;
+
+    // Validate client fields (returns normalized values, e.g., email lowercased)
+    const { error, value } = clientValidation(clientData);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password , ...rest } = req.body;
-    const userExists = await Client.findOne({ email });
+    // Validate storeName
+    const { error: storeErr, value: storeVal } = Joi.object({
+        storeName: Joi.string().trim().min(1).required(),
+    }).validate({ storeName });
+    if (storeErr) {
+        return res.status(400).json({ message: storeErr.details[0].message });
+    }
+
+    const { email, password, prenom, nom, ...rest } = value;
+    const normEmail = email.trim().toLowerCase();
+
+    // Uniqueness check with normalized email
+    const userExists = await Client.findOne({ email: normEmail });
     if (userExists) {
         return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const username = req.body.prenom +"_"+ req.body.nom;
+    const username = `${prenom}_${nom}`;
+
     // Pre-generate API credentials (set before save to satisfy immutability)
     const keyId = await ensureUnique(Client, 'keyId', genKeyIdHex);
     const apiKey = await ensureUnique(Client, 'apiKey', () => genApiKey('cli_'));
-    const client = new Client({ email, password: hashedPassword, username , status: 'inactive', keyId, apiKey, ...rest });
+
+    const client = new Client({
+        email: normEmail,
+        password: hashedPassword,
+        username,
+        status: 'inactive',
+        keyId,
+        apiKey,
+        ...rest,
+        prenom,
+        nom,
+    });
 
     await client.save();
 
-    // Previously: generate API credentials for client (removed)
-
     // Create store for client
     let store = await Store.create({
-        id_client : client._id,
-        storeName : req.body.storeName,
-        tele : client.tele,
-        default : true
+        id_client: client._id,
+        storeName: storeVal.storeName,
+        tele: client.tele,
+        default: true,
     });
 
     // Create wallet for the store
@@ -256,20 +281,20 @@ module.exports.registerClient = asyncHandler(async (req, res) => {
         store: store._id,
         key: generateWalletKey(),
         solde: 0,
-        active: true
+        active: true,
     });
 
     // Populate the client data in store
     store = await store.populate('id_client', ["-password"]);
 
     res.status(201).json({
-        message : `Bonjour ${client.prenom} , Votre compte est créer`,
+        message: `Bonjour ${client.prenom} , Votre compte est créer`,
         role: client.role,
         store,
         wallet: {
             key: wallet.key,
             solde: wallet.solde,
-            active: wallet.active
+            active: wallet.active,
         },
         // API credentials removed from response
     });

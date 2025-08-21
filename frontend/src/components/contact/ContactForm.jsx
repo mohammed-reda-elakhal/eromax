@@ -25,7 +25,7 @@ const NumericInput = (props) => {
   const title = value ? (
     <span className="numeric-input-title">{value !== '-' ? formatNumber(Number(value)) : '-'}</span>
   ) : (
-    'Tél Exemple : 0655124822 '
+    'مثال الهاتف: 0655124822'
   );
   return (
     <Tooltip trigger={['focus']} title={title} placement="topLeft" overlayClassName="numeric-input">
@@ -34,7 +34,7 @@ const NumericInput = (props) => {
         size='large'
         onChange={handleChange}
         onBlur={handleBlur}
-        placeholder="Numéro"
+        placeholder="رقم الهاتف"
         maxLength={10}
         prefix={
             <PhoneOutlined
@@ -44,7 +44,7 @@ const NumericInput = (props) => {
             />
         }
         suffix={
-            <Tooltip title="Entrer votre Numéro de telephone">
+            <Tooltip title="أدخل رقم هاتفك">
             <InfoCircleOutlined
                 style={{
                 color: 'rgba(0,0,0,.45)',
@@ -68,12 +68,12 @@ function ContactForm() {
     }
 
   return (
-    <div className='contact-form'>
-        <p>Veauillez remplir tous les champs ...!</p>
+    <div className='contact-form' dir='rtl'>
+        <p>يرجى ملء جميع الحقول...</p>
         <form>
             <div className="contact-form-inputs">
                 <Input
-                    placeholder="Nom et Prénom"
+                    placeholder="الاسم الكامل"
                     size='large'
                     value={nom}
                     onChange={(e)=>setNom(e.target.value)}
@@ -85,7 +85,7 @@ function ContactForm() {
                         />
                     }
                     suffix={
-                        <Tooltip title="Entrer votre nom et prénom">
+                        <Tooltip title="أدخل اسمك الكامل">
                         <InfoCircleOutlined
                             style={{
                             color: 'rgba(0,0,0,.45)',
@@ -96,7 +96,7 @@ function ContactForm() {
                 />
                 <Input 
                     size="large" 
-                    placeholder="Email" 
+                    placeholder="البريد الإلكتروني" 
                     value={email}
                     onChange={(e)=>setEmail(e.target.value)}
                     prefix={
@@ -107,7 +107,7 @@ function ContactForm() {
                         />
                     }
                     suffix={
-                        <Tooltip title="Entrer votre Email">
+                        <Tooltip title="أدخل بريدك الإلكتروني">
                         <InfoCircleOutlined
                             style={{
                             color: 'rgba(0,0,0,.45)',
@@ -126,14 +126,14 @@ function ContactForm() {
                     maxLength={300}
                     value={message}
                     onChange={(e)=>setMessage(e.target.value)}
-                    placeholder="Votre message"
+                    placeholder="رسالتك"
                     style={{
                         height: 120,
                         resize: 'none',
                     }}
                 />
                 <button onClick={handleSubmit}  className='submit-btn'>
-                    Envoyer
+                    إرسال
                 </button>
 
             </div>

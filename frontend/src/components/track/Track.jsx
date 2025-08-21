@@ -28,31 +28,39 @@ function Track() {
     };
 
     return (
-        <section className='track'>
-            <h1>Suivre votre Colis</h1>
-            <p>S’il vous plaît, saisissez le numéro de suivre pour votre colis.</p>
+        <section className='track' dir="rtl">
+            <h1>تتبع طردك</h1>
+            <p>أدخل رقم التتبع الخاص بطردك للحصول على آخر التحديثات حول حالة الشحن</p>
             <div className="track-input">
                 <Input
-                    placeholder="Taper votre numéro de suivi"
+                    placeholder="أدخل رقم التتبع هنا"
                     size='large'
                     onChange={(e) => setCodeSuivre(e.target.value)}
                     value={codeSuivre}
+                    style={{ textAlign: 'right', direction: 'rtl' }}
                 />
                 <button className='submit-btn' onClick={handleSuivreColis}>
-                    Suivre
+                    تتبع الآن
                 </button>
             </div>
             {showAlert && (
                 <Alert
-                    message="Manque de code de suivi"
-                    description="S'il vous plaît, saisissez le numéro de suivre pour votre colis."
+                    message="رقم التتبع مطلوب"
+                    description="يرجى إدخال رقم التتبع الصحيح للطرد للمتابعة"
                     type="warning"
                     showIcon
                     closable
                     onClose={() => setShowAlert(false)}
+                    style={{ textAlign: 'right', direction: 'rtl' }}
                 />
             )}
-            <Drawer title="Les données de colis suivre" onClose={onClose} open={open}>
+            <Drawer 
+                title="تفاصيل تتبع الطرد" 
+                onClose={onClose} 
+                open={open}
+                placement="right"
+                style={{ direction: 'rtl' }}
+            >
                 <TrackingColis codeSuivi={codeSuivre} />
             </Drawer>
         </section>
