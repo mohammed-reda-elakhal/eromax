@@ -12,7 +12,7 @@ import request from '../../../../utils/request';
 import { toast } from 'react-toastify';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
 import { useZxing } from 'react-zxing';
-import { BarcodeFormat } from '@zxing/library';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 function ScanRamasser() {
   const { theme } = useContext(ThemeContext);
@@ -27,6 +27,7 @@ function ScanRamasser() {
   // Toggle scan mode and camera
   const [scanMode, setScanMode] = useState('barcode'); // 'barcode' | 'qr'
   const [cameraEnabled, setCameraEnabled] = useState(false);
+  const lastScanRef = useRef({ text: '', time: 0 });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -153,26 +154,35 @@ function ScanRamasser() {
 
   // Camera scanner using react-zxing
   const { ref: videoRef } = useZxing({
-    onResult(result) {
+    onDecodeResult(result) {
       try {
         const text = result?.getText?.() || result?.text || '';
         const format = result?.getBarcodeFormat?.() || result?.barcodeFormat;
-        // Filter by mode: accept QR only in qr mode; in barcode mode, ignore QR
+        if (!text) return;
+
+        // Debounce duplicates within 1.2s
+        const now = Date.now();
+        if (lastScanRef.current.text === text && now - lastScanRef.current.time < 1200) {
+          return;
+        }
+
+        // Filter by mode, but allow when format is undefined
         if (scanMode === 'qr') {
-          if (format !== BarcodeFormat.QR_CODE) return;
+          if (format != null && format !== BarcodeFormat.QR_CODE) return;
         } else {
           if (format === BarcodeFormat.QR_CODE) return;
         }
-        if (text) {
-          handleScan(text.trim());
-          setCurrentBarcode('');
-        }
+
+        lastScanRef.current = { text, time: now };
+        handleScan(text.trim());
+        setCurrentBarcode('');
       } catch (e) {
         // noop
       }
     },
     paused: !cameraEnabled,
-    timeBetweenDecodingAttempts: 150,
+    timeBetweenDecodingAttempts: 100,
+    // Prefer rear camera
     constraints: {
       video: {
         facingMode: { ideal: 'environment' },
@@ -181,6 +191,24 @@ function ScanRamasser() {
       },
       audio: false,
     },
+    // Hints to improve detection based on mode
+    hints: new Map([
+      [
+        DecodeHintType.POSSIBLE_FORMATS,
+        scanMode === 'qr'
+          ? [BarcodeFormat.QR_CODE]
+          : [
+              BarcodeFormat.CODE_128,
+              BarcodeFormat.CODE_39,
+              BarcodeFormat.EAN_13,
+              BarcodeFormat.EAN_8,
+              BarcodeFormat.UPC_A,
+              BarcodeFormat.UPC_E,
+              BarcodeFormat.ITF,
+            ],
+      ],
+      [DecodeHintType.TRY_HARDER, true],
+    ]),
   });
 
   // Fonction pour récupérer les détails du colis

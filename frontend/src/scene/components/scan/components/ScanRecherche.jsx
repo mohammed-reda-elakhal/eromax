@@ -1,6 +1,6 @@
 // src/scene/components/scan/components/ScanRecherche.jsx
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import './ScanRecherche.css';
 import Menubar from '../../../global/Menubar';
@@ -24,6 +24,9 @@ import {
   Col,
   Typography,
   DatePicker,
+  Segmented,
+  Switch,
+  Divider,
 } from 'antd';
 import { CiBarcode } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
@@ -31,6 +34,8 @@ import { getColisByCodeSuivi, updateStatut } from '../../../../redux/apiCalls/co
 import TrackingColis from '../../../global/TrackingColis '; // Corrected import path
 import { Si1001Tracklists } from 'react-icons/si';
 import moment from 'moment';
+import { useZxing } from 'react-zxing';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 const { Meta } = Card;
 const { Text } = Typography;
@@ -49,6 +54,58 @@ function ScanRecherche() {
   const [statusType, setStatusType] = useState(null);
   const [form] = Form.useForm();
   const [isTrackingDrawerVisible, setIsTrackingDrawerVisible] = useState(false);
+
+  // Camera scanning state
+  const [scanMode, setScanMode] = useState('barcode'); // 'barcode' | 'qr'
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const lastScanRef = useRef({ text: '', time: 0 });
+  const { ref: videoRef } = useZxing({
+    onDecodeResult(result) {
+      try {
+        const text = result?.getText?.() || result?.text || '';
+        const format = result?.getBarcodeFormat?.() || result?.barcodeFormat;
+        if (!text) return;
+        const now = Date.now();
+        if (lastScanRef.current.text === text && now - lastScanRef.current.time < 1200) return;
+        if (scanMode === 'qr') {
+          if (format != null && format !== BarcodeFormat.QR_CODE) return;
+        } else {
+          if (format === BarcodeFormat.QR_CODE) return;
+        }
+        lastScanRef.current = { text, time: now };
+        handleScan(text.trim());
+      } catch (e) {
+        // noop
+      }
+    },
+    paused: !cameraEnabled,
+    timeBetweenDecodingAttempts: 100,
+    constraints: {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+      },
+      audio: false,
+    },
+    hints: new Map([
+      [
+        DecodeHintType.POSSIBLE_FORMATS,
+        scanMode === 'qr'
+          ? [BarcodeFormat.QR_CODE]
+          : [
+              BarcodeFormat.CODE_128,
+              BarcodeFormat.CODE_39,
+              BarcodeFormat.EAN_13,
+              BarcodeFormat.EAN_8,
+              BarcodeFormat.UPC_A,
+              BarcodeFormat.UPC_E,
+              BarcodeFormat.ITF,
+            ],
+      ],
+      [DecodeHintType.TRY_HARDER, true],
+    ]),
+  });
 
   const allowedStatuses = [
     "Livrée", "Annulée", "Programmée", "Refusée", "Boite vocale",
@@ -142,7 +199,51 @@ function ScanRecherche() {
             </h4>
 
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <BarcodeReader onError={handleError} onScan={handleScan} />
+              {/* Scan mode and camera controls */}
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Segmented
+                  options={[
+                    { label: 'Barcode', value: 'barcode' },
+                    { label: 'QR Code', value: 'qr' },
+                  ]}
+                  value={scanMode}
+                  onChange={setScanMode}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Switch
+                    checked={cameraEnabled}
+                    onChange={setCameraEnabled}
+                  />
+                  <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
+                    {cameraEnabled ? 'Camera activée' : 'Camera désactivée'}
+                  </span>
+                </div>
+              </div>
+              {cameraEnabled && (
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative', width: '100%', maxWidth: 480 }}>
+                    <video
+                      ref={videoRef}
+                      style={{ width: '100%', borderRadius: 8, border: '1px solid #e5e7eb' }}
+                      muted
+                      playsInline
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        border: '2px dashed #1677ff',
+                        borderRadius: 8,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </div>
+                  <div style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
+                    Pointez la caméra vers le {scanMode === 'qr' ? 'QR code' : 'code-barres'}.
+                  </div>
+                </div>
+              )}
+
               <Input
                 value={codeSuivi}
                 onChange={(e) => setCodeSuivi(e.target.value)}
@@ -175,27 +276,86 @@ function ScanRecherche() {
                   style={{ marginTop: '20px' }}
                   className={theme === 'dark' ? 'dark-card' : ''}
                 >
-                  <Meta title={`Colis: ${selectedColis.code_suivi}`} />
+                  <Meta title={`Colis: ${selectedColis.code_suivi || ''}`} />
 
-                  <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-                    <Col xs={24} sm={12} md={8}><Text strong>Nom:</Text><br /><Text>{selectedColis.nom}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Téléphone:</Text><br /><Text>{selectedColis.tele}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Ville:</Text><br /><Text>{selectedColis.ville.nom}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Adresse:</Text><br /><Text>{selectedColis.adresse}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Prix:</Text><br /><Text>{selectedColis.prix} DH</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Nature Produit:</Text><br /><Text>{selectedColis.nature_produit}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Statut:</Text><br /><Text>{selectedColis.statut}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Commentaire:</Text><br /><Text>{selectedColis.commentaire || 'Aucun'}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>État:</Text><br /><Text>{selectedColis.etat ? "Payée" : "Non Payée"}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Ouvrir:</Text><br /><Text>{selectedColis.ouvrir ? "Oui" : "Non"}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Fragile:</Text><br /><Text>{selectedColis.is_fragile ? "Oui" : "Non"}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Remplacer:</Text><br /><Text>{selectedColis.is_remplace ? "Oui" : "Non"}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Store:</Text><br /><Text>{selectedColis.store?.storeName || 'N/A'}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Créé le:</Text><br /><Text>{new Date(selectedColis.createdAt).toLocaleString()}</Text></Col>
-                    <Col xs={24} sm={12} md={8}><Text strong>Mis à jour le:</Text><br /><Text>{new Date(selectedColis.updatedAt).toLocaleString()}</Text></Col>
+                  {/* Résumé */}
+                  <Divider orientation="left">Résumé</Divider>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} sm={12} md={8}><Text strong>Code suivi:</Text><br /><Text>{selectedColis.code_suivi}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Statut actuel:</Text><br /><Text>{selectedColis.statut || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Statut final:</Text><br /><Text>{selectedColis.statu_final || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Expédition:</Text><br /><Text>{selectedColis.expedation_type || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Nature produit:</Text><br /><Text>{selectedColis.nature_produit || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Créé le:</Text><br /><Text>{selectedColis.createdAt ? moment(selectedColis.createdAt).format('YYYY-MM-DD HH:mm') : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>MàJ le:</Text><br /><Text>{selectedColis.updatedAt ? moment(selectedColis.updatedAt).format('YYYY-MM-DD HH:mm') : '—'}</Text></Col>
                   </Row>
 
-                  <Space direction="horizontal" size="middle" style={{ marginTop: '20px' }}>
+                  {/* Destinataire */}
+                  <Divider orientation="left">Destinataire</Divider>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} sm={12} md={8}><Text strong>Nom:</Text><br /><Text>{selectedColis.nom || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Téléphone:</Text><br /><Text>{selectedColis.tele || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Ville:</Text><br /><Text>{selectedColis.ville?.nom || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={24}><Text strong>Adresse:</Text><br /><Text>{selectedColis.adresse || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={12}><Text strong>Commentaire:</Text><br /><Text>{selectedColis.commentaire || '—'}</Text></Col>
+                    {selectedColis.note && (
+                      <Col xs={24} sm={12} md={12}><Text strong>Note:</Text><br /><Text>{selectedColis.note}</Text></Col>
+                    )}
+                  </Row>
+
+                  {/* Tarification */}
+                  <Divider orientation="left">Tarification</Divider>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} sm={12} md={8}><Text strong>Prix (colis):</Text><br /><Text>{selectedColis.prix != null ? `${selectedColis.prix} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Prix payé:</Text><br /><Text>{selectedColis.prix_payer != null ? `${selectedColis.prix_payer} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Tarif ajouté:</Text><br /><Text>{selectedColis.tarif_ajouter?.value != null ? `${selectedColis.tarif_ajouter?.value} DH` : '—'}</Text></Col>
+                    <Col xs={24}><Text type="secondary">{selectedColis.tarif_ajouter?.description || ''}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>CRBT - Prix colis:</Text><br /><Text>{selectedColis.crbt?.prix_colis != null ? `${selectedColis.crbt.prix_colis} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>CRBT - Tarif livraison:</Text><br /><Text>{selectedColis.crbt?.tarif_livraison != null ? `${selectedColis.crbt.tarif_livraison} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>CRBT - Tarif refus:</Text><br /><Text>{selectedColis.crbt?.tarif_refuse != null ? `${selectedColis.crbt.tarif_refuse} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>CRBT - Tarif fragile:</Text><br /><Text>{selectedColis.crbt?.tarif_fragile != null ? `${selectedColis.crbt.tarif_fragile} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>CRBT - Supplémentaire:</Text><br /><Text>{selectedColis.crbt?.tarif_supplementaire != null ? `${selectedColis.crbt.tarif_supplementaire} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>CRBT - À payer:</Text><br /><Text>{selectedColis.crbt?.prix_a_payant != null ? `${selectedColis.crbt.prix_a_payant} DH` : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>CRBT - Total tarifs:</Text><br /><Text>{selectedColis.crbt?.total_tarif != null ? `${selectedColis.crbt.total_tarif} DH` : '—'}</Text></Col>
+                  </Row>
+
+                  {/* Drapeaux */}
+                  <Divider orientation="left">Drapeaux</Divider>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} sm={12} md={6}><Text strong>Payée:</Text><br /><Text>{selectedColis.etat ? 'Oui' : 'Non'}</Text></Col>
+                    <Col xs={24} sm={12} md={6}><Text strong>Ouvrir:</Text><br /><Text>{selectedColis.ouvrir ? 'Oui' : 'Non'}</Text></Col>
+                    <Col xs={24} sm={12} md={6}><Text strong>Fragile:</Text><br /><Text>{selectedColis.is_fragile ? 'Oui' : 'Non'}</Text></Col>
+                    <Col xs={24} sm={12} md={6}><Text strong>Remplacée:</Text><br /><Text>{selectedColis.is_remplace ? 'Oui' : 'Non'}</Text></Col>
+                    <Col xs={24} sm={12} md={6}><Text strong>Prêt payant:</Text><br /><Text>{selectedColis.pret_payant ? 'Oui' : 'Non'}</Text></Col>
+                  </Row>
+
+                  {/* Logistique */}
+                  <Divider orientation="left">Logistique</Divider>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} sm={12} md={8}><Text strong>Livreur:</Text><br /><Text>{selectedColis.livreur?.nom || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Télé Livreur:</Text><br /><Text>{selectedColis.livreur?.tele || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Équipe:</Text><br /><Text>{selectedColis.team?.nom || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Store:</Text><br /><Text>{selectedColis.store?.storeName || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Client:</Text><br /><Text>{selectedColis.store?.id_client?.nom || '—'}</Text></Col>
+                  </Row>
+
+                  {/* Dates */}
+                  <Divider orientation="left">Dates</Divider>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} sm={12} md={8}><Text strong>Date programmée:</Text><br /><Text>{selectedColis.date_programme ? moment(selectedColis.date_programme).format('YYYY-MM-DD') : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Date reportée:</Text><br /><Text>{selectedColis.date_reporte ? moment(selectedColis.date_reporte).format('YYYY-MM-DD') : '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Date livraisant:</Text><br /><Text>{selectedColis.date_livraisant ? moment(selectedColis.date_livraisant).format('YYYY-MM-DD') : '—'}</Text></Col>
+                  </Row>
+
+                  {/* Références */}
+                  <Divider orientation="left">Références</Divider>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} sm={12} md={8}><Text strong>Code Ameex:</Text><br /><Text>{selectedColis.code_suivi_ameex || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>Code Gdil:</Text><br /><Text>{selectedColis.code_suivi_gdil || '—'}</Text></Col>
+                    <Col xs={24} sm={12} md={8}><Text strong>ID Colis:</Text><br /><Text>{selectedColis._id}</Text></Col>
+                  </Row>
+
+                  <Space direction="horizontal" size="middle" style={{ marginTop: 20 }}>
                     {(userRole === 'admin' || userRole === 'livreur') && (
                       <Button
                         icon={<HiOutlineStatusOnline />}

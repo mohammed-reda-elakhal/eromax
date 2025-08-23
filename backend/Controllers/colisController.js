@@ -758,7 +758,13 @@ exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
     const colis = await Colis.findOne({ code_suivi })
     .populate('team')        // Populate the team details
     .populate('livreur')     // Populate the livreur details
-    .populate('store')       // Populate the store details
+    .populate({              // Populate the store and deep-populate its client
+      path: 'store',
+      populate: {
+        path: 'id_client',
+        select: '-password'
+      }
+    })
     .populate('ville')
     .sort({ updatedAt: -1 }); // Sort by updatedAt in descending order (most recent first)
 
