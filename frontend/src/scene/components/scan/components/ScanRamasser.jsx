@@ -3,7 +3,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import './ScanRamasser.css';
-import { Input, Button, Table, Space, notification, Modal, Card, message } from 'antd';
+import { Input, Button, Table, Space, notification, Modal, Card, message, Segmented, Switch } from 'antd';
 import { CiBarcode } from "react-icons/ci";
 import { CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +11,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import request from '../../../../utils/request';
 import { toast } from 'react-toastify';
 import { getLivreurList } from '../../../../redux/apiCalls/livreurApiCall';
+import { useZxing } from 'react-zxing';
+import { BarcodeFormat } from '@zxing/library';
 
 function ScanRamasser() {
   const { theme } = useContext(ThemeContext);
@@ -22,6 +24,9 @@ function ScanRamasser() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedLivreur, setSelectedLivreur] = useState(null);
   const [loading, setLoading] = useState(false);
+  // Toggle scan mode and camera
+  const [scanMode, setScanMode] = useState('barcode'); // 'barcode' | 'qr'
+  const [cameraEnabled, setCameraEnabled] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -145,6 +150,38 @@ function ScanRamasser() {
       isProcessingScan.current = false;
     }, 500);
   };
+
+  // Camera scanner using react-zxing
+  const { ref: videoRef } = useZxing({
+    onResult(result) {
+      try {
+        const text = result?.getText?.() || result?.text || '';
+        const format = result?.getBarcodeFormat?.() || result?.barcodeFormat;
+        // Filter by mode: accept QR only in qr mode; in barcode mode, ignore QR
+        if (scanMode === 'qr') {
+          if (format !== BarcodeFormat.QR_CODE) return;
+        } else {
+          if (format === BarcodeFormat.QR_CODE) return;
+        }
+        if (text) {
+          handleScan(text.trim());
+          setCurrentBarcode('');
+        }
+      } catch (e) {
+        // noop
+      }
+    },
+    paused: !cameraEnabled,
+    timeBetweenDecodingAttempts: 150,
+    constraints: {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+      },
+      audio: false,
+    },
+  });
 
   // Fonction pour récupérer les détails du colis
   const fetchColisByCodeSuivi = async (barcode) => {
@@ -289,6 +326,52 @@ function ScanRamasser() {
       minHeight: '100vh'
     }}>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        {/* Scan mode and camera controls */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Segmented
+            options={[
+              { label: 'Barcode', value: 'barcode' },
+              { label: 'QR Code', value: 'qr' },
+            ]}
+            value={scanMode}
+            onChange={setScanMode}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Switch
+              checked={cameraEnabled}
+              onChange={setCameraEnabled}
+            />
+            <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
+              {cameraEnabled ? 'Camera activée' : 'Camera désactivée'}
+            </span>
+          </div>
+        </div>
+
+        {cameraEnabled && (
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: 480 }}>
+              <video
+                ref={videoRef}
+                style={{ width: '100%', borderRadius: 8, border: '1px solid #e5e7eb' }}
+                muted
+                playsInline
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  border: '2px dashed #1677ff',
+                  borderRadius: 8,
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
+            <div style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
+              Pointez la caméra vers le {scanMode === 'qr' ? 'QR code' : 'code-barres'}.
+            </div>
+          </div>
+        )}
+
         <Input
           placeholder="Entrez ou scannez le code barre..."
           value={currentBarcode}
