@@ -385,22 +385,28 @@ function ColisRamasse2() {
 
       // If only one region, export with region name in filename
       const regionNames = Object.keys(selectedColisByRegion);
-      
+
       if (regionNames.length === 1) {
-        // Single region export
         const regionName = regionNames[0];
         const colisToExport = selectedColisByRegion[regionName];
-        
-        // Map data to Excel format (without Tarif Ajouter and Store)
+
+        // Map data to standardized Excel format
         const dataToExport = colisToExport.map(colis => ({
-          "Code Suivi": colis.code_suivi,
-          "Destinataire": colis.nom,
-          "Téléphone": colis.tele,
-          "Ville": colis.villeData?.nom || 'N/A',
-          "Région": colis.regionData?.nom || 'N/A',
-          "Adresse": colis.adresse || 'N/A',
-          "Prix (DH)": colis.prix,
-          "Statut": colis.statut,
+          'Code Suivi': colis.code_suivi || '',
+          'Prix (DH)': colis.prix || '',
+          'Nom Destinataire': colis.nom || '',
+          'Téléphone': colis.tele || '',
+          'Adresse': colis.adresse || '',
+          'Ville': colis.villeData?.nom || '',
+          'Région': colis.regionData?.nom || '',
+          'Date Création': colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : '',
+          'Statut': colis.statut || '',
+          'Commentaire': colis.commentaire || '',
+          'Ouvrir': colis.ouvrir ? 'Oui' : 'Non',
+          'Simple': colis.is_simple ? 'Oui' : 'Non',
+          'Remplacé': colis.is_remplace ? 'Oui' : 'Non',
+          'Fragile': colis.is_fragile ? 'Oui' : 'Non',
+          'Nature Produit': colis.nature_produit || ''
         }));
 
         // Create worksheet
@@ -420,19 +426,26 @@ function ColisRamasse2() {
         toast.success(`Exporté vers Excel avec succès! (${colisToExport.length} colis de ${regionName})`);
       } else {
         // Multiple regions export - create separate files for each region
-        regionNames.forEach((regionName, index) => {
+        regionNames.forEach(regionName => {
           const colisToExport = selectedColisByRegion[regionName];
-          
-          // Map data to Excel format (without Tarif Ajouter and Store)
+
+          // Map data to standardized Excel format
           const dataToExport = colisToExport.map(colis => ({
-            "Code Suivi": colis.code_suivi,
-            "Destinataire": colis.nom,
-            "Téléphone": colis.tele,
-            "Ville": colis.villeData?.nom || 'N/A',
-            "Région": colis.regionData?.nom || 'N/A',
-            "Adresse": colis.adresse || 'N/A',
-            "Prix (DH)": colis.prix,
-            "Statut": colis.statut,
+            'Code Suivi': colis.code_suivi || '',
+            'Prix (DH)': colis.prix || '',
+            'Nom Destinataire': colis.nom || '',
+            'Téléphone': colis.tele || '',
+            'Adresse': colis.adresse || '',
+            'Ville': colis.villeData?.nom || '',
+            'Région': colis.regionData?.nom || '',
+            'Date Création': colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : '',
+            'Statut': colis.statut || '',
+            'Commentaire': colis.commentaire || '',
+            'Ouvrir': colis.ouvrir ? 'Oui' : 'Non',
+            'Simple': colis.is_simple ? 'Oui' : 'Non',
+            'Remplacé': colis.is_remplace ? 'Oui' : 'Non',
+            'Fragile': colis.is_fragile ? 'Oui' : 'Non',
+            'Nature Produit': colis.nature_produit || ''
           }));
 
           // Create worksheet

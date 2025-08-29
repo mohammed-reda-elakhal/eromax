@@ -354,7 +354,7 @@ const TicketPDF = ({ colisList, codes }) => (
               <Image src="/image/logo-light.png" style={styles.logo} />
               <Text style={styles.brandName}>EROMAX</Text>
             </View>
-            <Text style={styles.codeSuiviHeader}>{colis?.ville?.nom || ''}</Text>
+            <Text style={styles.codeSuiviHeader}>{colis?.villeData?.nom || colis?.ville?.nom || ''}</Text>
           </View>
         </View>
 
@@ -386,7 +386,7 @@ const TicketPDF = ({ colisList, codes }) => (
               </View>
               <View style={styles.infoRowRight}>
                 <Text style={styles.labelCombined}>Ville:</Text>
-                <Text style={styles.valueCombined}>{truncateText(colis?.ville?.nom || colis?.ville?.nom || '', 12)}</Text>
+                <Text style={styles.valueCombined}>{truncateText(colis?.villeData?.nom || colis?.ville?.nom || '', 12)}</Text>
               </View>
             </View>
 

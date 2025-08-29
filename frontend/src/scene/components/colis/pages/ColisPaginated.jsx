@@ -524,7 +524,12 @@ function ColisPaginated() {
         'Région': colis.ville?.region?.nom || '',
         'Date Création': colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : '',
         'Statut': colis.statut || '',
-        'Commentaire': colis.commentaire || ''
+        'Commentaire': colis.commentaire || '',
+        'Ouvrir': colis.ouvrir ? 'Oui' : 'Non',
+        'Simple': colis.is_simple ? 'Oui' : 'Non',
+        'Remplacé': colis.is_remplace ? 'Oui' : 'Non',
+        'Fragile': colis.is_fragile ? 'Oui' : 'Non',
+        'Nature Produit': colis.nature_produit || ''
       }));
 
       // Create workbook and worksheet

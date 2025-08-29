@@ -44,19 +44,28 @@ function ColisNouveau() {
     }
     const selectedColis = nouveauColisList.colis.filter(colis => selectedRowKeys.includes(colis.code_suivi));
     const dataToExport = selectedColis.map(colis => ({
-      "Code Suivi": colis.code_suivi,
-      "Destinataire": colis.nom,
-      "Téléphone": colis.tele,
-      "Ville": colis.ville?.nom || 'N/A',
-      "Adresse": colis.adresse || 'N/A',
-      "Prix (DH)": colis.prix,
-      "Statut": colis.statut,
+      'Code Suivi': colis.code_suivi || '',
+      'Prix (DH)': colis.prix || '',
+      'Nom Destinataire': colis.nom || '',
+      'Téléphone': colis.tele || '',
+      'Adresse': colis.adresse || '',
+      'Ville': colis.ville?.nom || '',
+      'Région': colis.ville?.region?.nom || '',
+      'Date Création': colis.createdAt ? moment(colis.createdAt).format('DD/MM/YYYY HH:mm') : '',
+      'Statut': colis.statut || '',
+      'Commentaire': colis.commentaire || '',
+      'Ouvrir': colis.ouvrir ? 'Oui' : 'Non',
+      'Simple': colis.is_simple ? 'Oui' : 'Non',
+      'Remplacé': colis.is_remplace ? 'Oui' : 'Non',
+      'Fragile': colis.is_fragile ? 'Oui' : 'Non',
+      'Nature Produit': colis.nature_produit || ''
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Colis Nouveau");
     const fileName = `Colis_Nouveau_${moment().format('YYYYMMDD_HHmmss')}.xlsx`;
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
     const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(dataBlob, fileName);
     message.success('Exporté vers Excel avec succès!');
