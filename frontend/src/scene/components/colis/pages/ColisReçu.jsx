@@ -391,7 +391,7 @@ const handleDistribution = async (colisId) => {
         <div style={tableCellStyles.priceTag}>
           <DollarOutlined />
           <span style={{ fontSize: '16px', fontWeight: '600' }}>
-            {text || 'N/A'} DH
+            {text !== undefined ? text : 'غير محدد'} DH
           </span>
         </div>
       ),

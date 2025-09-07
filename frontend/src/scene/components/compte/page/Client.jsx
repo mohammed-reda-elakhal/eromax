@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../../../ThemeContext';
-import { FaEye, FaKey, FaStore, FaPlus, FaBox } from "react-icons/fa";
+import { FaEye, FaKey, FaStore, FaPlus, FaBox, FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { GoVerified } from "react-icons/go";
 import {
@@ -34,6 +34,7 @@ import { resetUserPassword } from '../../../../redux/apiCalls/authApiCalls';
 import Topbar from '../../../global/Topbar';
 import Menubar from '../../../global/Menubar';
 import ClientFormAdd from '../components/ClientFormAdd';
+import ClientFormUpdate from '../components/ClientFormUpdate';
 import styled from 'styled-components';
 
 const CustomTable = styled.div`
@@ -266,6 +267,8 @@ function Client() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [newPassword, setNewPassword] = useState("");
     const [drawerVisible, setDrawerVisible] = useState(false);
+    const [updateDrawerVisible, setUpdateDrawerVisible] = useState(false);
+    const [selectedClient, setSelectedClient] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
@@ -347,7 +350,21 @@ function Client() {
 
     const closeDrawer = () => {
         setDrawerVisible(false);
+        setUpdateDrawerVisible(false);
+        setSelectedClient(null);
         dispatch(getProfileList("client"));
+    };
+
+    const handleUpdateClient = (client) => {
+        setSelectedClient(client);
+        setUpdateDrawerVisible(true);
+    };
+
+    const handleUpdateSuccess = () => {
+        setUpdateDrawerVisible(false);
+        setSelectedClient(null);
+        dispatch(getProfileList("client"));
+        message.success('Client mis à jour avec succès');
     };
 
 
@@ -578,6 +595,15 @@ function Client() {
                                                     </td>
                                                     <td className="actions-cell">
                                                         <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                            <Tooltip title="Modifier le client">
+                                                                <ActionButton
+                                                                    style={{ backgroundColor: '#4a6bdf', borderColor: '#4a6bdf' }}
+                                                                    icon={<FaEdit />}
+                                                                    size="small"
+                                                                    onClick={() => handleUpdateClient(client)}
+                                                                />
+                                                            </Tooltip>
+
                                                             <Tooltip title="Voir le profil">
                                                                 <ActionButton
                                                                     type="primary"
@@ -795,9 +821,19 @@ function Client() {
                                         <Button onClick={handleCancelPasswordReset} style={{ marginRight: '8px' }}>
                                             Annuler
                                         </Button>
-                                        <Button type="primary" onClick={handlePasswordReset} loading={loading}>
-                                            Réinitialiser
-                                        </Button>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <Button type="primary" icon={<FaPlus />} onClick={openDrawer}>
+                                                Ajouter un client
+                                            </Button>
+                                            <Button 
+                                                type="primary" 
+                                                icon={<EditOutlined />} 
+                                                onClick={() => handleUpdateClient(record)}
+                                                disabled={!record}
+                                            >
+                                                Modifier
+                                            </Button>
+                                        </div>
                                     </div>
                                 </>
                             )}
@@ -811,6 +847,21 @@ function Client() {
                             width={400}
                         >
                             <ClientFormAdd close={closeDrawer} />
+            <Drawer
+                title="Modifier le client"
+                width={500}
+                onClose={closeDrawer}
+                visible={updateDrawerVisible}
+                bodyStyle={{ paddingBottom: 80 }}
+            >
+                {selectedClient && (
+                    <ClientFormUpdate 
+                        client={selectedClient} 
+                        onSuccess={handleUpdateSuccess} 
+                        onCancel={closeDrawer}
+                    />
+                )}
+            </Drawer>
                         </Drawer>
                     </div>
                 </div>

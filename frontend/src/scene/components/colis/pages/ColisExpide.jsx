@@ -293,7 +293,7 @@ function ColisExpide({ search }) {
           <span
             style={{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }}
           >
-            {text || 'N/A'} DH
+            {text !== undefined ? text : 'غير محدد'} DH
           </span>
         </div>
       ),

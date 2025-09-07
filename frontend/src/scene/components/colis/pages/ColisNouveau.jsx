@@ -222,7 +222,7 @@ function ColisNouveau() {
             </div>
             <div>
               <Text style={priceStyle}>
-                {record.prix || 'N/A'} DH
+                {record.prix !== undefined ? record.prix : 'غير محدد'} DH
               </Text>
             </div>
           </div>
@@ -252,7 +252,7 @@ function ColisNouveau() {
             padding: '4px 8px'
           }}
         >
-          {record.ville?.nom || 'N/A'}
+          {record.ville?.nom || 'غير محدد'}
         </Tag>
       ),
     },
@@ -271,7 +271,7 @@ function ColisNouveau() {
           icon={<TagOutlined />}
           style={tableCellStyles.productTag}
         >
-          {text || 'N/A'}
+          {text || 'غير محدد'}
         </Tag>
       ),
     },
@@ -290,7 +290,7 @@ function ColisNouveau() {
           <Text style={{ fontSize: '13px', fontWeight: '500' }}>
             {record.store?.storeName?.length > 15
               ? record.store.storeName.substring(0, 15) + '...'
-              : record.store?.storeName || 'N/A'
+              : record.store?.storeName || 'غير محدد'
             }
           </Text>
         </div>
@@ -307,7 +307,7 @@ function ColisNouveau() {
       key: 'adresse',
       render: (text, record) => (
         <span style={{ color: theme === 'dark' ? '#a3e635' : '#0ea5e9', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <EnvironmentOutlined /> {record.adresse || 'N/A'}
+          <EnvironmentOutlined /> {record.adresse || 'غير محدد'}
         </span>
       ),
     },

@@ -649,14 +649,14 @@ function ColisPaginated() {
         <div style={{ minHeight: 60, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
           <span style={{ color: theme === 'dark' ? '#94a3b8' : '#475569', fontSize: 13, fontWeight: 600 }}>{record.nom?.length > 18 ? record.nom.substring(0, 18) + '...' : record.nom}</span>
           <span style={{ color: isValidPhoneNumber ? (theme === 'dark' ? '#60a5fa' : '#64748b') : (theme === 'dark' ? '#fca5a5' : '#dc2626'), fontSize: 12, fontWeight: 500 }}>{record.tele}</span>
-          <span style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6', fontSize: 16, fontWeight: 700 }}>{record.prix || 'N/A'} DH</span>
+          <span style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6', fontSize: 16, fontWeight: 700 }}>{record.prix !== undefined ? record.prix : 'غير محدد'} DH</span>
         </div>
       );
     } },
     { key: 'nature_produit', label: <><AiFillProduct /> Produit</>, render: (record) => {
       const text = record.nature_produit;
       if (!text) {
-        return <span style={{ background: theme === 'dark' ? '#374151' : '#9ca3af', color: 'white', borderRadius: 4, fontSize: 12, fontWeight: 500, padding: '2px 8px' }}>N/A</span>;
+        return <span style={{ background: theme === 'dark' ? '#374151' : '#9ca3af', color: 'white', borderRadius: 4, fontSize: 12, fontWeight: 500, padding: '2px 8px' }}>غير محدد</span>;
       }
       const words = text.split(' ');
       const shortText = words.slice(0, 2).join(' ');
@@ -680,7 +680,7 @@ function ColisPaginated() {
           <span>📍 Ville: {record?.ville?.nom}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: theme === 'dark' ? '#22d3ee' : '#059669' }}>
-          <span>🏠 {record.adresse}</span>
+          <span>🏠 {record.adresse || 'غير محدد'}</span>
         </div>
       </div>
     ) },
@@ -717,12 +717,12 @@ function ColisPaginated() {
             }
           }}
         >
-          {record.store?.storeName || 'N/A'}
+          {record.store?.storeName || 'غير محدد'}
         </span>
       </Tooltip>
     ) },
     { key: 'livreur', label: <>🧑‍💼 Livreur</>, render: (record) => (
-      <span>{record.livreur?.username || record.livreur?.nom || 'N/A'}</span>
+      <span>{record.livreur?.username || record.livreur?.nom || 'غير محدد'}</span>
     ) },
   ] : [];
   const statusAndDateColumns = [
@@ -1698,7 +1698,7 @@ function ColisPaginated() {
                       <Descriptions bordered column={2} size="small">
                         <Descriptions.Item label="Nom Destinataire">{detailsColis.nom}</Descriptions.Item>
                         <Descriptions.Item label="Téléphone">{detailsColis.tele}</Descriptions.Item>
-                        <Descriptions.Item label="Adresse">{detailsColis.adresse}</Descriptions.Item>
+                        <Descriptions.Item label="Adresse">{detailsColis.adresse || 'غير محدد'}</Descriptions.Item>
                         <Descriptions.Item label="Ville">{detailsColis.ville?.nom}</Descriptions.Item>
                         <Descriptions.Item label="Région">{detailsColis.ville?.region?.nom}</Descriptions.Item>
                       </Descriptions>
@@ -1731,7 +1731,7 @@ function ColisPaginated() {
                                 }
                               }}
                             >
-                              {detailsColis.store?.storeName || 'N/A'}
+                              {detailsColis.store?.storeName || 'غير محدد'}
                             </span>
                           </Tooltip>
                         </Descriptions.Item>

@@ -1,61 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams , useNavigate , useLocation } from 'react-router-dom';
-import { getProfile, updateProfile } from '../../../../redux/apiCalls/profileApiCalls';
+import { useDispatch } from 'react-redux';
+import { updateProfile } from '../../../../redux/apiCalls/profileApiCalls';
 
-function ClientFormUpdate() {
+function ClientFormUpdate({ client, onSuccess, onCancel }) {
     const [form] = Form.useForm();
     const dispatch = useDispatch();
-    const { id } = useParams(); // Get the userId from the URL parameters
-    const { profile, error } = useSelector((state) => state.profile); // Assuming profile is stored in the profile state
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [previousRoute, setPreviousRoute] = useState(null);
+    const [loading, setLoading] = useState(false);
 
+    // Set form initial values when client prop changes
     useEffect(() => {
-        // Store the previous route
-        if (location.state?.from) {
-            setPreviousRoute(location.state.from);
-        }
-    }, [location]);
-
-    // Fetch client data when the component mounts
-    useEffect(() => {
-        if (id) {
-            dispatch(getProfile(id, 'client')); // Fetch profile data based on userId and role 'client'
-        }
-    }, [dispatch, id]);
-
-    // Update form values when profile data is loaded
-    useEffect(() => {
-        if (profile) {
+        if (client) {
             form.setFieldsValue({
-                nom: profile.nom,
-                prenom: profile.prenom,
-                username: profile.username,
-                email: profile.email,
-                tele: profile.tele,
-                ville: profile.ville,
-                adresse: profile.adresse,
-                cin: profile.cin
+                nom: client.nom || '',
+                prenom: client.prenom || '',
+                email: client.email || '',
+                tele: client.tele || '',
+                ville: client.ville || '',
+                adresse: client.adresse || '',
+                cin: client.cin || '',
+                storeName: client.stores?.[0]?.storeName || ''
             });
         }
-    }, [profile, form]);
+    }, [client, form]);
 
     // Handle form submission
-    const onFinish = (values) => {
-        dispatch(updateProfile(id, 'client', values))
-        if (previousRoute) {
-            navigate(previousRoute);
-        } else {
-            navigate('/dashboard/home'); // Default fallback
+    const onFinish = async (values) => {
+        try {
+            setLoading(true);
+            await dispatch(updateProfile(client._id, 'client', values));
+            message.success('Client mis à jour avec succès');
+            onSuccess?.();
+        } catch (error) {
+            message.error("Erreur lors de la mise à jour du client");
+        } finally {
+            setLoading(false);
         }
     };
-
-    if (error) {
-        return <p>Error loading profile: {error}</p>;
-    }
 
     return (
         <Form
@@ -63,19 +44,46 @@ function ClientFormUpdate() {
             layout="vertical"
             onFinish={onFinish}
         >
-            <Form.Item label="Nom" name="nom" rules={[{ required: true, message: 'Please input the name!' }]}>
+            <Form.Item 
+                label="Nom" 
+                name="nom" 
+                rules={[{ required: true, message: "S'il vous plaît entrez le nom du client!" }]}
+            >
                 <Input />
             </Form.Item>
-            <Form.Item label="Prénom" name="prenom" rules={[{ required: true, message: 'Please input the first name!' }]}>
+            <Form.Item 
+                label="Prénom" 
+                name="prenom" 
+                rules={[{ required: true, message: "S'il vous plaît entrez le prénom du client!" }]}
+            >
                 <Input />
             </Form.Item>
-            <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please input the username!' }]}>
+            <Form.Item 
+                label="Nom du magasin" 
+                name="storeName" 
+                rules={[{ required: true, message: "S'il vous plaît entrez le nom du magasin!" }]}
+            >
                 <Input />
             </Form.Item>
-            <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Please input the email!' }]}>
-                <Input />
+            <Form.Item 
+                label="Email" 
+                name="email" 
+                rules={[
+                    { required: true, message: "S'il vous plaît entrez l'email du client!" },
+                    { type: 'email', message: 'Veuillez entrer un email valide!' }
+                ]}
+            >
+                <Input type="email" />
             </Form.Item>
-            <Form.Item label="Téléphone" name="tele" rules={[{ required: false, message: 'Please input the phone number!' }]}>
+            <Form.Item 
+                label="Téléphone" 
+                name="tele" 
+                rules={[{ 
+                    required: false, 
+                    pattern: new RegExp(/^[0-9+\s-]*$/),
+                    message: 'Veuillez entrer un numéro de téléphone valide!' 
+                }]}
+            >
                 <Input />
             </Form.Item>
             <Form.Item label="Ville" name="ville" rules={[{ required: false, message: 'Please input the city!' }]}>
@@ -87,9 +95,12 @@ function ClientFormUpdate() {
             <Form.Item label="CIN" name="cin" rules={[{ required: false, message: 'Please input the CIN!' }]}>
                 <Input />
             </Form.Item>
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    Modifier Client
+            <Form.Item style={{ marginTop: '24px' }}>
+                <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: '8px' }}>
+                    Enregistrer
+                </Button>
+                <Button onClick={onCancel}>
+                    Annuler
                 </Button>
             </Form.Item>
         </Form>

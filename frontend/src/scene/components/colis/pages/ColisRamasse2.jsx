@@ -592,7 +592,7 @@ function ColisRamasse2() {
             </div>
             <div>
               <Text style={priceStyle}>
-                {record.prix || 'N/A'} DH
+                {record.prix !== undefined ? record.prix : 'غير محدد'} DH
               </Text>
             </div>
           </div>
@@ -622,7 +622,7 @@ function ColisRamasse2() {
             padding: '4px 8px'
           }}
         >
-          {record.villeData?.nom || 'N/A'}
+          {record.villeData?.nom || 'غير محدد'}
         </Tag>
       ),
     },
@@ -641,7 +641,7 @@ function ColisRamasse2() {
           icon={<TagOutlined />}
           style={tableCellStyles.productTag}
         >
-          {text || 'N/A'}
+          {text || 'غير محدد'}
         </Tag>
       ),
     },
@@ -660,7 +660,7 @@ function ColisRamasse2() {
           <Text style={{ fontSize: '13px', fontWeight: '500' }}>
             {record.storeData?.storeName?.length > 15
               ? record.storeData.storeName.substring(0, 15) + '...'
-              : record.storeData?.storeName || 'N/A'
+              : record.storeData?.storeName || 'غير محدد'
             }
           </Text>
         </div>
