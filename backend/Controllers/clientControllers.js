@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const mongoose = require('mongoose');
 const { Client, clientValidation } = require("../Models/Client");
 const bcrypt = require("bcryptjs");
 const { Store } = require("../Models/Store");
@@ -9,6 +10,9 @@ const File = require("../Models/File");
 const { Colis } = require("../Models/Colis");
 const { Suivi_Colis } = require("../Models/Suivi_Colis");
 const { Wallet } = require("../Models/Wallet");
+const Reclamation = require("../Models/Reclamation");
+const Withdrawal = require("../Models/Withdrawal");
+const Transfer = require("../Models/Transfer");
 
 
 /** -------------------------------------------
@@ -171,15 +175,35 @@ const createClient = asyncHandler(async (req, res) => {
  -------------------------------------------
  */
  const updateClient = asyncHandler(async (req, res) => {
-    const updateData = req.body;
+    const { storeName, storeId, ...updateData } = req.body;
     const clientId = req.params.id;
 
+    // Update client information
     const client = await Client.findByIdAndUpdate(clientId, updateData, { new: true });
     if (!client) {
         return res.status(404).json({ message: 'Client not found' });
     }
     
-    res.status(200).json({ message: "Client updated Successfully", client });
+    // If storeName and storeId are provided, update the store name
+    if (storeName && storeId) {
+        const updatedStore = await Store.findByIdAndUpdate(
+            storeId,
+            { storeName },
+            { new: true }
+        );
+        
+        if (!updatedStore) {
+            return res.status(404).json({ message: 'Store not found' });
+        }
+        
+        // Add store info to the response
+        client.store = updatedStore;
+    }
+    
+    res.status(200).json({ 
+        message: "Client and store updated successfully", 
+        client 
+    });
 });
 
 /**
@@ -254,19 +278,67 @@ const verifyClientAll = asyncHandler(async (req, res) => {
  -------------------------------------------
 */
 const deleteClient = asyncHandler(async (req, res) => {
-    const client = await Client.findById(req.params.id);
-    if (!client) {
-        res.status(404).json({ message: 'Client not found' });
-        return;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
+    try {
+        const client = await Client.findById(req.params.id).session(session);
+        if (!client) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ message: 'Client not found' });
+        }
+
+        // Get all stores of the client
+        const stores = await Store.find({ id_client: client._id }).session(session);
+        const storeIds = stores.map(store => store._id);
+
+        // 1. Delete related data in parallel
+        await Promise.all([
+            // Delete all colis related to the stores
+            Colis.deleteMany({ store: { $in: storeIds } }).session(session),
+            
+            // Delete all reclamations related to the client
+            Reclamation.deleteMany({ client: client._id }).session(session),
+            
+            // Delete all withdrawals related to the client's stores
+            Withdrawal.deleteMany({ store: { $in: storeIds } }).session(session),
+            
+            // Delete all transfers related to the client's stores
+            Transfer.deleteMany({ 
+                $or: [
+                    { fromStore: { $in: storeIds } },
+                    { toStore: { $in: storeIds } }
+                ]
+            }).session(session),
+            
+            // Delete all wallets related to the stores
+            Wallet.deleteMany({ store: { $in: storeIds } }).session(session),
+            
+            // Delete all stores
+            Store.deleteMany({ id_client: client._id }).session(session)
+        ]);
+
+        // 2. Delete the client
+        await Client.deleteOne({ _id: client._id }).session(session);
+
+        await session.commitTransaction();
+        session.endSession();
+
+        res.json({ 
+            success: true,
+            message: 'Client and all related data deleted successfully' 
+        });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        console.error('Error deleting client:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error deleting client',
+            error: error.message 
+        });
     }
-
-    // Delete all stores associated with the client
-    await Store.deleteMany({ id_client: client._id });
-
-    // Delete the client
-    await client.deleteOne();
-
-    res.json({ message: 'Client and all associated stores deleted' });
 });
 
 

@@ -65,6 +65,16 @@ const styles = StyleSheet.create({
     border: '1px solid #000',
     padding: 3, // Reduced
     backgroundColor: '#f5f5f5',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateInline: {
+    fontSize: 5.5,
+    color: '#666',
+    fontWeight: 'normal',
+    marginLeft: 2,
   },
 
   // Compact main information section
@@ -354,7 +364,21 @@ const TicketPDF = ({ colisList, codes }) => (
               <Image src="/image/logo-light.png" style={styles.logo} />
               <Text style={styles.brandName}>EROMAX</Text>
             </View>
-            <Text style={styles.codeSuiviHeader}>{colis?.villeData?.nom || colis?.ville?.nom || ''}</Text>
+            <Text style={styles.codeSuiviHeader}>
+              {colis?.villeData?.nom || colis?.ville?.nom || ''}
+              {colis?.createdAt && (
+                <Text style={styles.dateInline}>
+                  {' • '}
+                  {new Date(colis.createdAt).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </Text>
+              )}
+            </Text>
           </View>
         </View>
 

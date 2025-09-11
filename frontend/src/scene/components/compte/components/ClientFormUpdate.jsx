@@ -28,11 +28,19 @@ function ClientFormUpdate({ client, onSuccess, onCancel }) {
     const onFinish = async (values) => {
         try {
             setLoading(true);
-            await dispatch(updateProfile(client._id, 'client', values));
-            message.success('Client mis à jour avec succès');
+            // Prepare the update data with store information
+            const updateData = {
+                ...values,
+                storeId: client.stores?.[0]?._id, // Include the store ID
+                storeName: values.storeName // Include the store name
+            };
+            
+            await dispatch(updateProfile(client._id, 'client', updateData));
+            message.success('Client et magasin mis à jour avec succès');
             onSuccess?.();
         } catch (error) {
-            message.error("Erreur lors de la mise à jour du client");
+            console.error('Update error:', error);
+            message.error(error.response?.data?.message || "Erreur lors de la mise à jour du client");
         } finally {
             setLoading(false);
         }

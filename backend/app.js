@@ -118,6 +118,7 @@ app.use("/api/transfer", require("./routes/transferRoutes"));
 app.use("/api/withdrawal", require("./routes/withdrawalRoutes"));
 app.use("/api/region", require("./routes/regionRoute"));
 app.use("/api/profile", require("./routes/ProfileRoute"));
+app.use("/api/client", require("./routes/clientRoute"));
 
 // Uploads
 app.use("/api/upload", uploadRoutes);

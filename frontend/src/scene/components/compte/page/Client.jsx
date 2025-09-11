@@ -13,7 +13,8 @@ import {
     Tag,
     message,
     Input,
-    Drawer
+    Drawer,
+    Popconfirm
 } from 'antd';
 import {
     EnvironmentOutlined,
@@ -21,7 +22,8 @@ import {
     ReloadOutlined,
     ExclamationCircleOutlined,
     UserOutlined,
-    CalendarOutlined
+    CalendarOutlined,
+    EditOutlined
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -285,16 +287,54 @@ function Client() {
         dispatch(verifyClient(id));
     };
 
-    const handleDeleteClient = (id) => {
-        Modal.confirm({
-            title: 'Êtes-vous sûr de vouloir supprimer ce client?',
-            content: 'Cette action est irréversible.',
-            okText: 'Oui',
-            cancelText: 'Non',
-            onOk: () => {
-                dispatch(deleteProfile(id));
+    const handleDeleteClient = async (id) => {
+        try {
+            const result = await new Promise((resolve) => {
+                Modal.confirm({
+                    title: 'Supprimer le client',
+                    content: (
+                        <div>
+                            <p>Êtes-vous sûr de vouloir supprimer définitivement ce client ?</p>
+                            <p className="text-red-500 font-medium">Cette action supprimera :</p>
+                            <ul className="list-disc pl-5 mt-2 text-sm">
+                                <li>Le compte client</li>
+                                <li>Tous les magasins associés</li>
+                                <li>Tous les colis liés</li>
+                                <li>L'historique des transactions</li>
+                                <li>Les réclamations et retraits</li>
+                            </ul>
+                            <p className="mt-2 font-medium">Cette action est irréversible !</p>
+                        </div>
+                    ),
+                    okText: 'Supprimer définitivement',
+                    okButtonProps: { 
+                        danger: true,
+                        className: 'bg-red-600 hover:bg-red-700 border-red-600'
+                    },
+                    cancelText: 'Annuler',
+                    icon: <ExclamationCircleOutlined style={{ color: '#ef4444' }} />,
+                    okType: 'danger',
+                    width: 500,
+                    onOk: () => resolve(true),
+                    onCancel: () => resolve(false),
+                    className: 'delete-confirm-modal'
+                });
+            });
+
+            if (result) {
+                const response = await dispatch(deleteProfile('client', id));
+                if (response?.success) {
+                    message.success('Client et toutes les données associées ont été supprimés avec succès');
+                    // Refresh the client list
+                    dispatch(getProfileList("client"));
+                } else {
+                    message.error(response?.message || 'Erreur lors de la suppression du client');
+                }
             }
-        });
+        } catch (error) {
+            console.error('Error deleting client:', error);
+            message.error('Une erreur est survenue lors de la suppression');
+        }
     };
 
     const handleViewProfile = (client) => {
@@ -406,6 +446,7 @@ function Client() {
     return (
         <div className='page-dashboard'>
             <Menubar />
+            <DeleteConfirmationStyles />
             <main className="page-main">
                 <Topbar />
                 <div
@@ -646,14 +687,42 @@ function Client() {
                                                                 />
                                                             </Tooltip>
 
-                                                            <Tooltip title="Supprimer">
+                                                            <Popconfirm
+                                                                title="Êtes-vous sûr ?"
+                                                                description="Cette action est irréversible et supprimera toutes les données associées."
+                                                                onConfirm={(e) => {
+                                                                    e?.stopPropagation();
+                                                                    handleDeleteClient(client._id);
+                                                                }}
+                                                                onCancel={(e) => e?.stopPropagation()}
+                                                                okText="Oui, supprimer"
+                                                                cancelText="Annuler"
+                                                                okButtonProps={{ danger: true }}
+                                                            >
                                                                 <ActionButton
                                                                     danger
                                                                     icon={<MdDelete />}
                                                                     size="small"
-                                                                    onClick={() => handleDeleteClient(client._id)}
+                                                                    style={{
+                                                                        backgroundColor: '#ef4444',
+                                                                        borderColor: '#ef4444',
+                                                                        color: 'white',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        transition: 'all 0.3s',
+                                                                        '&:hover': {
+                                                                            backgroundColor: '#dc2626',
+                                                                            borderColor: '#dc2626',
+                                                                            transform: 'scale(1.05)'
+                                                                        },
+                                                                        '&:active': {
+                                                                            transform: 'scale(0.95)'
+                                                                        }
+                                                                    }}
+                                                                    onClick={(e) => e.stopPropagation()}
                                                                 />
-                                                            </Tooltip>
+                                                            </Popconfirm>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -821,19 +890,13 @@ function Client() {
                                         <Button onClick={handleCancelPasswordReset} style={{ marginRight: '8px' }}>
                                             Annuler
                                         </Button>
-                                        <div style={{ display: 'flex', gap: '10px' }}>
-                                            <Button type="primary" icon={<FaPlus />} onClick={openDrawer}>
-                                                Ajouter un client
-                                            </Button>
-                                            <Button 
-                                                type="primary" 
-                                                icon={<EditOutlined />} 
-                                                onClick={() => handleUpdateClient(record)}
-                                                disabled={!record}
-                                            >
-                                                Modifier
-                                            </Button>
-                                        </div>
+                                        <Button 
+                                            type="primary" 
+                                            onClick={handlePasswordReset}
+                                            disabled={!newPassword || newPassword.length < 6}
+                                        >
+                                            Réinitialiser le mot de passe
+                                        </Button>
                                     </div>
                                 </>
                             )}
@@ -847,21 +910,23 @@ function Client() {
                             width={400}
                         >
                             <ClientFormAdd close={closeDrawer} />
-            <Drawer
-                title="Modifier le client"
-                width={500}
-                onClose={closeDrawer}
-                visible={updateDrawerVisible}
-                bodyStyle={{ paddingBottom: 80 }}
-            >
-                {selectedClient && (
-                    <ClientFormUpdate 
-                        client={selectedClient} 
-                        onSuccess={handleUpdateSuccess} 
-                        onCancel={closeDrawer}
-                    />
-                )}
-            </Drawer>
+                        </Drawer>
+                        
+                        <Drawer
+                            title="Modifier le client"
+                            placement="right"
+                            onClose={closeDrawer}
+                            open={updateDrawerVisible}
+                            width={500}
+                            bodyStyle={{ paddingBottom: 80 }}
+                        >
+                            {selectedClient && (
+                                <ClientFormUpdate 
+                                    client={selectedClient} 
+                                    onSuccess={handleUpdateSuccess} 
+                                    onCancel={closeDrawer}
+                                />
+                            )}
                         </Drawer>
                     </div>
                 </div>
@@ -869,5 +934,78 @@ function Client() {
         </div>
     );
 }
+
+// Styles for the delete confirmation modal
+const DeleteConfirmationStyles = styled.div`
+  .delete-confirm-modal {
+    .ant-modal-content {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .ant-modal-header {
+      background-color: #fef2f2;
+      border-bottom: 1px solid #fecaca;
+      padding: 16px 24px;
+      .ant-modal-title {
+        color: #b91c1c;
+        font-weight: 600;
+      }
+    }
+    
+    .ant-modal-body {
+      padding: 24px;
+      
+      .ant-typography {
+        margin-bottom: 12px;
+      }
+      
+      ul {
+        margin: 8px 0 16px;
+        padding-left: 20px;
+        
+        li {
+          margin-bottom: 4px;
+          color: #4b5563;
+        }
+      }
+    }
+    
+    .ant-modal-footer {
+      border-top: 1px solid #f0f0f0;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      
+      .ant-btn {
+        border-radius: 4px;
+        font-weight: 500;
+        padding: 0 16px;
+        height: 32px;
+        
+        &-default {
+          border-color: #d1d5db;
+          color: #4b5563;
+          
+          &:hover {
+            border-color: #9ca3af;
+            color: #1f2937;
+          }
+        }
+        
+        &-primary {
+          background-color: #dc2626;
+          border-color: #dc2626;
+          
+          &:hover {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+          }
+        }
+      }
+    }
+  }
+`;
 
 export default Client;
