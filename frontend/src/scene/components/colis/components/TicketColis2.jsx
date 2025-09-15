@@ -361,8 +361,7 @@ const TicketPDF = ({ colisList, codes }) => (
         <View style={styles.headerSection}>
           <View style={styles.logoBox}>
             <View style={styles.logoBrand}>
-              <Image src="/image/logo-light.png" style={styles.logo} />
-              <Text style={styles.brandName}>EROMAX</Text>
+              <Image src="/image/fast-shipping.png" style={styles.logo} />
             </View>
             <Text style={styles.codeSuiviHeader}>
               {colis?.villeData?.nom || colis?.ville?.nom || ''}
@@ -468,7 +467,7 @@ const TicketPDF = ({ colisList, codes }) => (
 
         {/* Compact Footer */}
         <View style={styles.footer}>
-          <Text>إيروماكس مسؤولة فقط عن التوصيل</Text>
+          <Text> مسؤولة فقط عن التوصيل</Text>
         </View>
       </Page>
     ))}
