@@ -8,11 +8,11 @@ const { cloudinaryUploadImage, cloudinaryRemoveImage } = require("../utils/cloud
 const fs = require("fs");
 const File = require("../Models/File");
 const { Colis } = require("../Models/Colis");
-const { Suivi_Colis } = require("../Models/Suivi_Colis");
+const { Reclamation } = require("../Models/Reclamation");
+const { Withdrawal } = require("../Models/Withdrawal");
+const { Transfer } = require("../Models/Transfer");
 const { Wallet } = require("../Models/Wallet");
-const Reclamation = require("../Models/Reclamation");
-const Withdrawal = require("../Models/Withdrawal");
-const Transfer = require("../Models/Transfer");
+const { Suivi_Colis } = require("../Models/Suivi_Colis");
 
 
 /** -------------------------------------------

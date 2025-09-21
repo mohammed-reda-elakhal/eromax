@@ -309,9 +309,21 @@ const styles = StyleSheet.create({
 const generateBarcode = (text) => {
   try {
     const canvas = document.createElement('canvas');
-    JsBarcode(canvas, text, { format: 'CODE128', width: 2, height: 40, displayValue: false, margin: 0 });
+    JsBarcode(canvas, text, { 
+      format: 'CODE128',
+      width: 2,
+      height: 40,
+      displayValue: true,  // Changed to true for better debugging
+      margin: 10,         // Added margin for better scanning
+      valid: (valid) => {
+        if (!valid) {
+          console.warn('Invalid barcode value:', text);
+        }
+      }
+    });
     return canvas.toDataURL('image/png');
   } catch (e) {
+    console.error('Barcode generation error:', e);
     return null;
   }
 };
