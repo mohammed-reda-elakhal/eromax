@@ -126,8 +126,8 @@ function Register() {
                 className="reg-input"
                 placeholder="06XXXXXXXX"
                 inputMode="numeric"
-                pattern="^0\\d{9}$"
-                title="يجب أن يبدأ رقم الهاتف بـ 0 ويتكون من 10 أرقام."
+                pattern="[0-9]{10}"
+                title="يجب إدخال 10 أرقام"
                 value={phone}
                 onChange={handlePhoneChange}
                 required
