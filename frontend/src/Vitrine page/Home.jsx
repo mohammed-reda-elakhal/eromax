@@ -469,9 +469,9 @@ function Home() {
             <h3>معلومات الاتصال</h3>
             <p>لا تتردد في التواصل معنا عبر القنوات التالية. نحن هنا لمساعدتك.</p>
             <ul>
-              <li><FiMail className='i'/> support@eromax.com</li>
-              <li><FiPhone className='i'/><span dir="ltr"> +212 5 06 63 32 25</span></li>
-              <li><FiClock className='i'/> الإثنين - الجمعة | 9h - 18h</li>
+              <li><FiMail className='i'/>eromaxdelivery7@gmail.com</li>
+              <li><FiPhone className='i'/><span dir="ltr"> +212 6 30 08 73 02</span></li>
+              <li><FiClock className='i'/> الإثنين - السبت | 9h - 18h</li>
             </ul>
             <div className="social-links">
               <a href="https://web.facebook.com/profile.php?id=61561358108705" target="_blank" rel="noreferrer" aria-label="Facebook" className="social-link"><FaFacebookF /></a>

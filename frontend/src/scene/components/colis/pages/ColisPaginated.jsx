@@ -516,7 +516,7 @@ function ColisPaginated() {
       // Prepare data for Excel
       const worksheetData = exportData.map(colis => ({
         'Code Suivi': colis.code_suivi || '',
-        'Prix (DH)': colis.prix || '',
+        'Prix (DH)': colis.prix || '0',
         'Nom Destinataire': colis.nom || '',
         'Téléphone': colis.tele || '',
         'Adresse': colis.adresse || '',

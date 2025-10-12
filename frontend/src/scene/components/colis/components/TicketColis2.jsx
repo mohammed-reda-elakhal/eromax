@@ -373,7 +373,7 @@ const TicketPDF = ({ colisList, codes }) => (
         <View style={styles.headerSection}>
           <View style={styles.logoBox}>
             <View style={styles.logoBrand}>
-              <Image src="/image/fast-shipping.png" style={styles.logo} />
+              <Image src="/image/logo-light.png" style={styles.logo} />
             </View>
             <Text style={styles.codeSuiviHeader}>
               {colis?.villeData?.nom || colis?.ville?.nom || ''}

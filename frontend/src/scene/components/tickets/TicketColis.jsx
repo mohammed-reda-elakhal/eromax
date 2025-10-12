@@ -39,8 +39,7 @@ function TicketColis({ colis , showDownloadButton }) {
       <div ref={componentRef} className="ticket-colis">
         <div className="ticket-colis-header">
           <div className="ticket-colis-header-logo">
-            <h2>EROMAX</h2>
-            <img src="/image/logo-light.png" alt="" width="70px" />
+            <img src="/image/fast-shipping.png" alt="" width="70px" />
           </div>
           <div className="ticket-colis-header-code">
             <div className="code-bar">
@@ -80,7 +79,7 @@ function TicketColis({ colis , showDownloadButton }) {
               <p>{colis?.store?.message || "current message"}</p>
             </div>
             <div className="ticket-colis-footer-eromax" style={{textAlign: "center"}}>
-              <p>اروماكس مسؤولة على التوصيل فقط</p>
+              <p> مسؤولة على التوصيل فقط</p>
             </div>
           </div>
         </div>
