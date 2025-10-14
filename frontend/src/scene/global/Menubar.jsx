@@ -208,9 +208,58 @@ function Menubar() {
         </Menu.Item>
         {
           userData.role ==="admin" && (
+            <>
             <Menu.Item icon={<LuScanLine />}>
               <Link to="/dashboard/scan">Scan</Link>
             </Menu.Item>
+             <Menu.Item icon={<LuScanLine />}>
+              <Link to="/dashboard/scan/recherche">Scan Recherche</Link>
+            </Menu.Item>
+            </> 
+          )
+        }
+          {
+          (userData.role === "admin" || userData.role === "team") && (
+            <>
+            <Menu.SubMenu
+              icon={<MdInventory />}
+              title={
+                <span>
+                  Colis {totaleColisAdmin > 0 ? <Badge count={totaleColisAdmin} color={colorBadge} /> : ""}
+                </span>
+              }
+            >
+              <Menu.Item icon={<FaRegSquarePlus />}>
+                <Link to="/dashboard/ajouter/colis/admin/simple">Ajouter Colis</Link>
+              </Menu.Item>
+              
+              <Menu.Item icon={<FaListAlt />}>
+                <Link to="/dashboard/colis-paginated">List Colis (Ancien)</Link>
+              </Menu.Item>
+              <Menu.Item icon={<MdFactCheck />}>
+                <Link to="/dashboard/facture/globale">Fichier</Link>
+              </Menu.Item>  
+              
+            </Menu.SubMenu>
+            <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
+            </Menu.Item>
+            <Menu.Item icon={<FaClipboardList />}>
+                <Link to="/dashboard/colis-nouveau">
+                  Colis Nouveau {colisNouveau && colisNouveau.length > 0 ? <Badge count={colisNouveau.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<MdPendingActions />}>
+                <Link to="/dashboard/colis-pour-ramasse">
+                  Colis Attente Ramassage {colis && colis.length > 0 ? <Badge count={colis.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
+              <Menu.Item icon={<GrObjectGroup />}>
+                <Link to="/dashboard/colis-r2">
+                  Colis  Ramasse <span style={{color:"red" , fontSize:"10px" , fontWeight:"600"}}>New</span> {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
+                </Link>
+              </Menu.Item>
+            </>
           )
         }
 
@@ -239,48 +288,7 @@ function Menubar() {
           )
         }
 
-        {
-          (userData.role === "admin" || userData.role === "team") && (
-            <Menu.SubMenu
-              icon={<MdInventory />}
-              title={
-                <span>
-                  Colis {totaleColisAdmin > 0 ? <Badge count={totaleColisAdmin} color={colorBadge} /> : ""}
-                </span>
-              }
-            >
-              <Menu.Item icon={<FaRegSquarePlus />}>
-                <Link to="/dashboard/ajouter/colis/admin/simple">Ajouter Colis</Link>
-              </Menu.Item>
-              <Menu.Item icon={<FaClipboardList />}>
-                <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
-              </Menu.Item>
-              <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/colis-paginated">List Colis (Ancien)</Link>
-              </Menu.Item>
-              
-              <Menu.Item icon={<FaClipboardList />}>
-                <Link to="/dashboard/colis-nouveau">
-                  Colis Nouveau {colisNouveau && colisNouveau.length > 0 ? <Badge count={colisNouveau.length} color={colorBadge} /> : ""}
-                </Link>
-              </Menu.Item>
-              <Menu.Item icon={<MdPendingActions />}>
-                <Link to="/dashboard/colis-pour-ramasse">
-                  Colis Attente Ramassage {colis && colis.length > 0 ? <Badge count={colis.length} color={colorBadge} /> : ""}
-                </Link>
-              </Menu.Item>
-              <Menu.Item icon={<GrObjectGroup />}>
-                <Link to="/dashboard/colis-r2">
-                  Colis  Ramasse <span style={{color:"red" , fontSize:"10px" , fontWeight:"600"}}>New</span> {colisR.length > 0 ? <Badge count={colisR.length} color={colorBadge} /> : ""}
-                </Link>
-              </Menu.Item>
-              <Menu.Item icon={<MdFactCheck />}>
-                <Link to="/dashboard/facture/globale">Fichier</Link>
-              </Menu.Item>
-              
-            </Menu.SubMenu>
-          )
-        }
+      
 
 
 
@@ -394,9 +402,6 @@ function Menubar() {
               <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
               </Menu.Item>
-              <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/colis-paginated">List Colis (Ancien)</Link>
-              </Menu.Item>
               
               <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/colis-nouveau">Colis Nouveau</Link>
@@ -428,9 +433,6 @@ function Menubar() {
             <Menu.SubMenu icon={<TbTruckDelivery />} title="Espace Livreur">
                <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
-              </Menu.Item>
-              <Menu.Item icon={<FaListAlt />}>
-                <Link to="/dashboard/colis-paginated">List Colis (Ancien)</Link>
               </Menu.Item>
               <Menu.Item icon={<MdLocalShipping />}>
                 <Link to="/dashboard/colis-ex">Colis Expidée</Link>

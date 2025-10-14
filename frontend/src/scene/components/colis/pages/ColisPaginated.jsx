@@ -166,8 +166,69 @@ function ColisPaginated() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [selectedRowIds, setSelectedRowIds] = useState([]);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [ticketColisList, setTicketColisList] = useState([]);
+  
+  // Handle batch status update
+// Handle batch status update for selected packages
+const handleBatchStatusUpdate = async () => {
+  if (selectedRowIds.length === 0) {
+    message.warning('Veuillez sélectionner au moins un colis');
+    return;
+  }
+  if (!selectedStatus) {
+    message.warning('Veuillez sélectionner un statut');
+    return;
+  }
+
+  try {
+    setUpdatingStatus(true);
+    const token = localStorage.getItem('token');
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    // Get the code_suivi for all selected rows
+    const selectedColis = (colisPaginatedList.data || []).filter(
+      colis => selectedRowIds.includes(colis._id)
+    );
+    
+    const colisCodes = selectedColis.map(colis => colis.code_suivi);
+
+    // Send the request with code_suivi array
+    await request.put(
+      '/api/colis/statu/update', 
+      {
+        colisCodes,
+        new_status: selectedStatus
+      }, 
+      config
+    );
+    
+    message.success(`Statut mis à jour avec succès pour ${selectedColis.length} colis`);
+    setSelectedRowIds([]);
+    setSelectedStatus('');
+    
+    // Refresh the data
+    dispatch(getColisPaginated({
+      page: currentPage,
+      limit: pageSize,
+      ...appliedFilters
+    }));
+
+  } catch (err) {
+    console.error('Error updating status:', err);
+    message.error(err.response?.data?.message || 'Erreur lors de la mise à jour du statut');
+  } finally {
+    setUpdatingStatus(false);
+  }
+};
+
   // Add reclamation state
   const [state, setState] = useState({
     reclamationModalVisible: false,
@@ -1389,6 +1450,7 @@ function ColisPaginated() {
             
             {/* Action Bar */}
             <div
+              className="action-bar-container"
               style={{
                 marginBottom: 12,
                 background: theme === 'dark' ? '#0a192f' : '#fff',
@@ -1404,7 +1466,7 @@ function ColisPaginated() {
                 gap: 12,
               }}
             >
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div className="action-bar-title" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span style={{ 
                   fontSize: 14, 
                   fontWeight: 600, 
@@ -1414,7 +1476,7 @@ function ColisPaginated() {
                 </span>
               </div>
               
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="action-bar-buttons" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 {/* Nouveau Colis Button (admin/client only) */}
                 {(user?.role === 'admin' || user?.role === 'client') && (
                   <button
@@ -1549,6 +1611,74 @@ function ColisPaginated() {
                   <FolderOpenOutlined style={{ fontSize: 14 }} />
                   Export Excel
                 </button>
+
+                {/* Status Update Button */}
+                {user?.role === 'admin' && (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginLeft: '8px' }}>
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: 6,
+                        border: `1px solid ${theme === 'dark' ? '#4b5563' : '#d1d5db'}`,
+                        background: theme === 'dark' ? '#1f2937' : '#f9fafb',
+                        color: theme === 'dark' ? '#f3f4f6' : '#111827',
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        minWidth: '180px',
+                      }}
+                    >
+                      <option value="">Sélectionner un statut</option>
+                      {STATUT_LIST.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleBatchStatusUpdate}
+                      disabled={!selectedStatus || selectedRowIds.length === 0 || updatingStatus}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '8px 16px',
+                        borderRadius: 6,
+                        border: 'none',
+                        background: theme === 'dark' ? '#0ea5e9' : '#3b82f6',
+                        color: 'white',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: (!selectedStatus || selectedRowIds.length === 0 || updatingStatus) ? 'not-allowed' : 'pointer',
+                        opacity: (!selectedStatus || selectedRowIds.length === 0 || updatingStatus) ? 0.6 : 1,
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedStatus && selectedRowIds.length > 0 && !updatingStatus) {
+                          e.target.style.background = theme === 'dark' ? '#0284c7' : '#2563eb';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedStatus && selectedRowIds.length > 0 && !updatingStatus) {
+                          e.target.style.background = theme === 'dark' ? '#0ea5e9' : '#3b82f6';
+                        }
+                      }}
+                    >
+                      {updatingStatus ? (
+                        <>
+                          <SyncOutlined spin style={{ fontSize: 14 }} />
+                          Mise à jour...
+                        </>
+                      ) : (
+                        <>
+                          <SyncOutlined style={{ fontSize: 14 }} />
+                          Mettre à jour ({selectedRowIds.length})
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             {/* End Action Bar */}
