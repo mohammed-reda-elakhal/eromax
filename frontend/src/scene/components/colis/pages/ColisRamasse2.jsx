@@ -245,7 +245,8 @@ function ColisRamasse2() {
 
   useEffect(() => {
     getDataColisRamasse();
-    dispatch(getLivreurList());
+    // Fetch only active livreurs for this component
+    dispatch(getLivreurList({ active: true }));
     window.scrollTo(0, 0);
   }, [dispatch, user?.role, store?._id, user._id]);
 

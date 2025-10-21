@@ -249,13 +249,22 @@ const toggleActiveLivreur = asyncHandler(async (req, res) => {
  * @router /api/livreur
  * @method GET
  * @access private Only admin 
+ * @query active - optional query parameter to filter active livreurs (true/false)
  -------------------------------------------
 */
 
 const getAllLivreur = asyncHandler(async (req, res) => {
   try {
-    // Fetch all livreurs
-    const livreurs = await Livreur.find();
+    // Build filter object based on query parameters
+    const filter = {};
+    
+    // Check if active filter is provided in query params
+    if (req.query.active !== undefined) {
+      filter.active = req.query.active === 'true';
+    }
+
+    // Fetch livreurs with optional filters
+    const livreurs = await Livreur.find(filter);
 
     // Fetch colis count for each livreur
     const livreursWithColisCount = await Promise.all(

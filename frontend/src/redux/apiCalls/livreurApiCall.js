@@ -7,10 +7,22 @@ import { livreurActions } from "../slices/livreurSlice";
 
 
 // get list users 
-export function getLivreurList(){
+// params: optional object with filters like { active: true }
+export function getLivreurList(params = {}){
     return async(dispatch)=>{
         try{
-            const {data} = await request.get(`/api/livreur`);
+            // Build query string from params
+            const queryParams = new URLSearchParams();
+            
+            // Add active filter if provided
+            if (params.active !== undefined) {
+                queryParams.append('active', params.active);
+            }
+            
+            const queryString = queryParams.toString();
+            const url = queryString ? `/api/livreur?${queryString}` : '/api/livreur';
+            
+            const {data} = await request.get(url);
             dispatch(livreurActions.setLivreurList(data))
         }catch(error){
             toast.error(error.message || "Failed to fetch livreur List");
