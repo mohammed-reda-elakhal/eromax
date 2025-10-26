@@ -170,6 +170,15 @@ function ColisPaginated() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [ticketColisList, setTicketColisList] = useState([]);
+  const [relancerModalOpen, setRelancerModalOpen] = useState(false);
+  const [relancerColis, setRelancerColis] = useState(null);
+  const [relancerType, setRelancerType] = useState('same_data');
+  const [relancerFormData, setRelancerFormData] = useState({
+    nom: '',
+    tele: '',
+    adresse: '',
+    ville: ''
+  });
   
   // Handle batch status update
 // Handle batch status update for selected packages
@@ -684,7 +693,7 @@ const handleBatchStatusUpdate = async () => {
           <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>AMEEX: {record.code_suivi_ameex}</span>
         )}
         {/* Attribute icons */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 6, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Tooltip title="Ouvrir">
             <FolderOpenOutlined style={{ fontSize: 16, color: record.ouvrir ? (theme === 'dark' ? '#22d3ee' : '#0ea5e9') : '#cbd5e1' }} />
           </Tooltip>
@@ -700,6 +709,63 @@ const handleBatchStatusUpdate = async () => {
           <Tooltip title="Wallet Processed">
             <WalletOutlined style={{ fontSize: 16, color: record.wallet_prosseced ? (theme === 'dark' ? '#facc15' : '#eab308') : '#cbd5e1' }} />
           </Tooltip>
+          {/* Relancer Icon */}
+          {record.isRelanced && (
+            <Tooltip 
+              title={
+                record.colis_relanced_from && typeof record.colis_relanced_from === 'object'
+                  ? `Cliquez pour copier le code du colis original: ${record.colis_relanced_from.code_suivi || record.colis_relanced_from._id} (${record.relancerType === 'same_data' ? 'Même données' : record.relancerType === 'new_same_ville' ? 'Même ville' : 'Nouvelle ville'})`
+                  : 'Colis relancé'
+              }
+              placement="top"
+              overlayStyle={{ maxWidth: '300px' }}
+            >
+              <div 
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: theme === 'dark' ? '#1e3a8a' : '#dbeafe',
+                  border: `1px solid ${theme === 'dark' ? '#3b82f6' : '#60a5fa'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (record.colis_relanced_from && typeof record.colis_relanced_from === 'object') {
+                    const codeToCopy = record.colis_relanced_from.code_suivi || record.colis_relanced_from._id;
+                    navigator.clipboard.writeText(codeToCopy);
+                    toast.success(`Code ${codeToCopy} copié dans le presse-papiers!`, { autoClose: 2000 });
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = theme === 'dark' ? '#2563eb' : '#bfdbfe';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = theme === 'dark' ? '#1e3a8a' : '#dbeafe';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                <RetweetOutlined style={{ 
+                  fontSize: 14, 
+                  color: '#3b82f6',
+                  animation: 'pulse 2s infinite'
+                }} />
+                <span style={{ 
+                  fontSize: 9, 
+                  color: '#3b82f6', 
+                  marginLeft: 3,
+                  fontWeight: 700,
+                  letterSpacing: '0.3px'
+                }}>
+                  RELANCÉ
+                </span>
+              </div>
+            </Tooltip>
+          )}
         </div>
       </div>
     ) },
@@ -947,6 +1013,15 @@ const handleBatchStatusUpdate = async () => {
                 <Button type="link" icon={<ExclamationCircleOutlined />} style={{ padding: 0 }}>Réclamation</Button>
               </Menu.Item>
             )}
+            {user?.role === 'client' && canRelancerColis(record.statut) && (
+              <Menu.Item key="relancer" onClick={() => {
+                setRelancerColis(record);
+                setRelancerType('same_data');
+                setRelancerModalOpen(true);
+              }}>
+                <Button type="link" icon={<RetweetOutlined />} style={{ padding: 0 }}>Relancer</Button>
+              </Menu.Item>
+            )}
             {canUpdateDelete && (
               <Menu.Item key="update" onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}>
                 <Button type="link" icon={<EditOutlined />} style={{ padding: 0 }}>Update</Button>
@@ -1008,6 +1083,102 @@ const handleBatchStatusUpdate = async () => {
       }));
     } catch (err) {
       toast.error(err?.response?.data?.message || "Erreur lors de la suppression du colis.");
+    }
+  };
+
+  // Check if colis can be relanced
+  const canRelancerColis = (statut) => {
+    const restrictedStatuses = [
+      "Nouveau Colis",
+      "attente de ramassage",
+      "Ramassée",
+      "Expediée",
+      "Reçu",
+      "Mise en Distribution",
+      "Livrée"
+    ];
+    return !restrictedStatuses.includes(statut);
+  };
+
+  // Handle relancer colis
+  const handleRelancerColis = async () => {
+    if (!relancerColis) return;
+    
+    try {
+      // Validate new data if type is 'new_data'
+      if (relancerType === 'new_data') {
+        if (!relancerFormData.nom || !relancerFormData.tele) {
+          toast.error("Veuillez remplir tous les champs obligatoires (nom, téléphone)");
+          return;
+        }
+        if (!relancerFormData.ville) {
+          toast.error("Veuillez sélectionner une ville");
+          return;
+        }
+      }
+
+      const loadingToast = toast.loading("Relancer du colis en cours...");
+      
+      let relancerData;
+      if (relancerType === 'same_data') {
+        relancerData = { type: 'same_data' };
+      } else {
+        // Determine if same ville or different ville
+        const isSameVille = relancerColis.ville._id === relancerFormData.ville;
+        
+        relancerData = {
+          type: 'new_data',
+          new_client_info: {
+            nom: relancerFormData.nom,
+            tele: relancerFormData.tele,
+            adresse: relancerFormData.adresse,
+            commentaire: relancerColis.commentaire || ''
+          }
+        };
+
+        if (isSameVille) {
+          relancerData.same_ville_confirmed = true;
+        } else {
+          relancerData.new_ville_id = relancerFormData.ville;
+        }
+      }
+
+      const response = await request.post(`/api/colis/relancer/${relancerColis._id}`, relancerData);
+      toast.dismiss(loadingToast);
+      
+      console.log('Relancer response:', response); // Debug
+      
+      // Check if response is successful (status 201 or 200)
+      if (response && response.new_colis) {
+        const newCode = response.new_colis.code_suivi || response.code_suivi;
+        toast.success(`✅ Colis relancé avec succès! Nouveau code: ${newCode}`, { 
+          autoClose: 3000 
+        });
+        
+        // Force close modal immediately
+        setRelancerModalOpen(false);
+        
+        // Reset all states
+        setRelancerColis(null);
+        setRelancerType('same_data');
+        setRelancerFormData({ nom: '', tele: '', adresse: '', ville: '' });
+        
+        // Refresh the data to show new colis in table
+        dispatch(getColisPaginated({
+          page: currentPage,
+          limit: pageSize,
+          ville: appliedFilters.ville || undefined,
+          store: appliedFilters.store || undefined,
+          livreur: appliedFilters.livreur || undefined,
+          statut: appliedFilters.statut || undefined,
+          ...(appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1] ? {
+            dateFrom: moment(appliedFilters.dateRange[0]).startOf('day').toISOString(),
+            dateTo: moment(appliedFilters.dateRange[1]).endOf('day').toISOString(),
+          } : {})
+        }));
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Erreur lors du relancer du colis.");
     }
   };
 
@@ -2067,6 +2238,523 @@ const handleBatchStatusUpdate = async () => {
                   selectedColis={state.selectedColis}
                   theme={theme}
                 />
+                {/* Relancer Modal */}
+                <Modal
+                  title={
+                    <span>
+                      <RetweetOutlined style={{ marginRight: 8, fontSize: 18 }} />
+                      Relancer Colis
+                    </span>
+                  }
+                  open={relancerModalOpen}
+                  onCancel={() => {
+                    setRelancerModalOpen(false);
+                    setRelancerColis(null);
+                    setRelancerType('same_data');
+                    setRelancerFormData({ nom: '', tele: '', adresse: '', ville: '' });
+                  }}
+                  footer={[
+                    <Button 
+                      key="cancel"
+                      onClick={() => {
+                        setRelancerModalOpen(false);
+                        setRelancerColis(null);
+                        setRelancerType('same_data');
+                        setRelancerFormData({ nom: '', tele: '', adresse: '', ville: '' });
+                      }}
+                      style={{ 
+                        borderColor: '#d1d5db',
+                        color: theme === 'dark' ? '#e5e7eb' : '#1f2937'
+                      }}
+                    >
+                      Annuler
+                    </Button>,
+                    <Button 
+                      key="submit"
+                      type="primary"
+                      onClick={handleRelancerColis}
+                      style={{ 
+                        background: '#10b981',
+                        borderColor: '#10b981',
+                        marginLeft: 8
+                      }}
+                    >
+                      Relancer
+                    </Button>
+                  ]}
+                  width={700}
+                  destroyOnClose={true}
+                  keyboard={true}
+                  maskClosable={false}
+                >
+                  {relancerColis && (
+                    <div style={{ padding: '20px' }}>
+                      {/* Original Colis Info */}
+                      <div style={{ 
+                        background: theme === 'dark' ? '#1e293b' : '#f3f4f6', 
+                        padding: '16px', 
+                        borderRadius: '8px',
+                        marginBottom: '24px',
+                        border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                        boxShadow: theme === 'dark' 
+                          ? '0 2px 4px rgba(0,0,0,0.2)' 
+                          : '0 2px 8px rgba(0,0,0,0.08)'
+                      }}>
+                        <h3 style={{ 
+                          margin: '0 0 16px 0', 
+                          fontSize: '16px', 
+                          fontWeight: 700,
+                          color: theme === 'dark' ? '#e5e7eb' : '#1f2937',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          📦 Colis Original: <span style={{ color: '#3b82f6', fontFamily: 'monospace' }}>{relancerColis.code_suivi}</span>
+                        </h3>
+                        <div style={{ 
+                          display: 'grid', 
+                          gridTemplateColumns: '1fr 1fr', 
+                          gap: '12px',
+                          fontSize: '13px'
+                        }}>
+                          <p style={{ margin: 0 }}>
+                            <strong style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280', fontWeight: 600 }}>Statut:</strong>{' '}
+                            <span style={{ color: '#ef4444', fontWeight: 600 }}>{relancerColis.statut}</span>
+                          </p>
+                          <p style={{ margin: 0 }}>
+                            <strong style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280', fontWeight: 600 }}>Nom:</strong>{' '}
+                            <span style={{ color: theme === 'dark' ? '#e5e7eb' : '#1f2937' }}>{relancerColis.nom}</span>
+                          </p>
+                          <p style={{ margin: 0 }}>
+                            <strong style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280', fontWeight: 600 }}>Téléphone:</strong>{' '}
+                            <span style={{ color: theme === 'dark' ? '#60a5fa' : '#3b82f6', fontFamily: 'monospace' }}>{relancerColis.tele}</span>
+                          </p>
+                          <p style={{ margin: 0 }}>
+                            <strong style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280', fontWeight: 600 }}>Ville:</strong>{' '}
+                            <span style={{ color: theme === 'dark' ? '#e5e7eb' : '#1f2937' }}>{relancerColis.ville?.nom}</span>
+                          </p>
+                          <p style={{ margin: 0, gridColumn: '1 / -1' }}>
+                            <strong style={{ color: theme === 'dark' ? '#94a3b8' : '#6b7280', fontWeight: 600 }}>Adresse:</strong>{' '}
+                            <span style={{ color: theme === 'dark' ? '#e5e7eb' : '#1f2937' }}>{relancerColis.adresse || 'N/A'}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Type Selection */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <label style={{ 
+                          display: 'block', 
+                          marginBottom: '16px', 
+                          fontWeight: 700, 
+                          fontSize: '15px', 
+                          color: theme === 'dark' ? '#e5e7eb' : '#1f2937' 
+                        }}>
+                          Sélectionnez le type de relancer: *
+                        </label>
+                        <div style={{ 
+                          display: 'grid', 
+                          gridTemplateColumns: '1fr 1fr', 
+                          gap: '16px' 
+                        }}>
+                          {/* Card 1: Same Data */}
+                          <div
+                            onClick={() => {
+                              setRelancerType('same_data');
+                              setRelancerFormData({ nom: '', tele: '', adresse: '', ville: '' });
+                            }}
+                            style={{
+                              padding: '20px',
+                              borderRadius: '12px',
+                              border: `2px solid ${relancerType === 'same_data' 
+                                ? '#3b82f6' 
+                                : theme === 'dark' ? '#4b5563' : '#d1d5db'}`,
+                              background: relancerType === 'same_data'
+                                ? theme === 'dark' ? '#1e3a8a' : '#e0f2fe'
+                                : theme === 'dark' ? '#1e293b' : '#ffffff',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              boxShadow: relancerType === 'same_data'
+                                ? theme === 'dark' ? '0 4px 12px rgba(59, 130, 246, 0.3)' : '0 4px 12px rgba(59, 130, 246, 0.15)'
+                                : theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.08)',
+                              transform: relancerType === 'same_data' ? 'scale(1.02)' : 'scale(1)',
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (relancerType !== 'same_data') {
+                                e.currentTarget.style.borderColor = '#60a5fa';
+                                e.currentTarget.style.transform = 'scale(1.01)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (relancerType !== 'same_data') {
+                                e.currentTarget.style.borderColor = theme === 'dark' ? '#4b5563' : '#d1d5db';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }
+                            }}
+                          >
+                            {relancerType === 'same_data' && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '8px',
+                                right: '8px',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                background: '#3b82f6',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white'
+                              }}>
+                                <CheckCircleOutlined />
+                              </div>
+                            )}
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '12px'
+                            }}>
+                              <div style={{
+                                fontSize: '40px',
+                                lineHeight: 1
+                              }}>
+                                🔄
+                              </div>
+                              <div style={{
+                                fontWeight: 700,
+                                fontSize: '15px',
+                                color: relancerType === 'same_data'
+                                  ? theme === 'dark' ? '#93c5fd' : '#1e40af'
+                                  : theme === 'dark' ? '#e5e7eb' : '#1f2937',
+                                textAlign: 'center'
+                              }}>
+                                Mêmes Données
+                              </div>
+                              <div style={{
+                                fontSize: '12px',
+                                color: theme === 'dark' ? '#94a3b8' : '#6b7280',
+                                textAlign: 'center',
+                                lineHeight: '1.4'
+                              }}>
+                                Réessayer avec les mêmes informations client
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Card 2: New Data */}
+                          <div
+                            onClick={() => {
+                              setRelancerType('new_data');
+                              setRelancerFormData({
+                                nom: relancerColis.nom,
+                                tele: relancerColis.tele,
+                                adresse: relancerColis.adresse || '',
+                                ville: relancerColis.ville._id
+                              });
+                            }}
+                            style={{
+                              padding: '20px',
+                              borderRadius: '12px',
+                              border: `2px solid ${relancerType === 'new_data' 
+                                ? '#f59e0b' 
+                                : theme === 'dark' ? '#4b5563' : '#d1d5db'}`,
+                              background: relancerType === 'new_data'
+                                ? theme === 'dark' ? '#78350f' : '#fef3c7'
+                                : theme === 'dark' ? '#1e293b' : '#ffffff',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              boxShadow: relancerType === 'new_data'
+                                ? theme === 'dark' ? '0 4px 12px rgba(245, 158, 11, 0.3)' : '0 4px 12px rgba(245, 158, 11, 0.15)'
+                                : theme === 'dark' ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.08)',
+                              transform: relancerType === 'new_data' ? 'scale(1.02)' : 'scale(1)',
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (relancerType !== 'new_data') {
+                                e.currentTarget.style.borderColor = '#f59e0b';
+                                e.currentTarget.style.transform = 'scale(1.01)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (relancerType !== 'new_data') {
+                                e.currentTarget.style.borderColor = theme === 'dark' ? '#4b5563' : '#d1d5db';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }
+                            }}
+                          >
+                            {relancerType === 'new_data' && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '8px',
+                                right: '8px',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                background: '#f59e0b',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white'
+                              }}>
+                                <CheckCircleOutlined />
+                              </div>
+                            )}
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '12px'
+                            }}>
+                              <div style={{
+                                fontSize: '40px',
+                                lineHeight: 1
+                              }}>
+                                ✏️
+                              </div>
+                              <div style={{
+                                fontWeight: 700,
+                                fontSize: '15px',
+                                color: relancerType === 'new_data'
+                                  ? theme === 'dark' ? '#fcd34d' : '#92400e'
+                                  : theme === 'dark' ? '#e5e7eb' : '#1f2937',
+                                textAlign: 'center'
+                              }}>
+                                Nouvelles Données
+                              </div>
+                              <div style={{
+                                fontSize: '12px',
+                                color: theme === 'dark' ? '#94a3b8' : '#6b7280',
+                                textAlign: 'center',
+                                lineHeight: '1.4'
+                              }}>
+                                Mettre à jour les informations du client
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* New Client Information Form */}
+                      {relancerType === 'new_data' && (
+                        <div style={{ 
+                          background: theme === 'dark' ? '#1e293b' : '#fff', 
+                          padding: '20px', 
+                          borderRadius: '8px',
+                          border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                          marginBottom: '24px',
+                          boxShadow: theme === 'dark' 
+                            ? '0 2px 4px rgba(0,0,0,0.2)' 
+                            : '0 2px 8px rgba(0,0,0,0.08)'
+                        }}>
+                          <h4 style={{ 
+                            margin: '0 0 20px 0', 
+                            fontSize: '15px', 
+                            fontWeight: 700,
+                            color: theme === 'dark' ? '#e5e7eb' : '#1f2937',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}>
+                            📝 Nouvelles Informations Client
+                          </h4>
+                          
+                          {/* Nom */}
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '8px', 
+                              fontWeight: 600, 
+                              fontSize: '13px',
+                              color: theme === 'dark' ? '#e5e7eb' : '#1f2937'
+                            }}>
+                              Nom * <span style={{ color: '#ef4444', fontSize: '12px' }}>(obligatoire)</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={relancerFormData.nom}
+                              onChange={(e) => setRelancerFormData({ ...relancerFormData, nom: e.target.value })}
+                              placeholder="Entrez le nom du destinataire"
+                              style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                border: `1px solid ${theme === 'dark' ? '#4b5563' : '#d1d5db'}`,
+                                background: theme === 'dark' ? '#0f172a' : '#fff',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                transition: 'all 0.2s ease',
+                                outline: 'none'
+                              }}
+                              onFocus={(e) => {
+                                e.target.style.borderColor = '#3b82f6';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#4b5563' : '#d1d5db';
+                                e.target.style.boxShadow = 'none';
+                              }}
+                            />
+                          </div>
+
+                          {/* Téléphone */}
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '8px', 
+                              fontWeight: 600, 
+                              fontSize: '13px',
+                              color: theme === 'dark' ? '#e5e7eb' : '#1f2937'
+                            }}>
+                              Téléphone * <span style={{ color: '#ef4444', fontSize: '12px' }}>(obligatoire)</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={relancerFormData.tele}
+                              onChange={(e) => setRelancerFormData({ ...relancerFormData, tele: e.target.value })}
+                              placeholder="0612345678"
+                              style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                border: `1px solid ${theme === 'dark' ? '#4b5563' : '#d1d5db'}`,
+                                background: theme === 'dark' ? '#0f172a' : '#fff',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                fontFamily: 'monospace',
+                                transition: 'all 0.2s ease',
+                                outline: 'none'
+                              }}
+                              onFocus={(e) => {
+                                e.target.style.borderColor = '#3b82f6';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#4b5563' : '#d1d5db';
+                                e.target.style.boxShadow = 'none';
+                              }}
+                            />
+                          </div>
+
+                          {/* Adresse */}
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '8px', 
+                              fontWeight: 600, 
+                              fontSize: '13px',
+                              color: theme === 'dark' ? '#e5e7eb' : '#1f2937'
+                            }}>
+                              Adresse
+                            </label>
+                            <textarea
+                              value={relancerFormData.adresse}
+                              onChange={(e) => setRelancerFormData({ ...relancerFormData, adresse: e.target.value })}
+                              placeholder="Entrez l'adresse complète"
+                              rows={3}
+                              style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                border: `1px solid ${theme === 'dark' ? '#4b5563' : '#d1d5db'}`,
+                                background: theme === 'dark' ? '#0f172a' : '#fff',
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                fontSize: '14px',
+                                fontFamily: 'inherit',
+                                resize: 'vertical',
+                                transition: 'all 0.2s ease',
+                                outline: 'none'
+                              }}
+                              onFocus={(e) => {
+                                e.target.style.borderColor = '#3b82f6';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = theme === 'dark' ? '#4b5563' : '#d1d5db';
+                                e.target.style.boxShadow = 'none';
+                              }}
+                            />
+                          </div>
+
+                          {/* Ville */}
+                          <div style={{ marginBottom: '14px' }}>
+                            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500, fontSize: '13px' }}>
+                              Ville * <span style={{ color: '#ef4444' }}>(obligatoire)</span>
+                            </label>
+                            <Select
+                              value={villes && villes.find(v => v._id === relancerFormData.ville) 
+                                ? { value: relancerFormData.ville, label: villes.find(v => v._id === relancerFormData.ville).nom }
+                                : null}
+                              onChange={(option) => setRelancerFormData({ ...relancerFormData, ville: option ? option.value : '' })}
+                              options={villes ? villes.map(ville => ({ value: ville._id, label: ville.nom })) : []}
+                              placeholder="Sélectionnez une ville"
+                              isClearable
+                              styles={{
+                                control: (base) => ({
+                                  ...base,
+                                  borderRadius: '6px',
+                                  borderColor: '#d1d5db',
+                                  background: theme === 'dark' ? '#0f172a' : '#fff',
+                                  color: theme === 'dark' ? '#fff' : '#000',
+                                  fontSize: '14px',
+                                }),
+                                singleValue: (base) => ({
+                                  ...base,
+                                  color: theme === 'dark' ? '#fff' : '#000',
+                                }),
+                                menu: base => ({ ...base, fontSize: 14, zIndex: 10 }),
+                                option: (base, state) => ({
+                                  ...base,
+                                  background: state.isSelected ? (theme === 'dark' ? '#003366' : '#e0e7ff') : state.isFocused ? (theme === 'dark' ? '#22304a' : '#f3f4f6') : undefined,
+                                  color: theme === 'dark' ? '#fff' : '#000',
+                                  cursor: 'pointer',
+                                }),
+                              }}
+                            />
+                            {/* Show ville comparison info */}
+                            {relancerFormData.ville && relancerFormData.ville === relancerColis.ville._id && (
+                              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#10b981', fontWeight: 500 }}>
+                                ✅ Même ville que l'original - Statut sera "Expediée"
+                              </p>
+                            )}
+                            {relancerFormData.ville && relancerFormData.ville !== relancerColis.ville._id && (
+                              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#f59e0b', fontWeight: 500 }}>
+                                ⚠️ Ville différente - Statut sera "Nouveau Colis" (nécessite affectation livreur)
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Info Box */}
+                      <div style={{ 
+                        marginTop: '20px', 
+                        padding: '12px', 
+                        background: relancerType === 'same_data' 
+                          ? theme === 'dark' ? '#1e3a8a' : '#dbeafe' 
+                          : theme === 'dark' ? '#78350f' : '#fef3c7',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        color: relancerType === 'same_data' 
+                          ? theme === 'dark' ? '#dbeafe' : '#1e3a8a' 
+                          : theme === 'dark' ? '#fef3c7' : '#78350f',
+                        border: `1px solid ${relancerType === 'same_data' ? '#3b82f6' : '#f59e0b'}`
+                      }}>
+                        {relancerType === 'same_data' ? (
+                          <p style={{ margin: 0 }}>
+                            ℹ️ Un nouveau colis sera créé avec les <strong>mêmes données</strong>, le statut sera <strong>"Expediée"</strong> et le même livreur sera assigné.
+                          </p>
+                        ) : (
+                          <p style={{ margin: 0 }}>
+                            ℹ️ Un nouveau colis sera créé avec les <strong>nouvelles informations</strong>. Si la ville est la même, statut sera "Expediée", sinon "Nouveau Colis".
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </Modal>
                 <ToastContainer />
               </div>
             )}

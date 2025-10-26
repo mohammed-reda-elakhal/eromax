@@ -109,6 +109,17 @@ function verifyTokenAndLivreurOrAdmin(req, res, next) {
     });
 }
 
+// verify token for client, team, admin, store roles (for relancer and other operations)
+function verifyTokenClientTeamAdmin(req, res, next) {
+    verifyToken(req, res, () => {
+        if (req.user.role === "client" || req.user.role === "team" || req.user.role === "admin" || req.user.store) {
+            next();
+        } else {
+            return res.status(401).json({ message: "You don't have permission to this operation" });
+        }
+    });
+}
+
 // verify token and store
 const verifyTokenAndStore = async (req, res, next) => {
     verifyToken(req, res, async () => {
@@ -129,5 +140,6 @@ module.exports = {
     verifyTokenAndLivreur,
     verifyTokenAndLivreurOrAdmin,
     verifyTokenAndStore,
-    verifyTokenStoreTeamAdminClient
+    verifyTokenStoreTeamAdminClient,
+    verifyTokenClientTeamAdmin
 };

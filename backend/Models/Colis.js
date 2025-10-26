@@ -217,6 +217,21 @@ const ColisSchema = new mongoose.Schema({
             "Refusée"
         ],
         default: null,
+    },
+    // Relancer fields
+    colis_relanced_from: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Colis',
+        default: null
+    },
+    isRelanced: {
+        type: Boolean,
+        default: false
+    },
+    relancerType: {
+        type: String,
+        enum: ['same_data', 'new_same_ville', 'new_different_ville'],
+        default: null
     }
 }, {
     timestamps: true
@@ -307,6 +322,10 @@ function validateRegisterColis(obj) {
             total_tarif: Joi.number(),
         }),
         statu_final: Joi.string().valid("Livrée", "Refusée").allow(null),
+        // Relancer fields
+        colis_relanced_from: Joi.string().optional(),
+        isRelanced: Joi.boolean().optional(),
+        relancerType: Joi.string().valid('same_data', 'new_same_ville', 'new_different_ville').allow(null).optional(),
     });
     return schema.validate(obj);
 }

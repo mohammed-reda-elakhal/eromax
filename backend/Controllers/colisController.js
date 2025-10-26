@@ -3166,6 +3166,7 @@ module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
         })
         .populate('livreur')
         .populate('team')
+        .populate('colis_relanced_from')
         .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -3272,5 +3273,287 @@ module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error('Error in getAllColisPaginatedCtrl:', error);
     res.status(500).json({ message: 'Failed to fetch paginated colis.', error: error.message });
+  }
+});
+
+/**
+ * -------------------------------------------------------------------
+ * @desc     Relancer a colis (create new colis from existing failed one)
+ * @route    POST /api/colis/relancer/:colisId
+ * @method   POST
+ * @access   private (Admin, Team, Store, Client)
+ * @params   colisId - ID of the colis to relance from
+ * @body     { type, new_client_info?, new_ville_id?, same_ville_confirmed? }
+ * -------------------------------------------------------------------
+ **/
+module.exports.relancerColis = asyncHandler(async (req, res) => {
+  const { colisId } = req.params;
+  const { type, new_client_info, new_ville_id, same_ville_confirmed } = req.body;
+
+  // Validate request body
+  if (!type || !['same_data', 'new_data'].includes(type)) {
+    return res.status(400).json({ 
+      message: "Type is required and must be 'same_data' or 'new_data'" 
+    });
+  }
+
+  // Validate new_data requirements
+  if (type === 'new_data') {
+    if (!new_client_info || !new_client_info.nom || !new_client_info.tele) {
+      return res.status(400).json({ 
+        message: "New client information (nom, tele) is required for new_data type" 
+      });
+    }
+  }
+
+  const session = await mongoose.startSession();
+  try {
+    const result = await session.withTransaction(async () => {
+      // Find original colis
+      const originalColis = await Colis.findById(colisId).session(session)
+        .populate('ville')
+        .populate('store')
+        .populate('livreur')
+        .populate('team');
+
+      if (!originalColis) {
+        throw new Error("Colis not found");
+      }
+
+      // Security check: If user is authenticated and is a client, ensure they own this colis
+      if (req.user && req.user.role === 'client' && originalColis.store && req.user.store) {
+        if (originalColis.store.toString() !== req.user.store) {
+          throw new Error("You are not authorized to relancer this colis");
+        }
+      }
+
+      // Check if colis can be relanced (not in restricted statuses)
+      const restrictedStatuses = [
+        "Nouveau Colis",
+        "attente de ramassage",
+        "Ramassée",
+        "Expediée",
+        "Reçu",
+        "Mise en Distribution",
+        "Livrée"
+      ];
+
+      if (restrictedStatuses.includes(originalColis.statut)) {
+        throw new Error(`Cannot relance colis with status: ${originalColis.statut}`);
+      }
+
+      // Handle different relancer types
+      let newColis, relanceType;
+      let ville = originalColis.ville;
+
+      if (type === 'same_data') {
+        // Type 1: Same data relance
+        if (!originalColis.livreur) {
+          throw new Error("Cannot relance: Original colis has no livreur assigned");
+        }
+
+        // Generate unique code_suivi
+        let code_suivi;
+        let isUnique = false;
+        let attempts = 0;
+        const maxAttempts = 5;
+        while (!isUnique && attempts < maxAttempts) {
+          code_suivi = generateCodeSuivi(ville.ref);
+          const existingColis = await Colis.findOne({ code_suivi }).session(session);
+          if (!existingColis) isUnique = true;
+          attempts++;
+        }
+        if (!isUnique) {
+          throw new Error('Impossible de générer un code_suivi unique');
+        }
+
+        // Create new colis
+        newColis = new Colis({
+          nom: originalColis.nom,
+          tele: originalColis.tele,
+          ville: originalColis.ville,
+          adresse: originalColis.adresse,
+          commentaire: originalColis.commentaire,
+          prix: originalColis.prix,
+          nature_produit: originalColis.nature_produit,
+          ouvrir: originalColis.ouvrir,
+          is_remplace: originalColis.is_remplace,
+          is_fragile: originalColis.is_fragile,
+          store: originalColis.store,
+          team: originalColis.team,
+          livreur: originalColis.livreur,
+          produits: originalColis.produits,
+          code_suivi,
+          statut: "Expediée",
+          colis_relanced_from: originalColis._id,
+          isRelanced: true,
+          relancerType: 'same_data'
+        });
+
+        await newColis.save({ session });
+        relanceType = 'same_data';
+      } else {
+        // Type 2: New data relance
+        let targetVille = ville;
+        let isSameVille = true;
+
+        if (new_ville_id && new_ville_id !== originalColis.ville._id.toString()) {
+          // Different ville requested
+          targetVille = await Ville.findById(new_ville_id).session(session);
+          if (!targetVille) {
+            throw new Error("Target ville not found");
+          }
+          isSameVille = false;
+        }
+
+        // Generate unique code_suivi for new ville
+        let code_suivi;
+        let isUnique = false;
+        let attempts = 0;
+        const maxAttempts = 5;
+        while (!isUnique && attempts < maxAttempts) {
+          code_suivi = generateCodeSuivi(targetVille.ref);
+          const existingColis = await Colis.findOne({ code_suivi }).session(session);
+          if (!existingColis) isUnique = true;
+          attempts++;
+        }
+        if (!isUnique) {
+          throw new Error('Impossible de générer un code_suivi unique');
+        }
+
+        // Determine status and livreur based on ville
+        let statut;
+        let livreur;
+        
+        if (isSameVille) {
+          // Type 2A: Same ville
+          statut = "Expediée";
+          livreur = originalColis.livreur;
+          
+          if (!livreur) {
+            // Find appropriate livreur for ville
+            const livreurs = await Livreur.find({ 
+              ville: ville.nom, 
+              active: true 
+            }).session(session);
+            if (livreurs.length === 0) {
+              // If no livreur found, try to find by villes array
+              const livreursByArray = await Livreur.find({
+                villes: { $in: [ville.nom] },
+                active: true
+              }).session(session);
+              if (livreursByArray.length > 0) {
+                livreur = livreursByArray[0]._id;
+              } else {
+                throw new Error(`No active livreur found for ville: ${ville.nom}`);
+              }
+            } else {
+              livreur = livreurs[0]._id;
+            }
+          }
+        } else {
+          // Type 2B: Different ville
+          statut = "Nouveau Colis";
+          livreur = null;
+        }
+
+        // Create new colis
+        newColis = new Colis({
+          nom: new_client_info.nom,
+          tele: new_client_info.tele,
+          ville: targetVille._id,
+          adresse: new_client_info.adresse || originalColis.adresse,
+          commentaire: new_client_info.commentaire || originalColis.commentaire,
+          prix: originalColis.prix,
+          nature_produit: originalColis.nature_produit,
+          ouvrir: originalColis.ouvrir,
+          is_remplace: originalColis.is_remplace,
+          is_fragile: originalColis.is_fragile,
+          store: originalColis.store,
+          team: originalColis.team,
+          livreur,
+          produits: originalColis.produits,
+          code_suivi,
+          statut,
+          colis_relanced_from: originalColis._id,
+          isRelanced: true,
+          relancerType: isSameVille ? 'new_same_ville' : 'new_different_ville'
+        });
+
+        await newColis.save({ session });
+        relanceType = isSameVille ? 'new_same_ville' : 'new_different_ville';
+      }
+
+      // Populate the new colis
+      await newColis.populate('livreur');
+      await newColis.populate('ville');
+      await newColis.populate('store');
+      await newColis.populate('colis_relanced_from');
+
+      // Create Suivi_Colis
+      const suivi_colis = new Suivi_Colis({
+        id_colis: newColis._id,
+        code_suivi: newColis.code_suivi,
+        date_create: newColis.createdAt,
+        status_updates: [
+          { status: newColis.statut, date: new Date(), livreur: newColis.livreur || null }
+        ]
+      });
+      await suivi_colis.save({ session });
+
+      // Create NoteColis
+      const newNoteColis = new NoteColis({ colis: newColis._id });
+      await newNoteColis.save({ session });
+
+      // Create Notification for store (if applicable)
+      if (newColis.store && newColis.statut === "Nouveau Colis") {
+        try {
+          const notification = new Notification_User({
+            id_store: newColis.store._id,
+            colisId: newColis._id,
+            title: 'Nouvelle colis (Relancée)',
+            description: `Un colis relancé avec le code de suivi ${newColis.code_suivi} a été créé.`,
+          });
+          await notification.save({ session });
+        } catch (error) {
+          console.log("Notification creation failed:", error);
+        }
+      }
+
+      // Create Notification for livreur (if assigned)
+      if (newColis.livreur) {
+        try {
+          const notification = new NotificationUser({
+            id_livreur: newColis.livreur._id || newColis.livreur,
+            colisId: newColis._id,
+            title: 'Nouveau Colis Relancé',
+            description: `Un colis relancé avec le code de suivi ${newColis.code_suivi} a été assigné pour vous.`,
+          });
+          await notification.save({ session });
+        } catch (error) {
+          console.log("Livreur notification creation failed:", error);
+        }
+      }
+
+      return {
+        message: "Relancer avec succès",
+        original_colis: {
+          id: originalColis._id,
+          code_suivi: originalColis.code_suivi,
+          statut: originalColis.statut
+        },
+        new_colis: newColis,
+        relance_type: relanceType
+      };
+    });
+
+    await session.endSession();
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error in relancerColis:', error);
+    await session.endSession();
+    return res.status(500).json({ 
+      message: error.message || 'Erreur interne du serveur lors du relance' 
+    });
   }
 });
