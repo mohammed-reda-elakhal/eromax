@@ -40,7 +40,7 @@ import TicketColis2 from '../components/TicketColis2';
 // Add reclamation imports
 import { createReclamation, getReclamationsByColis } from '../../../../redux/apiCalls/reclamationApiCalls';
 import ReclamationModal from '../modals/ReclamationModal';
-import { Statistic, Card, Row, Col, Progress, Result } from 'antd';
+import { Statistic, Card, Row, Col, Progress, Result, Alert } from 'antd';
 // Add facture imports
 import { getFactureByColis } from '../../../../redux/apiCalls/factureApiCalls';
 // Add trash imports
@@ -186,6 +186,9 @@ function ColisPaginated() {
   // Facture modal state
   const [factureModalOpen, setFactureModalOpen] = useState(false);
   const { detailFacture } = useSelector((state) => state.facture);
+  // Relanced colis today state
+  const [relancedTodayCount, setRelancedTodayCount] = useState(0);
+  const [showRelancedNotification, setShowRelancedNotification] = useState(true);
   
   // Handle batch status update
 // Handle batch status update for selected packages
@@ -493,6 +496,19 @@ const handleBatchStatusUpdate = async () => {
     }
     dispatch(getColisPaginated(params));
   }, [dispatch, currentPage, pageSize, appliedFilters]);
+
+  // Calculate relanced colis from today
+  useEffect(() => {
+    if (colisPaginatedList.data && user?.role === 'admin') {
+      const today = moment().startOf('day');
+      const relancedToday = colisPaginatedList.data.filter(colis => 
+        colis.isRelanced && 
+        colis.createdAt && 
+        moment(colis.createdAt).isSame(today, 'day')
+      );
+      setRelancedTodayCount(relancedToday.length);
+    }
+  }, [colisPaginatedList.data, user]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -1453,9 +1469,69 @@ const handleBatchStatusUpdate = async () => {
                     <Statistic title={<span style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Cette semaine</span>} value={statistics?.createdThisWeek || 0} valueStyle={{ color: '#1e293b', fontWeight: 700, fontSize: 15 }} />
                   </div>
                 </Card>
+                {user?.role === 'admin' && (
+                  <Card 
+                    size="small" 
+                    bordered 
+                    style={{ 
+                      background: 'linear-gradient(90deg, #dbeafe 60%, #bfdbfe 100%)', 
+                      borderRadius: 8, 
+                      textAlign: 'center', 
+                      minWidth: 80, 
+                      maxWidth: 120, 
+                      boxShadow: relancedTodayCount > 0 
+                        ? '0 4px 8px rgba(59,130,246,0.3)' 
+                        : '0 1px 4px rgba(59,130,246,0.06)', 
+                      margin: 0, 
+                      padding: 0,
+                      border: relancedTodayCount > 0 ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                      cursor: relancedTodayCount > 0 ? 'pointer' : 'default',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onClick={() => {
+                      if (relancedTodayCount > 0) {
+                        const today = moment().format('YYYY-MM-DD');
+                        setFilters({ ...filters, dateRange: [today, today] });
+                        setAppliedFilters({ ...appliedFilters, dateRange: [today, today] });
+                      }
+                    }}
+                    onMouseEnter={(e) => {
+                      if (relancedTodayCount > 0) {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 6px 12px rgba(59,130,246,0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = relancedTodayCount > 0 
+                        ? '0 4px 8px rgba(59,130,246,0.3)' 
+                        : '0 1px 4px rgba(59,130,246,0.06)';
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                      <RetweetOutlined style={{ fontSize: 18, color: '#3b82f6', marginBottom: 1 }} />
+                      <Statistic 
+                        title={<span style={{ fontSize: 11, color: '#3b82f6', fontWeight: 700 }}>Relancés</span>} 
+                        value={relancedTodayCount} 
+                        valueStyle={{ color: '#1e40af', fontWeight: 700, fontSize: 15 }} 
+                      />
+                    </div>
+                  </Card>
+                )}
               </div>
             </div>
             <style>{`
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
 @media (max-width: 768px) {
   .page-dashboard .content > div[style*='flex-direction: row'] {
     flex-direction: column !important;
@@ -1475,6 +1551,76 @@ const handleBatchStatusUpdate = async () => {
   }
 }
 `}</style>
+            
+            {/* Relanced Colis Today Notification */}
+            {user?.role === 'admin' && relancedTodayCount > 0 && showRelancedNotification && (
+              <Alert
+                message={
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <RetweetOutlined style={{ fontSize: 20, color: '#3b82f6' }} />
+                    <div>
+                      <span style={{ fontWeight: 700, fontSize: 15 }}>
+                        {relancedTodayCount} Colis Relancé{relancedTodayCount > 1 ? 's' : ''} Aujourd'hui
+                      </span>
+                      <div style={{ fontSize: 13, marginTop: 4, color: theme === 'dark' ? '#94a3b8' : '#64748b' }}>
+                        Ces colis ont été relancés aujourd'hui et sont prêts pour le ramassage ou la livraison.
+                        <span 
+                          style={{ 
+                            marginLeft: 8, 
+                            color: '#3b82f6', 
+                            cursor: 'pointer', 
+                            textDecoration: 'underline',
+                            fontWeight: 600
+                          }}
+                          onClick={() => {
+                            const today = moment().format('YYYY-MM-DD');
+                            setFilters({
+                              ...filters,
+                              dateRange: [today, today]
+                            });
+                            setAppliedFilters({
+                              ...appliedFilters,
+                              dateRange: [today, today]
+                            });
+                          }}
+                        >
+                          Voir les colis d'aujourd'hui →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                }
+                type="info"
+                closable
+                onClose={() => setShowRelancedNotification(false)}
+                style={{
+                  marginBottom: 12,
+                  borderRadius: 8,
+                  background: theme === 'dark' 
+                    ? 'linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.15) 100%)'
+                    : 'linear-gradient(90deg, #dbeafe 0%, #bfdbfe 100%)',
+                  border: `2px solid ${theme === 'dark' ? '#3b82f6' : '#60a5fa'}`,
+                  boxShadow: theme === 'dark'
+                    ? '0 4px 12px rgba(59, 130, 246, 0.2)'
+                    : '0 4px 12px rgba(59, 130, 246, 0.15)',
+                }}
+                icon={
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: theme === 'dark' ? '#1e40af' : '#3b82f6',
+                    animation: 'pulse 2s infinite'
+                  }}>
+                    <RetweetOutlined style={{ fontSize: 20, color: 'white' }} />
+                  </div>
+                }
+              />
+            )}
+
             {/* Filter Bar */}
             <div
               className="filter-bar-container"
