@@ -277,14 +277,26 @@ export function updateColisById(id, colisData) {
         },
       };
 
+      console.log('=== REDUX ACTION DEBUG ===');
+      console.log('Sending update to backend:', colisData);
+      console.log('Colis ID:', id);
+
       const { data } = await request.put(`/api/colis/${id}`, colisData, config);
+      
+      console.log('=== BACKEND RESPONSE ===');
+      console.log('Response data:', data);
+      console.log('data.code_remplacer:', data.code_remplacer);
+      console.log('data.is_remplace:', data.is_remplace);
+      
       dispatch(colisActions.updateColis(data));
       
       // Update selectedColis if it matches the updated colis
       dispatch(colisActions.setSelectedColis(data));
       
-      // Show specific message if livreur was updated
-      if (colisData.livreur !== undefined) {
+      // Show specific message based on updates
+      if (data.code_remplacer && colisData.is_remplace === true) {
+        toast.success(`Colis mis à jour! Code de remplacement: ${data.code_remplacer}`);
+      } else if (colisData.livreur !== undefined) {
         if (colisData.livreur) {
           toast.success('Colis updated successfully - Livreur assigned');
         } else {
@@ -295,8 +307,9 @@ export function updateColisById(id, colisData) {
       }
     } catch (error) {
       console.error("Failed to update colis:", error);
+      console.error("Error response:", error.response?.data);
       dispatch(colisActions.setError(error.message));
-      toast.error('Failed to update colis');
+      toast.error(error.response?.data?.message || 'Failed to update colis');
     } finally {
       dispatch(colisActions.setLoading(false));
     }

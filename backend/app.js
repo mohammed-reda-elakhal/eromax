@@ -87,6 +87,7 @@ app.use(strictCors);
  * 3) Routes (protected by strict CORS)
  */
 app.use("/api/auth", require("./routes/authRoute"));
+app.use("/api/colis/trash", require("./routes/colisTrashRoutes")); // Trash routes BEFORE general colis routes
 app.use("/api/colis", require("./routes/colisRoute"));
 app.use("/api/client", require("./routes/clientRoute"));
 app.use("/api/livreur", require("./routes/livreurRoute"));

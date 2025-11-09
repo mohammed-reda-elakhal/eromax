@@ -50,7 +50,7 @@ const getMyColis = asyncHandler(async (req, res) => {
   if (!store) {
     return res.status(404).json({ success: false, message: 'Store not found for this client' });
   }
-  const colis = await Colis.find({ store: store._id })
+  const colis = await Colis.find({ store: store._id, isTrashed: { $ne: true } })
     .sort({ createdAt: -1 })
     .lean();
   return res.status(200).json({ success: true, storeId: store._id, count: colis.length, data: colis });
@@ -66,7 +66,7 @@ const getColisByStore = asyncHandler(async (req, res) => {
   if (!store) {
     return res.status(404).json({ success: false, message: 'Store not found for this client' });
   }
-  const colis = await Colis.find({ store: storeId }).sort({ createdAt: -1 }).lean();
+  const colis = await Colis.find({ store: storeId, isTrashed: { $ne: true } }).sort({ createdAt: -1 }).lean();
   return res.status(200).json({ success: true, store, count: colis.length, data: colis });
 });
 

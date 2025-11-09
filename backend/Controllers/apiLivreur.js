@@ -70,7 +70,7 @@ const getColisByLivreur = asyncHandler(async (req, res) => {
   }
 
   // Optional filter by statut: accept single value or comma-separated list via ?statut=
-  let filter = { livreur: livreurId };
+  let filter = { livreur: livreurId, isTrashed: { $ne: true } };
   if (req.query?.statut) {
     const raw = String(req.query.statut);
     const requested = raw.split(',').map(s => s.trim()).filter(Boolean);

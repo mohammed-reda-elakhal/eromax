@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     gap: 3, // Reduced
   },
   logo: {
-    width: 24, // Reduced from 32
-    height: 24, // Reduced from 32
+    width: 32, // Reduced from 32
+    height: 26, // Reduced from 32
     marginRight: 3, // Reduced
     objectFit: 'contain',
   },
@@ -308,22 +308,38 @@ const styles = StyleSheet.create({
 
 const generateBarcode = (text) => {
   try {
+    if (!text || text.length === 0) {
+      console.error('Empty text for barcode');
+      return null;
+    }
+    
+    console.log('Generating barcode for:', text);
     const canvas = document.createElement('canvas');
+    
     JsBarcode(canvas, text, { 
       format: 'CODE128',
       width: 2,
       height: 40,
-      displayValue: true,  // Changed to true for better debugging
-      margin: 10,         // Added margin for better scanning
+      displayValue: false,  // Hide text below barcode for compact design
+      margin: 10,
+      fontSize: 12,
+      textMargin: 2,
+      background: '#ffffff',
+      lineColor: '#000000',
       valid: (valid) => {
         if (!valid) {
-          console.warn('Invalid barcode value:', text);
+          console.warn('⚠️ Invalid barcode value:', text);
+        } else {
+          console.log('✅ Valid barcode generated for:', text);
         }
       }
     });
-    return canvas.toDataURL('image/png');
+    
+    const dataUrl = canvas.toDataURL('image/png');
+    console.log('Barcode data URL length:', dataUrl.length);
+    return dataUrl;
   } catch (e) {
-    console.error('Barcode generation error:', e);
+    console.error('❌ Barcode generation error for text:', text, 'Error:', e);
     return null;
   }
 };
@@ -332,15 +348,47 @@ const generateBarcode = (text) => {
 const useColisCodes = (colisList) => {
   const [codes, setCodes] = useState([]);
   useEffect(() => {
-    if (!colisList || !colisList.length) return;
+    if (!colisList || !colisList.length) {
+      console.log('No colis list provided');
+      return;
+    }
+    
+    console.log(`Generating codes for ${colisList.length} colis...`);
+    
     Promise.all(
-      colisList.map(async (colis) => {
-        const qr = await QRCode.toDataURL(colis.code_suivi, { width: 300, margin: 1 });
-        const barcode = generateBarcode(colis.code_suivi);
-        return { qr, barcode };
+      colisList.map(async (colis, index) => {
+        try {
+          console.log(`[${index + 1}/${colisList.length}] Generating codes for:`, colis.code_suivi);
+          
+          // Generate QR code
+          const qr = await QRCode.toDataURL(colis.code_suivi, { 
+            width: 300, 
+            margin: 1,
+            errorCorrectionLevel: 'M',
+            type: 'image/png'
+          });
+          console.log(`  ✅ QR generated for: ${colis.code_suivi} (length: ${qr.length})`);
+          
+          // Generate Barcode
+          const barcode = generateBarcode(colis.code_suivi);
+          if (!barcode) {
+            console.error(`  ❌ Barcode generation failed for: ${colis.code_suivi}`);
+          }
+          
+          return { qr, barcode };
+        } catch (error) {
+          console.error(`  ❌ Error generating codes for ${colis.code_suivi}:`, error);
+          return { qr: null, barcode: null };
+        }
       })
-    ).then(setCodes);
+    ).then((generatedCodes) => {
+      console.log('✅ All codes generated successfully');
+      setCodes(generatedCodes);
+    }).catch((error) => {
+      console.error('❌ Error in code generation promise:', error);
+    });
   }, [colisList]);
+  
   return codes;
 };
 
@@ -373,7 +421,7 @@ const TicketPDF = ({ colisList, codes }) => (
         <View style={styles.headerSection}>
           <View style={styles.logoBox}>
             <View style={styles.logoBrand}>
-              <Image src="/image/logo-light.png" style={styles.logo} />
+              <Image src="/image/logo_10.jpg" style={styles.logo} />
             </View>
             <Text style={styles.codeSuiviHeader}>
               {colis?.villeData?.nom || colis?.ville?.nom || ''}

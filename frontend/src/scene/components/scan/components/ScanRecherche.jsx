@@ -59,23 +59,117 @@ function ScanRecherche() {
   const [scanMode, setScanMode] = useState('barcode'); // 'barcode' | 'qr'
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const lastScanRef = useRef({ text: '', time: 0 });
+  const isProcessingScan = useRef(false);
+
+  // Sound effects
+  const successAudioRef = useRef(null);
+  const errorAudioRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize audio elements
+    successAudioRef.current = new Audio('/static/sounds/success.mp3');
+    errorAudioRef.current = new Audio('/static/sounds/error.mp3');
+    if (successAudioRef.current) {
+      successAudioRef.current.preload = 'auto';
+      successAudioRef.current.volume = 0.5;
+    }
+    if (errorAudioRef.current) {
+      errorAudioRef.current.preload = 'auto';
+      errorAudioRef.current.volume = 0.5;
+    }
+  }, []);
+
+  const beep = (type = 'success') => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      if (type === 'success') {
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } else {
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      }
+    } catch (e) {
+      console.log('Audio not available');
+    }
+  };
+
+  const playSuccessSound = async () => {
+    try {
+      if (successAudioRef.current) {
+        successAudioRef.current.currentTime = 0;
+        await successAudioRef.current.play();
+        return;
+      }
+    } catch (e) {
+      // fall back to beep
+    }
+    beep('success');
+  };
+
+  const playErrorSound = async () => {
+    try {
+      if (errorAudioRef.current) {
+        errorAudioRef.current.currentTime = 0;
+        await errorAudioRef.current.play();
+        return;
+      }
+    } catch (e) {
+      // fall back to beep
+    }
+    beep('error');
+  };
   const { ref: videoRef } = useZxing({
     onDecodeResult(result) {
       try {
         const text = result?.getText?.() || result?.text || '';
         const format = result?.getBarcodeFormat?.() || result?.barcodeFormat;
-        if (!text) return;
-        const now = Date.now();
-        if (lastScanRef.current.text === text && now - lastScanRef.current.time < 1200) return;
-        if (scanMode === 'qr') {
-          if (format != null && format !== BarcodeFormat.QR_CODE) return;
-        } else {
-          if (format === BarcodeFormat.QR_CODE) return;
+        
+        console.log('📷 Scan detected:', { text, format });
+        
+        if (!text) {
+          console.log('❌ Empty scan text');
+          return;
         }
+        
+        // Debounce duplicates within 1.2s
+        const now = Date.now();
+        if (lastScanRef.current.text === text && now - lastScanRef.current.time < 1200) {
+          console.log('⏭️ Duplicate scan ignored (debounced)');
+          return;
+        }
+        
+        // Filter by mode, but allow when format is undefined
+        if (scanMode === 'qr') {
+          if (format != null && format !== BarcodeFormat.QR_CODE) {
+            console.log('❌ Not a QR code, skipping');
+            return;
+          }
+        } else {
+          if (format === BarcodeFormat.QR_CODE) {
+            console.log('❌ QR code detected in barcode mode, skipping');
+            return;
+          }
+        }
+        
         lastScanRef.current = { text, time: now };
+        console.log('✅ Valid scan, processing:', text.trim());
         handleScan(text.trim());
       } catch (e) {
-        // noop
+        console.error('❌ Scan error:', e);
+        playErrorSound();
       }
     },
     paused: !cameraEnabled,
@@ -118,16 +212,67 @@ function ScanRecherche() {
   const handleSearch = () => {
     if (!codeSuivi) {
         notification.warning({ message: "Veuillez entrer un code de suivi." });
+        playErrorSound();
         return;
-    };
-    dispatch(getColisByCodeSuivi(codeSuivi));
+    }
+    console.log('🔍 Manual search for code:', codeSuivi);
+    dispatch(getColisByCodeSuivi(codeSuivi))
+      .then((result) => {
+        if (result) {
+          console.log('✅ Colis found:', result);
+          playSuccessSound();
+          notification.success({ 
+            message: 'Colis trouvé!',
+            description: `Code: ${codeSuivi}` 
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Error fetching colis:', error);
+        playErrorSound();
+        notification.error({ 
+          message: 'Colis non trouvé',
+          description: error?.response?.data?.message || 'Vérifiez le code de suivi' 
+        });
+      });
   };
 
   // Function to handle scan from the reader
   const handleScan = (scannedCode) => {
-    if (!scannedCode) return;
+    if (!scannedCode || isProcessingScan.current) {
+      console.log('⏭️ Scan ignored - processing or empty');
+      return;
+    }
+    
+    isProcessingScan.current = true;
+    console.log('📷 Processing scanned code:', scannedCode);
+    
     setCodeSuivi(scannedCode);
-    dispatch(getColisByCodeSuivi(scannedCode));
+    dispatch(getColisByCodeSuivi(scannedCode))
+      .then((result) => {
+        if (result) {
+          console.log('✅ Colis found via scan:', result);
+          playSuccessSound();
+          notification.success({ 
+            message: 'Colis scanné avec succès!',
+            description: `Code: ${scannedCode}`,
+            duration: 2
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Error scanning colis:', error);
+        playErrorSound();
+        notification.error({ 
+          message: 'Colis non trouvé',
+          description: 'Vérifiez le code scanné' 
+        });
+      })
+      .finally(() => {
+        setTimeout(() => {
+          isProcessingScan.current = false;
+        }, 500);
+      });
   };
 
   // Function to handle scan errors

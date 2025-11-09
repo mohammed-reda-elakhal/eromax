@@ -11,9 +11,10 @@ import {
   CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SyncOutlined,
   ExclamationCircleOutlined, CalendarOutlined, EnvironmentOutlined, InfoCircleOutlined, TagOutlined, EditOutlined, ShopOutlined,
   FolderOpenOutlined, AppstoreOutlined, RetweetOutlined, CopyOutlined, WalletOutlined, MoreOutlined, UserOutlined, PlusOutlined,
-  ArrowUpOutlined, ArrowDownOutlined, FieldTimeOutlined
+  ArrowUpOutlined, ArrowDownOutlined, FieldTimeOutlined, DeleteOutlined
 } from '@ant-design/icons';
-import { FaUser, FaMapMarkerAlt, FaHeart, FaInfoCircle, FaQuestionCircle, FaSms, FaPlane, FaPhoneSlash, FaTruck, FaClock, FaCheck } from 'react-icons/fa';
+import { FaUser, FaMapMarkerAlt, FaHeart, FaInfoCircle, FaQuestionCircle, FaSms, FaPlane, FaPhoneSlash, FaTruck, FaClock, FaCheck, FaFileInvoiceDollar, FaExternalLinkAlt, FaTimesCircle } from 'react-icons/fa';
+import { IoDocumentAttachSharp } from 'react-icons/io5';
 import { TbShieldCode, TbTruckDelivery } from 'react-icons/tb';
 import { AiFillProduct } from 'react-icons/ai';
 import { HiStatusOnline } from 'react-icons/hi';
@@ -39,7 +40,11 @@ import TicketColis2 from '../components/TicketColis2';
 // Add reclamation imports
 import { createReclamation, getReclamationsByColis } from '../../../../redux/apiCalls/reclamationApiCalls';
 import ReclamationModal from '../modals/ReclamationModal';
-import { Statistic, Card, Row, Col, Progress } from 'antd';
+import { Statistic, Card, Row, Col, Progress, Result } from 'antd';
+// Add facture imports
+import { getFactureByColis } from '../../../../redux/apiCalls/factureApiCalls';
+// Add trash imports
+import { moveColisToTrash, batchMoveColisToTrash } from '../../../../redux/apiCalls/colisTrashApiCalls';
 
 const STATUT_LIST = [
   "Nouveau Colis",
@@ -70,8 +75,7 @@ const STATUT_LIST = [
   "Confirmé Par Livreur",
   "Endomagé",
   "Prét Pour Expédition",
-  "Manque de stock",
-  "Intéressé"
+  "Manque de stock"
 ];
 
 const STATUS_META = {
@@ -179,6 +183,9 @@ function ColisPaginated() {
     adresse: '',
     ville: ''
   });
+  // Facture modal state
+  const [factureModalOpen, setFactureModalOpen] = useState(false);
+  const { detailFacture } = useSelector((state) => state.facture);
   
   // Handle batch status update
 // Handle batch status update for selected packages
@@ -432,8 +439,7 @@ const handleBatchStatusUpdate = async () => {
         "En Retour",
         "Fermée",
         "Prét Pour Expédition",
-        "Manque de stock",
-        "Intéressé"
+        "Manque de stock"
       ];
     } else if (user?.role === 'livreur') {
       return [
@@ -457,8 +463,7 @@ const handleBatchStatusUpdate = async () => {
         "Confirmé Par Livreur",
         "Endomagé",
         "Préparer pour Roteur",
-        "Manque de stock",
-        "Intéressé"
+        "Manque de stock"
       ];
     } else {
       return [];
@@ -692,6 +697,40 @@ const handleBatchStatusUpdate = async () => {
         {record.expedation_type === 'ameex' && record.code_suivi_ameex && (
           <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>AMEEX: {record.code_suivi_ameex}</span>
         )}
+        {record.is_remplace && record.code_remplacer && (
+          <Tooltip title="Code de remplacement - Cliquez pour copier">
+            <span 
+              style={{ 
+                fontSize: 11, 
+                color: theme === 'dark' ? '#f59e0b' : '#d97706', 
+                fontWeight: 600,
+                background: theme === 'dark' ? '#78350f' : '#fef3c7',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                border: `1px solid ${theme === 'dark' ? '#f59e0b' : '#fbbf24'}`,
+                cursor: 'pointer',
+                display: 'inline-block',
+                marginTop: '4px',
+                transition: 'all 0.2s ease'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(record.code_remplacer);
+                toast.success(`Code de remplacement ${record.code_remplacer} copié!`, { autoClose: 2000 });
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = theme === 'dark' ? '#92400e' : '#fde68a';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = theme === 'dark' ? '#78350f' : '#fef3c7';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              🔄 Change: {record.code_remplacer}
+            </span>
+          </Tooltip>
+        )}
         {/* Attribute icons */}
         <div style={{ display: 'flex', gap: 8, marginTop: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Tooltip title="Ouvrir">
@@ -709,7 +748,7 @@ const handleBatchStatusUpdate = async () => {
           <Tooltip title="Wallet Processed">
             <WalletOutlined style={{ fontSize: 16, color: record.wallet_prosseced ? (theme === 'dark' ? '#facc15' : '#eab308') : '#cbd5e1' }} />
           </Tooltip>
-          {/* Relancer Icon */}
+          {/* Relancer Icon - This colis WAS relanced from another */}
           {record.isRelanced && (
             <Tooltip 
               title={
@@ -766,6 +805,61 @@ const handleBatchStatusUpdate = async () => {
               </div>
             </Tooltip>
           )}
+          {/* Badge for colis that HAS BEEN relanced (has a child) */}
+          {(() => {
+            const relancedChild = hasBeenRelanced(record._id);
+            if (relancedChild) {
+              return (
+                <Tooltip 
+                  title={`Ce colis a déjà été relancé. Nouveau code: ${relancedChild.code_suivi}. Cliquez pour copier.`}
+                  placement="top"
+                  overlayStyle={{ maxWidth: '300px' }}
+                >
+                  <div 
+                    style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: theme === 'dark' ? '#78350f' : '#fef3c7',
+                      border: `1px solid ${theme === 'dark' ? '#f59e0b' : '#fbbf24'}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(relancedChild.code_suivi);
+                      toast.success(`Code ${relancedChild.code_suivi} copié dans le presse-papiers!`, { autoClose: 2000 });
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = theme === 'dark' ? '#92400e' : '#fde68a';
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = theme === 'dark' ? '#78350f' : '#fef3c7';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <CheckCircleOutlined style={{ 
+                      fontSize: 14, 
+                      color: '#f59e0b'
+                    }} />
+                    <span style={{ 
+                      fontSize: 9, 
+                      color: '#f59e0b', 
+                      marginLeft: 3,
+                      fontWeight: 700,
+                      letterSpacing: '0.3px'
+                    }}>
+                      DÉJÀ RELANCÉ
+                    </span>
+                  </div>
+                </Tooltip>
+              );
+            }
+            return null;
+          })()}
         </div>
       </div>
     ) },
@@ -953,9 +1047,15 @@ const handleBatchStatusUpdate = async () => {
         const isLivreur = user?.role === 'livreur';
         const statut = record.statut;
         const forbidden = ["Livrée", "Annulée", "Refusée"];
-        const canUpdateDelete = (
-          isAdmin || // Admin can always update/delete regardless of status
+        const canUpdate = (
+          isAdmin || // Admin can always update regardless of status
+          (isClient && statut === "Nouveau Colis" && !forbidden.includes(statut)) ||
+          isLivreur // Livreur can update (only ville field will be editable)
+        );
+        const canDelete = (
+          isAdmin || // Admin can always delete
           (isClient && statut === "Nouveau Colis" && !forbidden.includes(statut))
+          // Livreur CANNOT delete
         );
         const menu = (
           <Menu>
@@ -1013,7 +1113,7 @@ const handleBatchStatusUpdate = async () => {
                 <Button type="link" icon={<ExclamationCircleOutlined />} style={{ padding: 0 }}>Réclamation</Button>
               </Menu.Item>
             )}
-            {user?.role === 'client' && canRelancerColis(record.statut) && (
+            {(user?.role === 'client' || user?.role === 'admin') && canRelancerColis(record.statut, record._id) && (
               <Menu.Item key="relancer" onClick={() => {
                 setRelancerColis(record);
                 setRelancerType('same_data');
@@ -1022,13 +1122,35 @@ const handleBatchStatusUpdate = async () => {
                 <Button type="link" icon={<RetweetOutlined />} style={{ padding: 0 }}>Relancer</Button>
               </Menu.Item>
             )}
-            {canUpdateDelete && (
+            {user?.role === 'admin' && (
+              <Menu.Item key="facture" onClick={() => {
+                dispatch(getFactureByColis(record._id));
+                setFactureModalOpen(true);
+              }}>
+                <Button type="link" icon={<IoDocumentAttachSharp />} style={{ padding: 0 }}>Voir Facture</Button>
+              </Menu.Item>
+            )}
+            {canUpdate && (
               <Menu.Item key="update" onClick={() => navigate(`/dashboard/colis/update/${record.code_suivi}`)}>
-                <Button type="link" icon={<EditOutlined />} style={{ padding: 0 }}>Update</Button>
+                <Button type="link" icon={<EditOutlined />} style={{ padding: 0 }}>
+                  {isLivreur ? 'Modifier Ville' : 'Update'}
+                </Button>
               </Menu.Item>
             )}
             <Menu.Divider />
-            {canUpdateDelete && (
+            {isAdmin && (
+              <Menu.Item key="trash">
+                <Button type="link" danger icon={<DeleteOutlined />} style={{ padding: 0 }}
+                  onClick={e => {
+                    e.domEvent?.stopPropagation?.();
+                    if (window.confirm(`Déplacer le colis ${record.code_suivi} vers la corbeille ?`)) {
+                      handleMoveToTrash(record);
+                    }
+                  }}
+                >Mettre à la corbeille</Button>
+              </Menu.Item>
+            )}
+            {canDelete && !isAdmin && (
               <Menu.Item key="delete">
                 <Button type="link" danger icon={<ExclamationCircleOutlined />} style={{ padding: 0 }}
                   onClick={e => {
@@ -1064,11 +1186,11 @@ const handleBatchStatusUpdate = async () => {
     return { preferred, other };
   }, [assignSelectedColis, livreurs]);
 
-  // Add delete handler
+  // Add delete handler (moves to trash)
   const handleDeleteColis = async (record) => {
     try {
       await request.delete(`/api/colis/${record._id}`);
-      toast.success(`Colis avec le code ${record.code_suivi} a été supprimé avec succès.`);
+      toast.success(`Colis ${record.code_suivi} déplacé vers la corbeille.`);
       dispatch(getColisPaginated({
         page: currentPage,
         limit: pageSize,
@@ -1086,8 +1208,52 @@ const handleBatchStatusUpdate = async () => {
     }
   };
 
+  // Move single colis to trash (explicit trash action)
+  const handleMoveToTrash = async (record) => {
+    try {
+      await dispatch(moveColisToTrash(record._id));
+      dispatch(getColisPaginated({
+        page: currentPage,
+        limit: pageSize,
+        ...appliedFilters
+      }));
+    } catch (err) {
+      console.error('Error moving to trash:', err);
+    }
+  };
+
+  // Batch move to trash
+  const handleBatchMoveToTrash = async () => {
+    if (selectedRowIds.length === 0) {
+      message.warning('Veuillez sélectionner au moins un colis');
+      return;
+    }
+    try {
+      await dispatch(batchMoveColisToTrash(selectedRowIds));
+      setSelectedRowIds([]);
+      dispatch(getColisPaginated({
+        page: currentPage,
+        limit: pageSize,
+        ...appliedFilters
+      }));
+    } catch (err) {
+      console.error('Error batch moving to trash:', err);
+    }
+  };
+
+  // Check if this colis has been relanced (has a child)
+  const hasBeenRelanced = (colisId) => {
+    if (!colisPaginatedList.data || !colisId) return null;
+    
+    const relancedChild = (colisPaginatedList.data || []).find(
+      colis => colis.colis_relanced_from?._id === colisId || colis.colis_relanced_from === colisId
+    );
+    
+    return relancedChild;
+  };
+
   // Check if colis can be relanced
-  const canRelancerColis = (statut) => {
+  const canRelancerColis = (statut, colisId) => {
     const restrictedStatuses = [
       "Nouveau Colis",
       "attente de ramassage",
@@ -1097,7 +1263,18 @@ const handleBatchStatusUpdate = async () => {
       "Mise en Distribution",
       "Livrée"
     ];
-    return !restrictedStatuses.includes(statut);
+    
+    // Check if status is restricted
+    if (restrictedStatuses.includes(statut)) {
+      return false;
+    }
+    
+    // Check if this colis has already been relanced
+    if (hasBeenRelanced(colisId)) {
+      return false;
+    }
+    
+    return true;
   };
 
   // Handle relancer colis
@@ -1151,9 +1328,17 @@ const handleBatchStatusUpdate = async () => {
       // Check if response is successful (status 201 or 200)
       if (response && response.new_colis) {
         const newCode = response.new_colis.code_suivi || response.code_suivi;
-        toast.success(`✅ Colis relancé avec succès! Nouveau code: ${newCode}`, { 
-          autoClose: 3000 
-        });
+        const oldCode = relancerColis.code_suivi;
+        toast.success(
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>✅ Colis relancé avec succès!</div>
+            <div style={{ fontSize: '13px' }}>
+              <div>📦 Ancien colis: <strong>{oldCode}</strong> → Statut: <span style={{ color: '#dc2626' }}>Fermée</span></div>
+              <div>🆕 Nouveau colis: <strong>{newCode}</strong></div>
+            </div>
+          </div>, 
+          { autoClose: 5000 }
+        );
         
         // Force close modal immediately
         setRelancerModalOpen(false);
@@ -1178,7 +1363,9 @@ const handleBatchStatusUpdate = async () => {
         }));
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Erreur lors du relancer du colis.");
+      console.error('Relancer error:', error);
+      const errorMessage = error?.response?.data?.message || "Erreur lors du relancer du colis.";
+      toast.error(errorMessage, { autoClose: 5000 });
     }
   };
 
@@ -1783,6 +1970,36 @@ const handleBatchStatusUpdate = async () => {
                   Export Excel
                 </button>
 
+                {/* View Trash Button (Admin Only) */}
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => navigate('/dashboard/colis-corbeille')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 16px',
+                      borderRadius: 6,
+                      border: 'none',
+                      background: theme === 'dark' ? '#78350f' : '#f59e0b',
+                      color: 'white',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = theme === 'dark' ? '#92400e' : '#d97706';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = theme === 'dark' ? '#78350f' : '#f59e0b';
+                    }}
+                  >
+                    <DeleteOutlined style={{ fontSize: 14 }} />
+                    🗑️ Corbeille
+                  </button>
+                )}
+
                 {/* Status Update Button */}
                 {user?.role === 'admin' && (
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginLeft: '8px' }}>
@@ -1847,6 +2064,46 @@ const handleBatchStatusUpdate = async () => {
                           Mettre à jour ({selectedRowIds.length})
                         </>
                       )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (selectedRowIds.length === 0) {
+                          message.warning('Veuillez sélectionner au moins un colis');
+                          return;
+                        }
+                        if (window.confirm(`Déplacer ${selectedRowIds.length} colis vers la corbeille ?`)) {
+                          handleBatchMoveToTrash();
+                        }
+                      }}
+                      disabled={selectedRowIds.length === 0}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '8px 16px',
+                        borderRadius: 6,
+                        border: 'none',
+                        background: theme === 'dark' ? '#dc2626' : '#ef4444',
+                        color: 'white',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: selectedRowIds.length === 0 ? 'not-allowed' : 'pointer',
+                        opacity: selectedRowIds.length === 0 ? 0.6 : 1,
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedRowIds.length > 0) {
+                          e.target.style.background = theme === 'dark' ? '#b91c1c' : '#dc2626';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedRowIds.length > 0) {
+                          e.target.style.background = theme === 'dark' ? '#dc2626' : '#ef4444';
+                        }
+                      }}
+                    >
+                      <DeleteOutlined style={{ fontSize: 14 }} />
+                      Corbeille ({selectedRowIds.length})
                     </button>
                   </div>
                 )}
@@ -1982,6 +2239,22 @@ const handleBatchStatusUpdate = async () => {
                         <Descriptions.Item label="Code Suivi">
                           <Tag color="geekblue" style={{ fontWeight: 700 }}>{detailsColis.code_suivi}</Tag>
                         </Descriptions.Item>
+                        {detailsColis.is_remplace && detailsColis.code_remplacer && (
+                          <Descriptions.Item label="Code Remplacement">
+                            <Typography.Text
+                              copyable={{ text: detailsColis.code_remplacer }}
+                              style={{ 
+                                color: theme === 'dark' ? '#f59e0b' : '#d97706',
+                                fontWeight: 700,
+                                fontFamily: 'monospace'
+                              }}
+                            >
+                              <Tag color="warning" icon={<RetweetOutlined />} style={{ fontWeight: 700 }}>
+                                {detailsColis.code_remplacer}
+                              </Tag>
+                            </Typography.Text>
+                          </Descriptions.Item>
+                        )}
                         <Descriptions.Item label="Statut">
                           <Tag color={detailsColis.statut === 'Livrée' ? 'green' : detailsColis.statut === 'Annulée' ? 'red' : 'blue'}>{detailsColis.statut}</Tag>
                         </Descriptions.Item>
@@ -2753,6 +3026,114 @@ const handleBatchStatusUpdate = async () => {
                         )}
                       </div>
                     </div>
+                  )}
+                </Modal>
+                {/* Facture Modal */}
+                <Modal
+                  title={
+                    <span>
+                      <IoDocumentAttachSharp style={{ color: '#ffc107', marginRight: 8, fontSize: 20 }} />
+                      Détails de la Facture
+                    </span>
+                  }
+                  open={factureModalOpen}
+                  onCancel={() => setFactureModalOpen(false)}
+                  footer={[
+                    <Button key="close" onClick={() => setFactureModalOpen(false)}>
+                      Fermer
+                    </Button>
+                  ]}
+                  width={600}
+                >
+                  {detailFacture ? (
+                    <div style={{ padding: '20px' }}>
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px'
+                      }}>
+                        {/* Client Facture Section */}
+                        <Card
+                          style={{
+                            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f8f9fa',
+                            borderRadius: '8px'
+                          }}
+                        >
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            marginBottom: '15px'
+                          }}>
+                            <FaFileInvoiceDollar style={{ fontSize: '24px', color: '#1890ff' }} />
+                            <Typography.Title level={5} style={{ margin: 0 }}>
+                              Facture Client
+                            </Typography.Title>
+                          </div>
+                          {detailFacture?.clientFacture?.code ? (
+                            <Button
+                              type="primary"
+                              icon={<FaExternalLinkAlt />}
+                              onClick={() => {
+                                const url = `/dashboard/facture/detail/client/${detailFacture?.clientFacture.code}`;
+                                window.open(url, '_blank');
+                              }}
+                              style={{ width: '100%' }}
+                            >
+                              {detailFacture?.clientFacture.code}
+                            </Button>
+                          ) : (
+                            <Tag icon={<FaTimesCircle />} color="error">
+                              Pas de facture client
+                            </Tag>
+                          )}
+                        </Card>
+
+                        {/* Livreur Facture Section */}
+                        <Card
+                          style={{
+                            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f8f9fa',
+                            borderRadius: '8px'
+                          }}
+                        >
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            marginBottom: '15px'
+                          }}>
+                            <FaTruck style={{ fontSize: '24px', color: '#52c41a' }} />
+                            <Typography.Title level={5} style={{ margin: 0 }}>
+                              Facture Livreur
+                            </Typography.Title>
+                          </div>
+                          {detailFacture?.livreurFacture?.code ? (
+                            <Button
+                              type="primary"
+                              icon={<FaExternalLinkAlt />}
+                              onClick={() => {
+                                const url = `/dashboard/facture/detail/livreur/${detailFacture.livreurFacture.code}`;
+                                window.open(url, '_blank');
+                              }}
+                              style={{ width: '100%', backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                            >
+                              {detailFacture.livreurFacture.code}
+                            </Button>
+                          ) : (
+                            <Tag icon={<FaTimesCircle />} color="error">
+                              Pas de facture livreur
+                            </Tag>
+                          )}
+                        </Card>
+                      </div>
+                    </div>
+                  ) : (
+                    <Result
+                      icon={<IoDocumentAttachSharp style={{ color: '#ff4d4f', fontSize: 48 }} />}
+                      status="error"
+                      title="Aucune facture trouvée"
+                      subTitle="Ce colis n'a pas de facture associée pour le moment."
+                    />
                   )}
                 </Modal>
                 <ToastContainer />

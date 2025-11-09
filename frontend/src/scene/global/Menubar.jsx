@@ -3,7 +3,7 @@ import { Badge, Button, Divider, Drawer, Menu, Tag } from 'antd';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
-import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt, FaClipboardList, FaTools } from "react-icons/fa";
+import { FaAngleDoubleLeft, FaAngleDoubleRight, FaCity, FaUser, FaTachometerAlt, FaClipboardList, FaTools, FaTrash } from "react-icons/fa";
 import { IoWalletSharp } from "react-icons/io5";
 import { LuBox, LuScanLine } from "react-icons/lu";
 import { BiNote, BiSupport, BiTagAlt } from "react-icons/bi";
@@ -243,6 +243,11 @@ function Menubar() {
             </Menu.SubMenu>
             <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/list-colis">List Colis (Nouveau)</Link>
+            </Menu.Item>
+            <Menu.Item icon={<FaTrash />}>
+                <Link to="/dashboard/colis-corbeille">
+                  🗑️ Corbeille
+                </Link>
             </Menu.Item>
             <Menu.Item icon={<FaClipboardList />}>
                 <Link to="/dashboard/colis-nouveau">

@@ -21,8 +21,11 @@ import {
   DollarOutlined,
   CopyOutlined,
   CheckOutlined,
+  RetweetOutlined,
 } from '@ant-design/icons';
 import { PhoneOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Text } = Typography;
 
@@ -143,6 +146,17 @@ function ColisExpide({ search }) {
     setData(colisData);
   }, [colisData]);
 
+  // Check if this colis has been relanced (has a child)
+  const hasBeenRelanced = (colisId) => {
+    if (!data || !colisId) return null;
+    
+    const relancedChild = data.find(
+      colis => colis.colis_relanced_from?._id === colisId || colis.colis_relanced_from === colisId
+    );
+    
+    return relancedChild;
+  };
+
   // Update status to "Reçu" for selected colis
   const handleReçu = async () => {
     if (selectedRowKeys.length > 0) {
@@ -186,8 +200,8 @@ function ColisExpide({ search }) {
       dataIndex: 'code_suivi',
       key: 'code_suivi',
       width: 250,
-      render: (text) => (
-        <div style={tableCellStyles.codeCell}>
+      render: (text, record) => (
+        <div style={{ ...tableCellStyles.codeCell, display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Text
             copyable={{
               tooltips: ['Copier', 'Copié!'],
@@ -197,6 +211,107 @@ function ColisExpide({ search }) {
           >
             {text}
           </Text>
+          
+          {/* Code Remplacer if exists */}
+          {record.is_remplace && record.code_remplacer && (
+            <span 
+              title="Code de remplacement - Cliquez pour copier"
+              style={{ 
+                fontSize: 10, 
+                color: theme === 'dark' ? '#f59e0b' : '#d97706', 
+                fontWeight: 600,
+                background: theme === 'dark' ? '#78350f' : '#fef3c7',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                border: `1px solid ${theme === 'dark' ? '#f59e0b' : '#fbbf24'}`,
+                cursor: 'pointer',
+                display: 'inline-block',
+                transition: 'all 0.2s ease',
+                fontFamily: 'monospace'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(record.code_remplacer);
+                toast.success(`Code ${record.code_remplacer} copié!`, { autoClose: 2000 });
+              }}
+            >
+              🔄 {record.code_remplacer}
+            </span>
+          )}
+          
+          {/* Badges for relanced colis */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {/* Badge: This colis WAS relanced from another */}
+            {record.isRelanced && (
+              <div
+                title={
+                  record.colis_relanced_from && typeof record.colis_relanced_from === 'object'
+                    ? `Code original: ${record.colis_relanced_from.code_suivi || record.colis_relanced_from._id}`
+                    : 'Colis relancé'
+                }
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: theme === 'dark' ? '#1e3a8a' : '#dbeafe',
+                  border: `1px solid ${theme === 'dark' ? '#3b82f6' : '#60a5fa'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  fontSize: '10px'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (record.colis_relanced_from && typeof record.colis_relanced_from === 'object') {
+                    const codeToCopy = record.colis_relanced_from.code_suivi || record.colis_relanced_from._id;
+                    navigator.clipboard.writeText(codeToCopy);
+                    toast.success(`Code ${codeToCopy} copié!`, { autoClose: 2000 });
+                  }
+                }}
+              >
+                <RetweetOutlined style={{ fontSize: 12, color: '#3b82f6' }} />
+                <span style={{ fontSize: 9, color: '#3b82f6', marginLeft: 3, fontWeight: 700 }}>
+                  RELANCÉ
+                </span>
+              </div>
+            )}
+            
+            {/* Badge: This colis HAS BEEN relanced (has a child) */}
+            {(() => {
+              const relancedChild = hasBeenRelanced(record._id);
+              if (relancedChild) {
+                return (
+                  <div
+                    title={`Relancé vers: ${relancedChild.code_suivi}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: theme === 'dark' ? '#78350f' : '#fef3c7',
+                      border: `1px solid ${theme === 'dark' ? '#f59e0b' : '#fbbf24'}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      fontSize: '10px'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(relancedChild.code_suivi);
+                      toast.success(`Code ${relancedChild.code_suivi} copié!`, { autoClose: 2000 });
+                    }}
+                  >
+                    <CheckCircleOutlined style={{ fontSize: 12, color: '#f59e0b' }} />
+                    <span style={{ fontSize: 9, color: '#f59e0b', marginLeft: 3, fontWeight: 700 }}>
+                      DÉJÀ RELANCÉ
+                    </span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </div>
         </div>
       ),
     },
@@ -367,6 +482,7 @@ function ColisExpide({ search }) {
               }}
             />
             {contextHolder}
+            <ToastContainer />
           </div>
         </div>
       </main>

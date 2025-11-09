@@ -99,8 +99,7 @@ const ColisSchema = new mongoose.Schema({
             "Confirmé Par Livreur",
             "Endomagé",
             "Prét Pour Expédition",
-            "Manque de stock",
-            "Intéressé"
+            "Manque de stock"
         ]
     },
     ouvrir: {
@@ -232,6 +231,31 @@ const ColisSchema = new mongoose.Schema({
         type: String,
         enum: ['same_data', 'new_same_ville', 'new_different_ville'],
         default: null
+    },
+    // Replacement code field
+    code_remplacer: {
+        type: String,
+        default: null
+    },
+    replacedColis: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Colis',
+        default: null
+    },
+    // Trash/Corbeille fields
+    isTrashed: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    trashedAt: {
+        type: Date,
+        default: null
+    },
+    trashedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin',
+        default: null
     }
 }, {
     timestamps: true
@@ -290,8 +314,7 @@ function validateRegisterColis(obj) {
             "Endomagé",
             "Préparer pour Roteur",
             "Prét Pour Expédition",
-            "Manque de stock",
-            "Intéressé"
+            "Manque de stock"
         ]),
         ouvrir: Joi.boolean(),
         is_simple: Joi.boolean(),
@@ -326,6 +349,13 @@ function validateRegisterColis(obj) {
         colis_relanced_from: Joi.string().optional(),
         isRelanced: Joi.boolean().optional(),
         relancerType: Joi.string().valid('same_data', 'new_same_ville', 'new_different_ville').allow(null).optional(),
+        // Replacement code field
+        code_remplacer: Joi.string().allow('', null).optional(),
+        replacedColis: Joi.string().allow('', null).optional(),
+        // Trash fields
+        isTrashed: Joi.boolean().optional(),
+        trashedAt: Joi.date().allow(null).optional(),
+        trashedBy: Joi.string().allow(null).optional(),
     });
     return schema.validate(obj);
 }

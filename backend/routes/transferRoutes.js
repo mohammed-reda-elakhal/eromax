@@ -34,14 +34,14 @@ router.get('/colis/:colisId', getTransfersByColis);
 // Delete transfer
 router.delete('/:id', deleteTransfer);
 
-// Route to cancel a transfer
-router.put('/cancel/:transferId', cancelTransfer);
+// Route to cancel a transfer (admin only)
+router.put('/cancel/:transferId', verifyTokenAndAdmin, cancelTransfer);
 
-// Route to validate a transfer
-router.put('/validate/:transferId', validateTransferStatus);
+// Route to validate a transfer (admin only)
+router.put('/validate/:transferId', verifyTokenAndAdmin, validateTransferStatus);
 
-// Route to correct a transfer
-router.put('/correct/:transferId', correctTransfer);
+// Route to correct a transfer (admin only)
+router.put('/correct/:transferId', verifyTokenAndAdmin, correctTransfer);
 
 // Routes for manual transfers (admin only)
 router.post('/manuel-depot', verifyTokenAndAdmin, createManualDeposit);

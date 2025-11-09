@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import { Table, Typography, Button, Space, Spin, message, Popconfirm, Tooltip, Modal, Form, InputNumber } from 'antd';
+import { Table, Typography, Button, Space, Spin, message, Popconfirm, Tooltip, Modal, Form, InputNumber, Input } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllTransfers, validateTransfer, cancelTransfer, correctTransfer, deleteTransfer } from '../../../../redux/apiCalls/transferApiCalls';
 import { ReloadOutlined, SearchOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from '@ant-design/icons';
@@ -1252,44 +1252,28 @@ function Transfer() {
                             parser={value => value.replace(' DH', '')}
                         />
                     </Form.Item>
-                                         <Form.Item
-                         label={
-                             <span style={{ color: theme === 'dark' ? '#fff' : '#262626', fontWeight: '500' }}>
-                                 Correction Reason
-                             </span>
-                         }
-                         name="description"
-                         rules={[
-                             { required: true, message: 'Please provide a reason for the correction' },
-                             { min: 10, message: 'Description must be at least 10 characters' }
-                         ]}
-                     >
-                         <textarea
-                             rows={4}
-                             style={{
-                                 width: '100%',
-                                 padding: '8px 12px',
-                                 backgroundColor: theme === 'dark' ? '#262626' : '#fff',
-                                 border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
-                                 borderRadius: '6px',
-                                 color: theme === 'dark' ? '#fff' : '#262626',
-                                 fontSize: '14px',
-                                 outline: 'none',
-                                 resize: 'vertical',
-                                 transition: 'all 0.2s ease',
-                                 fontFamily: 'inherit'
-                             }}
-                             placeholder="Enter the reason for this correction..."
-                             onFocus={(e) => {
-                                 e.target.style.borderColor = '#1890ff';
-                                 e.target.style.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
-                             }}
-                             onBlur={(e) => {
-                                 e.target.style.borderColor = theme === 'dark' ? '#434343' : '#d9d9d9';
-                                 e.target.style.boxShadow = 'none';
-                             }}
-                         />
-                     </Form.Item>
+                    <Form.Item
+                        label={
+                            <span style={{ color: theme === 'dark' ? '#fff' : '#262626', fontWeight: '500' }}>
+                                Correction Reason
+                            </span>
+                        }
+                        name="description"
+                        rules={[
+                            { required: true, message: 'Please provide a reason for the correction' },
+                            { min: 10, message: 'Description must be at least 10 characters' }
+                        ]}
+                    >
+                        <Input.TextArea
+                            rows={4}
+                            placeholder="Enter the reason for this correction..."
+                            style={{
+                                backgroundColor: theme === 'dark' ? '#262626' : '#fff',
+                                borderColor: theme === 'dark' ? '#434343' : '#d9d9d9',
+                                color: theme === 'dark' ? '#fff' : '#262626'
+                            }}
+                        />
+                    </Form.Item>
                     <Form.Item>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                             <Button

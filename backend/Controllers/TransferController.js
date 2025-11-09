@@ -34,9 +34,101 @@ const updateTransfer = async (req, res) => {
     return res.status(501).json({ message: 'updateTransfer not implemented' });
 };
 
-// Placeholder: correct a transfer (not implemented yet)
+// Correct a transfer (transactional)
 const correctTransfer = async (req, res) => {
-    return res.status(501).json({ message: 'correctTransfer not implemented' });
+    const session = await mongoose.startSession();
+    try {
+        const { transferId } = req.params;
+        const { newMontant, description } = req.body;
+
+        // Validate admin permissions
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Only admins can correct transfers" });
+        }
+
+        // Validate required fields
+        if (!newMontant || newMontant === undefined) {
+            return res.status(400).json({ message: "New amount is required" });
+        }
+        if (!description || description.trim().length < 10) {
+            return res.status(400).json({ message: "Description must be at least 10 characters" });
+        }
+
+        let result;
+        await session.withTransaction(async () => {
+            // Find the transfer
+            const transfer = await Transfer.findById(transferId).session(session);
+            if (!transfer) {
+                throw new Error("Transfer not found");
+            }
+
+            // Check if transfer is already corrected
+            if (transfer.type === 'Correction') {
+                throw new Error("Cannot correct a correction transfer");
+            }
+
+            // Check if transfer is cancelled
+            if (transfer.status === 'annuler') {
+                throw new Error("Cannot correct a cancelled transfer");
+            }
+
+            // Find the associated wallet
+            const wallet = await Wallet.findById(transfer.wallet).session(session);
+            if (!wallet) {
+                throw new Error("Wallet not found");
+            }
+
+            // Store original montant if not already stored
+            const originalMontant = transfer.originalMontant !== null ? transfer.originalMontant : transfer.montant;
+            
+            // Calculate the difference between new and old montant
+            const montantDifference = newMontant - transfer.montant;
+
+            // Update wallet balance with the difference
+            wallet.solde += montantDifference;
+            await wallet.save({ session });
+
+            // Update the transfer
+            transfer.montant = newMontant;
+            transfer.originalMontant = originalMontant;
+            transfer.type = 'Correction';
+            transfer.status = 'corrigé';
+            transfer.description = description;
+            transfer.correctionDate = new Date();
+            await transfer.save({ session });
+
+            result = { 
+                transfer: await Transfer.findById(transfer._id)
+                    .populate('colis')
+                    .populate({
+                        path: 'wallet',
+                        populate: {
+                            path: 'store',
+                            select: 'storeName'
+                        }
+                    })
+                    .populate('admin', 'nom username email')
+                    .session(session),
+                wallet,
+                montantDifference
+            };
+        });
+
+        res.status(200).json({
+            message: "Transfer corrected successfully",
+            transfer: result.transfer,
+            montantDifference: result.montantDifference
+        });
+
+    } catch (error) {
+        console.error('Error correcting transfer:', error);
+        res.status(500).json({
+            message: "Error correcting transfer",
+            error: error.message
+        });
+    } finally {
+        await session.endSession();
+    }
 };
 
 // Get all transfers

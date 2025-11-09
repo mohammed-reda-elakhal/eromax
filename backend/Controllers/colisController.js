@@ -82,6 +82,11 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
         code_suivi,
       };
 
+      // Generate code_remplacer if is_remplace is true
+      if (req.body.is_remplace && req.body.is_remplace === true) {
+        colisData.code_remplacer = `${code_suivi}-Change`;
+      }
+
       // Create and save the new Colis
       const newColis = new Colis(colisData);
       const saveColis = await newColis.save({ session });
@@ -206,6 +211,11 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
         livreur: null,
       };
 
+      // Generate code_remplacer if is_remplace is true
+      if (req.body.is_remplace && req.body.is_remplace === true) {
+        colisData.code_remplacer = `${code_suivi}-Change`;
+      }
+
       // Create Colis
       const newColis = new Colis(colisData);
       const saveColis = await newColis.save({ session });
@@ -324,6 +334,11 @@ module.exports.CloneColisCtrl = asyncHandler(async (req, res) => {
     livreur: null, // Exclude the livreur data
     // Optionally, add other fields as necessary
   };
+
+  // Generate code_remplacer if is_remplace is true
+  if (existingColis.is_remplace && existingColis.is_remplace === true) {
+    colisData.code_remplacer = `${code_suivi}-Change`;
+  }
 
   // Optionally link the new colis to the original one
   // colisData.originalColis = existingColis._id;
@@ -449,6 +464,11 @@ module.exports.CreateMultipleColisCtrl = asyncHandler(async (req, res) => {
         code_suivi,
       };
 
+      // Generate code_remplacer if is_remplace is true
+      if (colisInput.is_remplace && colisInput.is_remplace === true) {
+        colisData.code_remplacer = `${code_suivi}-Change`;
+      }
+
       // 7. Handle Colis Replacement if is_remplace is true
       if (colisInput.is_remplace) {
         const replacedCodeSuivi = colisInput.replacedColis; // Now expecting code_suivi
@@ -556,7 +576,7 @@ module.exports.getAllColisCtrl = asyncHandler(async (req, res) => {
     const { statut, store, ville, livreur, dateFrom, dateTo, dateRange } = req.query; // Extract query params
     const user = req.user; // Extract user information from request (set by verifyToken middleware)
 
-    let filter = {};
+    let filter = { isTrashed: { $ne: true } }; // Exclude trashed colis (includes undefined/null)
 
     // Role-based filtering
     switch (user.role) {
@@ -792,7 +812,7 @@ exports.getColisByCodeSuiviCtrl = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
 **/
 exports.getColisByStatuCtrl = asyncHandler(async (req, res) => {
-  const colis = await Colis.find({ statut: req.query.statu })
+  const colis = await Colis.find({ statut: req.query.statu, isTrashed: { $ne: true } })
     .populate('livreur')
     .populate('store')
     .populate('team')
@@ -873,7 +893,7 @@ exports.ChangeLivreurCtrl  = asyncHandler(async (req, res) => {
  * -------------------------------------------------------------------
 **/
 exports.getColisAmeexCtrl = asyncHandler(async (req, res) => {
-  const colis = await Colis.find({expedation_type: 'ameex'})
+  const colis = await Colis.find({expedation_type: 'ameex', isTrashed: { $ne: true }})
     .populate('livreur')
     .populate('store')
     .populate('team')
@@ -905,7 +925,7 @@ exports.getColisByUserOrStore = asyncHandler(async (req, res) => {
   let colis;
   let team = req.user.id;
   let store = req.user.store;
-  let filter = {};
+  let filter = { isTrashed: { $ne: true } }; // Exclude trashed colis by default
   const { statut } = req.query;
   if (req.user.role === "team" || req.user.role === "admin") {
     filter.team = team;
@@ -955,7 +975,7 @@ exports.getColisByClient = asyncHandler(async (req, res) => {
 
     }
 
-    const colisList = await Colis.find({ clientId: clientId });
+    const colisList = await Colis.find({ clientId: clientId, isTrashed: { $ne: true } });
     res.status(200).json({ message: "Cleint fetched successfully", colis: colisList });
 
   } catch (err) {
@@ -968,18 +988,30 @@ exports.getColisByClient = asyncHandler(async (req, res) => {
 
 /**
  * -------------------------------------------------------------------
- * @desc     delete colis
+ * @desc     delete colis (soft delete - move to trash)
  * @route    /api/colis/:id
  * @method   DELETE
  * @access   private (only Admin )
  * -------------------------------------------------------------------
 **/
 module.exports.deleteColis = asyncHandler(async (req, res) => {
-  const deletedColis = await Colis.findByIdAndDelete(req.params.id);
-  if (!deletedColis) {
+  const colis = await Colis.findById(req.params.id);
+  if (!colis) {
     return res.status(404).json({ message: "Colis not found" });
   }
-  res.status(200).json({ message: "Colis deleted succesfully" });
+  
+  // Check if already trashed
+  if (colis.isTrashed) {
+    return res.status(400).json({ message: "Ce colis est déjà dans la corbeille" });
+  }
+  
+  // Soft delete: move to trash
+  colis.isTrashed = true;
+  colis.trashedAt = new Date();
+  colis.trashedBy = req.user.id;
+  await colis.save();
+  
+  res.status(200).json({ message: "Colis déplacé vers la corbeille avec succès" });
 });
 
 
@@ -1013,8 +1045,42 @@ module.exports.updateColis = asyncHandler(async (req, res) => {
     const isLivreurChanged = currentColis.livreur && 
       currentColis.livreur._id.toString() !== newLivreurId;
 
+    // Check if is_remplace is being changed to true and generate code_remplacer
+    const updateData = { ...req.body };
+    
+    console.log('=== UPDATE COLIS DEBUG ===');
+    console.log('req.body:', req.body);
+    console.log('req.body.is_remplace (type):', typeof req.body.is_remplace, 'value:', req.body.is_remplace);
+    console.log('currentColis.is_remplace (type):', typeof currentColis.is_remplace, 'value:', currentColis.is_remplace);
+    console.log('currentColis.code_suivi:', currentColis.code_suivi);
+    console.log('currentColis.code_remplacer:', currentColis.code_remplacer);
+    
+    // Normalize is_remplace to boolean (handle string "true"/"false")
+    if (req.body.is_remplace !== undefined) {
+      updateData.is_remplace = req.body.is_remplace === true || req.body.is_remplace === 'true';
+    }
+    
+    console.log('updateData.is_remplace (normalized):', updateData.is_remplace);
+    
+    // Only allow changing from false to true (one-way change)
+    if (updateData.is_remplace === false && currentColis.is_remplace === true) {
+      return res.status(400).json({ 
+        message: "Impossible de désactiver le statut 'Remplacer'. Cette action est irréversible." 
+      });
+    }
+    
+    // Generate code_remplacer when changing to true
+    if (updateData.is_remplace === true && currentColis.is_remplace !== true) {
+      updateData.code_remplacer = `${currentColis.code_suivi}-Change`;
+      console.log('✅ Generated code_remplacer:', updateData.code_remplacer);
+    } else {
+      console.log('❌ No code generation needed. Reason:');
+      console.log('   - updateData.is_remplace:', updateData.is_remplace);
+      console.log('   - currentColis.is_remplace:', currentColis.is_remplace);
+    }
+
     // Find and update Colis by _id
-    const updatedColis = await Colis.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    const updatedColis = await Colis.findByIdAndUpdate(req.params.id, updateData, { new: true })
       .populate('ville')
       .populate('store')
       .populate('livreur');
@@ -1055,6 +1121,10 @@ module.exports.updateColis = asyncHandler(async (req, res) => {
         console.error("Failed to create livreur notification:", error);
       }
     }
+
+    console.log('=== RESPONSE DATA ===');
+    console.log('updatedColis.code_remplacer:', updatedColis.code_remplacer);
+    console.log('updatedColis.is_remplace:', updatedColis.is_remplace);
 
     res.status(200).json(updatedColis);
   } catch (error) {
@@ -1333,7 +1403,7 @@ exports.getColisByStore = asyncHandler(async (req, res) => {
 
     console.log("Store found:", store);
 
-    const colisList = await Colis.find({ store: storeId }).populate('ville');
+    const colisList = await Colis.find({ store: storeId, isTrashed: { $ne: true } }).populate('ville');
 
     console.log("Colis list fetched:", colisList);
 
@@ -1569,7 +1639,7 @@ module.exports.getColisByIdLivreur = asyncHandler(async (req, res) => {
   if (!liv) {
     return res.status(404).json({ message: "Livreur not found" });
   }
-  const colisList = await Colis.find({ livreur: id_livreur });
+  const colisList = await Colis.find({ livreur: id_livreur, isTrashed: { $ne: true } });
   res.status(200).json({ message: "Colis Fetched Successfully", colisList });
 
 
@@ -1586,7 +1656,7 @@ module.exports.getColisByTeam = asyncHandler(async (req, res) => {
   if (!team) {
     return res.status(404).json({ message: "Team not found" });
   }
-  const colisList = await Colis.find({ team: id_team });
+  const colisList = await Colis.find({ team: id_team, isTrashed: { $ne: true } });
   res.status(200).json({ message: "Colis Fetched Successfullt", colisList });
 
 
@@ -1596,7 +1666,7 @@ module.exports.getColisByTeam = asyncHandler(async (req, res) => {
 exports.getColisByLivreur = asyncHandler(async (req, res) => {
   let colis;
   const livreurId = req.params.id_livreur;
-  let filter = {};
+  let filter = { isTrashed: { $ne: true } }; // Exclude trashed colis by default
 
   // Define the allowed statuses
   const allowedStatuses = [
@@ -1743,6 +1813,7 @@ exports.createFactureByClient = async (req, res) => {
     const colis = await Colis.find({
       store: { $ne: null }, // Store should not be null
       statut: 'Livrée',     // Statut should be 'Livrée'
+      isTrashed: { $ne: true }  // Exclude trashed colis
     })
       .select('code_suivi store ville statut prix')  // Select only specific fields
       .populate('store')  // Populate store to show its name field
@@ -2161,12 +2232,11 @@ exports.getAllCrbtInfo = async (req, res) => {
   try {
     // Extract the user's role and store from the token (assumed to be added to req.user)
     const role = req.user.role;
-    let filter = {};
+    let filter = { isTrashed: { $ne: true } }; // Exclude trashed colis by default
 
     // Build filter based on the user's role.
     if (role === 'admin') {
-      // For admin, no additional filtering is applied.
-      filter = {};
+      // For admin, no additional filtering beyond isTrashed
     } else if (role === 'client') {
       // For client, filter by the client's store.
       filter.store = req.user.store;
@@ -2980,7 +3050,7 @@ module.exports.getRamasseeColisGroupedByRegionCtrl = asyncHandler(async (req, re
 module.exports.getNouveauColisCtrl = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
-    let filter = { statut: 'Nouveau Colis' };
+    let filter = { statut: 'Nouveau Colis', isTrashed: { $ne: true } };
 
     switch (user.role) {
       case 'admin':
@@ -3027,7 +3097,7 @@ module.exports.getNouveauColisCtrl = asyncHandler(async (req, res) => {
 module.exports.getAttenteRamassageColisCtrl = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
-    let filter = { statut: 'attente de ramassage' };
+    let filter = { statut: 'attente de ramassage', isTrashed: { $ne: true } };
 
     switch (user.role) {
       case 'admin':
@@ -3075,10 +3145,10 @@ module.exports.getAttenteRamassageColisCtrl = asyncHandler(async (req, res) => {
 module.exports.getAllColisPaginatedCtrl = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
-    let filter = {};
+    let filter = { isTrashed: { $ne: true } }; // Exclude trashed colis by default
     // Role-based filtering
     if (user.role === 'admin') {
-      // No filter
+      // No filter beyond isTrashed
     } else if (user.role === 'client') {
       if (!user.store) {
         return res.status(400).json({ message: 'Client does not have an associated store.' });
@@ -3327,6 +3397,15 @@ module.exports.relancerColis = asyncHandler(async (req, res) => {
         }
       }
 
+      // Check if this colis has already been relanced
+      const existingRelancedColis = await Colis.findOne({ 
+        colis_relanced_from: originalColis._id 
+      }).session(session);
+
+      if (existingRelancedColis) {
+        throw new Error(`Ce colis a déjà été relancé. Nouveau code: ${existingRelancedColis.code_suivi}`);
+      }
+
       // Check if colis can be relanced (not in restricted statuses)
       const restrictedStatuses = [
         "Nouveau Colis",
@@ -3535,12 +3614,33 @@ module.exports.relancerColis = asyncHandler(async (req, res) => {
         }
       }
 
+      // Update original colis status to "Fermée" (Closed)
+      const oldStatus = originalColis.statut;
+      originalColis.statut = "Fermée";
+      await originalColis.save({ session });
+
+      // Update Suivi_Colis for original colis to reflect the status change
+      const originalSuiviColis = await Suivi_Colis.findOne({ 
+        id_colis: originalColis._id 
+      }).session(session);
+      
+      if (originalSuiviColis) {
+        originalSuiviColis.status_updates.push({
+          status: "Fermée",
+          date: new Date(),
+          livreur: originalColis.livreur || null,
+          comment: `Colis fermé car relancé. Nouveau code: ${newColis.code_suivi}`
+        });
+        await originalSuiviColis.save({ session });
+      }
+
       return {
         message: "Relancer avec succès",
         original_colis: {
           id: originalColis._id,
           code_suivi: originalColis.code_suivi,
-          statut: originalColis.statut
+          old_statut: oldStatus,
+          new_statut: "Fermée"
         },
         new_colis: newColis,
         relance_type: relanceType

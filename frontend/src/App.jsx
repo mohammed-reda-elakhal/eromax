@@ -78,6 +78,7 @@ import TransactionPage from "./scene/components/payement/page/TransactionPage";
 import ColisAmeex from "./scene/components/colis/pages/ColisAmeex";
 import AjouterColisAdmin from "./scene/components/colis/pages/AjouterColisAdmin";
 import InfoWalet from "./scene/components/portfeuille/page/InfoWalet";
+import ColisCorbeille from "./scene/components/colis/pages/ColisCorbeille";
 import TarifLivreur  from "../src/scene/components/tarif livreur/page/TarifLivreur";
 import Crbt from "./scene/components/colis/pages/Crbt";
 import Tools from "./scene/components/tools/Tools";
@@ -274,6 +275,7 @@ function App() {
             </Route>
 
             <Route path="list-colis" element={<ColisPaginated />} />
+            <Route path="colis-corbeille" element={<ColisCorbeille />} />
             <Route path="crbt" element={<Crbt search = {getColumnSearchProps} />} />
             <Route path="colis-ar" element={<ColisPourRamassage search = {getColumnSearchProps} />} />
             <Route path="colis-r" element={<ColisRamasse search = {getColumnSearchProps} />} />
