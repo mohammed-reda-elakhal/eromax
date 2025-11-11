@@ -1267,7 +1267,12 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
       colis.statut = new_status;
       
       // ============ STOCK MANAGEMENT ON STATUS CHANGE ============
-      await handleStockOnStatusChange(colis, oldStatus, new_status, req.user.id, req.user.role, session);
+      try {
+          await handleStockOnStatusChange(colis, oldStatus, new_status, req.user?.id, req.user?.role, session);
+      } catch (stockError) {
+          console.error(`[Stock Error] Failed to handle stock for colis ${colis.code_suivi}:`, stockError);
+          // Don't block status update if stock operation fails
+      }
       
       await colis.save({ session });
     });

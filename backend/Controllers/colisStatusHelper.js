@@ -21,16 +21,20 @@ const {
  * @param   {Session} session - MongoDB session
  */
 async function handleStockOnStatusChange(colis, oldStatus, newStatus, userId, userRole, session) {
-    // Check if colis uses stock
-    const usesStock = colis.is_simple === false && 
-                      colis.produits && 
-                      colis.produits.some(p => p.usesStock === true);
-    
-    if (!usesStock) {
-        return; // No stock operations needed
-    }
-
     try {
+        // Check if colis uses stock
+        const usesStock = colis.is_simple === false && 
+                          colis.produits && 
+                          colis.produits.length > 0 &&
+                          colis.produits.some(p => p.usesStock === true);
+        
+        if (!usesStock) {
+            console.log(`[Stock] Colis ${colis.code_suivi} does not use stock, skipping`);
+            return; // No stock operations needed
+        }
+
+        console.log(`[Stock] Status change: ${oldStatus} → ${newStatus} for colis ${colis.code_suivi}`);
+
         // CASE 1: Colis delivered → Deduct stock
         if (newStatus === "Livrée" && oldStatus !== "Livrée") {
             console.log(`[Stock] Deducting stock for delivered colis: ${colis.code_suivi}`);
@@ -38,23 +42,26 @@ async function handleStockOnStatusChange(colis, oldStatus, newStatus, userId, us
         }
 
         // CASE 2: Colis cancelled or refused → Release stock reservation
-        if ((newStatus === "Annulée" || newStatus === "Refusée") && 
+        else if ((newStatus === "Annulée" || newStatus === "Refusée") && 
             (oldStatus !== "Annulée" && oldStatus !== "Refusée")) {
             console.log(`[Stock] Releasing stock for ${newStatus.toLowerCase()} colis: ${colis.code_suivi}`);
             await releaseStockForCancelledColis(colis, userId, userRole, session);
         }
 
         // CASE 3: Colis returned → Return stock to available
-        if (newStatus === "En Retour" && oldStatus !== "En Retour") {
+        else if (newStatus === "En Retour" && oldStatus !== "En Retour") {
             console.log(`[Stock] Returning stock from colis: ${colis.code_suivi}`);
             await returnStockFromColis(colis, userId, userRole, session);
         }
 
-        // Save colis with updated stock info
-        await colis.save({ session });
+        // Save colis with updated stock info (only if stock operations were performed)
+        if (colis.isModified()) {
+            await colis.save({ session });
+        }
 
     } catch (stockError) {
         console.error(`[Stock] Error handling stock for colis ${colis.code_suivi}:`, stockError);
+        console.error(`[Stock] Error details:`, stockError.message);
         // Don't throw error - log it and continue
         // Stock operations shouldn't block status changes
         // Admin can manually adjust stock if needed
