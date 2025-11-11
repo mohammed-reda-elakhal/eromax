@@ -96,6 +96,7 @@ app.use("/api/admin", require("./routes/adminRoute"));
 app.use("/api/store", require("./routes/storeRoute"));
 app.use("/api/produit", require("./routes/produitRoute"));
 app.use("/api/variante", require("./routes/varianteRoute"));
+app.use("/api/stock", require("./routes/stockRoute")); // Stock Management System
 app.use("/api/reclamation", require("./routes/reclamationRoute"));
 app.use("/api/notification", require("./routes/notificationRoute"));
 app.use("/api/meth", require("./routes/methRoute"));

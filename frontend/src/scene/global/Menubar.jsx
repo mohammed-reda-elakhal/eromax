@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Badge, Button, Divider, Drawer, Menu, Tag } from 'antd';
+import { WarningOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import './global.css';
 import { ThemeContext } from '../ThemeContext';
@@ -14,6 +15,7 @@ import { MdEditNotifications, MdFactCheck, MdPriceCheck } from "react-icons/md";
 import Solde from '../components/portfeuille/components/SoldeCart';
 import DemandeRetrait from '../components/portfeuille/components/DemandeRetrait';
 import { useDispatch , useSelector } from 'react-redux';
+import { getMyAccess } from '../../redux/apiCalls/clientAccessApiCalls';
 import { FaUserFriends } from "react-icons/fa"
 import { FaBoxesPacking, FaFileInvoiceDollar, FaRegSquarePlus } from "react-icons/fa6";
 import { MdPayment } from "react-icons/md";
@@ -27,6 +29,8 @@ import { FaTruck, FaMoneyBillWave, FaShippingFast, FaListAlt, FaFileImport, FaRe
 import { MdLocalShipping, MdInventory, MdPendingActions } from "react-icons/md";
 import { TbTruckDelivery } from "react-icons/tb";
 import { AiOutlineFileSync } from "react-icons/ai";
+import { BsBoxSeam, BsInboxesFill } from "react-icons/bs";
+import { RiStockLine } from "react-icons/ri";
 
 const colorBadge = "rgb(0, 106, 177)"
 
@@ -77,7 +81,28 @@ function Menubar() {
   useEffect(()=>{
     setUserData(user)
     getData()
+    
+    // Fetch latest features_access for client (real-time check)
+    if(user?.role === "client"){
+      dispatch(getMyAccess());
+    }
   },[dispatch])
+  
+  // Update userData when user changes (including features_access updates)
+  useEffect(() => {
+    setUserData(user);
+  }, [user])
+  
+  // Refresh access every 30 seconds for clients (to detect changes)
+  useEffect(() => {
+    if(user?.role === "client"){
+      const interval = setInterval(() => {
+        dispatch(getMyAccess());
+      }, 30000); // 30 seconds
+      
+      return () => clearInterval(interval);
+    }
+  }, [user?.role, dispatch])
 
   // Handle the "New" badge for reclamation feature
   useEffect(() => {
@@ -367,6 +392,38 @@ function Menubar() {
           )
         }
 
+        {/* ============ STOCK MANAGEMENT MENU (ADMIN) ============ */}
+        {
+          userData.role === "admin" && (
+            <Menu.SubMenu 
+              key="stock-management"
+              icon={<BsBoxSeam />} 
+              title={
+                <span>
+                  Gestion de Stock
+                  <Tag color="blue" style={{ marginLeft: 8, fontSize: 10 }}>NEW</Tag>
+                </span>
+              }
+            >
+              <Menu.Item key="stock-pending" icon={<MdPendingActions />}>
+                <Link to="/dashboard/stock/pending">
+                  Stock En Attente
+                </Link>
+              </Menu.Item>
+              <Menu.Item key="stock-all" icon={<BsInboxesFill />}>
+                <Link to="/dashboard/stock/all">
+                  Tous les Stocks
+                </Link>
+              </Menu.Item>
+              <Menu.Item key="stock-alerts" icon={<WarningOutlined />}>
+                <Link to="/dashboard/stock/alerts">
+                  Alertes Stock
+                </Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
+
 
         {
           userData.role === "admin" &&(
@@ -424,6 +481,27 @@ function Menubar() {
             </Menu.SubMenu>
           )
         }
+
+        {/* ============ STOCK MANAGEMENT MENU (CLIENT) ============ */}
+        {
+          userData.role === "client" && userData.features_access?.stock_management && (
+            <Menu.Item key="mon-stock" icon={<RiStockLine />}>
+              <Link to="/dashboard/mon-stock">
+                Mon Stock
+                <Tag color="green" style={{ marginLeft: 8, fontSize: 10 }}>NEW</Tag>
+              </Link>
+            </Menu.Item>
+          )
+        }
+        
+        {/* DEBUG - Remove this after testing */}
+        {userData.role === "client" && (
+          console.log('[Menu Debug] User Data:', {
+            role: userData.role,
+            features_access: userData.features_access,
+            stock_management: userData.features_access?.stock_management
+          })
+        )}
 
         {
           userData.role ==="livreur" && (

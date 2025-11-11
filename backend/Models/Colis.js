@@ -126,7 +126,41 @@ const ColisSchema = new mongoose.Schema({
         variants: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Variant'
-        }]
+        }],
+        
+        // ============ STOCK MANAGEMENT FIELDS ============
+        usesStock: {
+            type: Boolean,
+            default: false,
+            description: "Whether this product uses stock management"
+        },
+        stockId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Stock',
+            default: null,
+            description: "Reference to stock item (if usesStock=true)"
+        },
+        stockSku: {
+            type: String,
+            default: null,
+            description: "SKU at time of colis creation (snapshot for history)"
+        },
+        quantityUsed: {
+            type: Number,
+            default: 1,
+            min: 1,
+            description: "Quantity of this stock item used in this colis"
+        },
+        stockReserved: {
+            type: Boolean,
+            default: false,
+            description: "Whether stock is currently reserved for this colis"
+        },
+        stockDeducted: {
+            type: Boolean,
+            default: false,
+            description: "Whether stock was deducted (after delivery)"
+        }
     }],
     store: {
         type: mongoose.Schema.Types.ObjectId,
@@ -325,6 +359,13 @@ function validateRegisterColis(obj) {
             Joi.object({
                 produit: Joi.string().required(),
                 variants: Joi.array().items(Joi.string()),
+                // Stock management fields
+                usesStock: Joi.boolean().optional(),
+                stockId: Joi.string().allow(null).optional(),
+                stockSku: Joi.string().allow(null).optional(),
+                quantityUsed: Joi.number().min(1).optional(),
+                stockReserved: Joi.boolean().optional(),
+                stockDeducted: Joi.boolean().optional()
             })
         ),
         expedation_type: Joi.string(),

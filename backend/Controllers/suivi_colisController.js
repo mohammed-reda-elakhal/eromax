@@ -11,6 +11,9 @@ const { createOrUpdateFacture, createOrUpdateFactureLivreur } = require("./factu
 const { generateFacturesRetour } = require("./factureRetourController");
 const mongoose = require('mongoose');
 
+// ============ STOCK MANAGEMENT INTEGRATION ============
+const { handleStockOnStatusChange } = require("./colisStatusHelper");
+
 
 /*
 Boite vocale
@@ -348,7 +351,12 @@ const updateMultipleColisStatus = asyncHandler(async (req, res) => {
           }
 
           // Update the Colis status
+          const oldStatus = colis.statut;
           colis.statut = new_status;
+          
+          // ============ STOCK MANAGEMENT ON STATUS CHANGE ============
+          await handleStockOnStatusChange(colis, oldStatus, new_status, req.user.id, req.user.role, session);
+          
           await colis.save({ session });
           updatedColisList.push(colis);
 

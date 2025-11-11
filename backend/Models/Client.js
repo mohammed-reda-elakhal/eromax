@@ -59,7 +59,67 @@ const ClientSchema= new mongoose.Schema({
     lastUsedAt: { type: Date },
     revokedAt: { type: Date },
     expiresAt: { type: Date },
-    files: [{ type: mongoose.Schema.Types.ObjectId, ref: 'File' }] //Array of fiels 
+    files: [{ type: mongoose.Schema.Types.ObjectId, ref: 'File' }], //Array of fiels 
+    
+    // ============ STOCK MANAGEMENT - NEW FIELDS ============
+    // Feature Access Control System (Extensible for future features)
+    features_access: {
+        stock_management: {
+            type: Boolean,
+            default: false,
+            description: "Access to stock management features"
+        },
+        api_integration: {
+            type: Boolean,
+            default: false,
+            description: "Access to API integration (already exists via apiKey)"
+        },
+        advanced_reporting: {
+            type: Boolean,
+            default: false,
+            description: "Access to advanced analytics and reports"
+        },
+        multi_store: {
+            type: Boolean,
+            default: false,
+            description: "Can have multiple stores"
+        },
+        bulk_operations: {
+            type: Boolean,
+            default: false,
+            description: "Can perform bulk operations (import/export)"
+        },
+        custom_branding: {
+            type: Boolean,
+            default: false,
+            description: "Custom branding options"
+        }
+        // Easily extensible - add more features as needed
+    },
+    
+    // Stock Management Configuration
+    stock_config: {
+        require_admin_approval: {
+            type: Boolean,
+            default: true,
+            description: "New stock must be approved by admin before use"
+        },
+        auto_approve_threshold: {
+            type: Number,
+            default: null,
+            description: "Auto-approve stock below this quantity (null = always require approval)"
+        },
+        low_stock_alert_threshold: {
+            type: Number,
+            default: 10,
+            description: "Send alert when stock falls below this quantity"
+        },
+        allow_negative_stock: {
+            type: Boolean,
+            default: false,
+            description: "Allow creating colis even when stock is 0"
+        }
+    }
     
 },{
     timestamps: true
@@ -75,6 +135,8 @@ ClientSchema.index(
 ClientSchema.index({ status: 1 });
 ClientSchema.index({ lastUsedAt: 1 });
 ClientSchema.index({ expiresAt: 1 });
+// Stock management indexes
+ClientSchema.index({ 'features_access.stock_management': 1 });
 
 // Creating the Client model by extending the User model with discriminator
 const Client= mongoose.model("Client",ClientSchema);
@@ -110,6 +172,23 @@ const clientValidation = (obj) => {
         lastUsedAt: Joi.forbidden(),
         revokedAt: Joi.forbidden(),
         expiresAt: Joi.forbidden(),
+        
+        // Stock management fields (optional, can be set by admin)
+        features_access: Joi.object({
+            stock_management: Joi.boolean(),
+            api_integration: Joi.boolean(),
+            advanced_reporting: Joi.boolean(),
+            multi_store: Joi.boolean(),
+            bulk_operations: Joi.boolean(),
+            custom_branding: Joi.boolean(),
+        }).optional(),
+        
+        stock_config: Joi.object({
+            require_admin_approval: Joi.boolean(),
+            auto_approve_threshold: Joi.number().min(0).allow(null),
+            low_stock_alert_threshold: Joi.number().min(0),
+            allow_negative_stock: Joi.boolean(),
+        }).optional()
     });
     return clientJoiSchema.prefs({ stripUnknown: true }).validate(obj);
 };

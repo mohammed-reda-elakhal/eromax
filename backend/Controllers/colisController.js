@@ -18,6 +18,16 @@ const { log } = require("console");
 const axios = require('axios');
 const { NoteColis } = require("../Models/NoteColis");
 
+// ============ STOCK MANAGEMENT INTEGRATION ============
+const {
+    reserveStockForColis,
+    deductStockForDeliveredColis,
+    releaseStockForCancelledColis,
+    returnStockFromColis,
+    validateStockAvailability
+} = require("./stockHelper");
+const { handleStockOnStatusChange } = require("./colisStatusHelper");
+
 // Utility function to generate a unique code_suivi
 const generateCodeSuivi = (refVille) => {
   const currentDate = new Date(); // Get the current date
@@ -87,6 +97,22 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
         colisData.code_remplacer = `${code_suivi}-Change`;
       }
 
+      // ============ STOCK VALIDATION (if using stock) ============
+      const usesStock = req.body.is_simple === false && 
+                        req.body.produits && 
+                        req.body.produits.some(p => p.usesStock === true);
+      
+      if (usesStock) {
+        // Validate stock availability before creating colis
+        const stockValidation = await validateStockAvailability(req.body.produits);
+        if (!stockValidation.isValid) {
+          const errorDetails = stockValidation.errors.map(e => 
+            `${e.productName || e.sku}: ${e.error} (Available: ${e.available || 0}, Requested: ${e.requested || 0})`
+          ).join('; ');
+          throw new Error(`Stock insuffisant: ${errorDetails}`);
+        }
+      }
+
       // Create and save the new Colis
       const newColis = new Colis(colisData);
       const saveColis = await newColis.save({ session });
@@ -98,6 +124,26 @@ module.exports.CreateColisCtrl = asyncHandler(async (req, res) => {
 
       if (!saveColis.code_suivi) {
         throw new Error('Internal server error: code_suivi is null');
+      }
+
+      // ============ STOCK RESERVATION (if using stock) ============
+      if (usesStock) {
+        try {
+          const updatedProduits = await reserveStockForColis(
+            saveColis.produits,
+            saveColis._id,
+            saveColis.code_suivi,
+            req.user.id,
+            req.user.role,
+            session
+          );
+          // Update colis with stock info
+          saveColis.produits = updatedProduits;
+          await saveColis.save({ session });
+        } catch (stockError) {
+          console.error('Stock reservation error:', stockError);
+          throw new Error(`Erreur de réservation de stock: ${stockError.message}`);
+        }
       }
 
       // Create NoteColis
@@ -1212,9 +1258,22 @@ module.exports.UpdateStatusCtrl = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "Colis not found" });
   }
 
-  // Update the status in Colis
-  colis.statut = new_status;
-  await colis.save();
+  const session = await mongoose.startSession();
+  
+  try {
+    await session.withTransaction(async () => {
+      // Update the status in Colis
+      const oldStatus = colis.statut;
+      colis.statut = new_status;
+      
+      // ============ STOCK MANAGEMENT ON STATUS CHANGE ============
+      await handleStockOnStatusChange(colis, oldStatus, new_status, req.user.id, req.user.role, session);
+      
+      await colis.save({ session });
+    });
+  } finally {
+    await session.endSession();
+  }
 
   // Update the corresponding date in Suivi_Colis
   const suivi_colis = await Suivi_Colis.findOne({ id_colis: colis._id });

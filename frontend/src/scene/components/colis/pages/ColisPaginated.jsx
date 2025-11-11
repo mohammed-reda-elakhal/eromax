@@ -752,8 +752,8 @@ const handleBatchStatusUpdate = async () => {
           <Tooltip title="Ouvrir">
             <FolderOpenOutlined style={{ fontSize: 16, color: record.ouvrir ? (theme === 'dark' ? '#22d3ee' : '#0ea5e9') : '#cbd5e1' }} />
           </Tooltip>
-          <Tooltip title="Simple">
-            <AppstoreOutlined style={{ fontSize: 16, color: record.is_simple ? (theme === 'dark' ? '#34d399' : '#10b981') : '#cbd5e1' }} />
+          <Tooltip title={record.is_simple ? "Colis Simple" : "Colis Stock"}>
+            <AppstoreOutlined style={{ fontSize: 16, color: record.is_simple ? (theme === 'dark' ? '#34d399' : '#10b981') : (theme === 'dark' ? '#38bdf8' : '#0ea5e9') }} />
           </Tooltip>
           <Tooltip title="Remplacé">
             <RetweetOutlined style={{ fontSize: 16, color: record.is_remplace ? (theme === 'dark' ? '#f59e42' : '#f59e42') : '#cbd5e1' }} />
@@ -891,6 +891,68 @@ const handleBatchStatusUpdate = async () => {
       );
     } },
     { key: 'nature_produit', label: <><AiFillProduct /> Produit</>, render: (record) => {
+      // Check if colis uses stock
+      const usesStock = record.produits && record.produits.length > 0 && record.produits.some(p => p.usesStock);
+      
+      if (usesStock) {
+        // Display stock products
+        const stockProducts = record.produits.filter(p => p.usesStock);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {/* Stock Badge */}
+            <Tag 
+              icon={<ShopOutlined />} 
+              color="blue"
+              style={{ 
+                margin: 0,
+                fontWeight: 600,
+                fontSize: 11,
+                display: 'inline-flex',
+                alignItems: 'center',
+                width: 'fit-content'
+              }}
+            >
+              STOCK
+            </Tag>
+            {/* Stock Products List */}
+            {stockProducts.slice(0, 2).map((prod, idx) => (
+              <Tooltip 
+                key={idx}
+                title={`${prod.stockSku || 'N/A'} - Qté: ${prod.quantityUsed || 1}`}
+                placement="top"
+              >
+                <span style={{ 
+                  background: theme === 'dark' ? '#065f46' : '#10b981', 
+                  color: 'white', 
+                  borderRadius: 4, 
+                  fontSize: 11, 
+                  fontWeight: 500, 
+                  padding: '2px 8px',
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '180px',
+                  cursor: 'pointer'
+                }}>
+                  📦 {prod.stockSku || 'SKU N/A'} × {prod.quantityUsed || 1}
+                </span>
+              </Tooltip>
+            ))}
+            {stockProducts.length > 2 && (
+              <span style={{ 
+                fontSize: 10, 
+                color: '#6b7280',
+                fontWeight: 600 
+              }}>
+                +{stockProducts.length - 2} produit(s)
+              </span>
+            )}
+          </div>
+        );
+      }
+      
+      // Display simple colis product nature
       const text = record.nature_produit;
       if (!text) {
         return <span style={{ background: theme === 'dark' ? '#374151' : '#9ca3af', color: 'white', borderRadius: 4, fontSize: 12, fontWeight: 500, padding: '2px 8px' }}>غير محدد</span>;
@@ -2469,15 +2531,77 @@ const handleBatchStatusUpdate = async () => {
                         <Descriptions.Item label="Commentaire">{detailsColis.commentaire}</Descriptions.Item>
                         <Descriptions.Item label="Commentaire Annulation">{detailsColis.comment_annule}</Descriptions.Item>
                         <Descriptions.Item label="Commentaire Refus">{detailsColis.comment_refuse}</Descriptions.Item>
-                        <Descriptions.Item label="Produits">
-                          {detailsColis.produits && detailsColis.produits.length > 0 ? (
-                            <ul style={{ margin: 0, paddingLeft: 16 }}>
-                              {detailsColis.produits.map((prod, idx) => (
-                                <li key={idx}><Tag color="blue">{JSON.stringify(prod)}</Tag></li>
+                        {/* Stock Products Section */}
+                        {detailsColis.produits && detailsColis.produits.length > 0 && detailsColis.produits.some(p => p.usesStock) ? (
+                          <Descriptions.Item label="Produits Stock" span={2}>
+                            <div style={{ 
+                              background: theme === 'dark' ? '#1e293b' : '#f0f9ff',
+                              padding: '12px',
+                              borderRadius: '8px',
+                              border: `2px solid ${theme === 'dark' ? '#0ea5e9' : '#7dd3fc'}`
+                            }}>
+                              <div style={{ 
+                                marginBottom: '8px',
+                                fontWeight: 600,
+                                color: theme === 'dark' ? '#38bdf8' : '#0369a1',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                              }}>
+                                <ShopOutlined /> Produits du Stock
+                              </div>
+                              {detailsColis.produits.filter(p => p.usesStock).map((prod, idx) => (
+                                <div key={idx} style={{ 
+                                  background: theme === 'dark' ? '#0f172a' : 'white',
+                                  padding: '10px',
+                                  borderRadius: '6px',
+                                  marginBottom: idx < detailsColis.produits.filter(p => p.usesStock).length - 1 ? '8px' : '0',
+                                  border: `1px solid ${theme === 'dark' ? '#1e293b' : '#e0f2fe'}`
+                                }}>
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                    gap: '8px'
+                                  }}>
+                                    <div style={{ flex: 1, minWidth: '200px' }}>
+                                      <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
+                                        {prod.stockSku || 'SKU N/A'}
+                                      </div>
+                                      {prod.stockId && (
+                                        <div style={{ 
+                                          fontSize: '11px', 
+                                          color: theme === 'dark' ? '#94a3b8' : '#64748b',
+                                          fontFamily: 'monospace'
+                                        }}>
+                                          ID: {prod.stockId}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                      <Tag color="cyan">
+                                        Qté: {prod.quantityUsed || 1}
+                                      </Tag>
+                                      {prod.stockReserved && (
+                                        <Tag color="orange">
+                                          ✓ Réservé
+                                        </Tag>
+                                      )}
+                                      {prod.stockDeducted && (
+                                        <Tag color="green">
+                                          ✓ Déduit
+                                        </Tag>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
                               ))}
-                            </ul>
-                          ) : '—'}
-                        </Descriptions.Item>
+                            </div>
+                          </Descriptions.Item>
+                        ) : (
+                          <Descriptions.Item label="Produits">—</Descriptions.Item>
+                        )}
                       </Descriptions>
 
                       {/* CRBT & Tarifs */}

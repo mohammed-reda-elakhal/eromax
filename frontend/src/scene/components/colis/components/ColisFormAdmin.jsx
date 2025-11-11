@@ -5,6 +5,7 @@ import { TfiMenuAlt, TfiMoney } from "react-icons/tfi";
 import { FaPhoneAlt } from 'react-icons/fa';
 import { AiFillProduct } from "react-icons/ai";
 import { FaMapLocation } from "react-icons/fa6";
+import { WarningOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -22,6 +23,7 @@ import toast from 'react-hot-toast';
 import { ThemeContext } from '../../../ThemeContext';
 import './ColisForm.css';
 import Select from 'react-select';
+import MultiStockSelector from '../../stock/components/MultiStockSelector';
 
 const daysOfWeek = [
   'Lundi',
@@ -56,6 +58,9 @@ const initialFormData = {
   ouvrirColis: true,
   is_fragile: false,
   store: '',
+  // Stock fields
+  useStock: false, // Checkbox to enable stock mode
+  selectedStockProducts: [], // Array of selected products with quantities
 };
 
 function ColisFormAdmin({ type }) {
@@ -138,6 +143,15 @@ function ColisFormAdmin({ type }) {
       toast.error('Veuillez entrer un prix valide.');
       return;
     }
+
+    // Validate stock fields when stock is enabled
+    if (formData.useStock) {
+      if (!formData.selectedStockProducts || formData.selectedStockProducts.length === 0) {
+        toast.error('Veuillez sélectionner au moins un produit du stock.');
+        return;
+      }
+    }
+
     const colis = {
       nom,
       tele,
@@ -150,6 +164,14 @@ function ColisFormAdmin({ type }) {
       is_remplace,
       is_fragile,
       store,
+      is_simple: !formData.useStock, // Simple colis when NOT using stock
+      // Stock fields - convert selected products to backend format
+      produits: formData.useStock && formData.selectedStockProducts.length > 0 ? 
+        formData.selectedStockProducts.map(p => ({
+          usesStock: true,
+          stockId: p.stockId,
+          quantityUsed: p.quantity
+        })) : undefined
     };
     try {
       await dispatch(createColisAdmin(colis));
@@ -317,24 +339,67 @@ function ColisFormAdmin({ type }) {
                   </div>
                 </div>
 
-                {/* Product Nature Input */}
-                <div className={`colis-form-input-${theme}`}>
-                  <label htmlFor="produit">
-                    Nature de produit
-                  </label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ marginRight: 8, color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }}><AiFillProduct /></span>
-                    <input
-                      id="produit"
-                      placeholder="Ex: Vêtements, Électronique..."
-                      value={formData.produit}
-                      onChange={e => handleInputChange('produit', e.target.value)}
-                      className={`ant-input`}
-                      style={{ flex: 1 }}
-                    />
-                    <span title="Entrer la nature de produit" style={{ marginLeft: 8, color: theme === 'dark' ? '#94a3b8' : '#6b7280', cursor: 'help' }}>i</span>
+                {/* Multi Stock Selector (only when useStock is checked) */}
+                {formData.useStock && (
+                  <div className={`colis-form-input-${theme}`} style={{ gridColumn: '1 / -1' }}>
+                    <label htmlFor="stock">
+                      <span role="img" aria-label="stock">📦</span> Sélectionner les Produits du Stock <span className="required-star">*</span>
+                    </label>
+                    {!formData.store ? (
+                      <div style={{
+                        padding: '20px',
+                        background: '#fef3c7',
+                        borderRadius: '12px',
+                        border: '2px solid #fbbf24',
+                        textAlign: 'center'
+                      }}>
+                        <WarningOutlined style={{ fontSize: '24px', color: '#f59e0b', marginBottom: '8px' }} />
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#92400e', marginBottom: '4px' }}>
+                          Veuillez d'abord sélectionner un magasin
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#b45309' }}>
+                          Le stock est spécifique à chaque magasin
+                        </div>
+                      </div>
+                    ) : (
+                      <MultiStockSelector
+                        value={formData.selectedStockProducts}
+                        onChange={(products) => {
+                          handleInputChange('selectedStockProducts', products);
+                          
+                          // Calculate total price for all products
+                          const totalPrice = products.reduce((sum, p) => sum + p.totalPrice, 0);
+                          handleInputChange('prix', totalPrice);
+                          
+                          console.log('[Colis Form Admin] Stock products updated:', products);
+                          console.log('[Colis Form Admin] Total price:', totalPrice);
+                        }}
+                        storeId={formData.store} // Use selected store for admin
+                      />
+                    )}
                   </div>
-                </div>
+                )}
+
+                {/* Product Nature Input (only when not using stock) */}
+                {!formData.useStock && (
+                  <div className={`colis-form-input-${theme}`}>
+                    <label htmlFor="produit">
+                      Nature de produit
+                    </label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <span style={{ marginRight: 8, color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }}><AiFillProduct /></span>
+                      <input
+                        id="produit"
+                        placeholder="Ex: Vêtements, Électronique..."
+                        value={formData.produit}
+                        onChange={e => handleInputChange('produit', e.target.value)}
+                        className={`ant-input`}
+                        style={{ flex: 1 }}
+                      />
+                      <span title="Entrer la nature de produit" style={{ marginLeft: 8, color: theme === 'dark' ? '#94a3b8' : '#6b7280', cursor: 'help' }}>i</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Address Input */}
                 <div className={`colis-form-input-${theme}`}>
@@ -404,6 +469,37 @@ function ColisFormAdmin({ type }) {
             {/* Professional Options Card for Checkboxes */}
             <div className={`option_colis_form-${theme} option_colis_form-card-${theme}`} style={{ marginBottom: 16 }}>
               <div className={`option_colis_form-title-${theme}`}>Options</div>
+              
+              {/* Use Stock Option - Highlighted */}
+              <label className={`option-checkbox-label-${theme}`} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 8,
+                backgroundColor: formData.useStock ? (theme === 'dark' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.08)') : 'transparent',
+                borderLeft: formData.useStock ? '3px solid #22c55e' : 'none',
+                paddingLeft: formData.useStock ? '12px' : '0px',
+                marginLeft: formData.useStock ? '-8px' : '0px',
+                paddingRight: '8px',
+                borderRadius: '6px',
+                transition: 'all 0.3s ease',
+                fontWeight: formData.useStock ? '600' : '400'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={formData.useStock}
+                  onChange={e => {
+                    handleInputChange('useStock', e.target.checked);
+                    if (!e.target.checked) {
+                      // Reset stock fields when unchecked
+                      handleInputChange('selectedStockProducts', []);
+                      handleInputChange('prix', '');
+                    }
+                  }}
+                />
+                <span role="img" aria-label="stock">📦</span> Utiliser le Stock
+                {formData.useStock && <span style={{ fontSize: '10px', color: '#22c55e', marginLeft: 'auto' }}>✓</span>}
+              </label>
+              
               <label className={`option-checkbox-label-${theme}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
                   type="checkbox"

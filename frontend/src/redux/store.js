@@ -25,6 +25,7 @@ import { withdrawalReducer } from "./slices/withdrawalSlice";
 import { regionReducer } from './slices/regionSlice';
 import { profileV2Reducer } from './slices/profileV2Slice';
 import colisTrashReducer from './slices/colisTrashSlice';
+import { stockReducer } from './slices/stockSlice';
 
 const store = configureStore({
   reducer: {
@@ -53,7 +54,8 @@ const store = configureStore({
     transfer: transferReducer,
     withdrawal: withdrawalReducer,
     region: regionReducer,
-    colisTrash: colisTrashReducer
+    colisTrash: colisTrashReducer,
+    stock: stockReducer
   },
 });
 

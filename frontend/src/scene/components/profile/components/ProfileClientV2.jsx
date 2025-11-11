@@ -27,8 +27,10 @@ import {
   FaEdit,
   FaTrash,
   FaCheck,
-  FaChevronDown
+  FaChevronDown,
+  FaUnlock
 } from "react-icons/fa";
+import { BsBoxSeam } from "react-icons/bs";
 
 function ProfileClientV2({ theme }) {
   const dispatch = useDispatch();
@@ -965,6 +967,225 @@ function ProfileClientV2({ theme }) {
               Update Password
             </button>
           </form>
+        </section>
+
+        {/* Features Access Section - NEW */}
+        <section className="profile-section">
+          <h3>
+            <FaUnlock />
+            Mes Fonctionnalités
+          </h3>
+          <div style={{ padding: '16px 0' }}>
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ fontSize: 14, color: '#666', marginBottom: 12 }}>
+                Fonctionnalités activées pour votre compte:
+              </p>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '12px' }}>
+              {/* Stock Management */}
+              <div style={{ 
+                padding: '12px 16px',
+                background: client?.features_access?.stock_management ? '#f6ffed' : '#f5f5f5',
+                border: `2px solid ${client?.features_access?.stock_management ? '#52c41a' : '#d9d9d9'}`,
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <BsBoxSeam 
+                  size={24} 
+                  color={client?.features_access?.stock_management ? '#52c41a' : '#999'} 
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>
+                    Gestion de Stock
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    Gérer votre stock au siège
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  background: client?.features_access?.stock_management ? '#52c41a' : '#999',
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: 600
+                }}>
+                  {client?.features_access?.stock_management ? '✓ Activé' : '✗ Désactivé'}
+                </div>
+              </div>
+
+              {/* API Integration */}
+              <div style={{ 
+                padding: '12px 16px',
+                background: client?.features_access?.api_integration ? '#f6ffed' : '#f5f5f5',
+                border: `2px solid ${client?.features_access?.api_integration ? '#52c41a' : '#d9d9d9'}`,
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <FaKey 
+                  size={24} 
+                  color={client?.features_access?.api_integration ? '#52c41a' : '#999'} 
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>
+                    Intégration API
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    Accès aux API d'intégration
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  background: client?.features_access?.api_integration ? '#52c41a' : '#999',
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: 600
+                }}>
+                  {client?.features_access?.api_integration ? '✓ Activé' : '✗ Désactivé'}
+                </div>
+              </div>
+
+              {/* Advanced Reporting */}
+              <div style={{ 
+                padding: '12px 16px',
+                background: client?.features_access?.advanced_reporting ? '#f6ffed' : '#f5f5f5',
+                border: `2px solid ${client?.features_access?.advanced_reporting ? '#52c41a' : '#d9d9d9'}`,
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <FaChartBar 
+                  size={24} 
+                  color={client?.features_access?.advanced_reporting ? '#52c41a' : '#999'} 
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>
+                    Rapports Avancés
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    Analytics et statistiques avancées
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  background: client?.features_access?.advanced_reporting ? '#52c41a' : '#999',
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: 600
+                }}>
+                  {client?.features_access?.advanced_reporting ? '✓ Activé' : '✗ Désactivé'}
+                </div>
+              </div>
+
+              {/* Multi Store */}
+              <div style={{ 
+                padding: '12px 16px',
+                background: client?.features_access?.multi_store ? '#f6ffed' : '#f5f5f5',
+                border: `2px solid ${client?.features_access?.multi_store ? '#52c41a' : '#d9d9d9'}`,
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <FaStore 
+                  size={24} 
+                  color={client?.features_access?.multi_store ? '#52c41a' : '#999'} 
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>
+                    Multi-Magasins
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    Plusieurs magasins autorisés
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  background: client?.features_access?.multi_store ? '#52c41a' : '#999',
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: 600
+                }}>
+                  {client?.features_access?.multi_store ? '✓ Activé' : '✗ Désactivé'}
+                </div>
+              </div>
+
+              {/* Bulk Operations */}
+              <div style={{ 
+                padding: '12px 16px',
+                background: client?.features_access?.bulk_operations ? '#f6ffed' : '#f5f5f5',
+                border: `2px solid ${client?.features_access?.bulk_operations ? '#52c41a' : '#d9d9d9'}`,
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <FaPlus 
+                  size={24} 
+                  color={client?.features_access?.bulk_operations ? '#52c41a' : '#999'} 
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>
+                    Opérations en Masse
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    Import/Export en masse
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  background: client?.features_access?.bulk_operations ? '#52c41a' : '#999',
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: 600
+                }}>
+                  {client?.features_access?.bulk_operations ? '✓ Activé' : '✗ Désactivé'}
+                </div>
+              </div>
+            </div>
+
+            {/* Stock Configuration (if stock enabled) */}
+            {client?.features_access?.stock_management && client?.stock_config && (
+              <div style={{ marginTop: 24, padding: 16, background: '#e6f7ff', borderRadius: 8, border: '1px solid #91d5ff' }}>
+                <h4 style={{ margin: '0 0 12px 0', color: '#096dd9' }}>
+                  📦 Configuration Stock
+                </h4>
+                <div style={{ display: 'grid', gap: 8, fontSize: 13 }}>
+                  <div>
+                    <strong>Approbation Admin:</strong> {client.stock_config.require_admin_approval ? 'Requise' : 'Non requise'}
+                  </div>
+                  <div>
+                    <strong>Seuil d'Alerte:</strong> {client.stock_config.low_stock_alert_threshold || 10} unités
+                  </div>
+                  <div>
+                    <strong>Stock Négatif:</strong> {client.stock_config.allow_negative_stock ? 'Autorisé' : 'Non autorisé'}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ 
+              marginTop: 16, 
+              padding: 12, 
+              background: '#fff7e6', 
+              borderRadius: 8,
+              border: '1px solid #ffd591'
+            }}>
+              <small style={{ color: '#ad6800' }}>
+                💡 <strong>Note:</strong> Pour activer d'autres fonctionnalités, contactez l'administrateur.
+              </small>
+            </div>
+          </div>
         </section>
 
         {/* Statistics Section */}

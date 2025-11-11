@@ -58,6 +58,25 @@ const StoreSchema = new mongoose.Schema({
         type:Boolean,
         default:false
     },
+    
+    // ============ STOCK MANAGEMENT - NEW FIELDS ============
+    // Store-level feature access (can override client settings if needed)
+    features_access: {
+        stock_management: {
+            type: Boolean,
+            default: null, // null = inherit from client, true/false = override
+            description: "Access to stock management for this specific store"
+        }
+        // Can add more store-specific features here
+    },
+    
+    // Physical stock location identifier
+    stock_location: {
+        type: String,
+        default: "siege",
+        enum: ["siege", "warehouse_1", "warehouse_2", "warehouse_3", "external", "client_location"],
+        description: "Physical location where stock for this store is kept"
+    }
    
 }, { timestamps: true });
 

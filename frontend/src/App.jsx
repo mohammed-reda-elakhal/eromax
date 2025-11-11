@@ -89,6 +89,9 @@ import Contact from "./scene/components/home/pages/Contact";
 import ColisNouveau from "./scene/components/colis/pages/ColisNouveau";
 import ColisPourRamase2 from "./scene/components/colis/pages/ColisPourRamase2";
 import ColisPaginated from './scene/components/colis/pages/ColisPaginated';
+import StockManagementClient from './scene/components/stock/pages/StockManagementClient';
+import StockManagementAdmin from './scene/components/stock/pages/StockManagementAdmin';
+import StockDetail from './scene/components/stock/pages/StockDetail';
 
 function App() {
 
@@ -295,6 +298,17 @@ function App() {
             <Route path="ajouter-produit" element={<AjouterProduit />} />
             <Route path="ajouter-produit-colis" element={<ProduitColis search = {getColumnSearchProps}/>} />
             <Route path="colis-stock" element={<ColisStock />} />
+
+            {/* ============ STOCK MANAGEMENT ROUTES ============ */}
+            {/* Client Stock Routes */}
+            <Route path="mon-stock" element={<StockManagementClient />} />
+            <Route path="stock/:stockId" element={<StockDetail />} />
+            
+            {/* Admin Stock Routes */}
+            <Route path="stock/pending" element={<StockManagementAdmin />} />
+            <Route path="stock/all" element={<StockManagementAdmin />} />
+            <Route path="stock/alerts" element={<StockManagementAdmin />} />
+            <Route path="admin/stock/:stockId" element={<StockDetail />} />
 
             <Route path="Tools" element={<Tools />} />
             

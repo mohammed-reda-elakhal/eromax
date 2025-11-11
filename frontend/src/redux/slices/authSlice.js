@@ -37,6 +37,14 @@ const authSlice = createSlice({
         setOwnPasswordUpdated(state, action) { // New action
             state.passwordUpdated = action.payload;
         },
+        updateUserAccess(state, action) { // Update features_access in real-time
+            if (state.user) {
+                state.user.features_access = action.payload.features_access;
+                state.user.stock_config = action.payload.stock_config;
+                // Update localStorage too
+                localStorage.setItem("user", JSON.stringify(state.user));
+            }
+        },
     }
 });
 

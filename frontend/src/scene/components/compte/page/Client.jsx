@@ -4,6 +4,7 @@ import { ThemeContext } from '../../../ThemeContext';
 import { FaEye, FaKey, FaStore, FaPlus, FaBox, FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { GoVerified } from "react-icons/go";
+import { BsBoxSeam } from "react-icons/bs";
 import {
     Modal,
     Button,
@@ -37,6 +38,7 @@ import Topbar from '../../../global/Topbar';
 import Menubar from '../../../global/Menubar';
 import ClientFormAdd from '../components/ClientFormAdd';
 import ClientFormUpdate from '../components/ClientFormUpdate';
+import ClientStockAccessModal from '../components/ClientStockAccessModal';
 import styled from 'styled-components';
 
 const CustomTable = styled.div`
@@ -273,6 +275,7 @@ function Client() {
     const [selectedClient, setSelectedClient] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [stockAccessModal, setStockAccessModal] = useState({ visible: false, client: null });
 
     useEffect(() => {
         dispatch(getProfileList("client"));
@@ -407,6 +410,15 @@ function Client() {
         message.success('Client mis à jour avec succès');
     };
 
+    const handleManageStockAccess = (client) => {
+        setStockAccessModal({ visible: true, client });
+    };
+
+    const handleStockAccessSuccess = () => {
+        setStockAccessModal({ visible: false, client: null });
+        dispatch(getProfileList("client"));
+    };
+
 
 
     const filteredData = profileList?.filter(client => {
@@ -513,6 +525,7 @@ function Client() {
                                             <th>Profile</th>
                                             <th>Client</th>
                                             <th>Contact</th>
+                                            <th>Accès Stock</th>
                                             <th>Statut</th>
                                             <th>Actions</th>
                                         </tr>
@@ -520,13 +533,13 @@ function Client() {
                                     <tbody>
                                         {loading ? (
                                             <tr>
-                                                <td colSpan="8" style={{ textAlign: 'center', padding: '40px' }}>
+                                                <td colSpan="9" style={{ textAlign: 'center', padding: '40px' }}>
                                                     Chargement...
                                                 </td>
                                             </tr>
                                         ) : filteredData.length === 0 ? (
                                             <tr>
-                                                <td colSpan="8" style={{ textAlign: 'center', padding: '40px' }}>
+                                                <td colSpan="9" style={{ textAlign: 'center', padding: '40px' }}>
                                                     Aucun client trouvé
                                                 </td>
                                             </tr>
@@ -620,6 +633,28 @@ function Client() {
                                                         <div style={{ fontSize: '12px', color: '#718096' }}>
                                                             <EnvironmentOutlined style={{ marginRight: '6px' }} />
                                                             {client.adresse || 'Non renseigné'}
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                                            <Tooltip title={client.features_access?.stock_management ? "Gestion de stock activée" : "Gestion de stock désactivée"}>
+                                                                <StatusTag 
+                                                                    color={client.features_access?.stock_management ? 'green' : 'default'}
+                                                                    style={{ cursor: 'pointer' }}
+                                                                    onClick={() => handleManageStockAccess(client)}
+                                                                >
+                                                                    <BsBoxSeam style={{ marginRight: 4 }} />
+                                                                    {client.features_access?.stock_management ? 'Stock Actif' : 'Stock Inactif'}
+                                                                </StatusTag>
+                                                            </Tooltip>
+                                                            <Button
+                                                                size="small"
+                                                                type="link"
+                                                                onClick={() => handleManageStockAccess(client)}
+                                                                style={{ padding: 0, height: 'auto', fontSize: 11 }}
+                                                            >
+                                                                Gérer les accès
+                                                            </Button>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -928,6 +963,14 @@ function Client() {
                                 />
                             )}
                         </Drawer>
+
+                        {/* Stock Access Management Modal */}
+                        <ClientStockAccessModal
+                            visible={stockAccessModal.visible}
+                            client={stockAccessModal.client}
+                            onClose={() => setStockAccessModal({ visible: false, client: null })}
+                            onSuccess={handleStockAccessSuccess}
+                        />
                     </div>
                 </div>
             </main>
