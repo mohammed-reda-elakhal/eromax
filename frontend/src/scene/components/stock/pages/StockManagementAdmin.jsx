@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Card, Tabs, Row, Col, Statistic, Table, Tag, Button, Space, Modal, Form, Input, InputNumber, Badge } from 'antd';
+import { Card, Tabs, Row, Col, Statistic, Table, Tag, Button, Space, Modal, Form, Input, InputNumber, Badge, Select } from 'antd';
 import CreateStockFormAdmin from '../components/CreateStockFormAdmin';
 import { 
     InboxOutlined, 
@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThemeContext } from '../../../ThemeContext';
 import Menubar from '../../../global/Menubar';
 import Topbar from '../../../global/Topbar';
-import { getAllStocksAdmin, adjustStockQuantity, getLowStockAlerts } from '../../../../redux/apiCalls/stockApiCalls';
+import { getAllStocksAdmin, adjustStockQuantity, getLowStockAlerts, setStockStatus, updateStockInfoAdmin } from '../../../../redux/apiCalls/stockApiCalls';
 import PendingStocksTable from '../components/PendingStocksTable';
 import moment from 'moment';
 import '../stock.css';
@@ -27,7 +27,9 @@ const StockManagementAdmin = () => {
     const [adjustModal, setAdjustModal] = useState({ visible: false, stock: null });
     const [adjustForm] = Form.useForm();
     const [page, setPage] = useState(1);
-    const [filters, setFilters] = useState({ status: 'active' });
+    const [filters, setFilters] = useState({ status: 'all', search: '' });
+    const [editModal, setEditModal] = useState({ visible: false, stock: null });
+    const [editForm] = Form.useForm();
 
     useEffect(() => {
         loadAllStocks();
@@ -35,7 +37,14 @@ const StockManagementAdmin = () => {
     }, [page, filters]);
 
     const loadAllStocks = () => {
-        dispatch(getAllStocksAdmin({ ...filters, page, limit: 20 }));
+        const params = { ...filters, page, limit: 20 };
+        if (params.status === 'all') {
+            delete params.status;
+        }
+        if (!params.search) {
+            delete params.search;
+        }
+        dispatch(getAllStocksAdmin(params));
     };
 
     const loadAlerts = () => {
@@ -116,6 +125,8 @@ const StockManagementAdmin = () => {
                 const colors = {
                     pending: 'orange',
                     active: 'green',
+                    inactive: 'default',
+                    rejected: 'red',
                     depleted: 'red'
                 };
                 return <Tag color={colors[status]}>{status}</Tag>;
@@ -124,7 +135,7 @@ const StockManagementAdmin = () => {
         {
             title: 'Actions',
             key: 'actions',
-            width: 120,
+            width: 220,
             render: (_, record) => (
                 <Space>
                     <Button
@@ -134,10 +145,48 @@ const StockManagementAdmin = () => {
                     >
                         Ajuster
                     </Button>
+                    <Button
+                        size="small"
+                        onClick={() => toggleStatus(record)}
+                    >
+                        {record.status === 'active' ? 'Désactiver' : 'Activer'}
+                    </Button>
+                    <Button
+                        size="small"
+                        onClick={() => openEdit(record)}
+                    >
+                        Modifier
+                    </Button>
                 </Space>
             )
         }
     ];
+
+    const toggleStatus = async (stock) => {
+        const nextStatus = stock.status === 'active' ? 'inactive' : 'active';
+        await dispatch(setStockStatus(stock._id, nextStatus));
+        loadAllStocks();
+    };
+
+    const openEdit = (stock) => {
+        setEditModal({ visible: true, stock });
+        editForm.setFieldsValue({
+            productName: stock.productName,
+            sku: stock.sku,
+            unitPrice: stock.unitPrice,
+            quantite_minimum: stock.quantite_minimum,
+            location: stock.location,
+            status: stock.status
+        });
+    };
+
+    const submitEdit = async (values) => {
+        if (!editModal.stock) return;
+        await dispatch(updateStockInfoAdmin(editModal.stock._id, values));
+        setEditModal({ visible: false, stock: null });
+        editForm.resetFields();
+        loadAllStocks();
+    };
 
     return (
         <div className='page-dashboard'>
@@ -239,19 +288,41 @@ const StockManagementAdmin = () => {
                                 </span>
                             ),
                             children: (
-                                <Table
-                                    columns={allStocksColumns}
-                                    dataSource={allStocks.data}
-                                    rowKey="_id"
-                                    loading={loading}
-                                    scroll={{ x: 1200 }}
-                                    pagination={{
-                                        current: allStocks.pagination?.page || 1,
-                                        total: allStocks.pagination?.total || 0,
-                                        onChange: (page) => setPage(page),
-                                        showTotal: (total) => `Total ${total} stocks`
-                                    }}
-                                />
+                                <div>
+                                    <Space style={{ marginBottom: 16 }} wrap>
+                                        <Select
+                                            value={filters.status}
+                                            onChange={(value) => { setFilters({ ...filters, status: value }); setPage(1); }}
+                                            options={[
+                                                { value: 'all', label: 'Tous les statuts' },
+                                                { value: 'pending', label: 'En attente' },
+                                                { value: 'active', label: 'Actif' },
+                                                { value: 'inactive', label: 'Inactif' },
+                                                { value: 'depleted', label: 'Épuisé' }
+                                            ]}
+                                            style={{ width: 200 }}
+                                        />
+                                        <Input.Search
+                                            placeholder="Rechercher par SKU ou produit"
+                                            allowClear
+                                            onSearch={(val) => { setFilters({ ...filters, search: val }); setPage(1); }}
+                                            style={{ width: 320 }}
+                                        />
+                                    </Space>
+                                    <Table
+                                        columns={allStocksColumns}
+                                        dataSource={allStocks.data}
+                                        rowKey="_id"
+                                        loading={loading}
+                                        scroll={{ x: 1200 }}
+                                        pagination={{
+                                            current: allStocks.pagination?.page || 1,
+                                            total: allStocks.pagination?.total || 0,
+                                            onChange: (page) => setPage(page),
+                                            showTotal: (total) => `Total ${total} stocks`
+                                        }}
+                                    />
+                                </div>
                             )
                         },
                         {
@@ -388,6 +459,45 @@ const StockManagementAdmin = () => {
                             <Button type="primary" htmlType="submit">
                                 Ajuster le Stock
                             </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Edit Stock Modal */}
+            <Modal
+                title={`Modifier le Stock: ${editModal.stock?.sku}`}
+                open={editModal.visible}
+                onCancel={() => { setEditModal({ visible: false, stock: null }); editForm.resetFields(); }}
+                footer={null}
+            >
+                <Form form={editForm} layout="vertical" onFinish={submitEdit}>
+                    <Form.Item label="Nom du produit" name="productName" rules={[{ required: true, message: 'Nom requis' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="SKU" name="sku" rules={[{ required: true, message: 'SKU requis' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Prix unitaire" name="unitPrice" rules={[{ required: true, message: 'Prix requis' }]}>
+                        <InputNumber style={{ width: '100%' }} min={0} />
+                    </Form.Item>
+                    <Form.Item label="Quantité minimum" name="quantite_minimum">
+                        <InputNumber style={{ width: '100%' }} min={0} />
+                    </Form.Item>
+                    <Form.Item label="Emplacement" name="location">
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Statut" name="status">
+                        <Select options={[
+                            { value: 'active', label: 'Actif' },
+                            { value: 'inactive', label: 'Inactif' },
+                            { value: 'depleted', label: 'Épuisé' }
+                        ]} />
+                    </Form.Item>
+                    <Form.Item>
+                        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+                            <Button onClick={() => { setEditModal({ visible: false, stock: null }); editForm.resetFields(); }}>Annuler</Button>
+                            <Button type="primary" htmlType="submit">Enregistrer</Button>
                         </Space>
                     </Form.Item>
                 </Form>

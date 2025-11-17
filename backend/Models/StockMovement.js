@@ -43,6 +43,7 @@ const StockMovementSchema = new mongoose.Schema({
             'RETURN',           // Stock returned from colis
             'CONFIRMED',        // Admin confirmed pending stock
             'REJECTED',         // Admin rejected pending stock
+            'STATUS_CHANGE',    // Admin changed stock status
             'TRANSFER',         // Transfer between locations/stores
             'DAMAGED',          // Marked as damaged/defective
             'EXPIRED',          // Marked as expired

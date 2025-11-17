@@ -255,11 +255,28 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
         team: req.user?.id || null,
         code_suivi,
         livreur: null,
+        is_simple: req.body.is_simple,
+        produits: Array.isArray(req.body.produits) ? req.body.produits : []
       };
 
       // Generate code_remplacer if is_remplace is true
       if (req.body.is_remplace && req.body.is_remplace === true) {
         colisData.code_remplacer = `${code_suivi}-Change`;
+      }
+
+      // STOCK VALIDATION if using stock
+      const usesStock = colisData.is_simple === false &&
+                        colisData.produits &&
+                        colisData.produits.some(p => p.usesStock === true);
+
+      if (usesStock) {
+        const stockValidation = await validateStockAvailability(colisData.produits);
+        if (!stockValidation.isValid) {
+          const errorDetails = stockValidation.errors.map(e => 
+            `${e.productName || e.sku || e.stockId}: ${e.error}${e.available !== undefined ? ` (Available: ${e.available}, Requested: ${e.requested})` : ''}`
+          ).join('; ');
+          throw new Error(`Stock insuffisant: ${errorDetails}`);
+        }
       }
 
       // Create Colis
@@ -270,6 +287,25 @@ module.exports.CreateColisAdmin = asyncHandler(async (req, res) => {
       await saveColis.populate('store');
       await saveColis.populate('team');
       await saveColis.populate('ville');
+
+      // Reserve stock (if using stock)
+      if (usesStock) {
+        try {
+          const updatedProduits = await reserveStockForColis(
+            saveColis.produits,
+            saveColis._id,
+            saveColis.code_suivi,
+            req.user.id,
+            req.user.role,
+            session
+          );
+          saveColis.produits = updatedProduits;
+          await saveColis.save({ session });
+        } catch (stockError) {
+          console.error('Stock reservation error (admin):', stockError);
+          throw new Error(`Erreur de réservation de stock: ${stockError.message}`);
+        }
+      }
 
       // Create NoteColis
       const newNoteColis = new NoteColis({ colis: saveColis._id });

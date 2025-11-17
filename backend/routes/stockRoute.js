@@ -22,7 +22,9 @@ const {
     deleteStock,
     getStockMovements,
     getLowStockAlerts,
-    updateClientStockAccess
+    updateClientStockAccess,
+    updateStockInfoAdmin,
+    setStockStatusAdmin
 } = require("../Controllers/stockController");
 
 // Import middleware
@@ -153,6 +155,22 @@ router.post(
     verifyToken, 
     adminOnly, 
     createStockAdmin
+);
+
+// Update stock info (admin)
+router.put(
+    "/admin/:stockId/info",
+    verifyToken,
+    adminOnly,
+    updateStockInfoAdmin
+);
+
+// Set stock status (admin)
+router.put(
+    "/admin/:stockId/status",
+    verifyToken,
+    adminOnly,
+    setStockStatusAdmin
 );
 
 // Delete stock (soft delete)

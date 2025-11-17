@@ -83,7 +83,8 @@ const StockDetail = () => {
             RESERVED: '🔒',
             RELEASED: '🔓',
             RETURN: '↩️',
-            ADJUSTMENT: '⚙️'
+            ADJUSTMENT: '⚙️',
+            STATUS_CHANGE: '🔁'
         };
         return icons[type] || '•';
     };

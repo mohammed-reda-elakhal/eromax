@@ -1,6 +1,6 @@
 // src/scene/components/scan/components/ScanRecherche.jsx
 
-import React, { useContext, useState, useRef } from 'react';
+import React, { useContext, useState, useRef, useEffect } from 'react';
 import { ThemeContext } from '../../../ThemeContext';
 import './ScanRecherche.css';
 import Menubar from '../../../global/Menubar';
@@ -31,7 +31,7 @@ import {
 import { CiBarcode } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
 import { getColisByCodeSuivi, updateStatut } from '../../../../redux/apiCalls/colisApiCalls';
-import TrackingColis from '../../../global/TrackingColis '; // Corrected import path
+import TrackingColis from '../../../global/TrackingColis ';
 import { Si1001Tracklists } from 'react-icons/si';
 import moment from 'moment';
 import { useZxing } from 'react-zxing';

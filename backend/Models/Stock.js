@@ -452,6 +452,36 @@ function validateStockUpdate(obj) {
 module.exports = {
     Stock,
     validateStock,
-    validateStockUpdate
+    validateStockUpdate,
+    validateStockAdminUpdate: function(obj) {
+        const schema = Joi.object({
+            productName: Joi.string().trim().max(255),
+            productDescription: Joi.string().trim().max(1000).allow(''),
+            hasVariants: Joi.boolean(),
+            variantId: Joi.string().allow(null),
+            variantName: Joi.string().trim().max(100).allow(null),
+            sku: Joi.string().trim().uppercase().max(50),
+            quantite_minimum: Joi.number().min(0),
+            unitCost: Joi.number().min(0),
+            unitPrice: Joi.number().min(0),
+            currency: Joi.string().max(10),
+            location: Joi.string().trim().max(100).allow('', null),
+            zone: Joi.string().trim().max(50).allow('', null),
+            dimensions: Joi.object({
+                length: Joi.number().min(0).allow(null),
+                width: Joi.number().min(0).allow(null),
+                height: Joi.number().min(0).allow(null),
+                unit: Joi.string().valid('cm', 'm', 'mm', 'in')
+            }),
+            weight: Joi.object({
+                value: Joi.number().min(0).allow(null),
+                unit: Joi.string().valid('kg', 'g', 'mg', 'lb')
+            }),
+            category: Joi.string().trim().max(100).allow('', null),
+            tags: Joi.array().items(Joi.string().trim().max(50)),
+            status: Joi.string().valid('active', 'inactive', 'depleted')
+        });
+        return schema.validate(obj);
+    }
 };
 

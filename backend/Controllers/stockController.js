@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const mongoose = require("mongoose");
-const { Stock, validateStock, validateStockUpdate } = require("../Models/Stock");
+const { Stock, validateStock, validateStockUpdate, validateStockAdminUpdate } = require("../Models/Stock");
 const { StockMovement } = require("../Models/StockMovement");
 const { StockAlert } = require("../Models/StockAlert");
 const { Client } = require("../Models/Client");
@@ -1174,6 +1174,111 @@ const createStockAdmin = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Update stock information (Admin)
+ * @route   PUT /api/stock/admin/:stockId/info
+ * @access  Private (Admin only)
+ */
+const updateStockInfoAdmin = asyncHandler(async (req, res) => {
+    try {
+        const { error } = validateStockAdminUpdate(req.body);
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        const stock = await Stock.findById(req.params.stockId);
+        if (!stock || stock.isDeleted) {
+            return res.status(404).json({ message: 'Stock not found' });
+        }
+
+        // Handle SKU change with uniqueness check per client
+        if (req.body.sku && req.body.sku.toUpperCase() !== stock.sku) {
+            const existing = await Stock.findOne({
+                clientId: stock.clientId,
+                sku: req.body.sku.toUpperCase(),
+                isDeleted: false
+            });
+            if (existing) {
+                return res.status(400).json({ message: `SKU "${req.body.sku}" already exists for this client` });
+            }
+            stock.sku = req.body.sku.toUpperCase();
+        }
+
+        const fields = [
+            'productName','productDescription','hasVariants','variantId','variantName',
+            'quantite_minimum','unitCost','unitPrice','currency','location','zone',
+            'dimensions','weight','category','tags'
+        ];
+        fields.forEach(f => { if (req.body[f] !== undefined) stock[f] = req.body[f]; });
+
+        // Admin can set status to inactive/active/depleted explicitly
+        if (req.body.status) {
+            stock.status = req.body.status;
+        }
+
+        stock.updatedBy = req.user.id;
+        stock.updatedByModel = 'Admin';
+
+        await stock.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Stock updated successfully',
+            stock
+        });
+    } catch (error) {
+        console.error('Error updating stock (admin):', error);
+        res.status(500).json({ success: false, message: 'Error updating stock', error: error.message });
+    }
+});
+
+/**
+ * @desc    Set stock status (Admin)
+ * @route   PUT /api/stock/admin/:stockId/status
+ * @access  Private (Admin only)
+ */
+const setStockStatusAdmin = asyncHandler(async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!['active','inactive','depleted'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        const stock = await Stock.findById(req.params.stockId);
+        if (!stock || stock.isDeleted) {
+            return res.status(404).json({ message: 'Stock not found' });
+        }
+
+        const prevStatus = stock.status;
+        stock.status = status;
+        stock.updatedBy = req.user.id;
+        stock.updatedByModel = 'Admin';
+        await stock.save();
+
+        // Log movement for audit trail
+        const movement = new StockMovement({
+            stockId: stock._id,
+            clientId: stock.clientId,
+            storeId: stock.storeId,
+            type: 'STATUS_CHANGE',
+            quantity: 0,
+            quantityBefore: stock.quantite_disponible,
+            quantityAfter: stock.quantite_disponible,
+            reason: `Status changed from ${prevStatus} to ${status}`,
+            performedBy: req.user.id,
+            performedByModel: 'Admin',
+            performedByRole: 'admin',
+            performedByName: `${req.user.nom || ''} ${req.user.prenom || ''}`.trim()
+        });
+        await movement.save();
+
+        res.status(200).json({ success: true, message: 'Status updated', stock });
+    } catch (error) {
+        console.error('Error setting stock status (admin):', error);
+        res.status(500).json({ success: false, message: 'Error setting stock status', error: error.message });
+    }
+});
+
+/**
  * @desc    Delete stock (Admin - soft delete)
  * @route   DELETE /api/stock/admin/:stockId
  * @access  Private (Admin only)
@@ -1408,6 +1513,8 @@ module.exports = {
     deleteStock,
     getStockMovements,
     getLowStockAlerts,
-    updateClientStockAccess
+    updateClientStockAccess,
+    updateStockInfoAdmin,
+    setStockStatusAdmin
 };
 

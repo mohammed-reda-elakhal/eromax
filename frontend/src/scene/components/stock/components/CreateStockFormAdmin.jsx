@@ -3,7 +3,7 @@ import { Form, Input, InputNumber, Select, Button, Spin, Alert } from 'antd';
 import { ShopOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { createStock } from '../../../../redux/apiCalls/stockApiCalls';
+import { createStockAdmin } from '../../../../redux/apiCalls/stockApiCalls';
 import { getStoreList } from '../../../../redux/apiCalls/storeApiCalls';
 
 const { TextArea } = Input;
@@ -56,7 +56,7 @@ const CreateStockFormAdmin = ({ onSuccess }) => {
 
             console.log('[Create Stock Admin] Final stock data:', stockData);
 
-            await dispatch(createStock(stockData));
+            await dispatch(createStockAdmin(stockData));
             form.resetFields();
             setSelectedStore(null);
             onSuccess && onSuccess();

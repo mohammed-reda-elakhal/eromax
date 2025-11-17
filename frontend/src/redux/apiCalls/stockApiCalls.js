@@ -228,6 +228,39 @@ export function adjustStockQuantity(stockId, adjustmentData) {
     };
 }
 
+// Update stock info (admin)
+export function updateStockInfoAdmin(stockId, updateData) {
+    return async (dispatch) => {
+        try {
+            dispatch(stockActions.setLoading(true));
+            const { data } = await request.put(`/api/stock/admin/${stockId}/info`, updateData);
+            dispatch(stockActions.setLoading(false));
+            toast.success("Stock mis à jour avec succès");
+            return data;
+        } catch (error) {
+            dispatch(stockActions.setLoading(false));
+            toast.error(error?.response?.data?.message || "Erreur lors de la mise à jour du stock");
+            throw error;
+        }
+    };
+}
+
+// Set stock status (admin)
+export function setStockStatus(stockId, status) {
+    return async (dispatch) => {
+        try {
+            dispatch(stockActions.setLoading(true));
+            const { data } = await request.put(`/api/stock/admin/${stockId}/status`, { status });
+            dispatch(stockActions.setLoading(false));
+            toast.success("Statut mis à jour");
+            return data;
+        } catch (error) {
+            dispatch(stockActions.setLoading(false));
+            toast.error(error?.response?.data?.message || "Erreur lors de la mise à jour du statut");
+            throw error;
+        }
+    };
+}
 // Create stock for client (admin)
 export function createStockAdmin(stockData) {
     return async (dispatch) => {
