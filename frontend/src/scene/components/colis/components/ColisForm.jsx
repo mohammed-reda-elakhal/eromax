@@ -287,7 +287,11 @@ function ColisForm({ type }) {
                       placeholder="Ex: 250.00"
                       type="number"
                       value={formData.prix}
-                      onChange={e => handleInputChange('prix', e.target.value)}
+                      onChange={e => {
+                        const v = e.target.value || '';
+                        const sanitized = v.replace(/,/g, '').replace(/[^\d.]/g, '').replace(/(\..*?)\..*/, '$1');
+                        handleInputChange('prix', sanitized);
+                      }}
                       className={`ant-input`}
                       required
                       min={0}

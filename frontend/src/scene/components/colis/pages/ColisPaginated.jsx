@@ -136,6 +136,13 @@ function ColisPaginated() {
   const {user } = useSelector(state => ({
     user: state.auth.user
   }));
+  // Role flags used for role-based filter restrictions
+  // - Clients and Livreurs must NOT see or use store/livreur filters
+  // - Admin (and other privileged roles) keep full access
+  const isClient = user?.role === 'client';
+  const isLivreur = user?.role === 'livreur';
+  const canUseStoreFilter = !(isClient || isLivreur);
+  const canUseLivreurFilter = !(isClient || isLivreur);
   const { colisPaginatedList } = useSelector(state => state.colis);
   const statistics = colisPaginatedList.statistics || {};
   const mainStatusOrder = [
@@ -216,6 +223,13 @@ const handleBatchStatusUpdate = async () => {
     const selectedColis = (colisPaginatedList.data || []).filter(
       colis => selectedRowIds.includes(colis._id)
     );
+    // Block batch status changes on final statuses unless SUPER admin
+    const hasRestricted = selectedColis.some(c => restrictedFinalStatuses.includes(c.statut));
+    if (hasRestricted && !isAdminSuper) {
+      message.error("Modification de statut interdite pour Livrée/Annulée/Refusée (réservé à l'admin super)");
+      setUpdatingStatus(false);
+      return;
+    }
     
     const colisCodes = selectedColis.map(colis => colis.code_suivi);
 
@@ -480,16 +494,23 @@ const handleBatchStatusUpdate = async () => {
   }, [dispatch]);
 
   useEffect(() => {
+    // Build query params with role-based restrictions
+    // Clients/Livreurs: hide and do not send store/livreur filters
+    // Admin/privileged: allow store/livreur filters
     const params = {
       page: currentPage,
       limit: pageSize,
       ville: appliedFilters.ville || undefined,
-      store: appliedFilters.store || undefined,
-      livreur: appliedFilters.livreur || undefined,
       statut: appliedFilters.statut || undefined,
       code_suivi: appliedFilters.code_suivi || undefined,
       tele: appliedFilters.tele || undefined,
     };
+    if (canUseStoreFilter) {
+      params.store = appliedFilters.store || undefined;
+    }
+    if (canUseLivreurFilter) {
+      params.livreur = appliedFilters.livreur || undefined;
+    }
     if (appliedFilters.dateRange && appliedFilters.dateRange[0] && appliedFilters.dateRange[1]) {
       params.dateFrom = moment(appliedFilters.dateRange[0]).startOf('day').toISOString();
       params.dateTo = moment(appliedFilters.dateRange[1]).endOf('day').toISOString();
@@ -520,7 +541,10 @@ const handleBatchStatusUpdate = async () => {
   };
 
   const handleReset = () => {
-    const emptyFilters = { ville: '', store: '', livreur: '', statut: '', dateRange: ['', ''], code_suivi: '', tele: '' };
+    // Reset filters; respect role-based restrictions by clearing hidden filters
+    const emptyFilters = { ville: '', statut: '', dateRange: ['', ''], code_suivi: '', tele: '' };
+    if (canUseStoreFilter) emptyFilters.store = '';
+    if (canUseLivreurFilter) emptyFilters.livreur = '';
     setFilters(emptyFilters);
     setAppliedFilters(emptyFilters);
     setCurrentPage(1);
@@ -1842,7 +1866,8 @@ const handleBatchStatusUpdate = async () => {
                     }}
                   />
                 </div>
-                {/* Store */}
+                {/* Store (visible only for admin/privileged roles) */}
+                {canUseStoreFilter && (
                 <div className="filter-bar-field">
                   <Select
                     classNamePrefix="filter-bar-select"
@@ -1886,7 +1911,10 @@ const handleBatchStatusUpdate = async () => {
                     }}
                   />
                 </div>
+                )}
                 {/* Livreur */}
+                {/* Visible only for admin/privileged roles */}
+                {canUseLivreurFilter && (
                 <div className="filter-bar-field">
                   <Select
                     classNamePrefix="filter-bar-select"
@@ -1930,6 +1958,7 @@ const handleBatchStatusUpdate = async () => {
                     }}
                   />
                 </div>
+                )}
                 {/* Statut */}
                 <div className="filter-bar-field">
                   <Select
@@ -3416,4 +3445,4 @@ const handleBatchStatusUpdate = async () => {
   );
 }
 
-export default ColisPaginated; 
+export default ColisPaginated;
