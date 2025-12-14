@@ -164,6 +164,25 @@ const styles = StyleSheet.create({
     maxWidth: 70,
   },
 
+  // Smaller product value styling for compact display
+  labelProduct: {
+    fontSize: 6,
+    color: '#000',
+    fontWeight: 'bold',
+    minWidth: 22,
+    maxWidth: 22,
+    textAlign: 'left',
+  },
+  valueProduct: {
+    fontSize: 5.5,
+    color: '#000',
+    fontWeight: 'normal',
+    flex: 1,
+    textAlign: 'left',
+    maxWidth: 60,
+    lineHeight: 1,
+  },
+
   // Triple combined row for three attributes
   infoRowTriple: {
     flexDirection: 'row',
@@ -304,6 +323,136 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    borderBottom: '1px solid #000',
+    paddingBottom: 4,
+    marginBottom: 4,
+  },
+  headerLeft: {
+    flexDirection: 'column',
+    gap: 2,
+    flex: 1,
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  fieldLabel: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    minWidth: 62,
+  },
+  fieldValue: {
+    fontSize: 7,
+    flex: 1,
+  },
+  boolRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  boolGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  boolLabel: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    marginRight: 3,
+  },
+  boolValue: {
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  headerRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  brandLogo: {
+    width: 42,
+    height: 18,
+    objectFit: 'contain',
+  },
+  crbt: {
+    borderTop: '1px solid #000',
+    borderBottom: '1px solid #000',
+    paddingVertical: 3,
+    marginBottom: 4,
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  barcodeBox: {
+    borderTop: '1px solid #000',
+    borderBottom: '1px solid #000',
+    paddingVertical: 4,
+    marginBottom: 4,
+    alignItems: 'center',
+    gap: 4,
+  },
+  codeSuiviText: {
+    fontSize: 8,
+  },
+  proHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottom: '1px solid #000',
+    paddingBottom: 6,
+    marginBottom: 6,
+  },
+  brandLogoLarge: {
+    width: 80,
+    height: 30,
+    objectFit: 'contain',
+  },
+  suiviCode: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  bodySection: {
+    paddingVertical: 3,
+    marginBottom: 6,
+    gap: 2,
+  },
+  bodyColumns: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  bodyLeft: {
+    flex: 1,
+    gap: 2,
+  },
+  qrBody: {
+    width: 90,
+    height: 90,
+    border: '1px solid #000',
+    backgroundColor: '#fff',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTop: '1px solid #000',
+  },
+  barcodeLarge: {
+    width: 120,
+    height: 50,
+    border: '1px solid #000',
+    backgroundColor: '#fff',
+  },
+  qrLarge: {
+    width: 50,
+    height: 50,
+    border: '1px solid #000',
+    backgroundColor: '#fff',
+  },
 });
 
 const generateBarcode = (text) => {
@@ -319,9 +468,9 @@ const generateBarcode = (text) => {
     JsBarcode(canvas, text, { 
       format: 'CODE128',
       width: 2,
-      height: 40,
-      displayValue: false,  // Hide text below barcode for compact design
-      margin: 10,
+      height: 120,
+      displayValue: false,
+      margin: 14,
       fontSize: 12,
       textMargin: 2,
       background: '#ffffff',
@@ -362,8 +511,8 @@ const useColisCodes = (colisList) => {
           
           // Generate QR code
           const qr = await QRCode.toDataURL(colis.code_suivi, { 
-            width: 300, 
-            margin: 1,
+            width: 800, 
+            margin: 14,
             errorCorrectionLevel: 'M',
             type: 'image/png'
           });
@@ -416,118 +565,65 @@ const TicketPDF = ({ colisList, codes }) => (
   <Document>
     {colisList.map((colis, idx) => (
       <Page key={colis.code_suivi || idx} size={{ width: 283.46, height: 283.46 }} style={styles.page}>
+        <View style={styles.proHeader}>
+          <Image src="/image/lg.jpg" style={styles.brandLogoLarge} />
+          <Text style={styles.suiviCode}>{colis?.code_suivi || ''}</Text>
+        </View>
 
-        {/* Header Section with Logo and Tracking Code */}
-        <View style={styles.headerSection}>
-          <View style={styles.logoBox}>
-            <View style={styles.logoBrand}>
-              <Image src="/image/logo_10.jpg" style={styles.logo} />
-            </View>
-            <Text style={styles.codeSuiviHeader}>
-              {colis?.villeData?.nom || colis?.ville?.nom || ''}
-              {colis?.createdAt && (
-                <Text style={styles.dateInline}>
-                  {' • '}
-                  {new Date(colis.createdAt).toLocaleDateString('fr-FR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+        <View style={styles.bodySection}>
+          <View style={styles.bodyColumns}>
+            <View style={styles.bodyLeft}>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Nom complet:</Text>
+                <Text style={styles.fieldValue}>{truncateText(colis?.nom || '', 22)}</Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Téléphone:</Text>
+                <Text style={styles.fieldValue}>{colis?.tele || ''}</Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Adresse:</Text>
+                <Text style={styles.fieldValue}>{truncateText(colis?.adresse || '', 38)}</Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Produit:</Text>
+                <Text style={styles.fieldValue}>{truncateText(colis?.nature_produit || '', 24)}</Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Ville:</Text>
+                <Text style={styles.fieldValue}>{truncateText(colis?.villeData?.nom || colis?.ville?.nom || '', 20)}</Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Date d'envoi:</Text>
+                <Text style={styles.fieldValue}>
+                  {colis?.createdAt ? new Date(colis.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
                 </Text>
-              )}
-            </Text>
+              </View>
+              <View style={styles.boolRow}>
+                <View style={styles.boolGroup}>
+                  <Text style={styles.boolLabel}>Ouvrir:</Text>
+                  <Text style={styles.boolValue}>{getBooleanText(colis?.ouvrir)}</Text>
+                </View>
+                <View style={styles.boolGroup}>
+                  <Text style={styles.boolLabel}>Remplacer:</Text>
+                  <Text style={styles.boolValue}>{getBooleanText(colis?.is_remplace)}</Text>
+                </View>
+                <View style={styles.boolGroup}>
+                  <Text style={styles.boolLabel}>Fragile:</Text>
+                  <Text style={styles.boolValue}>{getBooleanText(colis?.is_fragile)}</Text>
+                </View>
+              </View>
+            </View>
+            {codes[idx]?.qr && <Image src={codes[idx].qr} style={styles.qrBody} />}
           </View>
         </View>
 
-        {/* Compact Tracking Code Section */}
-        <View style={styles.codeSuiviSection}>
-          <Text style={styles.codeSuivi}>{colis?.code_suivi || ''}</Text>
-        </View>
+        
 
-        {/* Optimized Main Information Section */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoGrid}>
-            {/* Combined Row: Name and Phone */}
-            <View style={styles.infoRowCombined}>
-              <View style={styles.infoRowLeft}>
-                <Text style={styles.labelCombined}>Nom:</Text>
-                <Text style={styles.valueCombined}>{truncateText(colis?.nom || '', 15)}</Text>
-              </View>
-              <View style={styles.infoRowRight}>
-                <Text style={styles.labelCombined}>Tél:</Text>
-                <Text style={styles.valueCombined}>{colis?.tele || ''}</Text>
-              </View>
-            </View>
+        <Text style={styles.crbt}>CRBT: {colis?.prix || 0} DH</Text>
 
-            {/* Combined Row: City and Region */}
-            <View style={styles.infoRowCombined}>
-              <View style={styles.infoRowLeft}>
-                <Text style={styles.labelCombined}>Prix:</Text>
-                <Text style={styles.valueCombined}>{colis?.prix || ''} DH</Text>
-              </View>
-              <View style={styles.infoRowRight}>
-                <Text style={styles.labelCombined}>Ville:</Text>
-                <Text style={styles.valueCombined}>{truncateText(colis?.villeData?.nom || colis?.ville?.nom || '', 12)}</Text>
-              </View>
-            </View>
-
-            {/* Combined Row: Price and Product Nature */}
-            <View style={styles.infoRowCombined}>
-              <View style={styles.infoRowRight}>
-                <Text style={styles.labelCombined}>Produit:</Text>
-                <Text style={styles.valueCombined}>{colis?.nature_produit}</Text>
-              </View>
-            </View>
-
-            {/* Address - Single row (as requested) */}
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Adresse:</Text>
-              <Text style={styles.addressValue}>{truncateText(colis?.adresse || '', 30)}</Text>
-            </View>
-
-            {/* Triple Combined Row: Ouvert, Remplacer, Fragile with OUI/NON */}
-            <View style={styles.infoRowTriple}>
-              <View style={styles.infoRowSection}>
-                <Text style={styles.labelTriple}>Ouvert:</Text>
-                <Text style={styles.checkbox}>{getBooleanText(colis?.ouvrir)}</Text>
-              </View>
-              <View style={styles.infoRowSection}>
-                <Text style={styles.labelTriple}>Remplacer:</Text>
-                <Text style={styles.checkbox}>{getBooleanText(colis?.is_remplace)}</Text>
-              </View>
-              <View style={styles.infoRowSection}>
-                <Text style={styles.labelTriple}>Fragile:</Text>
-                <Text style={styles.checkbox}>{getBooleanText(colis?.is_fragile)}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        {/* Compact Store/Sender Information Section */}
-        <View style={styles.storeSection}>
-          <Text style={styles.storeTitle}>EXPÉDITEUR</Text>
-          <View style={styles.storeRow}>
-            <Text style={styles.storeValue}>
-              {truncateText(colis?.storeData?.storeName || colis?.store?.storeName || 'N/A', 18)}
-            </Text>
-            <Text style={styles.storeValue}>
-              {colis?.storeData?.tele || colis?.store?.tele || 'N/A'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Compact QR Code and Barcode Section */}
-        <View style={styles.codesSection}>
-          <View style={styles.codesRow}>
-            {codes[idx]?.qr && <Image src={codes[idx].qr} style={styles.qr} />}
-            {codes[idx]?.barcode && <Image src={codes[idx].barcode} style={styles.barcode} />}
-          </View>
-        </View>
-
-        {/* Compact Footer */}
-        <View style={styles.footer}>
-          <Text> مسؤولة فقط عن التوصيل</Text>
+        <View style={styles.footerRow}>
+          {codes[idx]?.barcode && <Image src={codes[idx].barcode} style={styles.barcodeLarge} />}
         </View>
       </Page>
     ))}
