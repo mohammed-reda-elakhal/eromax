@@ -342,12 +342,24 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   fieldLabel: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 'bold',
     minWidth: 62,
   },
   fieldValue: {
-    fontSize: 7,
+    fontSize: 8,
+    flex: 1,
+  },
+  fieldValueStrong: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  valueUnderlineStrong: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textDecoration: 'underline',
+    paddingBottom: 1,
     flex: 1,
   },
   boolRow: {
@@ -367,6 +379,36 @@ const styles = StyleSheet.create({
   boolValue: {
     fontSize: 9,
     fontWeight: 'bold',
+  },
+  boolSection: {
+    alignItems: 'center',
+    borderTop: '1px solid #000',
+    borderBottom: '1px solid #000',
+    paddingVertical: 3,
+    marginTop: 4,
+  },
+  boolCenterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  checkboxBox: {
+    width: 10,
+    height: 10,
+    border: '1px solid #000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxMark: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    lineHeight: 1,
+  },
+  checkboxFill: {
+    width: 6,
+    height: 6,
+    backgroundColor: '#000',
   },
   headerRight: {
     alignItems: 'flex-end',
@@ -434,6 +476,33 @@ const styles = StyleSheet.create({
     height: 90,
     border: '1px solid #000',
     backgroundColor: '#fff',
+  },
+  qrCaption: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  priceBadge: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    border: '1px solid #000',
+    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginTop: 6,
+    backgroundColor: '#fff',
+  },
+  bottomSection: {
+    marginTop: 'auto',
+    alignItems: 'center',
+    borderTop: '1px solid #000',
+    paddingTop: 3,
+  },
+  dateBottom: {
+    fontSize: 8,
+    textAlign: 'center',
   },
   footerRow: {
     flexDirection: 'row',
@@ -561,6 +630,15 @@ const getBooleanText = (value) => {
   return 'NON'; // NON for unknown/not set
 };
 
+const isBoolTrue = (value) => {
+  if (value === true || value === 1) return true;
+  if (typeof value === 'string') {
+    const v = value.trim().toLowerCase();
+    return v === 'true' || v === '1' || v === 'oui' || v === 'yes' || v === 'vrai';
+  }
+  return false;
+};
+
 const TicketPDF = ({ colisList, codes }) => (
   <Document>
     {colisList.map((colis, idx) => (
@@ -568,6 +646,29 @@ const TicketPDF = ({ colisList, codes }) => (
         <View style={styles.proHeader}>
           <Image src="/image/lg.jpg" style={styles.brandLogoLarge} />
           <Text style={styles.suiviCode}>{colis?.code_suivi || ''}</Text>
+        </View>
+
+        <View style={styles.boolSection}>
+          <View style={styles.boolCenterRow}>
+            <View style={styles.boolGroup}>
+              <Text style={styles.boolLabel}>Ouvrir:</Text>
+              <View style={styles.checkboxBox}>
+                {isBoolTrue(colis?.ouvrir) ? <View style={styles.checkboxFill} /> : null}
+              </View>
+            </View>
+            <View style={styles.boolGroup}>
+              <Text style={styles.boolLabel}>Remplacer:</Text>
+              <View style={styles.checkboxBox}>
+                {isBoolTrue(colis?.is_remplace) ? <View style={styles.checkboxFill} /> : null}
+              </View>
+            </View>
+            <View style={styles.boolGroup}>
+              <Text style={styles.boolLabel}>Fragile:</Text>
+              <View style={styles.checkboxBox}>
+                {isBoolTrue(colis?.is_fragile) ? <View style={styles.checkboxFill} /> : null}
+              </View>
+            </View>
+          </View>
         </View>
 
         <View style={styles.bodySection}>
@@ -579,7 +680,22 @@ const TicketPDF = ({ colisList, codes }) => (
               </View>
               <View style={styles.fieldRow}>
                 <Text style={styles.fieldLabel}>Téléphone:</Text>
-                <Text style={styles.fieldValue}>{colis?.tele || ''}</Text>
+                <Text style={styles.valueUnderlineStrong}>{colis?.tele || ''}</Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Ville:</Text>
+                <Text style={styles.valueUnderlineStrong}>{truncateText(colis?.villeData?.nom || colis?.ville?.nom || '', 20)}</Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Région:</Text>
+                <Text style={styles.fieldValue}>{truncateText(
+                  colis?.regionData?.nom ||
+                  colis?.region?.nom ||
+                  colis?.villeData?.region?.nom ||
+                  colis?.ville?.region?.nom ||
+                  'N/A',
+                  22
+                )}</Text>
               </View>
               <View style={styles.fieldRow}>
                 <Text style={styles.fieldLabel}>Adresse:</Text>
@@ -587,44 +703,27 @@ const TicketPDF = ({ colisList, codes }) => (
               </View>
               <View style={styles.fieldRow}>
                 <Text style={styles.fieldLabel}>Produit:</Text>
-                <Text style={styles.fieldValue}>{truncateText(colis?.nature_produit || '', 24)}</Text>
+                <Text style={styles.fieldValue}>{truncateText(colis?.nature_produit || '', 50)}</Text>
               </View>
               <View style={styles.fieldRow}>
-                <Text style={styles.fieldLabel}>Ville:</Text>
-                <Text style={styles.fieldValue}>{truncateText(colis?.villeData?.nom || colis?.ville?.nom || '', 20)}</Text>
+                <Text style={styles.fieldLabel}>Expéditeur:</Text>
+                <Text style={styles.fieldValue}>{truncateText(colis?.storeData?.storeName || colis?.store?.storeName || 'N/A', 22)}</Text>
               </View>
-              <View style={styles.fieldRow}>
-                <Text style={styles.fieldLabel}>Date d'envoi:</Text>
-                <Text style={styles.fieldValue}>
-                  {colis?.createdAt ? new Date(colis.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
-                </Text>
-              </View>
-              <View style={styles.boolRow}>
-                <View style={styles.boolGroup}>
-                  <Text style={styles.boolLabel}>Ouvrir:</Text>
-                  <Text style={styles.boolValue}>{getBooleanText(colis?.ouvrir)}</Text>
-                </View>
-                <View style={styles.boolGroup}>
-                  <Text style={styles.boolLabel}>Remplacer:</Text>
-                  <Text style={styles.boolValue}>{getBooleanText(colis?.is_remplace)}</Text>
-                </View>
-                <View style={styles.boolGroup}>
-                  <Text style={styles.boolLabel}>Fragile:</Text>
-                  <Text style={styles.boolValue}>{getBooleanText(colis?.is_fragile)}</Text>
-                </View>
-              </View>
+              
             </View>
-            {codes[idx]?.qr && <Image src={codes[idx].qr} style={styles.qrBody} />}
+              <View>
+                {codes[idx]?.qr && <Image src={codes[idx].qr} style={styles.qrBody} />}
+                <Text style={styles.priceBadge}>{(colis?.prix ?? 0)} DH</Text>
+              </View>
           </View>
         </View>
 
-        
-
-        <Text style={styles.crbt}>CRBT: {colis?.prix || 0} DH</Text>
-
-        <View style={styles.footerRow}>
-          {codes[idx]?.barcode && <Image src={codes[idx].barcode} style={styles.barcodeLarge} />}
+        <View style={styles.bottomSection}>
+          <Text style={styles.dateBottom}>
+            {colis?.createdAt ? new Date(colis.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
+          </Text>
         </View>
+
       </Page>
     ))}
   </Document>
