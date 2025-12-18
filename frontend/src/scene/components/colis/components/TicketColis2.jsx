@@ -707,7 +707,10 @@ const TicketPDF = ({ colisList, codes }) => (
               </View>
               <View style={styles.fieldRow}>
                 <Text style={styles.fieldLabel}>Expéditeur:</Text>
-                <Text style={styles.fieldValue}>{truncateText(colis?.storeData?.storeName || colis?.store?.storeName || 'N/A', 22)}</Text>
+                <Text style={styles.fieldValue}>
+                  {truncateText(colis?.storeData?.storeName || colis?.store?.storeName || 'N/A', 22)}
+                  {" "}- {colis?.storeData?.tele || colis?.store?.tele || ''}
+                </Text>
               </View>
               
             </View>
